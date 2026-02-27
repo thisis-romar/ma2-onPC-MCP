@@ -21,29 +21,43 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ## Architecture
 
 ```
-┌────────────────────────────────────────────────────┐
-│  MCP Server Layer          src/server.py           │
-│  3 tools: create_fixture_group, execute_sequence,  │
-│           send_raw_command                          │
-└───────────────────────┬────────────────────────────┘
-                        │
-┌───────────────────────▼────────────────────────────┐
-│  Command Builder Layer     src/commands/            │
-│  100+ functions generating grandMA2 command strings │
-└───────────────────────┬────────────────────────────┘
-                        │
-┌───────────────────────▼────────────────────────────┐
-│  Telnet Client Layer       src/telnet_client.py     │
-│  Async connection, auth, send/receive via telnetlib3│
-└────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  MCP Server Layer              src/server.py             │
+│  6 tools: create_fixture_group, execute_sequence,        │
+│           send_raw_command, navigate_console,             │
+│           get_console_location, list_console_destination  │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│  Navigation Layer          src/navigation.py             │
+│  navigate(), get_current_location(), list_destination()  │
+│  Combines command builder + telnet I/O + prompt parsing  │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│  Command Builder Layer     src/commands/                  │
+│  100+ pure functions generating grandMA2 command strings  │
+│  Including changedest() for cd dot-notation commands      │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│  Telnet Client Layer       src/telnet_client.py           │
+│  Async connection, auth, send/receive via telnetlib3      │
+└──────────────────────────────────────────────────────────┘
 
-┌────────────────────────────────────────────────────┐
-│  Vocabulary & Safety       src/vocab.py             │
-│  Keyword classification and risk-tier analysis      │
-└────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  Prompt Parser             src/prompt_parser.py           │
+│  parse_prompt() — detect console location from responses  │
+│  parse_list_output() — extract object entries from list   │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│  Vocabulary & Safety       src/vocab.py                   │
+│  Keyword classification and risk-tier analysis            │
+└──────────────────────────────────────────────────────────┘
 ```
 
-All network I/O is isolated in `telnet_client.py`. Command builders are pure functions that return strings.
+All network I/O is isolated in `telnet_client.py`. Command builders are pure functions that return strings. The navigation layer orchestrates cd/list workflows with parsed telnet feedback.
 
 ## Configuration
 
@@ -59,13 +73,34 @@ LOG_LEVEL=INFO             # default: INFO
 
 ## MCP Tools
 
-The server exposes three tools to MCP clients:
+The server exposes six tools to MCP clients:
 
 | Tool | Description |
 |------|-------------|
 | `create_fixture_group` | Select a range of fixtures and save as a named group |
 | `execute_sequence` | Control sequence playback: go, pause, or goto cue |
 | `send_raw_command` | Send any grandMA2 command (use with caution) |
+| `navigate_console` | Navigate the console object tree via ChangeDest (cd) |
+| `get_console_location` | Query the current console destination without navigating |
+| `list_console_destination` | List objects at the current destination with parsed entries |
+
+### Navigation Tools
+
+The navigation tools provide structured exploration of the grandMA2 object tree:
+
+```
+cd /            → go to root
+cd ..           → go up one level
+cd Group.1      → navigate to Group 1 (dot notation)
+cd 5            → navigate by element index
+cd "MySeq"      → navigate by name
+list            → enumerate objects at current destination
+list group      → list only groups at current destination
+```
+
+**Workflow:** Use `navigate_console` to cd into a location, then `list_console_destination` to enumerate children. Both return JSON with raw telnet responses and parsed structure (object-type, object-id, element name).
+
+**Dot notation:** MA2 uses `[object-type].[object-id]` for object references (e.g., `Group.1`, `Preset.4.1`, `Sequence.3`).
 
 ### Claude Desktop Registration
 
@@ -87,11 +122,58 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
+## Console Navigation & Prompt Parsing
+
+The navigation system combines three layers to discover console state via telnet:
+
+1. **Command builder** (`changedest()`) generates cd strings with MA2 dot notation
+2. **Telnet client** sends the command and captures the raw response
+3. **Prompt parser** extracts the current location from the response
+
+### Prompt Parsing
+
+The parser detects MA2 console prompts using multiple patterns:
+
+| Pattern | Example | Parsed |
+|---------|---------|--------|
+| Bracket prompt | `[Group 1]>` | location=`Group 1`, type=`Group`, id=`1` |
+| Dot notation prompt | `[Group.1]>` | location=`Group.1`, type=`Group`, id=`1` |
+| Compound ID | `[Preset.4.1]>` | location=`Preset.4.1`, type=`Preset`, id=`4.1` |
+| Trailing slash | `[Sequence 3]>/` | location=`Sequence 3`, type=`Sequence`, id=`3` |
+| Angle bracket | `Root>` | location=`Root`, type=`Root` |
+
+When no recognizable prompt is found, the raw response is preserved for manual inspection.
+
+### List Output Parsing
+
+After cd-ing into a destination, `list` returns tabular feedback. The parser extracts entries:
+
+| Raw line | object_type | object_id | name |
+|----------|-------------|-----------|------|
+| `Group.1  Front Wash` | `Group` | `1` | `Front Wash` |
+| `Preset.4.1  Deep Blue` | `Preset` | `4.1` | `Deep Blue` |
+| `1  Front Wash` | `None` | `1` | `Front Wash` |
+| `Group.5` | `Group` | `5` | `None` |
+
+Prompt lines (`[Group]>`) are detected and separated from data entries. Unrecognized lines (headers, separators) are skipped.
+
 ## Command Builder Reference
 
 The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions return `str`.
 
 grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
+
+### Navigation (ChangeDest)
+
+| Function | Output |
+|----------|--------|
+| `changedest("/")` | `cd /` |
+| `changedest("..")` | `cd ..` |
+| `changedest("5")` | `cd 5` |
+| `changedest('"MySequence"')` | `cd "MySequence"` |
+| `changedest("Group", 1)` | `cd Group.1` |
+| `changedest("Preset", "4.1")` | `cd Preset.4.1` |
+| `changedest("Group")` | `cd Group` |
 
 ### Object Keywords
 
@@ -310,8 +392,10 @@ gma2-mcp-telnet/
 ├── connect.sh                      # Interactive Telnet session via expect
 ├── Makefile                        # Shortcuts: server, log, test
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 3 tools)
+│   ├── server.py                   # MCP server (FastMCP, 6 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
+│   ├── navigation.py               # Navigation API (cd + list + parsing)
+│   ├── prompt_parser.py            # Telnet prompt & list output parser
 │   ├── tools.py                    # Global client instance management
 │   ├── vocab.py                    # Keyword vocabulary & safety tiers
 │   ├── grandMA2_v3_9_telnet_keyword_vocabulary.json
@@ -329,7 +413,8 @@ gma2-mcp-telnet/
 │       │   ├── layouts.py          #   layout
 │       │   ├── dmx.py              #   dmx, dmx_universe
 │       │   └── time.py             #   timecode, timecode_slot, timer
-│       └── functions/              # Function keywords (13 modules)
+│       └── functions/              # Function keywords (14 modules)
+│           ├── navigation.py       #   changedest (cd dot-notation)
 │           ├── store.py            #   store, store_cue, store_group, store_preset
 │           ├── selection.py        #   select_fixture, clear*
 │           ├── playback.py         #   go, goback, goto, gofast, defgo
@@ -343,9 +428,11 @@ gma2-mcp-telnet/
 │           ├── variables.py        #   set_var, set_user_var, add_var, add_user_var
 │           ├── helping.py          #   at_relative, page_next, condition_and, ...
 │           └── macro.py            #   macro_with_input_after/before
-├── tests/                          # 517 tests (pytest + pytest-asyncio)
+├── tests/                          # 588 tests (pytest + pytest-asyncio)
 │   ├── conftest.py
-│   ├── test_tools.py
+│   ├── test_navigation.py          # navigate(), get_current_location(), list_destination()
+│   ├── test_navigation_commands.py # changedest() command string tests
+│   ├── test_prompt_parser.py       # parse_prompt(), parse_list_output()
 │   ├── test_telnet_client.py
 │   ├── test_vocab.py
 │   └── test_*.py                   # One file per command category
