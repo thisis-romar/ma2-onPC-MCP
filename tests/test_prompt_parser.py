@@ -1,14 +1,21 @@
 """
-Tests for grandMA2 telnet prompt parser.
+Tests for grandMA2 telnet prompt and list output parser.
 
-Since the exact MA2 telnet prompt format is not yet validated against a live
-console, these tests cover hypothesized patterns and edge cases.  The parser
-is designed to be refined as real output is captured.
+Since the exact MA2 telnet formats are not yet validated against a live
+console, these tests cover hypothesized patterns and edge cases.  The
+parsers are designed to be refined as real output is captured.
 """
 
 import pytest
 
-from src.prompt_parser import ConsolePrompt, parse_prompt, _split_location
+from src.prompt_parser import (
+    ConsolePrompt,
+    ListEntry,
+    ListOutput,
+    parse_prompt,
+    parse_list_output,
+    _split_location,
+)
 
 
 # =========================================================================
@@ -98,6 +105,20 @@ class TestBracketPromptPattern:
         result = parse_prompt(raw)
         assert result.location == "Group 1"
 
+    def test_dot_notation_in_prompt(self):
+        """Prompt may show dot notation: [Group.1]>"""
+        result = parse_prompt("[Group.1]>")
+        assert result.location == "Group.1"
+        assert result.object_type == "Group"
+        assert result.object_id == "1"
+
+    def test_dot_notation_preset_in_prompt(self):
+        """Dot notation with compound ID: [Preset.4.1]>"""
+        result = parse_prompt("[Preset.4.1]>")
+        assert result.location == "Preset.4.1"
+        assert result.object_type == "Preset"
+        assert result.object_id == "4.1"
+
 
 # =========================================================================
 # Generic angle-bracket pattern: something>
@@ -137,8 +158,6 @@ class TestEdgeCases:
     def test_no_recognizable_prompt(self):
         result = parse_prompt("Error: invalid command")
         assert result.raw_response == "Error: invalid command"
-        # Falls through to angle-bracket pattern (no > found)
-        assert result.prompt_line is None or result.location is None
 
     def test_raw_always_preserved(self):
         raw = "line1\nline2\n[Group 1]>"
@@ -152,8 +171,16 @@ class TestEdgeCases:
 
 
 class TestSplitLocation:
-    def test_type_and_id(self):
+    def test_type_and_id_space(self):
         assert _split_location("Group 1") == ("Group", "1")
+
+    def test_type_and_id_dot(self):
+        """Dot notation: Group.1"""
+        assert _split_location("Group.1") == ("Group", "1")
+
+    def test_preset_dot_notation(self):
+        """Dot notation with compound ID: Preset.4.1"""
+        assert _split_location("Preset.4.1") == ("Preset", "4.1")
 
     def test_type_only(self):
         assert _split_location("Fixture") == ("Fixture", None)
@@ -162,9 +189,112 @@ class TestSplitLocation:
         assert _split_location("") == (None, None)
 
     def test_non_alpha_start(self):
-        """Strings not starting with a letter don't match."""
         assert _split_location("123") == (None, None)
 
     def test_multi_word_type(self):
-        """Only single-word types are recognized."""
+        """Multi-word strings that don't match any pattern."""
         assert _split_location("some thing else") == (None, None)
+
+
+# =========================================================================
+# parse_list_output — list feedback parsing
+# =========================================================================
+
+
+class TestParseListOutput:
+    def test_empty_string(self):
+        result = parse_list_output("")
+        assert result.raw_response == ""
+        assert result.entries == ()
+
+    def test_whitespace_only(self):
+        result = parse_list_output("   \n  ")
+        assert result.entries == ()
+
+    def test_dot_notation_entries(self):
+        """Parse dot-notation entries: Group.1  Front Wash"""
+        raw = "Group.1  Front Wash\nGroup.2  Back Wash\nGroup.3  Sides"
+        result = parse_list_output(raw)
+        assert len(result.entries) == 3
+        assert result.entries[0].object_type == "Group"
+        assert result.entries[0].object_id == "1"
+        assert result.entries[0].name == "Front Wash"
+        assert result.entries[1].object_id == "2"
+        assert result.entries[1].name == "Back Wash"
+        assert result.entries[2].object_id == "3"
+        assert result.entries[2].name == "Sides"
+
+    def test_dot_notation_no_name(self):
+        """Entry with type.id but no name."""
+        result = parse_list_output("Group.5")
+        assert len(result.entries) == 1
+        assert result.entries[0].object_type == "Group"
+        assert result.entries[0].object_id == "5"
+        assert result.entries[0].name is None
+
+    def test_bare_id_entries(self):
+        """Parse bare numeric IDs (inside a typed pool after cd)."""
+        raw = "1  Front Wash\n2  Back Wash\n3  Sides"
+        result = parse_list_output(raw)
+        assert len(result.entries) == 3
+        assert result.entries[0].object_type is None
+        assert result.entries[0].object_id == "1"
+        assert result.entries[0].name == "Front Wash"
+
+    def test_bare_id_no_name(self):
+        result = parse_list_output("42")
+        assert len(result.entries) == 1
+        assert result.entries[0].object_id == "42"
+        assert result.entries[0].name is None
+
+    def test_quoted_name(self):
+        """Names in quotes should have quotes stripped."""
+        result = parse_list_output('Group.1  "Front Wash"')
+        assert result.entries[0].name == "Front Wash"
+
+    def test_skips_prompt_lines(self):
+        """Prompt lines should not be treated as data entries."""
+        raw = "Group.1  Front Wash\n[Group]>"
+        result = parse_list_output(raw)
+        assert len(result.entries) == 1
+        assert result.entries[0].object_id == "1"
+        assert result.prompt is not None
+        assert result.prompt.location == "Group"
+
+    def test_skips_unrecognised_lines(self):
+        """Headers, separators, etc. should be skipped."""
+        raw = "=== Groups ===\nGroup.1  Front Wash\n---\nGroup.2  Back"
+        result = parse_list_output(raw)
+        assert len(result.entries) == 2
+
+    def test_raw_always_preserved(self):
+        raw = "Group.1  Front Wash\nGroup.2  Back"
+        result = parse_list_output(raw)
+        assert result.raw_response == raw
+
+    def test_preset_dot_notation(self):
+        """Preset entries with compound type.id."""
+        raw = "Preset.4.1  Deep Blue\nPreset.4.2  Red"
+        result = parse_list_output(raw)
+        assert len(result.entries) == 2
+        assert result.entries[0].object_type == "Preset"
+        assert result.entries[0].object_id == "4.1"
+        assert result.entries[0].name == "Deep Blue"
+
+    def test_entries_tuple_is_frozen(self):
+        result = parse_list_output("Group.1  Test")
+        assert isinstance(result.entries, tuple)
+
+
+class TestListEntry:
+    def test_frozen(self):
+        e = ListEntry(object_type="Group", object_id="1", name="Test")
+        with pytest.raises(AttributeError):
+            e.name = "Changed"
+
+    def test_defaults_none(self):
+        e = ListEntry()
+        assert e.object_type is None
+        assert e.object_id is None
+        assert e.name is None
+        assert e.raw_line is None

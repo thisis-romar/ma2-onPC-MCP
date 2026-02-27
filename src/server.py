@@ -24,7 +24,7 @@ from src.commands import (
     pause_sequence,
     goto_cue,
 )
-from src.navigation import navigate, get_current_location
+from src.navigation import navigate, get_current_location, list_destination
 
 # Load environment variables
 load_dotenv()
@@ -59,11 +59,15 @@ mcp = FastMCP(
        Example: Send "blackout" or "go+ executor 1.1"
 
     4. navigate_console - Navigate the console's object tree (ChangeDest/cd)
-       Example: Navigate to "Group 1", go up with "..", return to root with "/"
+       Example: cd to "Group.1", go up with "..", return to root with "/"
        Returns raw telnet response + parsed prompt state for exploration.
 
     5. get_console_location - Query the current console destination
        Returns raw telnet response + parsed prompt state without navigating.
+
+    6. list_console_destination - List objects at the current destination
+       After cd-ing into a location, run list to enumerate children.
+       Returns parsed entries with object-type, object-id, and element names.
     """,
 )
 
@@ -262,9 +266,10 @@ async def navigate_console(
             - ".." to go up one level
             - A number (e.g., "5") to navigate by index
             - An object type (e.g., "Group") when object_id is provided
+              (uses dot notation: cd Group.1)
             - A quoted name (e.g., '"MySequence"') to navigate by name
-        object_id: Object ID (required when destination is an object type
-                   like "Group", "Sequence", etc.)
+        object_id: Object ID, produces dot notation cd [type].[id]
+            (e.g., destination="Group", object_id=1 → cd Group.1)
 
     Returns:
         str: JSON with command_sent, raw_response, parsed prompt details,
@@ -273,8 +278,9 @@ async def navigate_console(
     Examples:
         - Navigate to root: destination="/"
         - Go up one level: destination=".."
-        - Navigate to Group 1: destination="Group", object_id=1
+        - Navigate to Group 1: destination="Group", object_id=1 → cd Group.1
         - Navigate by index: destination="5"
+        - After navigating, use list_console_destination to enumerate objects
     """
     import json
 
@@ -325,6 +331,49 @@ async def get_console_location() -> str:
                 "object_type": result.parsed_prompt.object_type,
                 "object_id": result.parsed_prompt.object_id,
             },
+        },
+        indent=2,
+    )
+
+
+@mcp.tool()
+async def list_console_destination(
+    object_type: str | None = None,
+) -> str:
+    """
+    List objects at the current grandMA2 console destination.
+
+    After navigating with cd (navigate_console), use this tool to
+    enumerate children at the current location.  Parses the list
+    feedback to extract object-type, object-id, and element names.
+
+    Args:
+        object_type: Optional filter (e.g., "cue", "group", "preset").
+            If omitted, lists everything at the current destination.
+
+    Returns:
+        str: JSON with command_sent, raw_response, and parsed entries
+             (each with object_type, object_id, name).
+    """
+    import json
+
+    client = await get_client()
+    result = await list_destination(client, object_type)
+
+    return json.dumps(
+        {
+            "command_sent": result.command_sent,
+            "raw_response": result.raw_response,
+            "entries": [
+                {
+                    "object_type": e.object_type,
+                    "object_id": e.object_id,
+                    "name": e.name,
+                    "raw_line": e.raw_line,
+                }
+                for e in result.parsed_list.entries
+            ],
+            "entry_count": len(result.parsed_list.entries),
         },
         indent=2,
     )

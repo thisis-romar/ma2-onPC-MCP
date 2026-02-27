@@ -2,13 +2,19 @@
 Tests for the grandMA2 console navigation module.
 
 Uses mocked telnet client to avoid real network connections.
-Tests both navigate() and get_current_location() functions.
+Tests navigate(), get_current_location(), and list_destination().
 """
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from src.navigation import navigate, get_current_location, NavigationResult
+from src.navigation import (
+    navigate,
+    get_current_location,
+    list_destination,
+    NavigationResult,
+    ListDestinationResult,
+)
 from src.prompt_parser import ConsolePrompt
 
 
@@ -81,15 +87,16 @@ class TestNavigate:
         assert result.command_sent == "cd .."
 
     @pytest.mark.asyncio
-    async def test_navigate_to_object(self, mock_client):
-        mock_client.send_command_with_response.return_value = "[Group 1]>"
+    async def test_navigate_to_object_dot_notation(self, mock_client):
+        """cd Group.1 — dot notation for object type + ID."""
+        mock_client.send_command_with_response.return_value = "[Group.1]>"
 
         result = await navigate(mock_client, "Group", 1)
 
         mock_client.send_command_with_response.assert_called_once_with(
-            "cd Group 1", timeout=2.0, delay=0.3
+            "cd Group.1", timeout=2.0, delay=0.3
         )
-        assert result.command_sent == "cd Group 1"
+        assert result.command_sent == "cd Group.1"
         assert result.parsed_prompt.object_type == "Group"
         assert result.parsed_prompt.object_id == "1"
         assert result.success is True
@@ -135,7 +142,7 @@ class TestNavigate:
 
     @pytest.mark.asyncio
     async def test_navigate_preserves_raw(self, mock_client):
-        raw = "OK\nSome info\n[Group 1]>"
+        raw = "OK\nSome info\n[Group.1]>"
         mock_client.send_command_with_response.return_value = raw
 
         result = await navigate(mock_client, "Group", 1)
@@ -189,3 +196,85 @@ class TestGetCurrentLocation:
 
         assert result.parsed_prompt.location == "channel"
         assert result.success is True
+
+
+# =========================================================================
+# list_destination()
+# =========================================================================
+
+
+class TestListDestination:
+    @pytest.mark.asyncio
+    async def test_list_all(self, mock_client):
+        """list (no args) at current destination."""
+        mock_client.send_command_with_response.return_value = (
+            "Group.1  Front Wash\nGroup.2  Back Wash\n[Group]>"
+        )
+
+        result = await list_destination(mock_client)
+
+        mock_client.send_command_with_response.assert_called_once_with(
+            "list", timeout=2.0, delay=0.3
+        )
+        assert result.command_sent == "list"
+        assert len(result.parsed_list.entries) == 2
+        assert result.parsed_list.entries[0].object_type == "Group"
+        assert result.parsed_list.entries[0].object_id == "1"
+        assert result.parsed_list.entries[0].name == "Front Wash"
+
+    @pytest.mark.asyncio
+    async def test_list_with_object_type(self, mock_client):
+        """list group — filtered by object type."""
+        mock_client.send_command_with_response.return_value = (
+            "Group.1  Front Wash\nGroup.2  Back Wash"
+        )
+
+        result = await list_destination(mock_client, "group")
+
+        mock_client.send_command_with_response.assert_called_once_with(
+            "list group", timeout=2.0, delay=0.3
+        )
+        assert result.command_sent == "list group"
+        assert len(result.parsed_list.entries) == 2
+
+    @pytest.mark.asyncio
+    async def test_list_empty_response(self, mock_client):
+        """No objects at destination."""
+        mock_client.send_command_with_response.return_value = ""
+
+        result = await list_destination(mock_client)
+
+        assert len(result.parsed_list.entries) == 0
+
+    @pytest.mark.asyncio
+    async def test_list_bare_ids(self, mock_client):
+        """List output with bare IDs (inside a typed pool)."""
+        mock_client.send_command_with_response.return_value = (
+            "1  Front Wash\n2  Back Wash\n3  Sides"
+        )
+
+        result = await list_destination(mock_client)
+
+        assert len(result.parsed_list.entries) == 3
+        assert result.parsed_list.entries[0].object_type is None
+        assert result.parsed_list.entries[0].object_id == "1"
+        assert result.parsed_list.entries[0].name == "Front Wash"
+
+    @pytest.mark.asyncio
+    async def test_list_custom_timeout(self, mock_client):
+        mock_client.send_command_with_response.return_value = ""
+
+        await list_destination(mock_client, timeout=5.0, delay=1.0)
+
+        mock_client.send_command_with_response.assert_called_once_with(
+            "list", timeout=5.0, delay=1.0
+        )
+
+    @pytest.mark.asyncio
+    async def test_list_preserves_raw(self, mock_client):
+        raw = "Group.1  Front Wash\nGroup.2  Back"
+        mock_client.send_command_with_response.return_value = raw
+
+        result = await list_destination(mock_client)
+
+        assert result.raw_response == raw
