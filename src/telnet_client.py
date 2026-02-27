@@ -97,7 +97,19 @@ class GMA2TelnetClient:
         Returns:
             The result of the coroutine execution
         """
-        return asyncio.get_event_loop().run_until_complete(coro)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop is not None and loop.is_running():
+            # Already inside an async context — cannot use asyncio.run()
+            # Create a new task instead (caller must handle this case)
+            raise RuntimeError(
+                "Cannot call run_sync() from within a running event loop. "
+                "Use 'await' directly instead."
+            )
+        return asyncio.run(coro)
 
     async def connect(self) -> None:
         """
@@ -128,7 +140,8 @@ class GMA2TelnetClient:
         Perform login authentication (async).
 
         Returns:
-            bool: True if login is successful
+            bool: True if a response was received (likely successful),
+                  False if no response was received (login may have failed)
 
         Raises:
             RuntimeError: Connection not established
@@ -152,12 +165,15 @@ class GMA2TelnetClient:
                 timeout=1.0,
             )
             logger.debug(f"Login response: {response}")
+            logger.info("Login completed (response received)")
+            return True
         except asyncio.TimeoutError:
-            # Timeout is normal behavior, grandMA2 may not respond immediately
-            logger.debug("Login response timeout (normal behavior)")
-
-        logger.info("Login successful")
-        return True
+            logger.warning(
+                "Login response timeout — could not verify login success. "
+                "grandMA2 may not send a response on successful login, "
+                "but this could also indicate invalid credentials."
+            )
+            return False
 
     async def send_command(self, command: str, delay: float = 0.3) -> None:
         """

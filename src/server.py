@@ -69,9 +69,17 @@ async def get_client() -> GMA2TelnetClient:
     Get or create a telnet client instance (async).
 
     On first call, establishes connection and login. Subsequent calls return
-    the already connected client.
+    the already connected client. If the connection has dropped, reconnects
+    automatically.
     """
     global _client, _connected
+
+    # Check if existing connection is still healthy
+    if _client is not None and _connected:
+        if _client._writer is None:
+            logger.warning("Connection lost, reconnecting...")
+            _connected = False
+
     if _client is None or not _connected:
         _client = GMA2TelnetClient(
             host=GMA_HOST,
@@ -79,11 +87,16 @@ async def get_client() -> GMA2TelnetClient:
             user=GMA_USER,
             password=GMA_PASSWORD,
         )
-        await _client.connect()
-        await _client.login()
-        _connected = True
-        set_gma2_client(_client)
-        logger.info(f"Connected to grandMA2: {GMA_HOST}:{GMA_PORT}")
+        try:
+            await _client.connect()
+            await _client.login()
+            _connected = True
+            set_gma2_client(_client)
+            logger.info(f"Connected to grandMA2: {GMA_HOST}:{GMA_PORT}")
+        except Exception:
+            _connected = False
+            raise
+
     return _client
 
 
@@ -188,9 +201,20 @@ async def send_raw_command(command: str) -> str:
     """
     Send a raw MA command to grandMA2.
 
-    This is a low-level tool that allows sending any grandMA2 command-line instruction.
-    It is recommended to use other high-level tools first; use this tool only when
-    special commands are needed.
+    WARNING: This is a low-level tool that sends commands directly to a LIVE
+    lighting console. Prefer the higher-level tools (create_fixture_group,
+    execute_sequence) whenever possible.
+
+    SAFETY: Be extremely careful with destructive commands. The following
+    command types can cause data loss or disrupt live shows:
+    - delete / remove: Permanently removes show data (cues, groups, presets)
+    - reset / restart / reboot / shutdown: Resets or shuts down the console
+    - store with /overwrite: Overwrites existing show data
+    - newshow / deleteshow: Creates or deletes entire shows
+    - blackout: Kills all lighting output (disruptive during live events)
+
+    Always double-check command syntax before sending. There is no undo for
+    most destructive operations.
 
     Args:
         command: Raw MA command to send
@@ -199,9 +223,9 @@ async def send_raw_command(command: str) -> str:
         str: Operation result message
 
     Examples:
-        - blackout
         - go+ executor 1.1
         - store sequence 1 cue 1
+        - list cue
     """
     client = await get_client()
     await client.send_command(command)

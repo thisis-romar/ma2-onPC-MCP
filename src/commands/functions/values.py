@@ -328,8 +328,8 @@ def preset_type_at(
     Examples:
         >>> preset_type_at(2, 50, end_type=9)
         'presettype 2 thru 9 at 50'
-        >>> preset_type_at(2, 2, end_type=9, delay=True)
-        'presettype 2 thru 9 at delay 2'
+        >>> preset_type_at(2, 2, end_type=9, delay=2.0)
+        'presettype 2 thru 9 at delay 2.0'
     """
     if end_type is not None:
         type_part = f"presettype {start_type} thru {end_type}"

@@ -1,52 +1,49 @@
-import dotenv
-import telnetlib
-import time
+"""
+Login test script for grandMA2 Telnet connection.
 
-GMA_HOST = dotenv.get_key(".env", "GMA_HOST")
-# grandMA2 uses 30000 as default, 30001 for read-only
-GMA_PORT = 30000
+Uses GMA2TelnetClient (async, telnetlib3) instead of the deprecated telnetlib module.
+"""
+
+import asyncio
+
+import dotenv
+
+from src.telnet_client import GMA2TelnetClient
+
+GMA_HOST = dotenv.get_key(".env", "GMA_HOST") or "127.0.0.1"
+GMA_PORT = int(dotenv.get_key(".env", "GMA_PORT") or "30000")
 GMA_USER = dotenv.get_key(".env", "GMA_USER") or "administrator"
 GMA_PASSWORD = dotenv.get_key(".env", "GMA_PASSWORD") or "admin"
 
 
-def login():
-    """Login to grandMA2."""
-    tn = None
+async def login():
+    """Login to grandMA2 using GMA2TelnetClient."""
+    client = GMA2TelnetClient(
+        host=GMA_HOST,
+        port=GMA_PORT,
+        user=GMA_USER,
+        password=GMA_PASSWORD,
+    )
 
     try:
-        # Setup telnet connection
-        tn = telnetlib.Telnet(GMA_HOST, GMA_PORT)
+        await client.connect()
+        print(f"Connected to {GMA_HOST}:{GMA_PORT}")
 
-        time.sleep(1)
+        result = await client.login()
+        print(f"Login result: {result}")
 
-        # Read initial message
-        init_res = tn.read_very_eager()
-        print("=== initial message ===")
-        print(init_res.decode("utf-8"))
-        print("=== initial message end ===\n")
-
-        login_cmd = f'login "{GMA_USER}" "{GMA_PASSWORD}"\r\n'
-
-        tn.write(login_cmd.encode("utf-8"))
-
-        time.sleep(0.5)
-
-        login_res = tn.read_very_eager()
-        print("=== login response ===")
-        print(login_res.decode("utf-8"))
-        print("=== login response end ===")
-
+    except ConnectionError as e:
+        print(f"Connection error: {e}")
     except Exception as e:
         print(f"Error: {e}")
     finally:
-        if tn is not None:
-            tn.close()
+        await client.disconnect()
 
 
 def main():
     print("Hello from gma2-mcp!")
     print(f"Connecting to {GMA_HOST}:{GMA_PORT} as {GMA_USER}...")
-    login()
+    asyncio.run(login())
 
 
 if __name__ == "__main__":

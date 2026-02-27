@@ -5,9 +5,12 @@ This module contains internal helper functions used by the command builder.
 These functions are not intended for external use.
 """
 
+import logging
 from typing import Any
 
 from .constants import STORE_BOOL_OPTIONS, STORE_FLAG_OPTIONS, STORE_VALUE_OPTIONS
+
+logger = logging.getLogger(__name__)
 
 
 def _build_store_options(**kwargs: Any) -> str:
@@ -47,6 +50,12 @@ def _build_store_options(**kwargs: Any) -> str:
         # Handle value options
         elif option_key in STORE_VALUE_OPTIONS:
             options_parts.append(f"/{option_key}={value}")
+
+        else:
+            logger.warning(
+                f"Unknown store option '{key}' (normalized: '{option_key}') — "
+                "this option will be ignored. Check for typos."
+            )
 
     if options_parts:
         return " " + " ".join(options_parts)
