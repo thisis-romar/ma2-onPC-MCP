@@ -384,11 +384,98 @@ result = classify_token("li", spec)
 
 The vocabulary is sourced from `src/grandMA2_v3_9_telnet_keyword_vocabulary.json` (grandMA2 v3.9).
 
+## Tree Scanner
+
+`scan_tree.py` recursively walks the grandMA2 object tree via Telnet, building a complete JSON map of every node, child, and leaf in the console's internal data structure.
+
+### How It Works
+
+1. `cd /` — navigate to root
+2. `list` — enumerate children (get valid indexes + full column output)
+3. `cd N` — enter each child by index
+4. `list` — capture raw output (headers + columns + values)
+5. Recurse until `list` returns 0 entries (leaf) or max depth is reached
+6. `cd ..` / `cd /` — return to parent between branches
+
+### Usage
+
+```bash
+# Quick scan (depth 4, for testing)
+uv run python scan_tree.py --max-depth 4 --output scan_test.json
+
+# Full scan (depth 20, all optimizations)
+uv run python scan_tree.py --max-depth 20 --output scan_full.json
+
+# Resume an interrupted scan
+uv run python scan_tree.py --max-depth 20 --output scan_full.json --resume
+```
+
+### Scanner Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--host` | from `.env` | Console IP address |
+| `--port` | 30000 | Telnet port |
+| `--max-depth` | 20 | Maximum recursion depth |
+| `--max-nodes` | 0 | Stop after N nodes (0 = unlimited) |
+| `--max-index` | 60 | Fallback index limit when list has no parseable IDs |
+| `--failures` | 3 | Stop branch after N consecutive missing indexes |
+| `--output` | `scan_output.json` | Output JSON file path |
+| `--delay` | 0.08 | Seconds between commands |
+| `--timeout` | 0.8 | Telnet read timeout per command |
+| `--max-gap-probe` | 5 | Max gap between consecutive IDs to probe |
+| `--empty-leaf-limit` | 10 | Stop after N consecutive empty leaves (0 = off) |
+| `--health-check-interval` | 500 | Health check every N nodes (0 = disabled) |
+| `--no-leaf-shortcut` | false | Disable known-leaf-type optimization |
+| `--progress-file` | auto | JSONL progress file path |
+| `--resume` | false | Resume scan from progress file |
+
+### Speed Optimizations
+
+The scanner includes several optimizations to handle large trees (1000+ nodes):
+
+- **Smart gap probing** — Only fills gaps ≤5 between known IDs, preventing ranges like [1, 467] from generating 466 extra probes
+- **Known leaf-type shortcutting** — Skips `list` calls for types known to be leaves (History, Gel, Universe, RDM_Universe, UserImage), saving ~1s per node
+- **Health check tuning** — Checks connection every 500 nodes (instead of 100) with faster probe timeouts
+- **Consecutive empty leaf early exit** — Stops scanning a branch after 10 consecutive empty slots
+- **Subsequent-read timeout** — Reduced from 0.3s to 0.1s per telnet read, saving ~100 min across a full scan
+- **Duplicate detection** — Compares raw `list` output signatures to skip subtrees that are identical to already-scanned nodes
+
+### Resilience Features
+
+- **Auto-reconnect** — Detects dead connections (empty responses) and reconnects with full path recovery
+- **Progressive save** — Appends completed branches to a JSONL file after each root branch, preventing data loss on interruption
+- **Resume support** — Reloads progress file on startup, skips completed branches, and rebuilds duplicate-detection cache for continuity across sessions
+
+## VS Code MCP Provider
+
+The `vscode-mcp-provider/` directory contains a VS Code extension that registers the grandMA2 MCP server for AI assistant discovery.
+
+### Features
+
+- Registers the MCP server via the Model Context Protocol stdio transport
+- Compatible with Claude, GitHub Copilot (when MCP-supported), and other MCP-aware assistants
+- Launches the server using `uv run python -m src.server` in the workspace
+
+### Setup
+
+```bash
+cd vscode-mcp-provider
+npm install
+npm run compile
+# Then install the extension in VS Code (F5 to debug, or package with vsce)
+```
+
 ## Project Structure
 
 ```
 gma2-mcp-telnet/
 ├── main.py                         # Login test script
+├── scan_tree.py                    # Recursive object-tree scanner
+├── condensed_tree.py               # Collapse flat branches from scan logs
+├── parse_log_tree.py               # Parse scan logs into tree schematics
+├── test_list_format.py             # Debug cd index parsing with live console
+├── test_regex.py                   # Validate regex patterns for list parsing
 ├── connect.sh                      # Interactive Telnet session via expect
 ├── Makefile                        # Shortcuts: server, log, test
 ├── src/
@@ -436,6 +523,10 @@ gma2-mcp-telnet/
 │   ├── test_telnet_client.py
 │   ├── test_vocab.py
 │   └── test_*.py                   # One file per command category
+├── vscode-mcp-provider/             # VS Code MCP extension
+│   ├── src/extension.ts             #   Extension entry point
+│   ├── package.json                 #   Extension manifest
+│   └── tsconfig.json                #   TypeScript config
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
 ├── pyproject.toml
