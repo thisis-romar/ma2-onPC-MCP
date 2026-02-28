@@ -39,6 +39,12 @@ Options:
     --output scan_output.json
     --delay 0.08         Seconds between commands
     --timeout 0.8        Telnet read timeout per command
+    --max-gap-probe 5    Max gap between IDs to probe (default: 5)
+    --empty-leaf-limit 10  Stop after N consecutive empty leaves (0=off)
+    --health-check-interval 500  Health check every N nodes (0=disabled)
+    --no-leaf-shortcut   Disable known-leaf-type optimization
+    --progress-file PATH JSONL progress file (auto-derived if empty)
+    --resume             Resume scan from progress file
 """
 
 from __future__ import annotations
@@ -79,6 +85,12 @@ class ScanConfig:
     output_path: str = "scan_output.json"
     delay: float = 0.08
     timeout: float = 0.8
+    max_gap_probe: int = 5        # max gap between consecutive IDs to probe
+    empty_leaf_limit: int = 10    # stop after N consecutive empty leaves (0=off)
+    health_check_every: int = 500 # health check every N nodes (0=disabled)
+    no_leaf_shortcut: bool = False # disable known-leaf optimization
+    progress_path: str = ""       # JSONL progress file path (auto if empty)
+    resume: bool = False          # resume from progress file
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +115,9 @@ class TreeNode:
 # ---------------------------------------------------------------------------
 
 _LOCATION_TYPE_RE = re.compile(r'^([A-Za-z]\w*)(?:\s|/|$)')
+
+# Types known to be leaves (no children worth scanning)
+KNOWN_LEAF_TYPES = {"History", "Gel", "RDM_Universe", "Universe", "UserImage"}
 
 
 def _entries_signature(entries, raw_list_text: str) -> Optional[str]:
@@ -132,7 +147,7 @@ def _extract_type(location: Optional[str]) -> Optional[str]:
     return m.group(1) if m else None
 
 
-def _child_indexes_from_entries(entries, max_index: int) -> list[int]:
+def _child_indexes_from_entries(entries, max_index: int, max_gap_probe: int = 5) -> list[int]:
     """Extract unique integer indexes from list entries, sorted.
 
     Uses the object_id from each parsed entry as the cd index.
@@ -141,9 +156,9 @@ def _child_indexes_from_entries(entries, max_index: int) -> list[int]:
       - SubForm bug: if all parsed IDs are the same value (e.g. SubForm
         entries where col2=col3=parent_slot), the IDs don't represent cd
         indexes.  Fall back to sequential 1..N.
-      - Gap probing: after collecting list-derived indexes, fill in any
-        gaps in the sequence (e.g. list gives [1,2,3,5] -> add 4) because
-        some children exist but are not shown by list (VirtualFunctionBlocks).
+      - Smart gap probing: after collecting list-derived indexes, only fill
+        gaps ≤ max_gap_probe between consecutive known IDs (e.g. [1,2,3,5]
+        with max_gap=5 -> add 4, but [1,467] won't probe all 466 gaps).
       - Falls back to range(1, max_index+1) if no entries have valid IDs.
     """
     raw_ids: list[int] = []
@@ -169,11 +184,18 @@ def _child_indexes_from_entries(entries, max_index: int) -> list[int]:
     # Deduplicate and sort
     indexes = sorted(unique_ids)
 
-    # Gap probing: fill gaps between min and max so we don't miss
-    # children that exist but aren't shown by list
-    if len(indexes) >= 2:
-        full_range = list(range(indexes[0], indexes[-1] + 1))
-        indexes = full_range
+    # Smart gap probing: only fill gaps ≤ max_gap_probe between
+    # consecutive known IDs to avoid probing huge ranges like [1..467]
+    if len(indexes) >= 2 and max_gap_probe > 0:
+        filled = []
+        for i, cur in enumerate(indexes):
+            filled.append(cur)
+            if i + 1 < len(indexes):
+                nxt = indexes[i + 1]
+                gap = nxt - cur - 1
+                if 0 < gap <= max_gap_probe:
+                    filled.extend(range(cur + 1, nxt))
+        indexes = sorted(set(filled))
 
     return indexes
 
@@ -220,18 +242,38 @@ def _serialize_entries(entries) -> list[dict]:
     return result
 
 
+def _entry_type_map(entries) -> dict[int, str]:
+    """Map child index -> object_type from a parent's list entries.
+
+    Used by leaf-type shortcutting to skip ``list`` calls on children
+    whose type is in KNOWN_LEAF_TYPES.
+    """
+    type_map: dict[int, str] = {}
+    for e in entries:
+        oid = e.object_id if hasattr(e, 'object_id') else e.get("object_id")
+        otype = e.object_type if hasattr(e, 'object_type') else e.get("object_type")
+        if oid is not None and otype:
+            try:
+                idx = int(str(oid).split(".")[0])
+                type_map[idx] = otype
+            except (ValueError, AttributeError):
+                pass
+    return type_map
+
+
 # ---------------------------------------------------------------------------
 # Connection health & reconnect
 # ---------------------------------------------------------------------------
 
 MAX_RETRIES = 3           # reconnect attempts per failed command
-HEALTH_CHECK_EVERY = 100  # check connection health every N nodes
 
 
 async def _is_alive(client: GMA2TelnetClient) -> bool:
     """Quick health check: send empty line, expect *some* response."""
     try:
-        resp = await client.send_command_with_response("", timeout=1.0, delay=0.05)
+        resp = await client.send_command_with_response(
+            "", timeout=0.5, delay=0.02, subsequent_timeout=0.05,
+        )
         return resp is not None and len(resp) > 0
     except Exception:
         return False
@@ -370,6 +412,7 @@ async def _scan_children(
     stats: dict,
     cfg: ScanConfig,
     sig_cache: dict,
+    child_type_map: Optional[dict[int, str]] = None,
 ) -> list[TreeNode]:
     """Scan child indexes at the current console position.
 
@@ -391,6 +434,7 @@ async def _scan_children(
 
     children: list[TreeNode] = []
     consecutive_failures = 0
+    consecutive_empty_leaves = 0
     parent_path_str = ".".join(str(i) for i in parent_abs_path) if parent_abs_path else ""
 
     for idx in child_indexes:
@@ -441,38 +485,64 @@ async def _scan_children(
         stats["visited"] += 1
 
         # Periodic health check
-        if stats["visited"] % HEALTH_CHECK_EVERY == 0:
+        if cfg.health_check_every > 0 and stats["visited"] % cfg.health_check_every == 0:
             if not await _is_alive(client):
                 print(f"  [RECONNECT] Health check failed at node {stats['visited']}")
                 await _reconnect(client, cfg)
                 await _navigate_to_path_raw(client, child_abs_path, cfg)
 
-        # list — capture full raw output + parsed entries (with reconnect)
-        lst = await _safe_list(client, cfg, abs_path=child_abs_path)
-        entries = lst.parsed_list.entries
-        raw_list_text = _clean_list_text(lst.raw_response)
-        raw_entries = _serialize_entries(entries)
-
-        is_leaf = (len(entries) == 0) or (depth >= cfg.max_depth)
-
-        leaf_tag = " [LEAF]" if is_leaf else ""
-        if depth >= cfg.max_depth and len(entries) > 0:
-            leaf_tag = f" [DEPTH-CAP: {len(entries)} entries not recursed]"
-        print(
-            f"  [d={depth} | {child_path_str} | "
-            f"+{stats['visited']} ~{stats['skipped']}] "
-            f"cd {idx} -> {child_location!r} ({len(entries)} entries){leaf_tag}"
+        # Known leaf-type shortcutting: skip list call for known leaf types
+        child_obj_type = _extract_type(child_location)
+        known_leaf = (
+            not cfg.no_leaf_shortcut
+            and child_type_map is not None
+            and child_type_map.get(idx) in KNOWN_LEAF_TYPES
         )
+
+        if known_leaf:
+            entries = []
+            raw_list_text = ""
+            raw_entries = []
+            is_leaf = True
+            leaf_tag = " [LEAF-SHORTCUT]"
+            print(
+                f"  [d={depth} | {child_path_str} | "
+                f"+{stats['visited']} ~{stats['skipped']}] "
+                f"cd {idx} -> {child_location!r} (skipped list — known leaf type)"
+            )
+        else:
+            # list — capture full raw output + parsed entries (with reconnect)
+            lst = await _safe_list(client, cfg, abs_path=child_abs_path)
+            entries = lst.parsed_list.entries
+            raw_list_text = _clean_list_text(lst.raw_response)
+            raw_entries = _serialize_entries(entries)
+
+            is_leaf = (len(entries) == 0) or (depth >= cfg.max_depth)
+
+            leaf_tag = " [LEAF]" if is_leaf else ""
+            if depth >= cfg.max_depth and len(entries) > 0:
+                leaf_tag = f" [DEPTH-CAP: {len(entries)} entries not recursed]"
+            print(
+                f"  [d={depth} | {child_path_str} | "
+                f"+{stats['visited']} ~{stats['skipped']}] "
+                f"cd {idx} -> {child_location!r} ({len(entries)} entries){leaf_tag}"
+            )
 
         node = TreeNode(
             path=child_path_str,
             index=idx,
             location=child_location,
-            object_type=_extract_type(child_location),
+            object_type=child_obj_type,
             raw_list_text=raw_list_text,
             raw_list_entries=raw_entries,
             is_leaf=is_leaf,
         )
+
+        # Track consecutive empty leaves for early exit
+        if is_leaf and len(entries) == 0:
+            consecutive_empty_leaves += 1
+        else:
+            consecutive_empty_leaves = 0
 
         # Recurse into grandchildren if this is not a leaf
         if not is_leaf:
@@ -488,8 +558,9 @@ async def _scan_children(
                     f"-> skipping subtree (dup #{dup_count})"
                 )
             else:
-                grandchild_indexes = _child_indexes_from_entries(entries, cfg.max_index)
+                grandchild_indexes = _child_indexes_from_entries(entries, cfg.max_index, cfg.max_gap_probe)
                 deeper_ancestors = ancestor_locations | {child_location}
+                gc_type_map = _entry_type_map(entries) if not cfg.no_leaf_shortcut else None
 
                 node.children = await _scan_children(
                     client,
@@ -501,6 +572,7 @@ async def _scan_children(
                     stats=stats,
                     cfg=cfg,
                     sig_cache=sig_cache,
+                    child_type_map=gc_type_map,
                 )
                 # Register this signature after successful full traversal
                 if sig:
@@ -528,6 +600,15 @@ async def _scan_children(
                 )
                 break
 
+        # Consecutive empty leaf early exit
+        if (cfg.empty_leaf_limit > 0
+                and consecutive_empty_leaves >= cfg.empty_leaf_limit):
+            print(
+                f"  Stopping branch at depth {depth}: "
+                f"{cfg.empty_leaf_limit} consecutive empty leaves"
+            )
+            break
+
     return children
 
 
@@ -548,6 +629,21 @@ async def scan_tree(
     """
     stats = {"visited": 0, "skipped": 0, "duplicates": 0}
     sig_cache: dict[str, str] = {}  # entries_signature -> first path that had it
+    progress_path = _progress_file_path(cfg)
+
+    # Resume: load previously completed branches
+    resumed_branches: set[int] = set()
+    resumed_nodes: list[TreeNode] = []
+    if cfg.resume:
+        resumed_nodes, resumed_branches, resumed_stats, resumed_sigs = _load_progress(progress_path)
+        if resumed_branches:
+            stats = resumed_stats
+            sig_cache = resumed_sigs
+            print(
+                f"Resumed {len(resumed_branches)} branches from {progress_path}\n"
+                f"  Continuing with {stats['visited']} visited, "
+                f"{stats['skipped']} skipped, {stats.get('duplicates', 0)} duplicates"
+            )
 
     # Step 1: cd / — go to root
     print("Navigating to root (cd /)...")
@@ -563,7 +659,7 @@ async def scan_tree(
     print(f"Root children: {len(root_entries)} entries parsed\n")
 
     # Extract valid root indexes from list output
-    root_indexes = _child_indexes_from_entries(root_entries, cfg.max_index)
+    root_indexes = _child_indexes_from_entries(root_entries, cfg.max_index, cfg.max_gap_probe)
     total_root = len(root_indexes)
     nodes_limit_msg = f", max_nodes={cfg.max_nodes}" if cfg.max_nodes > 0 else ""
     print(
@@ -571,10 +667,16 @@ async def scan_tree(
         f"{total_root} root branches: {root_indexes}\n"
     )
 
-    root_children: list[TreeNode] = []
+    root_children: list[TreeNode] = list(resumed_nodes)
     consecutive_failures = 0
+    consecutive_empty_leaves = 0
 
     for branch_num, idx in enumerate(root_indexes, 1):
+        # Skip already-completed branches (resume support)
+        if idx in resumed_branches:
+            print(f"\n--- Root branch {branch_num}/{total_root} (index {idx}) --- RESUMED (skipping)")
+            continue
+
         # Check max_nodes limit
         if cfg.max_nodes > 0 and stats["visited"] >= cfg.max_nodes:
             print(f"\nMAX NODES REACHED ({cfg.max_nodes}) — stopping scan")
@@ -646,8 +748,9 @@ async def scan_tree(
                     f"-> skipping subtree (dup #{stats['duplicates']})"
                 )
             else:
-                child_indexes = _child_indexes_from_entries(entries, cfg.max_index)
+                child_indexes = _child_indexes_from_entries(entries, cfg.max_index, cfg.max_gap_probe)
                 ancestor_locations = {root_location, child_location}
+                rc_type_map = _entry_type_map(entries) if not cfg.no_leaf_shortcut else None
 
                 node.children = await _scan_children(
                     client,
@@ -659,14 +762,33 @@ async def scan_tree(
                     stats=stats,
                     cfg=cfg,
                     sig_cache=sig_cache,
+                    child_type_map=rc_type_map,
                 )
                 if sig:
                     sig_cache[sig] = str(idx)
+
+        # Track consecutive empty leaves for early exit
+        if is_leaf and len(entries) == 0:
+            consecutive_empty_leaves += 1
+        else:
+            consecutive_empty_leaves = 0
 
         root_children.append(node)
 
         # cd / — always return to root between top-level branches
         await _safe_navigate(client, "/", cfg)
+
+        # Consecutive empty leaf early exit
+        if (cfg.empty_leaf_limit > 0
+                and consecutive_empty_leaves >= cfg.empty_leaf_limit):
+            print(
+                f"\nStopping root scan: "
+                f"{cfg.empty_leaf_limit} consecutive empty leaves"
+            )
+            break
+
+        # Save progress after each root branch
+        _write_branch_progress(progress_path, idx, node, stats)
 
         # Progress summary after each root branch
         print(
@@ -675,6 +797,91 @@ async def scan_tree(
         )
 
     return root_children, stats
+
+
+# ---------------------------------------------------------------------------
+# Progressive save
+# ---------------------------------------------------------------------------
+
+def _progress_file_path(cfg: ScanConfig) -> str:
+    """Return the progress file path, auto-derived from output_path if empty."""
+    if cfg.progress_path:
+        return cfg.progress_path
+    return cfg.output_path + ".progress.jsonl"
+
+
+def _write_branch_progress(
+    progress_path: str,
+    branch_index: int,
+    node: TreeNode,
+    stats: dict,
+) -> None:
+    """Append one completed branch to the progress JSONL file."""
+    record = {
+        "branch_index": branch_index,
+        "node": node_to_dict(node),
+        "stats_snapshot": dict(stats),
+        "timestamp": time.time(),
+    }
+    with open(progress_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+def _dict_to_node(d: dict) -> TreeNode:
+    """Reconstruct a TreeNode from a serialized dict."""
+    return TreeNode(
+        path=d["path"],
+        index=d["index"],
+        location=d.get("location"),
+        object_type=d.get("object_type"),
+        raw_list_text=d.get("raw_list_text", ""),
+        raw_list_entries=d.get("entries", []),
+        is_leaf=d.get("is_leaf", True),
+        children=[_dict_to_node(c) for c in d.get("children", [])],
+        duplicate_of=d.get("duplicate_of"),
+    )
+
+
+def _collect_signatures(node: TreeNode, sig_cache: dict[str, str]) -> None:
+    """Rebuild sig_cache from a resumed node tree for duplicate detection continuity."""
+    if node.raw_list_entries and not node.duplicate_of:
+        sig = _entries_signature(node.raw_list_entries, node.raw_list_text)
+        if sig and sig not in sig_cache:
+            sig_cache[sig] = node.path
+    for child in node.children:
+        _collect_signatures(child, sig_cache)
+
+
+def _load_progress(progress_path: str) -> tuple[list[TreeNode], set[int], dict, dict[str, str]]:
+    """Load completed branches from a progress JSONL file.
+
+    Returns:
+        (nodes, completed_branch_indexes, last_stats, sig_cache)
+    """
+    import os
+    nodes: list[TreeNode] = []
+    completed: set[int] = set()
+    last_stats = {"visited": 0, "skipped": 0, "duplicates": 0}
+    sig_cache: dict[str, str] = {}
+
+    if not os.path.exists(progress_path):
+        return nodes, completed, last_stats, sig_cache
+
+    with open(progress_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            record = json.loads(line)
+            branch_idx = record["branch_index"]
+            node = _dict_to_node(record["node"])
+            completed.add(branch_idx)
+            nodes.append(node)
+            last_stats = record.get("stats_snapshot", last_stats)
+            # Rebuild sig_cache from this branch's node tree
+            _collect_signatures(node, sig_cache)
+
+    return nodes, completed, last_stats, sig_cache
 
 
 # ---------------------------------------------------------------------------
@@ -767,9 +974,14 @@ async def main_async(cfg: ScanConfig) -> None:
             "max_nodes": cfg.max_nodes,
             "max_index": cfg.max_index,
             "stop_after_failures": cfg.stop_after_failures,
+            "max_gap_probe": cfg.max_gap_probe,
+            "empty_leaf_limit": cfg.empty_leaf_limit,
+            "health_check_every": cfg.health_check_every,
+            "no_leaf_shortcut": cfg.no_leaf_shortcut,
             "elapsed_seconds": round(elapsed, 2),
             "nodes_visited": stats["visited"],
             "nodes_skipped": stats["skipped"],
+            "duplicates_skipped": stats.get("duplicates", 0),
         },
         "root_children": [node_to_dict(n) for n in root_children],
     }
@@ -806,6 +1018,18 @@ def parse_args() -> ScanConfig:
     p.add_argument("--output",     default="scan_output.json")
     p.add_argument("--delay",      type=float, default=0.08)
     p.add_argument("--timeout",    type=float, default=0.8)
+    p.add_argument("--max-gap-probe",        type=int, default=5,    dest="max_gap_probe",
+                   help="Max gap between consecutive IDs to probe (default: 5)")
+    p.add_argument("--empty-leaf-limit",     type=int, default=10,   dest="empty_leaf_limit",
+                   help="Stop after N consecutive empty leaves, 0=off (default: 10)")
+    p.add_argument("--health-check-interval", type=int, default=500, dest="health_check_every",
+                   help="Health check every N nodes, 0=disabled (default: 500)")
+    p.add_argument("--no-leaf-shortcut",     action="store_true",    dest="no_leaf_shortcut",
+                   help="Disable known-leaf-type optimization")
+    p.add_argument("--progress-file",        default="",             dest="progress_path",
+                   help="JSONL progress file path (auto-derived from --output if empty)")
+    p.add_argument("--resume",              action="store_true",
+                   help="Resume scan from progress file")
     args = p.parse_args()
 
     return ScanConfig(
@@ -820,6 +1044,12 @@ def parse_args() -> ScanConfig:
         output_path=args.output,
         delay=args.delay,
         timeout=args.timeout,
+        max_gap_probe=args.max_gap_probe,
+        empty_leaf_limit=args.empty_leaf_limit,
+        health_check_every=args.health_check_every,
+        no_leaf_shortcut=args.no_leaf_shortcut,
+        progress_path=args.progress_path,
+        resume=args.resume,
     )
 
 

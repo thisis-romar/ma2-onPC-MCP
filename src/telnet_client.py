@@ -200,7 +200,8 @@ class GMA2TelnetClient:
         logger.debug(f"Command sent, waiting {delay} seconds")
 
     async def send_command_with_response(
-        self, command: str, timeout: float = 2.0, delay: float = 0.3
+        self, command: str, timeout: float = 2.0, delay: float = 0.3,
+        subsequent_timeout: float = 0.10,
     ) -> str:
         """
         Send a command to grandMA2 and read the response (async).
@@ -212,6 +213,7 @@ class GMA2TelnetClient:
             command: MA command to send
             timeout: Maximum wait time for response in seconds
             delay: Initial delay after sending command
+            subsequent_timeout: Timeout for follow-up reads after the first chunk
 
         Returns:
             str: Response from grandMA2
@@ -249,7 +251,7 @@ class GMA2TelnetClient:
                     if chunk:
                         response_parts.append(chunk)
                         # Shorten timeout for subsequent reads
-                        timeout = 0.3
+                        timeout = subsequent_timeout
                     else:
                         break
                 except asyncio.TimeoutError:
