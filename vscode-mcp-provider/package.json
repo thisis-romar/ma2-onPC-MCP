@@ -1,0 +1,32 @@
+{
+  "name": "vscode-mcp-provider",
+  "displayName": "VSCode MCP Provider",
+  "description": "Registers grandMA2 MCP server for AI assistants via MCP stdio transport.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": ">=1.80.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "gma2-mcp-telnet.mcp-servers",
+        "label": "grandMA2 MCP Servers"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "dependencies": {}
+}
