@@ -18,12 +18,13 @@ Key behaviors (validated by live telnet testing on MA2 v3.9):
   - Leaves = nodes where list returns 0 entries (natural termination)
   - null parsed location after cd -> treated as MISS, do not recurse
 
-Optimizations:
-  - Flat-branch detection: if a branch has >20 children and the first 3 are
-    all leaves, capture their list data directly without recursing each one
-  - max_nodes cap: stop scanning after visiting N nodes
-  - max_depth default 4: avoids fixture min/max/home sublevels (depth 5-8)
-  - Progress reporting: prints which root branch we're on (X of Y)
+Index extraction strategy:
+  - Primary: parse object_id from each list entry as the cd index
+  - SubForm fix: when all parsed IDs are identical (e.g. SubForm entries where
+    col2=col3=parent_slot), fall back to sequential 1..N indexes
+  - Gap probing: after collecting list-derived indexes, probe gaps between
+    them (e.g. if list gives [1,2,3,5], probe 4) because some children
+    exist but are not shown by list (e.g. VirtualFunctionBlocks at cd 4)
 
 Usage:
     uv run python scan_tree.py [options]
@@ -31,7 +32,7 @@ Usage:
 Options:
     --host 127.0.0.1     Console IP (default: from .env)
     --port 30000         Telnet port (default: 30000)
-    --max-depth 4        Maximum recursion depth (default: 4)
+    --max-depth 20       Maximum recursion depth (default: 20)
     --max-nodes 0        Stop after N nodes (0 = unlimited)
     --max-index 60       Fallback index limit when list has no parseable IDs
     --failures 3         Stop a branch after N consecutive missing indexes
@@ -60,11 +61,6 @@ from src.telnet_client import GMA2TelnetClient
 # Suppress info/debug noise from navigation and telnet layers
 logging.basicConfig(level=logging.WARNING)
 
-# Threshold: if a branch has more children than this and the first N are
-# all leaves, treat the rest as leaves too (capture list data, skip recursion).
-FLAT_BRANCH_THRESHOLD = 20
-FLAT_BRANCH_SAMPLE = 3
-
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -76,7 +72,7 @@ class ScanConfig:
     port: int = 30000
     user: str = "administrator"
     password: str = "admin"
-    max_depth: int = 4            # default 4 — avoids fixture min/max sublevels
+    max_depth: int = 20           # default 20 — drill all leaves
     max_nodes: int = 0            # 0 = unlimited; stop after N visited nodes
     max_index: int = 60           # fallback limit when list returns no entries
     stop_after_failures: int = 3  # stop probing after N consecutive misses
@@ -99,6 +95,7 @@ class TreeNode:
     raw_list_entries: list[dict]     # serialized ListEntry dicts from list
     is_leaf: bool                    # True = list returned 0 entries
     children: list["TreeNode"] = field(default_factory=list)
+    duplicate_of: Optional[str] = None  # path of original if this is a duplicate
 
 
 # ---------------------------------------------------------------------------
@@ -106,6 +103,25 @@ class TreeNode:
 # ---------------------------------------------------------------------------
 
 _LOCATION_TYPE_RE = re.compile(r'^([A-Za-z]\w*)(?:\s|/|$)')
+
+
+def _entries_signature(entries, raw_list_text: str) -> Optional[str]:
+    """Compute a hashable signature from list entries for duplicate detection.
+
+    Uses the full raw list text (all column headers + values) as the
+    signature.  This is deliberately strict: two nodes match only if their
+    ``list`` output is character-for-character identical after ANSI/prompt
+    stripping.  This prevents false matches between nodes that share the
+    same child *types* but have different content (e.g. different fixture
+    types that both have Modules/Instances/Wheels as children).
+
+    Returns None if no entries (leaves can't be dupes).
+    """
+    if not entries:
+        return None
+    # The raw list text includes all column values, names, and counts
+    # — a much stricter match than just type|id|name tuples
+    return raw_list_text if raw_list_text.strip() else None
 
 
 def _extract_type(location: Optional[str]) -> Optional[str]:
@@ -120,24 +136,46 @@ def _child_indexes_from_entries(entries, max_index: int) -> list[int]:
     """Extract unique integer indexes from list entries, sorted.
 
     Uses the object_id from each parsed entry as the cd index.
-    Falls back to range(1, max_index+1) if no entries have valid IDs.
+
+    Special cases:
+      - SubForm bug: if all parsed IDs are the same value (e.g. SubForm
+        entries where col2=col3=parent_slot), the IDs don't represent cd
+        indexes.  Fall back to sequential 1..N.
+      - Gap probing: after collecting list-derived indexes, fill in any
+        gaps in the sequence (e.g. list gives [1,2,3,5] -> add 4) because
+        some children exist but are not shown by list (VirtualFunctionBlocks).
+      - Falls back to range(1, max_index+1) if no entries have valid IDs.
     """
-    indexes: list[int] = []
+    raw_ids: list[int] = []
     for e in entries:
         oid = e.object_id if hasattr(e, 'object_id') else e.get("object_id")
         if oid is not None:
             try:
                 idx = int(str(oid).split(".")[0])
-                if idx not in indexes:
-                    indexes.append(idx)
+                raw_ids.append(idx)
             except (ValueError, AttributeError):
                 pass
 
-    if indexes:
-        indexes.sort()
-        return indexes
+    if not raw_ids:
+        return list(range(1, max_index + 1))
 
-    return list(range(1, max_index + 1))
+    # SubForm fix: if all parsed IDs are identical (e.g. all "2"),
+    # they represent the parent's slot number, not cd indexes.
+    # Fall back to sequential 1..N where N = number of entries.
+    unique_ids = set(raw_ids)
+    if len(unique_ids) == 1 and len(raw_ids) > 1:
+        return list(range(1, len(entries) + 1))
+
+    # Deduplicate and sort
+    indexes = sorted(unique_ids)
+
+    # Gap probing: fill gaps between min and max so we don't miss
+    # children that exist but aren't shown by list
+    if len(indexes) >= 2:
+        full_range = list(range(indexes[0], indexes[-1] + 1))
+        indexes = full_range
+
+    return indexes
 
 
 def _clean_list_text(raw: str) -> str:
@@ -167,15 +205,19 @@ def _clean_list_text(raw: str) -> str:
 
 def _serialize_entries(entries) -> list[dict]:
     """Convert parsed ListEntry objects to serializable dicts."""
-    return [
-        {
+    result = []
+    for e in entries:
+        d = {
             "object_type": e.object_type,
             "object_id": e.object_id,
             "name": e.name,
             "raw_line": e.raw_line,
         }
-        for e in entries
-    ]
+        col3 = getattr(e, "col3", None)
+        if col3 is not None:
+            d["col3"] = col3
+        result.append(d)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -217,6 +259,7 @@ async def _scan_children(
     depth: int,
     stats: dict,
     cfg: ScanConfig,
+    sig_cache: dict,
 ) -> list[TreeNode]:
     """Scan child indexes at the current console position.
 
@@ -227,12 +270,9 @@ async def _scan_children(
       1. cd N         — enter child
       2. list         — capture full output (headers + all column values)
       3. [recurse]    — if child has entries, scan its children
+         (skip if entries signature matches an already-scanned node)
       4. cd ..        — try to return to parent
       5. [verify]     — if cd .. skipped levels, re-navigate via absolute path
-
-    Flat-branch optimization: if the child list has >FLAT_BRANCH_THRESHOLD
-    entries and the first FLAT_BRANCH_SAMPLE are all leaves, skip the rest
-    (their data is already captured in the parent's list output).
     """
     # Check max_nodes limit
     if cfg.max_nodes > 0 and stats["visited"] >= cfg.max_nodes:
@@ -242,11 +282,6 @@ async def _scan_children(
     children: list[TreeNode] = []
     consecutive_failures = 0
     parent_path_str = ".".join(str(i) for i in parent_abs_path) if parent_abs_path else ""
-
-    # Flat-branch tracking: count consecutive leaves at start of a big branch
-    is_big_branch = len(child_indexes) > FLAT_BRANCH_THRESHOLD
-    consecutive_leaves_at_start = 0
-    flat_branch_triggered = False
 
     for idx in child_indexes:
         # Check max_nodes limit
@@ -324,41 +359,37 @@ async def _scan_children(
 
         # Recurse into grandchildren if this is not a leaf
         if not is_leaf:
-            grandchild_indexes = _child_indexes_from_entries(entries, cfg.max_index)
-            deeper_ancestors = ancestor_locations | {child_location}
+            sig = _entries_signature(entries, raw_list_text)
+            if sig and sig in sig_cache:
+                # Duplicate: same list output as a previously scanned node
+                original_path = sig_cache[sig]
+                node.duplicate_of = original_path
+                stats["duplicates"] = stats.get("duplicates", 0) + 1
+                dup_count = stats["duplicates"]
+                print(
+                    f"  DUPLICATE of [{original_path}] "
+                    f"-> skipping subtree (dup #{dup_count})"
+                )
+            else:
+                grandchild_indexes = _child_indexes_from_entries(entries, cfg.max_index)
+                deeper_ancestors = ancestor_locations | {child_location}
 
-            node.children = await _scan_children(
-                client,
-                parent_abs_path=child_abs_path,
-                parent_location=child_location,
-                ancestor_locations=deeper_ancestors,
-                child_indexes=grandchild_indexes,
-                depth=depth + 1,
-                stats=stats,
-                cfg=cfg,
-            )
+                node.children = await _scan_children(
+                    client,
+                    parent_abs_path=child_abs_path,
+                    parent_location=child_location,
+                    ancestor_locations=deeper_ancestors,
+                    child_indexes=grandchild_indexes,
+                    depth=depth + 1,
+                    stats=stats,
+                    cfg=cfg,
+                    sig_cache=sig_cache,
+                )
+                # Register this signature after successful full traversal
+                if sig:
+                    sig_cache[sig] = child_path_str
 
         children.append(node)
-
-        # Flat-branch optimization: track consecutive leaves at start of big branch
-        if is_big_branch and not flat_branch_triggered:
-            if is_leaf:
-                consecutive_leaves_at_start += 1
-                if consecutive_leaves_at_start >= FLAT_BRANCH_SAMPLE:
-                    # First N children are all leaves — skip the rest
-                    remaining = len(child_indexes) - len(children)
-                    print(
-                        f"  FLAT BRANCH: {len(child_indexes)} children, "
-                        f"first {FLAT_BRANCH_SAMPLE} are all leaves -> "
-                        f"skipping {remaining} remaining (data in parent list)"
-                    )
-                    flat_branch_triggered = True
-                    # cd .. back to parent and stop this loop
-                    await navigate(client, "..", timeout=cfg.timeout, delay=cfg.delay)
-                    break
-            else:
-                # Not all leaves — disable flat-branch check
-                consecutive_leaves_at_start = -1  # sentinel: don't check again
 
         # cd .. — try to return to parent
         back_nav = await navigate(client, "..", timeout=cfg.timeout, delay=cfg.delay)
@@ -398,7 +429,8 @@ async def scan_tree(
          c. Recurse into sub-levels until list returns 0 entries (leaf)
          d. cd / -> return to root between top-level branches
     """
-    stats = {"visited": 0, "skipped": 0}
+    stats = {"visited": 0, "skipped": 0, "duplicates": 0}
+    sig_cache: dict[str, str] = {}  # entries_signature -> first path that had it
 
     # Step 1: cd / — go to root
     print("Navigating to root (cd /)...")
@@ -489,19 +521,32 @@ async def scan_tree(
 
         # Recurse into children if not a leaf
         if not is_leaf:
-            child_indexes = _child_indexes_from_entries(entries, cfg.max_index)
-            ancestor_locations = {root_location, child_location}
+            sig = _entries_signature(entries, list_text)
+            if sig and sig in sig_cache:
+                original_path = sig_cache[sig]
+                node.duplicate_of = original_path
+                stats["duplicates"] += 1
+                print(
+                    f"  DUPLICATE of [{original_path}] "
+                    f"-> skipping subtree (dup #{stats['duplicates']})"
+                )
+            else:
+                child_indexes = _child_indexes_from_entries(entries, cfg.max_index)
+                ancestor_locations = {root_location, child_location}
 
-            node.children = await _scan_children(
-                client,
-                parent_abs_path=[idx],
-                parent_location=child_location,
-                ancestor_locations=ancestor_locations,
-                child_indexes=child_indexes,
-                depth=2,
-                stats=stats,
-                cfg=cfg,
-            )
+                node.children = await _scan_children(
+                    client,
+                    parent_abs_path=[idx],
+                    parent_location=child_location,
+                    ancestor_locations=ancestor_locations,
+                    child_indexes=child_indexes,
+                    depth=2,
+                    stats=stats,
+                    cfg=cfg,
+                    sig_cache=sig_cache,
+                )
+                if sig:
+                    sig_cache[sig] = str(idx)
 
         root_children.append(node)
 
@@ -522,7 +567,7 @@ async def scan_tree(
 # ---------------------------------------------------------------------------
 
 def node_to_dict(node: TreeNode) -> dict:
-    return {
+    d = {
         "path": node.path,
         "index": node.index,
         "location": node.location,
@@ -533,6 +578,9 @@ def node_to_dict(node: TreeNode) -> dict:
         "is_leaf": node.is_leaf,
         "children": [node_to_dict(c) for c in node.children],
     }
+    if node.duplicate_of:
+        d["duplicate_of"] = node.duplicate_of
+    return d
 
 
 def print_tree(nodes: list[TreeNode], indent: int = 0) -> None:
@@ -541,12 +589,16 @@ def print_tree(nodes: list[TreeNode], indent: int = 0) -> None:
     for node in nodes:
         n_entries = len(node.raw_list_entries)
         leaf_tag = " [leaf]" if node.is_leaf else ""
+        dup_tag = f" [DUPLICATE of {node.duplicate_of}]" if node.duplicate_of else ""
         n_children = len(node.children)
         children_tag = f" [{n_children} children]" if n_children else ""
         print(
             f"{prefix}[{node.path}] {node.location!r}"
-            f"  ({n_entries} entries){children_tag}{leaf_tag}"
+            f"  ({n_entries} entries){children_tag}{leaf_tag}{dup_tag}"
         )
+        if node.duplicate_of:
+            # Don't expand duplicates
+            continue
         if node.raw_list_entries and not node.children:
             for e in node.raw_list_entries[:5]:
                 name = e.get("name") or e.get("object_id") or ""
@@ -563,6 +615,13 @@ def print_tree(nodes: list[TreeNode], indent: int = 0) -> None:
 # ---------------------------------------------------------------------------
 
 async def main_async(cfg: ScanConfig) -> None:
+    # Fix Windows cp1252 encoding errors when printing Unicode location names
+    import sys, io
+    if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.buffer, encoding="utf-8", errors="replace"
+        )
+
     print(f"Connecting to {cfg.host}:{cfg.port} as {cfg.user}...")
     client = GMA2TelnetClient(
         host=cfg.host,
@@ -610,6 +669,7 @@ async def main_async(cfg: ScanConfig) -> None:
     print(f"\n=== SCAN COMPLETE ===")
     print(f"  Nodes visited : {stats['visited']}")
     print(f"  Indexes missed: {stats['skipped']}")
+    print(f"  Dupes skipped : {stats.get('duplicates', 0)}")
     print(f"  Elapsed time  : {elapsed:.1f}s")
     print(f"  Output written: {cfg.output_path}")
 
@@ -624,7 +684,7 @@ def parse_args() -> ScanConfig:
     p.add_argument("--port",       type=int, default=30000)
     p.add_argument("--user",       default=env_user)
     p.add_argument("--password",   default=env_pass)
-    p.add_argument("--max-depth",  type=int, default=4,    dest="max_depth")
+    p.add_argument("--max-depth",  type=int, default=20,   dest="max_depth")
     p.add_argument("--max-nodes",  type=int, default=0,    dest="max_nodes")
     p.add_argument("--max-index",  type=int, default=60,   dest="max_index")
     p.add_argument("--failures",   type=int, default=3)

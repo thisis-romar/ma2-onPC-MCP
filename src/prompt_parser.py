@@ -169,14 +169,20 @@ class ListEntry:
     Attributes:
         object_type: Object type (e.g. ``"Group"``, ``"Sequence"``), or ``None``.
         object_id: Object ID (e.g. ``"1"``, ``"4.1"``), or ``None``.
+            For tabular entries this is col2 (pool slot).
         name: Element name / label (e.g. ``"Front Wash"``), or ``None``.
         raw_line: The original line from the list output.
+        col3: Third column from tabular format (e.g. ``"1"``, ``"3.7.0.5"``).
+            May differ from object_id for SubForm entries where both cols
+            carry the parent's form number and the real cd index is the
+            entry's ordinal position (1, 2, 3…).
     """
 
     object_type: Optional[str] = None
     object_id: Optional[str] = None
     name: Optional[str] = None
     raw_line: Optional[str] = None
+    col3: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -201,12 +207,19 @@ class ListOutput:
 #   1.  Tabular (pool listing):  "Group   1 1    ALL LASERS"
 #                                "Sequ   1 1    ALL WHITE   On  ..."
 #                                "History  1 3.7.0.5    No    Mar 16 2022  newshow"
-#       Columns: TypeAbbr  pool_slot  No.(or version)  Name  [extra columns...]
+#                                "SubForm  2  2    Release  192 192 192   (1)"
+#       Columns: TypeAbbr  col2  col3  Name  [extra columns...]
+#       NOTE: col2 and col3 may both be the parent's pool_slot (SubForm case).
+#       The cd index is determined by the scanner, not assumed here.
 #
-#   1b. Root-level listing:      "Showfile              1  Date=Feb 25 2026 Info= (37)"
+#   1b. Root/container listing:  "Showfile              1  Date=Feb 25 2026 Info= (37)"
 #                                "Settings              3  (6)"
 #                                "EditSetup            11"
-#       Columns: Name  ID  [key=value properties]
+#                                "Art-Net  1  OutActive=Off InActive=Off ..."
+#                                "ETC Net2 2  Active=Off ..."
+#                                "Modules             1  (1)"
+#       Columns: Name  ID  [key=value properties or (count)]
+#       Name may contain hyphens, digits, and spaces.
 #
 #   2.  Dot notation:  "Group.1  Front Wash"   (legacy / manual testing)
 #   3.  Bare ID:       "1  Front Wash"         (when inside a typed pool)
@@ -214,16 +227,18 @@ class ListOutput:
 
 # Pattern 1: tabular pool listing  "Group   1 1    Name  [extra...]"
 # Also handles version-style third field: "History  1 3.7.0.5    No ..."
-# Captures: (type_abbr, pool_slot, no_or_version, rest_of_line)
+# Captures: (type_abbr, col2, col3, rest_of_line)
 _LIST_TABULAR_RE = re.compile(
     r"^\s*([A-Za-z]\w*)\s+(\d+)\s+(\d+(?:\.\d+)*)\s{2,}(.+?)\s*$"
 )
 
-# Pattern 1b: root-level listing  "Showfile  1  Date=..." or "Settings  3  (6)"
-# Two columns: Name  ID, optionally followed by 2+ spaces then properties.
-# Must NOT match tabular lines (those have two consecutive numbers before 2+ spaces).
+# Pattern 1b: root/container listing  "Showfile  1  Date=..." or "Settings  3  (6)"
+# The "Name" part can contain hyphens, digits, spaces (e.g. "Art-Net", "ETC Net2").
+# Uses lazy (.+?) so the regex engine finds the first \d+ that allows the rest
+# (optional 2+ spaces + properties, then end of line) to match.
+# Widget lines are filtered out before reaching this regex.
 _LIST_ROOT_RE = re.compile(
-    r"^\s*([A-Za-z]\w*)\s+(\d+)(?:\s{2,}(.+?))?\s*$"
+    r"^\s*(.+?)\s+(\d+)(?:\s{2,}(.+?))?\s*$"
 )
 
 # Pattern 2: Type.ID with optional name (e.g. "Group.1  Front Wash")
@@ -267,8 +282,8 @@ def parse_list_output(raw: str) -> ListOutput:
         if not stripped:
             continue
 
-        # Skip MA2 feedback prefixes and error lines
-        if stripped.startswith(("Executing :", "Error :", "Error #", "WARNING,")):
+        # Skip MA2 feedback prefixes, error lines, and widget config lines
+        if stripped.startswith(("Executing :", "Error :", "Error #", "WARNING,", "Widget ")):
             continue
 
         # Skip lines that look like a prompt (don't treat as data)
@@ -277,7 +292,8 @@ def parse_list_output(raw: str) -> ListOutput:
             continue
 
         # Skip lines that are clearly prompts via angle-bracket pattern
-        if _ANGLE_PROMPT_RE.search(stripped):
+        # But don't skip lines that contain ">Executing" (command echo appended to prompt)
+        if _ANGLE_PROMPT_RE.search(stripped) and ">Executing" not in stripped:
             prompt = parse_prompt(stripped)
             continue
 
@@ -290,9 +306,10 @@ def parse_list_output(raw: str) -> ListOutput:
             name = name_part if name_part else None
             entries.append(ListEntry(
                 object_type=m.group(1),
-                object_id=m.group(2),  # pool slot (= cd index)
+                object_id=m.group(2),  # col2 (pool slot)
                 name=name,
                 raw_line=stripped,
+                col3=m.group(3),       # col3 (No. or version)
             ))
             continue
 

@@ -24,7 +24,7 @@ from src.commands import (
     pause_sequence,
     goto_cue,
 )
-from src.navigation import navigate, get_current_location, list_destination
+from src.navigation import navigate, get_current_location, list_destination, scan_indexes
 
 # Load environment variables
 load_dotenv()
@@ -374,6 +374,72 @@ async def list_console_destination(
                 for e in result.parsed_list.entries
             ],
             "entry_count": len(result.parsed_list.entries),
+        },
+        indent=2,
+    )
+
+
+@mcp.tool()
+async def scan_console_indexes(
+    reset_to: str = "/",
+    max_index: int = 50,
+    stop_after_failures: int = 3,
+) -> str:
+    """
+    Scan numeric indexes via cd N → list → cd <reset_to>.
+
+    For each index N from 1 to max_index:
+      1. cd N           — navigate into that index
+      2. list           — enumerate children there
+      3. cd <reset_to>  — return to the base location for the next iteration
+
+    The reset_to destination controls what each cd N is relative to:
+      - "/"          (default) scan root-level indexes (Showfile, TimeConfig, …)
+      - "Sequence"   reset to Sequence pool → cd N enters Sequence N → list shows its cues
+      - "Group"      reset to Group pool → cd N enters Group N
+
+    Stops early after stop_after_failures consecutive indexes with no entries.
+
+    Args:
+        reset_to: Where to navigate after each list before the next cd N (default "/").
+        max_index: Highest index to try (default 50).
+        stop_after_failures: Stop after this many consecutive empty indexes (default 3).
+
+    Returns:
+        str: JSON with a list of scan results — one entry per index that
+             returned list output, each with index, location, object_type,
+             and parsed entries (object_type, object_id, name).
+    """
+    import json
+
+    client = await get_client()
+    results = await scan_indexes(
+        client,
+        reset_to=reset_to,
+        max_index=max_index,
+        stop_after_failures=stop_after_failures,
+    )
+
+    return json.dumps(
+        {
+            "scanned_count": len(results),
+            "results": [
+                {
+                    "index": r.index,
+                    "location": r.location,
+                    "object_type": r.object_type,
+                    "entry_count": len(r.entries),
+                    "entries": [
+                        {
+                            "object_type": e.object_type,
+                            "object_id": e.object_id,
+                            "name": e.name,
+                        }
+                        for e in r.entries
+                    ],
+                }
+                for r in results
+            ],
         },
         indent=2,
     )

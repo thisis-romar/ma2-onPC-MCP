@@ -1,0 +1,4362 @@
+======================================================================
+grandMA2 COMPLETE OBJECT TREE
+======================================================================
+Root: Fixture
+  38 list entries | 42 probed indexes (gap fill)
+  4131 nodes scanned | 76 misses | 141 duplicates
+  34/42 root branches complete
+  Max depth: 8
+
+Legend:
+  *          = leaf node (no children)
+  (N)        = N child entries
+  [== path]  = duplicate subtree (identical to node at path)
+  +-- name   = tree branch
+  | |        = tree depth guide
+
+[ 1] Showfile 1 [DONE]
+| +-- History 1 *
+| +-- History 2 *
+| +-- History 3 *
+| +-- History 4 *
+| +-- History 5 *
+| +-- History 6 *
+| +-- History 7 *
+| +-- History 8 *
+| +-- History 9 *
+| +-- History 10 *
+| +-- History 11 *
+| +-- History 12 *
+| +-- History 13 *
+| +-- History 14 *
+| +-- History 15 *
+| +-- History 16 *
+| +-- History 17 *
+| +-- History 18 *
+| +-- History 19 *
+| +-- History 20 *
+| +-- History 21 *
+| +-- History 22 *
+| +-- History 23 *
+| +-- History 24 *
+| +-- History 25 *
+| +-- History 26 *
+| +-- History 27 *
+| +-- History 28 *
+| +-- History 29 *
+| +-- History 30 *
+| +-- History 31 *
+| +-- History 32 *
+| +-- History 33 *
+| +-- History 34 *
+| +-- History 35 *
+| +-- History 36 *
+| +-- History 37 *
+
+[ 2] TimeConfig 2 [DONE]
+
+[ 3] Settings 3 [DONE]
+| +-- Global 1 *
+| +-- Local 2 (2)
+| | +-- SurfaceCollect (1)
+| | | +-- Default 1 *
+| | +-- ShortcutDefinition 2 *
+| +-- Show 3 *
+| +-- Sound 4 *
+| +-- MidiConfig 5 *
+| +-- TimecodeStatus (8)
+| | +-- TC Slot 1 *
+| | +-- TC Slot 2 *
+| | +-- TC Slot 3 *
+| | +-- TC Slot 4 *
+| | +-- TC Slot 5 *
+| | +-- TC Slot 6 *
+| | +-- TC Slot 7 *
+| | +-- TC Slot 8 *
+
+[ 4] DMX_Protocols [DONE]
+| +-- Art-Net 1 (1)
+| | +-- ArtnetData 1 *
+| +-- ETC Net2 2 *
+| +-- Pathport 3 *
+| +-- sACN 4 (1)
+| | +-- ACNData 1 *
+| +-- Shownet 5 *
+| +-- Kinet1 6 (1)
+| | +-- KinetData 1 *
+
+[ 5] NetConfig [DONE]
+| +-- Console 1 *
+| +-- onPC 2 (2)
+| | +-- WINDELL-6OKD21F 1 (3)
+| | | +-- Command 1 *
+| | | +-- Fader 1 2 *
+| | +-- WINDELL-6OKD21F 2  [== 5.2.1]
+| +-- NPU 3 *
+| +-- 3D 4 *
+| +-- VPU 5 *
+
+[ 6] CITPNetConfig 6 [DONE]
+
+[ 7] TrackingSystems 7 [DONE]
+
+[ 8] UserImagePool [DONE]
+| +-- PAR 1 *
+| +-- Fresnel 2 *
+| +-- Leko 3 *
+| +-- Zoom Profile 4 *
+| +-- Blinder 5 *
+| +-- 2Lite 6 *
+| +-- Moving 1 7 *
+| +-- Moving 2 8 *
+| +-- Moving 3 9 *
+| +-- Moving 4 10 *
+| +-- Scanner 11 *
+| +-- Strobe 12 *
+| +-- Smoke 13 *
+
+[ 9] RDM_Data 9 [DONE]
+| +-- RDM_Fixture_Types 1 *
+| +-- RDM_Universes (256)
+| | +-- RDM_Universe 1 *
+| | +-- RDM_Universe 2 *
+| | +-- RDM_Universe 3 *
+| | +-- RDM_Universe 4 *
+| | +-- RDM_Universe 5 *
+| | +-- RDM_Universe 6 *
+| | +-- RDM_Universe 7 *
+| | +-- RDM_Universe 8 *
+| | +-- RDM_Universe 9 *
+| | +-- RDM_Universe 10 *
+| | +-- RDM_Universe 11 *
+| | +-- RDM_Universe 12 *
+| | +-- RDM_Universe 13 *
+| | +-- RDM_Universe 14 *
+| | +-- RDM_Universe 15 *
+| | +-- RDM_Universe 16 *
+| | +-- RDM_Universe 17 *
+| | +-- RDM_Universe 18 *
+| | +-- RDM_Universe 19 *
+| | +-- RDM_Universe 20 *
+| | +-- RDM_Universe 21 *
+| | +-- RDM_Universe 22 *
+| | +-- RDM_Universe 23 *
+| | +-- RDM_Universe 24 *
+| | +-- RDM_Universe 25 *
+| | +-- RDM_Universe 26 *
+| | +-- RDM_Universe 27 *
+| | +-- RDM_Universe 28 *
+| | +-- RDM_Universe 29 *
+| | +-- RDM_Universe 30 *
+| | +-- RDM_Universe 31 *
+| | +-- RDM_Universe 32 *
+| | +-- RDM_Universe 33 *
+| | +-- RDM_Universe 34 *
+| | +-- RDM_Universe 35 *
+| | +-- RDM_Universe 36 *
+| | +-- RDM_Universe 37 *
+| | +-- RDM_Universe 38 *
+| | +-- RDM_Universe 39 *
+| | +-- RDM_Universe 40 *
+| | +-- RDM_Universe 41 *
+| | +-- RDM_Universe 42 *
+| | +-- RDM_Universe 43 *
+| | +-- RDM_Universe 44 *
+| | +-- RDM_Universe 45 *
+| | +-- RDM_Universe 46 *
+| | +-- RDM_Universe 47 *
+| | +-- RDM_Universe 48 *
+| | +-- RDM_Universe 49 *
+| | +-- RDM_Universe 50 *
+| | +-- RDM_Universe 51 *
+| | +-- RDM_Universe 52 *
+| | +-- RDM_Universe 53 *
+| | +-- RDM_Universe 54 *
+| | +-- RDM_Universe 55 *
+| | +-- RDM_Universe 56 *
+| | +-- RDM_Universe 57 *
+| | +-- RDM_Universe 58 *
+| | +-- RDM_Universe 59 *
+| | +-- RDM_Universe 60 *
+| | +-- RDM_Universe 61 *
+| | +-- RDM_Universe 62 *
+| | +-- RDM_Universe 63 *
+| | +-- RDM_Universe 64 *
+| | +-- RDM_Universe 65 *
+| | +-- RDM_Universe 66 *
+| | +-- RDM_Universe 67 *
+| | +-- RDM_Universe 68 *
+| | +-- RDM_Universe 69 *
+| | +-- RDM_Universe 70 *
+| | +-- RDM_Universe 71 *
+| | +-- RDM_Universe 72 *
+| | +-- RDM_Universe 73 *
+| | +-- RDM_Universe 74 *
+| | +-- RDM_Universe 75 *
+| | +-- RDM_Universe 76 *
+| | +-- RDM_Universe 77 *
+| | +-- RDM_Universe 78 *
+| | +-- RDM_Universe 79 *
+| | +-- RDM_Universe 80 *
+| | +-- RDM_Universe 81 *
+| | +-- RDM_Universe 82 *
+| | +-- RDM_Universe 83 *
+| | +-- RDM_Universe 84 *
+| | +-- RDM_Universe 85 *
+| | +-- RDM_Universe 86 *
+| | +-- RDM_Universe 87 *
+| | +-- RDM_Universe 88 *
+| | +-- RDM_Universe 89 *
+| | +-- RDM_Universe 90 *
+| | +-- RDM_Universe 91 *
+| | +-- RDM_Universe 92 *
+| | +-- RDM_Universe 93 *
+| | +-- RDM_Universe 94 *
+| | +-- RDM_Universe 95 *
+| | +-- RDM_Universe 96 *
+| | +-- RDM_Universe 97 *
+| | +-- RDM_Universe 98 *
+| | +-- RDM_Universe 99 *
+| | +-- RDM_Universe 100 *
+| | +-- RDM_Universe 101 *
+| | +-- RDM_Universe 102 *
+| | +-- RDM_Universe 103 *
+| | +-- RDM_Universe 104 *
+| | +-- RDM_Universe 105 *
+| | +-- RDM_Universe 106 *
+| | +-- RDM_Universe 107 *
+| | +-- RDM_Universe 108 *
+| | +-- RDM_Universe 109 *
+| | +-- RDM_Universe 110 *
+| | +-- RDM_Universe 111 *
+| | +-- RDM_Universe 112 *
+| | +-- RDM_Universe 113 *
+| | +-- RDM_Universe 114 *
+| | +-- RDM_Universe 115 *
+| | +-- RDM_Universe 116 *
+| | +-- RDM_Universe 117 *
+| | +-- RDM_Universe 118 *
+| | +-- RDM_Universe 119 *
+| | +-- RDM_Universe 120 *
+| | +-- RDM_Universe 121 *
+| | +-- RDM_Universe 122 *
+| | +-- RDM_Universe 123 *
+| | +-- RDM_Universe 124 *
+| | +-- RDM_Universe 125 *
+| | +-- RDM_Universe 126 *
+| | +-- RDM_Universe 127 *
+| | +-- RDM_Universe 128 *
+| | +-- RDM_Universe 129 *
+| | +-- RDM_Universe 130 *
+| | +-- RDM_Universe 131 *
+| | +-- RDM_Universe 132 *
+| | +-- RDM_Universe 133 *
+| | +-- RDM_Universe 134 *
+| | +-- RDM_Universe 135 *
+| | +-- RDM_Universe 136 *
+| | +-- RDM_Universe 137 *
+| | +-- RDM_Universe 138 *
+| | +-- RDM_Universe 139 *
+| | +-- RDM_Universe 140 *
+| | +-- RDM_Universe 141 *
+| | +-- RDM_Universe 142 *
+| | +-- RDM_Universe 143 *
+| | +-- RDM_Universe 144 *
+| | +-- RDM_Universe 145 *
+| | +-- RDM_Universe 146 *
+| | +-- RDM_Universe 147 *
+| | +-- RDM_Universe 148 *
+| | +-- RDM_Universe 149 *
+| | +-- RDM_Universe 150 *
+| | +-- RDM_Universe 151 *
+| | +-- RDM_Universe 152 *
+| | +-- RDM_Universe 153 *
+| | +-- RDM_Universe 154 *
+| | +-- RDM_Universe 155 *
+| | +-- RDM_Universe 156 *
+| | +-- RDM_Universe 157 *
+| | +-- RDM_Universe 158 *
+| | +-- RDM_Universe 159 *
+| | +-- RDM_Universe 160 *
+| | +-- RDM_Universe 161 *
+| | +-- RDM_Universe 162 *
+| | +-- RDM_Universe 163 *
+| | +-- RDM_Universe 164 *
+| | +-- RDM_Universe 165 *
+| | +-- RDM_Universe 166 *
+| | +-- RDM_Universe 167 *
+| | +-- RDM_Universe 168 *
+| | +-- RDM_Universe 169 *
+| | +-- RDM_Universe 170 *
+| | +-- RDM_Universe 171 *
+| | +-- RDM_Universe 172 *
+| | +-- RDM_Universe 173 *
+| | +-- RDM_Universe 174 *
+| | +-- RDM_Universe 175 *
+| | +-- RDM_Universe 176 *
+| | +-- RDM_Universe 177 *
+| | +-- RDM_Universe 178 *
+| | +-- RDM_Universe 179 *
+| | +-- RDM_Universe 180 *
+| | +-- RDM_Universe 181 *
+| | +-- RDM_Universe 182 *
+| | +-- RDM_Universe 183 *
+| | +-- RDM_Universe 184 *
+| | +-- RDM_Universe 185 *
+| | +-- RDM_Universe 186 *
+| | +-- RDM_Universe 187 *
+| | +-- RDM_Universe 188 *
+| | +-- RDM_Universe 189 *
+| | +-- RDM_Universe 190 *
+| | +-- RDM_Universe 191 *
+| | +-- RDM_Universe 192 *
+| | +-- RDM_Universe 193 *
+| | +-- RDM_Universe 194 *
+| | +-- RDM_Universe 195 *
+| | +-- RDM_Universe 196 *
+| | +-- RDM_Universe 197 *
+| | +-- RDM_Universe 198 *
+| | +-- RDM_Universe 199 *
+| | +-- RDM_Universe 200 *
+| | +-- RDM_Universe 201 *
+| | +-- RDM_Universe 202 *
+| | +-- RDM_Universe 203 *
+| | +-- RDM_Universe 204 *
+| | +-- RDM_Universe 205 *
+| | +-- RDM_Universe 206 *
+| | +-- RDM_Universe 207 *
+| | +-- RDM_Universe 208 *
+| | +-- RDM_Universe 209 *
+| | +-- RDM_Universe 210 *
+| | +-- RDM_Universe 211 *
+| | +-- RDM_Universe 212 *
+| | +-- RDM_Universe 213 *
+| | +-- RDM_Universe 214 *
+| | +-- RDM_Universe 215 *
+| | +-- RDM_Universe 216 *
+| | +-- RDM_Universe 217 *
+| | +-- RDM_Universe 218 *
+| | +-- RDM_Universe 219 *
+| | +-- RDM_Universe 220 *
+| | +-- RDM_Universe 221 *
+| | +-- RDM_Universe 222 *
+| | +-- RDM_Universe 223 *
+| | +-- RDM_Universe 224 *
+| | +-- RDM_Universe 225 *
+| | +-- RDM_Universe 226 *
+| | +-- RDM_Universe 227 *
+| | +-- RDM_Universe 228 *
+| | +-- RDM_Universe 229 *
+| | +-- RDM_Universe 230 *
+| | +-- RDM_Universe 231 *
+| | +-- RDM_Universe 232 *
+| | +-- RDM_Universe 233 *
+| | +-- RDM_Universe 234 *
+| | +-- RDM_Universe 235 *
+| | +-- RDM_Universe 236 *
+| | +-- RDM_Universe 237 *
+| | +-- RDM_Universe 238 *
+| | +-- RDM_Universe 239 *
+| | +-- RDM_Universe 240 *
+| | +-- RDM_Universe 241 *
+| | +-- RDM_Universe 242 *
+| | +-- RDM_Universe 243 *
+| | +-- RDM_Universe 244 *
+| | +-- RDM_Universe 245 *
+| | +-- RDM_Universe 246 *
+| | +-- RDM_Universe 247 *
+| | +-- RDM_Universe 248 *
+| | +-- RDM_Universe 249 *
+| | +-- RDM_Universe 250 *
+| | +-- RDM_Universe 251 *
+| | +-- RDM_Universe 252 *
+| | +-- RDM_Universe 253 *
+| | +-- RDM_Universe 254 *
+| | +-- RDM_Universe 255 *
+| | +-- RDM_Universe 256 *
+
+[10] LiveSetup [DONE]
+| +-- DMX_Profiles 1 *
+| +-- PresetTypes *
+| +-- FixtureTypes 3 (14)
+| | +-- 1 Universal Attributes (6)
+| | | +-- Modules 1 (1)
+| | | | +-- 1 Universal Attributes (8)
+| | | | | +-- DIM 1 (1)
+| | | | | | +-- Dim 1 *
+| | | | | +-- TILT 2 (1)
+| | | | | | +-- Tilt 1 *
+| | | | | +-- PAN 3 (1)
+| | | | | | +-- Pan 1 *
+| | | | | +-- COLORRGB1 4 (1)
+| | | | | | +-- R 1 *
+| | | | | +-- COLORRGB2 5 (1)
+| | | | | | +-- G 1 *
+| | | | | +-- COLORRGB3 6 (1)
+| | | | | | +-- B 1 *
+| | | | | +-- COLORRGB4 7 (1)
+| | | | | | +-- Amber 1 *
+| | | | | +-- COLORRGB5 8 (1)
+| | | | | | +-- White 1 *
+| | | +-- Instances 2 (1)
+| | | | +-- Instance 1 *
+| | | +-- Wheels 3 *
+| | | +-- VirtualFunctionBlocks 4 *
+| | | +-- PresetReferences *
+| | | +-- FixtureMacroCollect 6 *
+| | | +-- RdmNotifications 7 (1)
+| | | | +-- RdmNotification 1 *
+| | +-- 2 Dimmer 00  [== 10.3.1]
+| | +-- 3 rgbw-13ch 13CH  [== 10.3.1]
+| | +-- 4 LASER BARS 26CH (6)
+| | | +-- Modules 1 (2)
+| | | | +-- MAIN 1 (7)
+| | | | | +-- TILT 1 (1)
+| | | | | | +-- Tilt 1 *
+| | | | | +-- DIM 2 (1)
+| | | | | | +-- Dim 1 *
+| | | | | +-- SHUTTER 3 (1)
+| | | | | | +-- Shutter 1 *
+| | | | | +-- GOBO1 4 (1)
+| | | | | | +-- Select 1 *
+| | | | | +-- GOBO1_POS 5 (1)
+| | | | | | +-- Index 1 *
+| | | | | +-- V_VSPEED 6 (1)
+| | | | | | +-- Speed 1 *
+| | | | | +-- DUMMY 7 (2)
+| | | | | | +-- Reserved 1 (1)
+| | | | | | | +-- WU 1 *
+| | | | | | +-- No Feature 2 (1)
+| | | | | | | +-- FUWEI 1 *
+| | | | +-- DIODE 2 (2)
+| | | | | +-- PAN 1 (1)
+| | | | | | +-- Pan 1 *
+| | | | | +-- DIM 2  [== 10.3.4.1.1.2]
+| | | +-- Instances 2 (7)
+| | | | +-- Instance 1 *
+| | | | +-- Instance 2 *
+| | | | +-- Instance 3 *
+| | | | +-- Instance 4 *
+| | | | +-- Instance 5 *
+| | | | +-- Instance 6 *
+| | | | +-- Instance 7 *
+| | | +-- Wheels 3 *
+| | | +-- VirtualFunctionBlocks 4 *
+| | | +-- PresetReferences *
+| | | +-- FixtureMacroCollect 6 *
+| | | +-- RdmNotifications 7  [== 10.3.1.7]
+| | +-- 5 RGBBLINDER BAR  [== 10.3.1]
+| | +-- 6 LED Tri Bar F002  [== 10.3.1]
+| | +-- 7 LED Bar 2 11CH (6)
+| | | +-- Modules 1 (2)
+| | | | +-- Main Module 1 (2)
+| | | | | +-- INTENSITYMACROS 1 (1)
+| | | | | | +-- Audio 1 (2)
+| | | | | | | +-- min 1 *
+| | | | | | | +-- max 2 *
+| | | | | +-- DIM 2 (1)
+| | | | | | +-- Dim 1 (2)
+| | | | | | | +-- closed 1 *
+| | | | | | | +-- open 2 *
+| | | | +-- RGB Cluster 2 (4)
+| | | | | +-- COLORRGB1 1 (1)
+| | | | | | +-- R 1  [== 10.3.7.1.1.1.1]
+| | | | | +-- COLORRGB2 2 (1)
+| | | | | | +-- G 1  [== 10.3.7.1.1.1.1]
+| | | | | +-- COLORRGB3 3 (1)
+| | | | | | +-- B 1  [== 10.3.7.1.1.1.1]
+| | | | | +-- DIM 4 (1)
+| | | | | | +-- Dim 1 (2)
+| | | | | | | +-- closed 1 *
+| | | | | | | +-- open 2 *
+| | | +-- Instances 2 (4)
+| | | | +-- Instance 1 *
+| | | | +-- Instance 2 *
+| | | | +-- Instance 3 *
+| | | | +-- Instance 4 *
+| | | +-- Wheels 3 *
+| | | +-- VirtualFunctionBlocks 4 *
+| | | +-- PresetReferences *
+| | | +-- FixtureMacroCollect 6 *
+| | | +-- RdmNotifications 7  [== 10.3.1.7]
+| | +-- 8 movingwash zone  [== 10.3.1]
+| | +-- 9 movingwash zone  [== 10.3.1]
+| | +-- 10 NEW WASH  [== 10.3.1]
+| | +-- 11 Robin Pointe Mode 2 (6)
+| | | +-- Modules 1 (1)
+| | | | +-- Main Module 1 (16)
+| | | | | +-- PAN 1 (1)
+| | | | | | +-- Pan 1 (3)
+| | | | | | | +-- min 1 *
+| | | | | | | +-- center 2 *
+| | | | | | | +-- max 3 *
+| | | | | +-- TILT 2 (1)
+| | | | | | +-- Tilt 1 (3)
+| | | | | | | +-- min 1 *
+| | | | | | | +-- center 2 *
+| | | | | | | +-- max 3 *
+| | | | | +-- POSITIONMSPEED 3 (1)
+| | | | | | +-- Track 1 (2)
+| | | | | | | +-- max Track 1 *
+| | | | | | | +-- min Track 2 *
+| | | | | +-- LAMPCONTROL 4 (21)
+| | | | | | +-- Reserved 1 *
+| | | | | | +-- WiredDMX 2 (1)
+| | | | | | | +-- WiredDMX 1 *
+| | | | | | +-- WirelessDMX 3 (1)
+| | | | | | | +-- WirelessDMX 1 *
+| | | | | | +-- Power 4 (2)
+| | | | | | | +-- Power 50% 1 *
+| | | | | | | +-- Power 100% 2 *
+| | | | | | +-- Reserved 5 *
+| | | | | | +-- Track 6 (1)
+| | | | | | | +-- Track 1 *
+| | | | | | +-- Time 7 (1)
+| | | | | | | +-- Time 1 *
+| | | | | | +-- Blink 8 (2)
+| | | | | | | +-- on 1 *
+| | | | | | | +-- off 2 *
+| | | | | | +-- Select Blink 9 (2)
+| | | | | | | +-- on (2) 1 *
+| | | | | | | +-- off (2) 2 *
+| | | | | | +-- Blink 10 (2)
+| | | | | | | +-- on (3) 1 *
+| | | | | | | +-- off (3) 2 *
+| | | | | | +-- Lamp On 11 (1)
+| | | | | | | +-- Lamp On 1 *
+| | | | | | +-- PosReset 12 (1)
+| | | | | | | +-- PosReset 1 *
+| | | | | | +-- ColWReset 13 (1)
+| | | | | | | +-- ColWReset 1 *
+| | | | | | +-- GW1Reset 14 (1)
+| | | | | | | +-- GW1Reset 1 *
+| | | | | | +-- ShutReset 15 (1)
+| | | | | | | +-- ShutReset 1 *
+| | | | | | +-- ZoomReset 16 (1)
+| | | | | | | +-- ZoomReset 1 *
+| | | | | | +-- Reserved 17 *
+| | | | | | +-- Reset 18 (1)
+| | | | | | | +-- Reset 1 *
+| | | | | | +-- Reserved 19 *
+| | | | | | +-- Lamp Off 20 (1)
+| | | | | | | +-- Lamp Off 1 *
+| | | | | | +-- Reserved 21 *
+| | | | | +-- COLOR1 5 (4)
+| | | | | | +-- Select 1 (29)
+| | | | | | | +-- open 1 *
+| | | | | | | +-- deep red 2 *
+| | | | | | | +-- deep blue 3 *
+| | | | | | | +-- yellow 4 *
+| | | | | | | +-- green 5 *
+| | | | | | | +-- magenta 6 *
+| | | | | | | +-- azure 7 *
+| | | | | | | +-- red 8 *
+| | | | | | | +-- dark green 9 *
+| | | | | | | +-- amber 10 *
+| | | | | | | +-- blue 11 *
+| | | | | | | +-- orange 12 *
+| | | | | | | +-- CTO 13 *
+| | | | | | | +-- UV 14 *
+| | | | | | | +-- open (2) 15 *
+| | | | | | | +-- open (3) 16 *
+| | | | | | | +-- deep red (2) 17 *
+| | | | | | | +-- deep blue (2) 18 *
+| | | | | | | +-- yellow (2) 19 *
+| | | | | | | +-- green (2) 20 *
+| | | | | | | +-- magenta (2) 21 *
+| | | | | | | +-- azure (2) 22 *
+| | | | | | | +-- red (2) 23 *
+| | | | | | | +-- dark green (2) 24 *
+| | | | | | | +-- amber (2) 25 *
+| | | | | | | +-- blue (2) 26 *
+| | | | | | | +-- orange (2) 27 *
+| | | | | | | +-- CTO (2) 28 *
+| | | | | | | +-- UV (2) 29 *
+| | | | | | +-- Spin 2 (5)
+| | | | | | | +-- >>> 1 *
+| | | | | | | +-- Spin 100..1% 2 *
+| | | | | | | +-- stop 3 *
+| | | | | | | +-- Spin -1..-100% 4 *
+| | | | | | | +-- <<< 5 *
+| | | | | | +-- Select Audio 3 (1)
+| | | | | | | +-- Select Audio 100% 1 *
+| | | | | | +-- Rnd 100..1% 4 (2)
+| | | | | | | +-- max Rnd 1 *
+| | | | | | | +-- min Rnd 2 *
+| | | | | +-- GOBO2WHEELSELECTMSPEED 6 (1)
+| | | | | | +-- Track2 1 (2)
+| | | | | | | +-- max Track2 1 *
+| | | | | | | +-- min Track2 2 *
+| | | | | +-- GOBO1 7 (5)
+| | | | | | +-- Select 1 (29)
+| | | | | | | +-- open 1 *
+| | | | | | | +-- gobo 1.1 2 *
+| | | | | | | +-- gobo 1.2 3 *
+| | | | | | | +-- gobo 1.3 4 *
+| | | | | | | +-- gobo 1.4 5 *
+| | | | | | | +-- gobo 1.5 6 *
+| | | | | | | +-- gobo 1.6 7 *
+| | | | | | | +-- gobo 1.7 8 *
+| | | | | | | +-- gobo 1.8 9 *
+| | | | | | | +-- fan 3 10 *
+| | | | | | | +-- gobo 1.10 11 *
+| | | | | | | +-- iris 10 12 *
+| | | | | | | +-- iris 20 13 *
+| | | | | | | +-- iris 30 14 *
+| | | | | | | +-- iris 40 15 *
+| | | | | | | +-- gobo 1.1* 16 *
+| | | | | | | +-- gobo 1.2* 17 *
+| | | | | | | +-- gobo 1.3* 18 *
+| | | | | | | +-- gobo 1.4* 19 *
+| | | | | | | +-- gobo 1.5* 20 *
+| | | | | | | +-- gobo 1.6* 21 *
+| | | | | | | +-- gobo 1.7* 22 *
+| | | | | | | +-- gobo 1.8* 23 *
+| | | | | | | +-- fan 3* 24 *
+| | | | | | | +-- gobo 1.10* 25 *
+| | | | | | | +-- iris 10* 26 *
+| | | | | | | +-- iris 20* 27 *
+| | | | | | | +-- iris 30* 28 *
+| | | | | | | +-- iris 40* 29 *
+| | | | | | +-- Shake 2 (1)
+| | | | | | | +-- max Shake 1 *
+| | | | | | +-- Spin 3 (5)
+| | | | | | | +-- >>> 1 *
+| | | | | | | +-- Spin 100..1% 2 *
+| | | | | | | +-- stop 3 *
+| | | | | | | +-- Spin -1..-100% 4 *
+| | | | | | | +-- <<< 5 *
+| | | | | | +-- Select Audio 4  [== 10.3.11.1.1.5.3]
+| | | | | | +-- Rnd 100..1% 5  [== 10.3.11.1.1.5.4]
+| | | | | +-- GOBO2 8 (8)
+| | | | | | +-- Index2 1 (11)
+| | | | | | | +-- open 1 *
+| | | | | | | +-- beam flattener 2 *
+| | | | | | | +-- gobo 2.2 3 *
+| | | | | | | +-- gobo 2.3 4 *
+| | | | | | | +-- gobo 2.4 5 *
+| | | | | | | +-- gobo 2.5 6 *
+| | | | | | | +-- gobo 2.6 7 *
+| | | | | | | +-- gobo 2.7 8 *
+| | | | | | | +-- gobo 2.8 9 *
+| | | | | | | +-- gobo 2.9 10 *
+| | | | | | | +-- gobo 2.10 11 *
+| | | | | | +-- Rotate2<> 2 (9)
+| | | | | | | +-- gobo 2.2<> 1 *
+| | | | | | | +-- gobo 2.3<> 2 *
+| | | | | | | +-- gobo 2.4<> 3 *
+| | | | | | | +-- gobo 2.5<> 4 *
+| | | | | | | +-- gobo 2.6<> 5 *
+| | | | | | | +-- gobo 2.7<> 6 *
+| | | | | | | +-- gobo 2.8<> 7 *
+| | | | | | | +-- gobo 2.9<> 8 *
+| | | | | | | +-- gobo 2.10<> 9 *
+| | | | | | +-- Index2* 3 (9)
+| | | | | | | +-- gobo 2.2* 1 *
+| | | | | | | +-- gobo 2.3* 2 *
+| | | | | | | +-- gobo 2.4* 3 *
+| | | | | | | +-- gobo 2.5* 4 *
+| | | | | | | +-- gobo 2.6* 5 *
+| | | | | | | +-- gobo 2.7* 6 *
+| | | | | | | +-- gobo 2.8* 7 *
+| | | | | | | +-- gobo 2.9* 8 *
+| | | | | | | +-- gobo 2.10* 9 *
+| | | | | | +-- Rotate2 4 (10)
+| | | | | | | +-- gobo 2.2<>* 1 *
+| | | | | | | +-- gobo 2.3<>* 2 *
+| | | | | | | +-- gobo 2.4<>* 3 *
+| | | | | | | +-- gobo 2.5<>* 4 *
+| | | | | | | +-- gobo 2.6<>* 5 *
+| | | | | | | +-- gobo 2.7<>* 6 *
+| | | | | | | +-- gobo 2.8<>* 7 *
+| | | | | | | +-- gobo 2.9<>* 8 *
+| | | | | | | +-- gobo 2.10<>* 9 *
+| | | | | | | +-- open<> 10 *
+| | | | | | +-- Spin2 5 (5)
+| | | | | | | +-- >>> 1 *
+| | | | | | | +-- Spin2 100..1% 2 *
+| | | | | | | +-- stop 3 *
+| | | | | | | +-- Spin2 -1..-100% 4 *
+| | | | | | | +-- <<< 5 *
+| | | | | | +-- Select Audio2 6 (1)
+| | | | | | | +-- Select Audio2 100% 1 *
+| | | | | | +-- Rnd2 100..1% 7 (2)
+| | | | | | | +-- max Rnd2 1 *
+| | | | | | | +-- min Rnd2 2 *
+| | | | | | +-- No Feature 8 *
+| | | | | +-- GOBO2_POS 9 (4)
+| | | | | | +-- Index2 1 (2)
+| | | | | | | +-- zero 1 *
+| | | | | | | +-- max CW 2 *
+| | | | | | +-- Index2 2  [== 10.3.11.1.1.9.1]
+| | | | | | +-- Rotate2 3 (6)
+| | | | | | | +-- stop (2) 1 *
+| | | | | | | +-- >>> 2 *
+| | | | | | | +-- Rotate2 100..1% 3 *
+| | | | | | | +-- stop 4 *
+| | | | | | | +-- Rotate2 -1..-100% 5 *
+| | | | | | | +-- <<< 6 *
+| | | | | | +-- Rotate2 4  [== 10.3.11.1.1.9.3]
+| | | | | +-- EFFECTWHEEL 10 (6)
+| | | | | | +-- Select 1 (1)
+| | | | | | | +-- open 1 *
+| | | | | | +-- Pos 2 (1)
+| | | | | | | +-- 6 facet prism 1 *
+| | | | | | +-- Rot<> 3 (1)
+| | | | | | | +-- 6 facet prism<> 1 *
+| | | | | | +-- Pos 4 (1)
+| | | | | | | +-- 8 facet prism 1 *
+| | | | | | +-- Rot<> 5 (1)
+| | | | | | | +-- 8 facet prism<> 1 *
+| | | | | | +-- Select 6 (16)
+| | | | | | | +-- entry 1 1 *
+| | | | | | | +-- entry 2 2 *
+| | | | | | | +-- entry 3 3 *
+| | | | | | | +-- entry 4 4 *
+| | | | | | | +-- entry 5 5 *
+| | | | | | | +-- entry 6 6 *
+| | | | | | | +-- entry 7 7 *
+| | | | | | | +-- entry 8 8 *
+| | | | | | | +-- entry 9 9 *
+| | | | | | | +-- entry 10 10 *
+| | | | | | | +-- entry 11 11 *
+| | | | | | | +-- entry 12 12 *
+| | | | | | | +-- entry 13 13 *
+| | | | | | | +-- entry 14 14 *
+| | | | | | | +-- entry 15 15 *
+| | | | | | | +-- entry 16 16 *
+| | | | | +-- EFFECTINDEXROTATE 11 (6)
+| | | | | | +-- Index 1 (2)
+| | | | | | | +-- max CW 1 *
+| | | | | | | +-- zero 2 *
+| | | | | | +-- Pos 2  [== 10.3.11.1.1.11.1]
+| | | | | | +-- Rot 3 (6)
+| | | | | | | +-- stop (2) 1 *
+| | | | | | | +-- >>> 2 *
+| | | | | | | +-- Rotate 100..1% 3 *
+| | | | | | | +-- stop 4 *
+| | | | | | | +-- Rotate -1..-100% 5 *
+| | | | | | | +-- <<< 6 *
+| | | | | | +-- Pos 4  [== 10.3.11.1.1.11.1]
+| | | | | | +-- Rot 5  [== 10.3.11.1.1.11.3]
+| | | | | | +-- No Feature 6 *
+| | | | | +-- FROST 12 (4)
+| | | | | | +-- Frost 1 (3)
+| | | | | | | +-- min Frost 1 *
+| | | | | | | +-- Frost 0..100% 2 *
+| | | | | | | +-- Frost 100% 3 *
+| | | | | | +-- Strobe Pulse Increase 1..100% 2 (2)
+| | | | | | | +-- min Strobe Pulse Increase 1 *
+| | | | | | | +-- max Strobe Pulse Increase 2 *
+| | | | | | +-- Strobe Pulse Decrease 100..1% 3 (2)
+| | | | | | | +-- max Strobe Pulse Decrease 1 *
+| | | | | | | +-- min Strobe Pulse Decrease 2 *
+| | | | | | +-- Strobe Pulse 100..1% 4 (2)
+| | | | | | | +-- max Strobe Pulse 1 *
+| | | | | | | +-- min Strobe Pulse 2 *
+| | | | | +-- ZOOM 13 (1)
+| | | | | | +-- Zoom 1 (3)
+| | | | | | | +-- wide 1 *
+| | | | | | | +-- normal 2 *
+| | | | | | | +-- narrow 3 *
+| | | | | +-- FOCUS 14 (1)
+| | | | | | +-- Focus 1 (2)
+| | | | | | | +-- max Focus 1 *
+| | | | | | | +-- min Focus 2 *
+| | | | | +-- SHUTTER 15 (8)
+| | | | | | +-- Shutter 1 (2)
+| | | | | | | +-- closed 1 *
+| | | | | | | +-- open 2 *
+| | | | | | +-- Strobe 1..100% 2 (2)
+| | | | | | | +-- min Strobe 1 *
+| | | | | | | +-- max Strobe 2 *
+| | | | | | +-- Shutter 3 (1)
+| | | | | | | +-- open (2) 1 *
+| | | | | | +-- Pulse Open 1..100% 4 (2)
+| | | | | | | +-- min Pulse Open 1 *
+| | | | | | | +-- max Pulse Open 2 *
+| | | | | | +-- Pulse Close 100..1% 5 (2)
+| | | | | | | +-- max Pulse Close 1 *
+| | | | | | | +-- min Pulse Close 2 *
+| | | | | | +-- Shutter 6 (1)
+| | | | | | | +-- open (3) 1 *
+| | | | | | +-- Rnd 1..100% 7 (2)
+| | | | | | | +-- min Rnd 1 *
+| | | | | | | +-- max Rnd 2 *
+| | | | | | +-- Power 8 (1)
+| | | | | | | +-- Power 100% 1 *
+| | | | | +-- DIM 16  [== 10.3.7.1.1.2]
+| | | +-- Instances 2 (1)
+| | | | +-- Instance 1 *
+| | | +-- Wheels 3 (4)
+| | | | +-- C1 - Select 1 (14)
+| | | | | +-- Slot 1 *
+| | | | | +-- Slot 2 *
+| | | | | +-- Slot 3 *
+| | | | | +-- Slot 4 *
+| | | | | +-- Slot 5 *
+| | | | | +-- Slot 6 *
+| | | | | +-- Slot 7 *
+| | | | | +-- Slot 8 *
+| | | | | +-- Slot 9 *
+| | | | | +-- Slot 10 *
+| | | | | +-- Slot 11 *
+| | | | | +-- Slot 12 *
+| | | | | +-- Slot 13 *
+| | | | | +-- Slot 14 *
+| | | | +-- G1 - Select 2 (15)
+| | | | | +-- Slot 1 *
+| | | | | +-- Slot 2 *
+| | | | | +-- Slot 3 *
+| | | | | +-- Slot 4 *
+| | | | | +-- Slot 5 *
+| | | | | +-- Slot 6 *
+| | | | | +-- Slot 7 *
+| | | | | +-- Slot 8 *
+| | | | | +-- Slot 9 *
+| | | | | +-- Slot 10 *
+| | | | | +-- Slot 11 *
+| | | | | +-- Slot 12 *
+| | | | | +-- Slot 13 *
+| | | | | +-- Slot 14 *
+| | | | | +-- Slot 15 *
+| | | | +-- G2 - Select2 3 (11)
+| | | | | +-- Slot 1 *
+| | | | | +-- Slot 2 *
+| | | | | +-- Slot 3 *
+| | | | | +-- Slot 4 *
+| | | | | +-- Slot 5 *
+| | | | | +-- Slot 6 *
+| | | | | +-- Slot 7 *
+| | | | | +-- Slot 8 *
+| | | | | +-- Slot 9 *
+| | | | | +-- Slot 10 *
+| | | | | +-- Slot 11 *
+| | | | +-- E - Select 4 (3)
+| | | | | +-- Slot 1 *
+| | | | | +-- Slot 2 *
+| | | | | +-- Slot 3 *
+| | | +-- VirtualFunctionBlocks 4 *
+| | | +-- PresetReferences *
+| | | +-- FixtureMacroCollect 6 *
+| | | +-- RdmNotifications 7  [== 10.3.1.7]
+| | +-- 12 Robin Pointe Mode 1  [== 10.3.11]
+| | +-- 13 Robin Pointe Mode 3  [== 10.3.11]
+| | +-- 14 Sharpy Standard Lamp on (6)
+| | | +-- Modules 1 (1)
+| | | | +-- Main Module 1 (14)
+| | | | | +-- COLOR1 1 (2)
+| | | | | | +-- Select 1 (30)
+| | | | | | | +-- open 1 *
+| | | | | | | +-- open (2) 2 *
+| | | | | | | +-- red 3 *
+| | | | | | | +-- red (2) 4 *
+| | | | | | | +-- orange 5 *
+| | | | | | | +-- orange (2) 6 *
+| | | | | | | +-- aquamarine 7 *
+| | | | | | | +-- aquamarine (2) 8 *
+| | | | | | | +-- green 9 *
+| | | | | | | +-- green (2) 10 *
+| | | | | | | +-- light green 11 *
+| | | | | | | +-- light green (2) 12 *
+| | | | | | | +-- lavender 13 *
+| | | | | | | +-- lavender (2) 14 *
+| | | | | | | +-- pink 15 *
+| | | | | | | +-- pink (2) 16 *
+| | | | | | | +-- yellow 17 *
+| | | | | | | +-- yellow (2) 18 *
+| | | | | | | +-- magenta 19 *
+| | | | | | | +-- magenta (2) 20 *
+| | | | | | | +-- cyan 21 *
+| | | | | | | +-- cyan (2) 22 *
+| | | | | | | +-- CTO 260 23 *
+| | | | | | | +-- CTO 260 (2) 24 *
+| | | | | | | +-- CTO 190 25 *
+| | | | | | | +-- CTO 190 (2) 26 *
+| | | | | | | +-- CTB 8000 27 *
+| | | | | | | +-- CTB 8000 (2) 28 *
+| | | | | | | +-- blue 29 *
+| | | | | | | +-- blue (2) 30 *
+| | | | | | +-- Spin 1..100% 2 (2)
+| | | | | | | +-- <<< 1 *
+| | | | | | | +-- >>> 2 *
+| | | | | +-- SHUTTER 2 (7)
+| | | | | | +-- Shutter 1 (1)
+| | | | | | | +-- closed 1 *
+| | | | | | +-- Strobe 1..100% 2 (2)
+| | | | | | | +-- min Strobe 1 *
+| | | | | | | +-- max Strobe 2 *
+| | | | | | +-- Shutter 3 (1)
+| | | | | | | +-- open 1 *
+| | | | | | +-- StrobeIsophase 1..100% 4 (2)
+| | | | | | | +-- min StrobeIsophase 1 *
+| | | | | | | +-- max StrobeIsophase 2 *
+| | | | | | +-- Shutter 5 (1)
+| | | | | | | +-- open (2) 1 *
+| | | | | | +-- Rnd 1..100% 6 (2)
+| | | | | | | +-- min Rnd 1 *
+| | | | | | | +-- max Rnd 2 *
+| | | | | | +-- Shutter 7 (1)
+| | | | | | | +-- open (3) 1 *
+| | | | | +-- DIM 3  [== 10.3.7.1.1.2]
+| | | | | +-- GOBO1 4 (3)
+| | | | | | +-- Select 1 (18)
+| | | | | | | +-- open 1 *
+| | | | | | | +-- gobo 1.1 2 *
+| | | | | | | +-- gobo 1.2 3 *
+| | | | | | | +-- gobo 1.3 4 *
+| | | | | | | +-- gobo 1.4 5 *
+| | | | | | | +-- gobo 1.5 6 *
+| | | | | | | +-- gobo 1.6 7 *
+| | | | | | | +-- gobo 1.7 8 *
+| | | | | | | +-- gobo 1.8 9 *
+| | | | | | | +-- gobo 1.9 10 *
+| | | | | | | +-- gobo 1.10 11 *
+| | | | | | | +-- gobo 1.11 12 *
+| | | | | | | +-- gobo 1.12 13 *
+| | | | | | | +-- gobo 1.13 14 *
+| | | | | | | +-- gobo 1.14 15 *
+| | | | | | | +-- gobo 1.15 16 *
+| | | | | | | +-- gobo 1.16 17 *
+| | | | | | | +-- gobo 1.17 18 *
+| | | | | | +-- Spin 2 (5)
+| | | | | | | +-- <<< 1 *
+| | | | | | | +-- Spin -100..-1% 2 *
+| | | | | | | +-- stop 3 *
+| | | | | | | +-- Spin 1..100% 4 *
+| | | | | | | +-- >>> 5 *
+| | | | | | +-- Select 3 (15)
+| | | | | | | +-- gobo 1.2* 1 *
+| | | | | | | +-- gobo 1.3* 2 *
+| | | | | | | +-- gobo 1.4* 3 *
+| | | | | | | +-- gobo 1.5* 4 *
+| | | | | | | +-- gobo 1.6* 5 *
+| | | | | | | +-- gobo 1.7* 6 *
+| | | | | | | +-- gobo 1.8* 7 *
+| | | | | | | +-- gobo 1.9* 8 *
+| | | | | | | +-- gobo 1.10* 9 *
+| | | | | | | +-- gobo 1.11* 10 *
+| | | | | | | +-- gobo 1.12* 11 *
+| | | | | | | +-- gobo 1.13* 12 *
+| | | | | | | +-- gobo 1.14* 13 *
+| | | | | | | +-- gobo 1.15* 14 *
+| | | | | | | +-- gobo 1.16* 15 *
+| | | | | +-- EFFECTWHEEL 5 (2)
+| | | | | | +-- Select 1 (1)
+| | | | | | | +-- open 1 *
+| | | | | | +-- Prism1 2 (1)
+| | | | | | | +-- 8 facet prism 1 *
+| | | | | +-- EFFECTINDEXROTATE 6 (2)
+| | | | | | +-- Index 0..100% 1 (2)
+| | | | | | | +-- zero 1 *
+| | | | | | | +-- max CW 2 *
+| | | | | | +-- Rot 2 (5)
+| | | | | | | +-- <<< 1 *
+| | | | | | | +-- Rotate -100..-1% 2 *
+| | | | | | | +-- stop 3 *
+| | | | | | | +-- Rotate 1..100% 4 *
+| | | | | | | +-- >>> 5 *
+| | | | | +-- EFFECTWHEELPOSITION 7 (1)
+| | | | | | +-- EffectWheelPosition 1 (2)
+| | | | | | | +-- min EffectWheelPosition 1 *
+| | | | | | | +-- max EffectWheelPosition 2 *
+| | | | | +-- FROST 8 (1)
+| | | | | | +-- Frost 1 (2)
+| | | | | | | +-- min Frost 1 *
+| | | | | | | +-- max Frost 2 *
+| | | | | +-- FOCUS 9  [== 10.3.11.1.1.14]
+| | | | | +-- PAN 10 (1)
+| | | | | | +-- Pan 1 (3)
+| | | | | | | +-- min 1 *
+| | | | | | | +-- center 2 *
+| | | | | | | +-- max 3 *
+| | | | | +-- TILT 11 (1)
+| | | | | | +-- Tilt 1 (3)
+| | | | | | | +-- min 1 *
+| | | | | | | +-- center 2 *
+| | | | | | | +-- max 3 *
+| | | | | +-- DIMMERCURVE 12 (4)
+| | | | | | +-- No Feature 1 *
+| | | | | | +-- Time 2 (2)
+| | | | | | | +-- Time 100% 1 *
+| | | | | | | +-- Time 50% 2 *
+| | | | | | +-- Curve 3 (2)
+| | | | | | | +-- conventional 1 *
+| | | | | | | +-- linear 2 *
+| | | | | | +-- No Feature 4 *
+| | | | | +-- FIXTUREGLOBALRESET 13 (4)
+| | | | | | +-- No Feature 1 *
+| | | | | | +-- GW1Reset 2 (1)
+| | | | | | | +-- GW1Reset 1 *
+| | | | | | +-- PosReset 3 (1)
+| | | | | | | +-- PosReset 1 *
+| | | | | | +-- Reset 4 (1)
+| | | | | | | +-- Reset 1 *
+| | | | | +-- LAMPCONTROL 14 (3)
+| | | | | | +-- No Feature 1 *
+| | | | | | +-- Lamp Off 2 (1)
+| | | | | | | +-- Lamp Off 1 *
+| | | | | | +-- Lamp On 3 (1)
+| | | | | | | +-- Lamp On 1 *
+| | | +-- Instances 2  [== 10.3.11.2]
+| | | +-- Wheels 3 (3)
+| | | | +-- C1 - Select 1 (15)
+| | | | | +-- Slot 1 *
+| | | | | +-- Slot 2 *
+| | | | | +-- Slot 3 *
+| | | | | +-- Slot 4 *
+| | | | | +-- Slot 5 *
+| | | | | +-- Slot 6 *
+| | | | | +-- Slot 7 *
+| | | | | +-- Slot 8 *
+| | | | | +-- Slot 9 *
+| | | | | +-- Slot 10 *
+| | | | | +-- Slot 11 *
+| | | | | +-- Slot 12 *
+| | | | | +-- Slot 13 *
+| | | | | +-- Slot 14 *
+| | | | | +-- Slot 15 *
+| | | | +-- G1 - Select 2 (18)
+| | | | | +-- Slot 1 *
+| | | | | +-- Slot 2 *
+| | | | | +-- Slot 3 *
+| | | | | +-- Slot 4 *
+| | | | | +-- Slot 5 *
+| | | | | +-- Slot 6 *
+| | | | | +-- Slot 7 *
+| | | | | +-- Slot 8 *
+| | | | | +-- Slot 9 *
+| | | | | +-- Slot 10 *
+| | | | | +-- Slot 11 *
+| | | | | +-- Slot 12 *
+| | | | | +-- Slot 13 *
+| | | | | +-- Slot 14 *
+| | | | | +-- Slot 15 *
+| | | | | +-- Slot 16 *
+| | | | | +-- Slot 17 *
+| | | | | +-- Slot 18 *
+| | | | +-- E - Select 3 (2)
+| | | | | +-- Slot 1 *
+| | | | | +-- Slot 2 *
+| | | +-- VirtualFunctionBlocks 4 *
+| | | +-- PresetReferences *
+| | | +-- FixtureMacroCollect 6 *
+| | | +-- RdmNotifications 7  [== 10.3.1.7]
+| +-- Layers 4 *
+| +-- Universes (256)
+| | +-- Universe 1 (467)
+| | | +-- DMX 1.1 *
+| | | +-- DMX 1.2 *
+| | | +-- DMX 1.3 *
+| | | +-- DMX 1.4 *
+| | | +-- DMX 1.5 *
+| | | +-- DMX 1.6 *
+| | | +-- DMX 1.7 *
+| | | +-- DMX 1.8 *
+| | | +-- DMX 1.9 *
+| | +-- Universe 2 (140)
+| | | +-- DMX 2.1 *
+| | | +-- DMX 2.2 *
+| | | +-- DMX 2.3 *
+| | | +-- DMX 2.4 *
+| | +-- Universe 3 *
+| | +-- Universe 4 *
+| | +-- Universe 5 *
+| | +-- Universe 6 *
+| | +-- Universe 7 *
+| | +-- Universe 8 *
+| | +-- Universe 9 *
+| | +-- Universe 10 *
+| | +-- Universe 11 *
+| | +-- Universe 12 *
+| | +-- Universe 13 *
+| | +-- Universe 14 *
+| | +-- Universe 15 *
+| | +-- Universe 16 *
+| | +-- Universe 17 *
+| | +-- Universe 18 *
+| | +-- Universe 19 *
+| | +-- Universe 20 *
+| | +-- Universe 21 *
+| | +-- Universe 22 *
+| | +-- Universe 23 *
+| | +-- Universe 24 *
+| | +-- Universe 25 *
+| | +-- Universe 26 *
+| | +-- Universe 27 *
+| | +-- Universe 28 *
+| | +-- Universe 29 *
+| | +-- Universe 30 *
+| | +-- Universe 31 *
+| | +-- Universe 32 *
+| | +-- Universe 33 *
+| | +-- Universe 34 *
+| | +-- Universe 35 *
+| | +-- Universe 36 *
+| | +-- Universe 37 *
+| | +-- Universe 38 *
+| | +-- Universe 39 *
+| | +-- Universe 40 *
+| | +-- Universe 41 *
+| | +-- Universe 42 *
+| | +-- Universe 43 *
+| | +-- Universe 44 *
+| | +-- Universe 45 *
+| | +-- Universe 46 *
+| | +-- Universe 47 *
+| | +-- Universe 48 *
+| | +-- Universe 49 *
+| | +-- Universe 50 *
+| | +-- Universe 51 *
+| | +-- Universe 52 *
+| | +-- Universe 53 *
+| | +-- Universe 54 *
+| | +-- Universe 55 *
+| | +-- Universe 56 *
+| | +-- Universe 57 *
+| | +-- Universe 58 *
+| | +-- Universe 59 *
+| | +-- Universe 60 *
+| | +-- Universe 61 *
+| | +-- Universe 62 *
+| | +-- Universe 63 *
+| | +-- Universe 64 *
+| | +-- Universe 65 *
+| | +-- Universe 66 *
+| | +-- Universe 67 *
+| | +-- Universe 68 *
+| | +-- Universe 69 *
+| | +-- Universe 70 *
+| | +-- Universe 71 *
+| | +-- Universe 72 *
+| | +-- Universe 73 *
+| | +-- Universe 74 *
+| | +-- Universe 75 *
+| | +-- Universe 76 *
+| | +-- Universe 77 *
+| | +-- Universe 78 *
+| | +-- Universe 79 *
+| | +-- Universe 80 *
+| | +-- Universe 81 *
+| | +-- Universe 82 *
+| | +-- Universe 83 *
+| | +-- Universe 84 *
+| | +-- Universe 85 *
+| | +-- Universe 86 *
+| | +-- Universe 87 *
+| | +-- Universe 88 *
+| | +-- Universe 89 *
+| | +-- Universe 90 *
+| | +-- Universe 91 *
+| | +-- Universe 92 *
+| | +-- Universe 93 *
+| | +-- Universe 94 *
+| | +-- Universe 95 *
+| | +-- Universe 96 *
+| | +-- Universe 97 *
+| | +-- Universe 98 *
+| | +-- Universe 99 *
+| | +-- Universe 100 *
+| | +-- Universe 101 *
+| | +-- Universe 102 *
+| | +-- Universe 103 *
+| | +-- Universe 104 *
+| | +-- Universe 105 *
+| | +-- Universe 106 *
+| | +-- Universe 107 *
+| | +-- Universe 108 *
+| | +-- Universe 109 *
+| | +-- Universe 110 *
+| | +-- Universe 111 *
+| | +-- Universe 112 *
+| | +-- Universe 113 *
+| | +-- Universe 114 *
+| | +-- Universe 115 *
+| | +-- Universe 116 *
+| | +-- Universe 117 *
+| | +-- Universe 118 *
+| | +-- Universe 119 *
+| | +-- Universe 120 *
+| | +-- Universe 121 *
+| | +-- Universe 122 *
+| | +-- Universe 123 *
+| | +-- Universe 124 *
+| | +-- Universe 125 *
+| | +-- Universe 126 *
+| | +-- Universe 127 *
+| | +-- Universe 128 *
+| | +-- Universe 129 *
+| | +-- Universe 130 *
+| | +-- Universe 131 *
+| | +-- Universe 132 *
+| | +-- Universe 133 *
+| | +-- Universe 134 *
+| | +-- Universe 135 *
+| | +-- Universe 136 *
+| | +-- Universe 137 *
+| | +-- Universe 138 *
+| | +-- Universe 139 *
+| | +-- Universe 140 *
+| | +-- Universe 141 *
+| | +-- Universe 142 *
+| | +-- Universe 143 *
+| | +-- Universe 144 *
+| | +-- Universe 145 *
+| | +-- Universe 146 *
+| | +-- Universe 147 *
+| | +-- Universe 148 *
+| | +-- Universe 149 *
+| | +-- Universe 150 *
+| | +-- Universe 151 *
+| | +-- Universe 152 *
+| | +-- Universe 153 *
+| | +-- Universe 154 *
+| | +-- Universe 155 *
+| | +-- Universe 156 *
+| | +-- Universe 157 *
+| | +-- Universe 158 *
+| | +-- Universe 159 *
+| | +-- Universe 160 *
+| | +-- Universe 161 *
+| | +-- Universe 162 *
+| | +-- Universe 163 *
+| | +-- Universe 164 *
+| | +-- Universe 165 *
+| | +-- Universe 166 *
+| | +-- Universe 167 *
+| | +-- Universe 168 *
+| | +-- Universe 169 *
+| | +-- Universe 170 *
+| | +-- Universe 171 *
+| | +-- Universe 172 *
+| | +-- Universe 173 *
+| | +-- Universe 174 *
+| | +-- Universe 175 *
+| | +-- Universe 176 *
+| | +-- Universe 177 *
+| | +-- Universe 178 *
+| | +-- Universe 179 *
+| | +-- Universe 180 *
+| | +-- Universe 181 *
+| | +-- Universe 182 *
+| | +-- Universe 183 *
+| | +-- Universe 184 *
+| | +-- Universe 185 *
+| | +-- Universe 186 *
+| | +-- Universe 187 *
+| | +-- Universe 188 *
+| | +-- Universe 189 *
+| | +-- Universe 190 *
+| | +-- Universe 191 *
+| | +-- Universe 192 *
+| | +-- Universe 193 *
+| | +-- Universe 194 *
+| | +-- Universe 195 *
+| | +-- Universe 196 *
+| | +-- Universe 197 *
+| | +-- Universe 198 *
+| | +-- Universe 199 *
+| | +-- Universe 200 *
+| | +-- Universe 201 *
+| | +-- Universe 202 *
+| | +-- Universe 203 *
+| | +-- Universe 204 *
+| | +-- Universe 205 *
+| | +-- Universe 206 *
+| | +-- Universe 207 *
+| | +-- Universe 208 *
+| | +-- Universe 209 *
+| | +-- Universe 210 *
+| | +-- Universe 211 *
+| | +-- Universe 212 *
+| | +-- Universe 213 *
+| | +-- Universe 214 *
+| | +-- Universe 215 *
+| | +-- Universe 216 *
+| | +-- Universe 217 *
+| | +-- Universe 218 *
+| | +-- Universe 219 *
+| | +-- Universe 220 *
+| | +-- Universe 221 *
+| | +-- Universe 222 *
+| | +-- Universe 223 *
+| | +-- Universe 224 *
+| | +-- Universe 225 *
+| | +-- Universe 226 *
+| | +-- Universe 227 *
+| | +-- Universe 228 *
+| | +-- Universe 229 *
+| | +-- Universe 230 *
+| | +-- Universe 231 *
+| | +-- Universe 232 *
+| | +-- Universe 233 *
+| | +-- Universe 234 *
+| | +-- Universe 235 *
+| | +-- Universe 236 *
+| | +-- Universe 237 *
+| | +-- Universe 238 *
+| | +-- Universe 239 *
+| | +-- Universe 240 *
+| | +-- Universe 241 *
+| | +-- Universe 242 *
+| | +-- Universe 243 *
+| | +-- Universe 244 *
+| | +-- Universe 245 *
+| | +-- Universe 246 *
+| | +-- Universe 247 *
+| | +-- Universe 248 *
+| | +-- Universe 249 *
+| | +-- Universe 250 *
+| | +-- Universe 251 *
+| | +-- Universe 252 *
+| | +-- Universe 253 *
+| | +-- Universe 254 *
+| | +-- Universe 255 *
+| | +-- Universe 256 *
+| +-- Objects3D 6 (3)
+| | +-- Resource3D 1 *
+| | +-- Models 2 (14)
+| | | +-- Stage Plane 1 *
+| | | +-- 2 Dimmer Main Module 2 (1)
+| | | | +-- Model 1 *
+| | +-- Items3D 3 (23)
+| | | +-- Stage Plane 1 *
+| | | +-- Stage Markers 2 *
+| | | +-- RGBBLIND 2 20 *
+| | | +-- LTBF002 1 801 (3)
+| | | | +-- LTBF002 1 801 *
+| | | | +-- LTBF002 1 801 *
+| | | | +-- LTBF002 1 801 *
+| | | +-- Dim 1 30 *
+| | | +-- movingwa 2 26 *
+| | | +-- movingwa 3 27 *
+| | | +-- movingwa 1 25 *
+| | | +-- movingwa 4 28 *
+| | | +-- movingwa 1 122 *
+| | | +-- movingwa 2 123 *
+| | | +-- movingwa 3 124 *
+| | | +-- movingwa 4 125 *
+| | | +-- movingwa 1 126 *
+| | | +-- movingwa 2 127 *
+| | | +-- RPointe - 1 128 *
+| | | +-- RPointe - 2 129 *
+| | | +-- RPointe - 3 130 *
+| | | +-- RPointe - 4 131 *
+| | | +-- SharpySL 1 701 *
+| | | +-- SharpySL 2 702 *
+| | | +-- SharpySL 3 703 *
+| | | +-- SharpySL 4 704 *
+
+[11] EditSetup [DONE]
+
+[13] Macros [DONE]
+
+[14] FlightRecordings [DONE]
+
+[15] Plugins [DONE]
+| +-- LUA 1 *
+
+[16] Gels [DONE]
+| +-- MA colors 1 (13)
+| | +-- White 1 *
+| | +-- Red 2 *
+| | +-- Orange 3 *
+| | +-- Yellow 4 *
+| | +-- Fern Green 5 *
+| | +-- Green 6 *
+| | +-- Sea Green 7 *
+| | +-- Cyan 8 *
+| | +-- Lavender 9 *
+| | +-- Blue 10 *
+| | +-- Violet 11 *
+| | +-- Magenta 12 *
+| | +-- Pink 13 *
+| +-- CalColor 2 (33)
+| | +-- calcolor 15 blue 1 *
+| | +-- calcolor 30 blue 2 *
+| | +-- calcolor 60 blue 3 *
+| | +-- calcolor 90 blue 4 *
+| | +-- calcolor 07 cyan 5 *
+| | +-- calcolor 15 cyan 6 *
+| | +-- calcolor 30 cyan 7 *
+| | +-- calcolor 60 cyan 8 *
+| | +-- calcolor 90 cyan 9 *
+| | +-- calcolor 15 green 10 *
+| | +-- calcolor 30 green 11 *
+| | +-- calcolor 60 green 12 *
+| | +-- calcolor 90 green 13 *
+| | +-- calcolor 15 yellow 14 *
+| | +-- calcolor 30 yellow 15 *
+| | +-- calcolor 60 yellow 16 *
+| | +-- calcolor 90 yellow 17 *
+| | +-- calcolor 15 red 18 *
+| | +-- calcolor 30 red 19 *
+| | +-- calcolor 60 red 20 *
+| | +-- calcolor 90 red 21 *
+| | +-- calcolor 15 magenta 22 *
+| | +-- calcolor 30 magenta 23 *
+| | +-- calcolor 60 magenta 24 *
+| | +-- calcolor 90 magenta 25 *
+| | +-- calcolor 15 pink 26 *
+| | +-- calcolor 30 pink 27 *
+| | +-- calcolor 60 pink 28 *
+| | +-- calcolor 90 pink 29 *
+| | +-- calcolor 15 lavender 30 *
+| | +-- calcolor 30 lavender 31 *
+| | +-- calcolor 60 lavender 32 *
+| | +-- calcolor 90 lavender 33 *
+| +-- Cinegel 3 (69)
+| | +-- tough rolux 1 *
+| | +-- light tough rolux 2 *
+| | +-- soft frost 3 *
+| | +-- half density soft frost 4 *
+| | +-- tough spun 5 *
+| | +-- light tough spun 6 *
+| | +-- tough frost 7 *
+| | +-- light tough frost 8 *
+| | +-- opal tough frost 9 *
+| | +-- togh silk 10 *
+| | +-- hilite 11 *
+| | +-- light tough silk 12 *
+| | +-- light opal tough frost 13 *
+| | +-- quarter tough spun 14 *
+| | +-- tough white diffusion (216) 15 *
+| | +-- 2 216) 16 *
+| | +-- 4 216) 17 *
+| | +-- silent frost 18 *
+| | +-- grid cloth 19 *
+| | +-- light grid cloth 20 *
+| | +-- 4 grid cloth 21 *
+| | +-- powder frost 22 *
+| | +-- �� blue grid cloth 23 *
+| | +-- �� straw grid cloth 24 *
+| | +-- moonlight grid cloth 25 *
+| | +-- tough mt2 26 *
+| | +-- tough mty 27 *
+| | +-- tough y-1 28 *
+| | +-- tough UV filter 29 *
+| | +-- tough mt 54 30 *
+| | +-- industrial vapor 31 *
+| | +-- urban vapor 32 *
+| | +-- full blue (CTB) 33 *
+| | +-- 4 CTB) 34 *
+| | +-- 2 CTB) 35 *
+| | +-- 3 CTB) 36 *
+| | +-- 4 CTB) 37 *
+| | +-- 8 CTB) 38 *
+| | +-- double blue (2x CTB) 39 *
+| | +-- windowgreen 40 *
+| | +-- tough minusgreen 41 *
+| | +-- tough �� minusgreen 42 *
+| | +-- fluorofilter 43 *
+| | +-- 2 minusgreen 44 *
+| | +-- 4 minusgreen 45 *
+| | +-- 2 plusgreen 46 *
+| | +-- 4 plusgreen 47 *
+| | +-- 8 plusgreen 48 *
+| | +-- 8 minusgreen 49 *
+| | +-- roscosun 85 50 *
+| | +-- rosco n.3 51 *
+| | +-- rosco n.6 52 *
+| | +-- roscosun n.9 53 *
+| | +-- roscosun 85n.3 54 *
+| | +-- roscosun 85n.6 55 *
+| | +-- roscosun CTO 56 *
+| | +-- 2 CTO 57 *
+| | +-- 4 CTO 58 *
+| | +-- 8 CTO 59 *
+| | +-- 4 CTO 60 *
+| | +-- rosco n.15 61 *
+| | +-- roscosun double CTO 62 *
+| | +-- black scrim 63 *
+| | +-- cinescreen 64 *
+| | +-- full straw CTS 65 *
+| | +-- 2 CTS 66 *
+| | +-- 4 CTS 67 *
+| | +-- 8 CTS 68 *
+| | +-- roscoscrim 69 *
+| +-- Cinelux 4 (51)
+| | +-- bastard amber 1 *
+| | +-- no color straw 2 *
+| | +-- pale gold 3 *
+| | +-- straw 4 *
+| | +-- light amber 5 *
+| | +-- light flame 6 *
+| | +-- flame 7 *
+| | +-- golden amber 8 *
+| | +-- orange 9 *
+| | +-- light red 10 *
+| | +-- no color pink 11 *
+| | +-- flesh pink 12 *
+| | +-- pale rose pink 13 *
+| | +-- skelton exotic sangria 14 *
+| | +-- salmon 15 *
+| | +-- deep salmon 16 *
+| | +-- middle rose 17 *
+| | +-- light rose purple 18 *
+| | +-- surprise pink 19 *
+| | +-- indigo 20 *
+| | +-- no color blue 21 *
+| | +-- booster blue 22 *
+| | +-- daylight blue 23 *
+| | +-- green blue 24 *
+| | +-- primary blue 25 *
+| | +-- medium blue 26 *
+| | +-- pale yellow green 27 *
+| | +-- light green 28 *
+| | +-- moss green 29 *
+| | +-- primary green 30 *
+| | +-- turquoise 31 *
+| | +-- blue green 32 *
+| | +-- light grey 33 *
+| | +-- medium grey 34 *
+| | +-- chocolate 35 *
+| | +-- pale bastard amber 36 *
+| | +-- daffodil 37 *
+| | +-- gallo gold 38 *
+| | +-- mayan sun 39 *
+| | +-- soft golden amber 40 *
+| | +-- henna sky 41 *
+| | +-- blush pink 42 *
+| | +-- clearwater 43 *
+| | +-- tipton blue 44 *
+| | +-- blue bell 45 *
+| | +-- tharon delft blue 46 *
+| | +-- cerulean blue 47 *
+| | +-- bermuda blue 48 *
+| | +-- alice blue 49 *
+| | +-- baldassari blue 50 *
+| | +-- pale grey 51 *
+| +-- E Colour 5 (224)
+| | +-- rose pink 1 *
+| | +-- lavender tint 2 *
+| | +-- medium bastard amber 3 *
+| | +-- pale yellow 4 *
+| | +-- dark salmon 5 *
+| | +-- pale amber 6 *
+| | +-- medium yellow 7 *
+| | +-- straw tint 8 *
+| | +-- deep straw 9 *
+| | +-- surprise peach 10 *
+| | +-- fire 11 *
+| | +-- medium amber 12 *
+| | +-- gold amber 13 *
+| | +-- dark amber 14 *
+| | +-- scarlet 15 *
+| | +-- sunrise red 16 *
+| | +-- bright red 17 *
+| | +-- medium red 18 *
+| | +-- plasa red 19 *
+| | +-- light pink 20 *
+| | +-- medium pink 21 *
+| | +-- pink carnation 22 *
+| | +-- dark magenta 23 *
+| | +-- light lavender 24 *
+| | +-- lavender 25 *
+| | +-- mist blue 26 *
+| | +-- pale blue 27 *
+| | +-- sky blue 28 *
+| | +-- tokyo blue 29 *
+| | +-- evening blue 30 *
+| | +-- just blue 31 *
+| | +-- deeper blue 32 *
+| | +-- lime green 33 *
+| | +-- moss green 34 *
+| | +-- dark yellow green 35 *
+| | +-- spring yellow 36 *
+| | +-- yellow 37 *
+| | +-- light amber 38 *
+| | +-- straw 39 *
+| | +-- deep amber 40 *
+| | +-- orange 41 *
+| | +-- primary red 42 *
+| | +-- light rose 43 *
+| | +-- english rose 44 *
+| | +-- light salmon 45 *
+| | +-- middle rose 46 *
+| | +-- dark pink 47 *
+| | +-- magenta 48 *
+| | +-- peacock blue 49 *
+| | +-- medium blue green 50 *
+| | +-- steel blue 51 *
+| | +-- light blue 52 *
+| | +-- dark blue 53 *
+| | +-- deep blue 54 *
+| | +-- leaf green 55 *
+| | +-- fern green 56 *
+| | +-- dark green 57 *
+| | +-- mauve 58 *
+| | +-- smokey pink 59 *
+| | +-- bright pink 60 *
+| | +-- heavy frost 61 *
+| | +-- clear 62 *
+| | +-- marine blue 63 *
+| | +-- medium blue 64 *
+| | +-- golden amber 65 *
+| | +-- deep golden amber 66 *
+| | +-- pale lavender 67 *
+| | +-- special lavender 68 *
+| | +-- pale green 69 *
+| | +-- primary green 70 *
+| | +-- summer blue 71 *
+| | +-- bright blue 72 *
+| | +-- pale violet 73 *
+| | +-- pale navy blue 74 *
+| | +-- no color blue 75 *
+| | +-- apricot 76 *
+| | +-- bright rose 77 *
+| | +-- gold tint 78 *
+| | +-- pale gold 79 *
+| | +-- pale salmon 80 *
+| | +-- pale rose 81 *
+| | +-- chocolate 82 *
+| | +-- pink 83 *
+| | +-- deep orange 84 *
+| | +-- no color straw 85 *
+| | +-- slate blue 86 *
+| | +-- bastard amber 87 *
+| | +-- flame red 88 *
+| | +-- daylight blue 89 *
+| | +-- pale red 90 *
+| | +-- lilac tint 91 *
+| | +-- deep lavender 92 *
+| | +-- lagoon blue 93 *
+| | +-- dark steel blue 94 *
+| | +-- loving amber 95 *
+| | +-- chrome orange 96 *
+| | +-- dark lavender 97 *
+| | +-- congo blue 98 *
+| | +-- light red 99 *
+| | +-- moonlight blue 100 *
+| | +-- cosmetic peach 101 *
+| | +-- cosmetic burgundy 102 *
+| | +-- cosmetic silver rose 103 *
+| | +-- cosmetic rouge 104 *
+| | +-- cosmetic highlight 105 *
+| | +-- cosmetic silver moss 106 *
+| | +-- cosmetic emerald 107 *
+| | +-- cosmetic aqua blue 108 *
+| | +-- flesh pink 109 *
+| | +-- rosy amber 110 *
+| | +-- surprise pink 111 *
+| | +-- zenith blue 112 *
+| | +-- true blue 113 *
+| | +-- alice blue 114 *
+| | +-- palace blue 115 *
+| | +-- double C.T. blue 116 *
+| | +-- full C.T. blue 117 *
+| | +-- half C.T. blue 118 *
+| | +-- quarter C.T. blue 119 *
+| | +-- full C.T. orange 120 *
+| | +-- half C.T. orange 121 *
+| | +-- quarter C.T. orange 122 *
+| | +-- C.T. orange +.3 ND 123 *
+| | +-- C.T. orange +.6 ND 124 *
+| | +-- .3 ND 125 *
+| | +-- .6 ND 126 *
+| | +-- .9 ND 127 *
+| | +-- L.C.T yellow 128 *
+| | +-- white flame green 129 *
+| | +-- white diffusion 130 *
+| | +-- blue diffusion 131 *
+| | +-- eighth C.T. blue 132 *
+| | +-- flourescent green 133 *
+| | +-- white frost 134 *
+| | +-- blue frost 135 *
+| | +-- eighth C.T. orange 136 *
+| | +-- daylight blue frost 137 *
+| | +-- ND. frost 138 *
+| | +-- UV filter 139 *
+| | +-- brushed silk 140 *
+| | +-- HMI to tungsten 141 *
+| | +-- flourescent 5700K 142 *
+| | +-- flourescent 4300K 143 *
+| | +-- flourescent 3600K 144 *
+| | +-- plus green 145 *
+| | +-- half plus green 146 *
+| | +-- quarter plus green 147 *
+| | +-- minus green 148 *
+| | +-- half minus green 149 *
+| | +-- quarter minus green 150 *
+| | +-- half white diffusion 151 *
+| | +-- quarter white diffusion 152 *
+| | +-- eighth white diffusion 153 *
+| | +-- hanover frost 154 *
+| | +-- half hanover frost 155 *
+| | +-- quarter hanover frost 156 *
+| | +-- scrim 157 *
+| | +-- eighth plus green 158 *
+| | +-- eighth minus green 159 *
+| | +-- 4 CTB 160 *
+| | +-- 4 CTO 161 *
+| | +-- .15 ND 162 *
+| | +-- 1.2 ND 163 *
+| | +-- soft green 164 *
+| | +-- jade 165 *
+| | +-- mallard green 166 *
+| | +-- forest green 167 *
+| | +-- follies pink 168 *
+| | +-- special rose pink 169 *
+| | +-- plum 170 *
+| | +-- special medium lavender 171 *
+| | +-- violet 172 *
+| | +-- fuschia pink 173 *
+| | +-- glacier blue 174 *
+| | +-- lighter blue 175 *
+| | +-- special steel blue 176 *
+| | +-- special medium blue 177 *
+| | +-- cornflower 178 *
+| | +-- three quarter white diffusion 179 *
+| | +-- full CT straw 180 *
+| | +-- half CT straw 181 *
+| | +-- quarter CT straw 182 *
+| | +-- eighth CT straw 183 *
+| | +-- three eighths white diffusion 184 *
+| | +-- one sixteenth white diffusion 185 *
+| | +-- full atlantic frost 186 *
+| | +-- half atlantic frost 187 *
+| | +-- quarter atlantic frost 188 *
+| | +-- light flame 189 *
+| | +-- flame 190 *
+| | +-- salmon 191 *
+| | +-- deep salmon 192 *
+| | +-- light rose purple 193 *
+| | +-- indigo 194 *
+| | +-- green blue 195 *
+| | +-- damson violet 196 *
+| | +-- french lilac 197 *
+| | +-- new schubert pink 198 *
+| | +-- max blue 199 *
+| | +-- turquoise 200 *
+| | +-- lyric blue 201 *
+| | +-- dewberry 202 *
+| | +-- ice blue 203 *
+| | +-- venetian blue 204 *
+| | +-- fuji blue 205 *
+| | +-- mayan sun 206 *
+| | +-- soft golden amber 207 *
+| | +-- aztec gold 208 *
+| | +-- bermuda blue 209 *
+| | +-- twilight blue 210 *
+| | +-- wisteria 211 *
+| | +-- barely blue 212 *
+| | +-- blueberry 213 *
+| | +-- lapis blue 214 *
+| | +-- white cap 215 *
+| | +-- surf blue 216 *
+| | +-- capri blue 217 *
+| | +-- riviera blue 218 *
+| | +-- olympia green 219 *
+| | +-- tarragon 220 *
+| | +-- grotto green 221 *
+| | +-- prussian green 222 *
+| | +-- sunset pink 223 *
+| | +-- hyacinth 224 *
+| +-- GamColor 6 (144)
+| | +-- gypsy pink 1 *
+| | +-- lavender blue 2 *
+| | +-- blue rose 3 *
+| | +-- broadway rose 4 *
+| | +-- antique rose 5 *
+| | +-- 4 antique rose 6 *
+| | +-- 2 antique rose 7 *
+| | +-- 4 antique rose 8 *
+| | +-- 8 antique rose 9 *
+| | +-- naked pink 10 *
+| | +-- dark rose 11 *
+| | +-- bright pink 12 *
+| | +-- rose 13 *
+| | +-- soft pink 14 *
+| | +-- dark magenta 15 *
+| | +-- pink punch 16 *
+| | +-- party pink 17 *
+| | +-- baby pink 18 *
+| | +-- light pink 19 *
+| | +-- chorus pink 20 *
+| | +-- dark flesh pink 21 *
+| | +-- cherry 22 *
+| | +-- cold pink 23 *
+| | +-- nymph pink 24 *
+| | +-- pink magenta 25 *
+| | +-- pink red 26 *
+| | +-- light red 27 *
+| | +-- medium red xt 28 *
+| | +-- red orange 29 *
+| | +-- fire red 30 *
+| | +-- fire orange 31 *
+| | +-- french rose 32 *
+| | +-- english rose 33 *
+| | +-- autumn glory 34 *
+| | +-- peach 35 *
+| | +-- indian summer 36 *
+| | +-- dark bastard amber 37 *
+| | +-- bastard amber 38 *
+| | +-- pale sepia 39 *
+| | +-- tan tone 40 *
+| | +-- sepia 41 *
+| | +-- coral 42 *
+| | +-- forever amber 43 *
+| | +-- light bastard amber 44 *
+| | +-- cold bastard amber 45 *
+| | +-- cantaloupe 46 *
+| | +-- honey 47 *
+| | +-- deep amber 48 *
+| | +-- dark amber 49 *
+| | +-- amber flame 50 *
+| | +-- amber blush 51 *
+| | +-- 8 CTO) 52 *
+| | +-- 4 CTO 53 *
+| | +-- warm straw 54 *
+| | +-- cinnamon 55 *
+| | +-- spice 56 *
+| | +-- flame 57 *
+| | +-- golden tan 58 *
+| | +-- brass 59 *
+| | +-- light amber 60 *
+| | +-- apricot 61 *
+| | +-- gold rush 62 *
+| | +-- walnut 63 *
+| | +-- golden sunset 64 *
+| | +-- yellow gold 65 *
+| | +-- medium amber 66 *
+| | +-- sunflower 67 *
+| | +-- warm ivory 68 *
+| | +-- double ivory 69 *
+| | +-- ivory 70 *
+| | +-- very light straw 71 *
+| | +-- saffron 72 *
+| | +-- yellow sun 73 *
+| | +-- mellow yellow 74 *
+| | +-- pale gold 75 *
+| | +-- pale yellow 76 *
+| | +-- medium yellow 77 *
+| | +-- no colour straw 78 *
+| | +-- lime yellow 79 *
+| | +-- new straw 80 *
+| | +-- lime sun 81 *
+| | +-- lime 82 *
+| | +-- pale green 83 *
+| | +-- light green yellow 84 *
+| | +-- grass green 85 *
+| | +-- rich green 86 *
+| | +-- medium green 87 *
+| | +-- wicked green 88 *
+| | +-- emerald green 89 *
+| | +-- kelly green 90 *
+| | +-- pistachio 91 *
+| | +-- bluegrass 92 *
+| | +-- blue green 93 *
+| | +-- light steel blue 94 *
+| | +-- princess blue 95 *
+| | +-- azure blue 96 *
+| | +-- off blue 97 *
+| | +-- nile blue 98 *
+| | +-- aqua blue 99 *
+| | +-- christel blue 100 *
+| | +-- shark blue 101 *
+| | +-- beverly blue 102 *
+| | +-- electric blue 103 *
+| | +-- moon blue 104 *
+| | +-- dark moon blue 105 *
+| | +-- moody blue 106 *
+| | +-- full light blue 107 *
+| | +-- north sky blue 108 *
+| | +-- aztec blue 109 *
+| | +-- steel blue 110 *
+| | +-- diamond blue 111 *
+| | +-- whisper blue 112 *
+| | +-- cobalt 113 *
+| | +-- city blue 114 *
+| | +-- bonus blue 115 *
+| | +-- primary blue 116 *
+| | +-- blue jazz 117 *
+| | +-- sky blue 118 *
+| | +-- winter white 119 *
+| | +-- opera white 120 *
+| | +-- daylight blue 121 *
+| | +-- southern sky 122 *
+| | +-- blue ice 123 *
+| | +-- blue belle 124 *
+| | +-- hot blue 125 *
+| | +-- dark sky blue 126 *
+| | +-- dark blue 127 *
+| | +-- alice blue 128 *
+| | +-- twilight 129 *
+| | +-- pale lavender 130 *
+| | +-- cosmic blue 131 *
+| | +-- real congo blue 132 *
+| | +-- light purple 133 *
+| | +-- royal purple 134 *
+| | +-- african violet 135 *
+| | +-- purple 136 *
+| | +-- medium lavender 137 *
+| | +-- special lavender 138 *
+| | +-- surprise pink 139 *
+| | +-- lovely lavender 140 *
+| | +-- ripe plum 141 *
+| | +-- wild plum 142 *
+| | +-- dark lavender 143 *
+| | +-- orchid 144 *
+| +-- Gel 7 (153)
+| | +-- soft diffusion 1 *
+| | +-- hard diffusion 2 *
+| | +-- linear diffusion 3 *
+| | +-- early morning frost 4 *
+| | +-- weaved diffusion 5 *
+| | +-- light weaved diffusion 6 *
+| | +-- flat diffusion 7 *
+| | +-- textured diffusion 8 *
+| | +-- white diffusion 9 *
+| | +-- light textured diffusion 10 *
+| | +-- red diffusion 11 *
+| | +-- blue diffusion 12 *
+| | +-- green diffusion 13 *
+| | +-- apollo blue full CTB 14 *
+| | +-- 4 CTB 15 *
+| | +-- 2 CTB 16 *
+| | +-- 3 CTB 17 *
+| | +-- 4 CTB 18 *
+| | +-- 8 CTB 19 *
+| | +-- apollo blue 2x CTB 20 *
+| | +-- apollo orange full CTO 21 *
+| | +-- 4 CTO 22 *
+| | +-- 2 CTO 23 *
+| | +-- 4 CTO 24 *
+| | +-- 8 CTO 25 *
+| | +-- apollo orange 2x CTO 26 *
+| | +-- apollo straw full CTS 27 *
+| | +-- 2 CTS 28 *
+| | +-- 4 CTS 29 *
+| | +-- 8 CTS 30 *
+| | +-- .3 neutral density 31 *
+| | +-- .6 neutral density 32 *
+| | +-- .9 neutral density 33 *
+| | +-- simply mauvelous 34 *
+| | +-- purple mist 35 *
+| | +-- precious purple 36 *
+| | +-- sour grape 37 *
+| | +-- purplexed 38 *
+| | +-- submissive lavender 39 *
+| | +-- lavender retriever 40 *
+| | +-- not what you pink 41 *
+| | +-- dominant lavender 42 *
+| | +-- whispering lavender 43 *
+| | +-- breathless lavender 44 *
+| | +-- luscious lilac 45 *
+| | +-- bodacious blueberry 46 *
+| | +-- apollo lavender 47 *
+| | +-- alexander the grape 48 *
+| | +-- malice blue 49 *
+| | +-- late night lavender 50 *
+| | +-- flirtatious lavender 51 *
+| | +-- groovy grape 52 *
+| | +-- king congo blue 54 *
+| | +-- voodoo lavender 55 *
+| | +-- seductive blue 56 *
+| | +-- mournful blue 57 *
+| | +-- blurple 58 *
+| | +-- new york blue 59 *
+| | +-- bright blue 60 *
+| | +-- apollo blue 61 *
+| | +-- london blue 63 *
+| | +-- sultry blue 64 *
+| | +-- after hours blue 65 *
+| | +-- heavenly blue 66 *
+| | +-- ozone blue 67 *
+| | +-- electric blue 68 *
+| | +-- kablueie 69 *
+| | +-- crisp blue 70 *
+| | +-- blue moon 71 *
+| | +-- timid blue 72 *
+| | +-- baby boy blue 73 *
+| | +-- monday morning blue 74 *
+| | +-- ice blue 75 *
+| | +-- blue my mind 76 *
+| | +-- bluetylicious 78 *
+| | +-- island blue 79 *
+| | +-- caribbean blue 80 *
+| | +-- atlantic green blue 81 *
+| | +-- hero blue 82 *
+| | +-- apollo green 83 *
+| | +-- green gello 85 *
+| | +-- neptune blue green 86 *
+| | +-- montego blue green 87 *
+| | +-- kelly green 88 *
+| | +-- envy green 89 *
+| | +-- cactus juice green 90 *
+| | +-- putting green 91 *
+| | +-- margarita green 92 *
+| | +-- chablis yellow 93 *
+| | +-- yellow snow 94 *
+| | +-- banana yellow 95 *
+| | +-- neon yellow 96 *
+| | +-- pilsner yellow 97 *
+| | +-- bikini yellow 98 *
+| | +-- harvest gold 99 *
+| | +-- whiskey tint 100 *
+| | +-- mustard 101 *
+| | +-- butterscotch 102 *
+| | +-- fatherless amber 103 *
+| | +-- hot cocoa 104 *
+| | +-- santa fe amber 105 *
+| | +-- adobe orange 106 *
+| | +-- nude gold 107 *
+| | +-- bashful amber 108 *
+| | +-- rust assured 109 *
+| | +-- apollo gold 111 *
+| | +-- just peachy 112 *
+| | +-- golden amber 113 *
+| | +-- burnt orange 114 *
+| | +-- spiced rum amber 115 *
+| | +-- trick or treat 116 *
+| | +-- apollo orange 117 *
+| | +-- peach my interest 118 *
+| | +-- coral amber 119 *
+| | +-- peach amber 121 *
+| | +-- hot wings 123 *
+| | +-- apricot orange 124 *
+| | +-- hot lava orange 125 *
+| | +-- kiss me tint 126 *
+| | +-- mango craze 127 *
+| | +-- scandalous scarlet 128 *
+| | +-- vixen red 129 *
+| | +-- diva red 130 *
+| | +-- cherry lewis 131 *
+| | +-- tasty apple red 132 *
+| | +-- bludgeon red 133 *
+| | +-- lipstick red 134 *
+| | +-- front rose 135 *
+| | +-- watermelon wine 136 *
+| | +-- flamingo pink 137 *
+| | +-- spanked pink 138 *
+| | +-- tease pink 139 *
+| | +-- pink pong 140 *
+| | +-- bit of pink 141 *
+| | +-- cotton candy pink 142 *
+| | +-- v.i.pink 143 *
+| | +-- in the pink 144 *
+| | +-- pinkerbell 145 *
+| | +-- tickled pink 146 *
+| | +-- hot pink 149 *
+| | +-- sassy pink 150 *
+| | +-- ruby slippers 151 *
+| | +-- apollo magenta 152 *
+| | +-- passion pink 153 *
+| +-- Lee 8 (328)
+| | +-- rose pink 1 *
+| | +-- lavender tint 2 *
+| | +-- medium bastard amber 3 *
+| | +-- pale yellow 4 *
+| | +-- dark salmon 5 *
+| | +-- pale amber gold 6 *
+| | +-- medium yellow 7 *
+| | +-- straw tint 8 *
+| | +-- deep straw 9 *
+| | +-- surprise peach 10 *
+| | +-- fire 11 *
+| | +-- medium amber 12 *
+| | +-- gold amber 13 *
+| | +-- dark amber 14 *
+| | +-- scarlet 15 *
+| | +-- sunset red 16 *
+| | +-- bright red 17 *
+| | +-- medium red 18 *
+| | +-- plasa red 19 *
+| | +-- light pink 20 *
+| | +-- medium pink 21 *
+| | +-- pink carnation 22 *
+| | +-- dark magenta 23 *
+| | +-- rose purple 24 *
+| | +-- medium purple 25 *
+| | +-- light lavender 26 *
+| | +-- paler lavender 27 *
+| | +-- lavender 28 *
+| | +-- mist blue 29 *
+| | +-- pale blue 30 *
+| | +-- sky blue 31 *
+| | +-- tokyo blue 32 *
+| | +-- evening blue 33 *
+| | +-- just blue 34 *
+| | +-- deeper blue 35 *
+| | +-- lime green 36 *
+| | +-- moss green 37 *
+| | +-- dark yellow green 38 *
+| | +-- spring yellow 39 *
+| | +-- yellow 40 *
+| | +-- light amber 41 *
+| | +-- straw 42 *
+| | +-- deep amber 43 *
+| | +-- orange 44 *
+| | +-- primary red 45 *
+| | +-- light rose 46 *
+| | +-- english rose 47 *
+| | +-- light salmon 48 *
+| | +-- middle rose 49 *
+| | +-- dark pink 50 *
+| | +-- magenta 51 *
+| | +-- peacock blue 52 *
+| | +-- medium-blue green 53 *
+| | +-- steel blue 54 *
+| | +-- light blue 55 *
+| | +-- dark blue 56 *
+| | +-- deep blue 57 *
+| | +-- lee green 58 *
+| | +-- fern green 59 *
+| | +-- dark green 60 *
+| | +-- mauve 61 *
+| | +-- smokey pink 62 *
+| | +-- bright pink 63 *
+| | +-- clear 64 *
+| | +-- marine blue 65 *
+| | +-- medium blue 66 *
+| | +-- golden amber 67 *
+| | +-- deep golden amber 68 *
+| | +-- pale lavender 69 *
+| | +-- special lavender 70 *
+| | +-- pale green 71 *
+| | +-- primary green 72 *
+| | +-- summer blue 73 *
+| | +-- bright blue 74 *
+| | +-- pale violet 75 *
+| | +-- pale navy blue 76 *
+| | +-- no colour blue 77 *
+| | +-- apricot 78 *
+| | +-- bright rose 79 *
+| | +-- gold tint 80 *
+| | +-- pale gold 81 *
+| | +-- pale salmon 82 *
+| | +-- pale rose 83 *
+| | +-- chocolate 84 *
+| | +-- pink 85 *
+| | +-- deep orange 86 *
+| | +-- no colour straw 87 *
+| | +-- slate blue 88 *
+| | +-- bastard amber 89 *
+| | +-- flame red 90 *
+| | +-- daylight blue 91 *
+| | +-- pale red 92 *
+| | +-- lilac tint 93 *
+| | +-- deep lavender 94 *
+| | +-- lagoon blue 95 *
+| | +-- dark steel blue 96 *
+| | +-- loving amber 97 *
+| | +-- chrome orange 98 *
+| | +-- dark lavender 99 *
+| | +-- congo blue 100 *
+| | +-- light red 101 *
+| | +-- moonlight blue 102 *
+| | +-- cosmetic peach 103 *
+| | +-- cosmetic burgundy 104 *
+| | +-- cosmetic silver rose 105 *
+| | +-- cosmetic rouge 106 *
+| | +-- cosmetic highlight 107 *
+| | +-- cosmetic silver moss 108 *
+| | +-- cosmetic emerald 109 *
+| | +-- cosmetic aqua blue 110 *
+| | +-- flesh pink 111 *
+| | +-- rosy amber 112 *
+| | +-- surprise pink 113 *
+| | +-- zenith blue 114 *
+| | +-- true blue 115 *
+| | +-- alice blue 116 *
+| | +-- palace blue 117 *
+| | +-- regal blue 118 *
+| | +-- double CT blue 119 *
+| | +-- full CT blue 120 *
+| | +-- 2 CT blue 121 *
+| | +-- 4 CT blue 122 *
+| | +-- full CT orange 123 *
+| | +-- 2 CT orange 124 *
+| | +-- 4 CT orange 125 *
+| | +-- full CT orange + .3ND 126 *
+| | +-- full CT orange + .6ND 127 *
+| | +-- .3 ND 128 *
+| | +-- .6 ND 129 *
+| | +-- .9 ND 130 *
+| | +-- LCT yellow 131 *
+| | +-- white flame green 132 *
+| | +-- full tough spun 133 *
+| | +-- half tough spun 134 *
+| | +-- white diffusion 135 *
+| | +-- blue diffusion 136 *
+| | +-- 8 CT blue 137 *
+| | +-- lee fluorescent green 138 *
+| | +-- white frost 139 *
+| | +-- blue frost 140 *
+| | +-- 8 CT orange 141 *
+| | +-- daylight blue frost 142 *
+| | +-- lee ND frost 143 *
+| | +-- lee UV 144 *
+| | +-- brushed silk 145 *
+| | +-- 4 tough spun 146 *
+| | +-- super correction LCT yellow 147 *
+| | +-- super white flame green 148 *
+| | +-- HMI (to tungsten) 149 *
+| | +-- CID (to tungsten) 150 *
+| | +-- CSI (to tungsten) 151 *
+| | +-- lee fluorescent 5700 K 152 *
+| | +-- lee fluorescent 4300 K 153 *
+| | +-- lee fluorescent 3600 K 154 *
+| | +-- lee plus green 155 *
+| | +-- 2 plus green 156 *
+| | +-- 4 plus green 157 *
+| | +-- lee minus green 158 *
+| | +-- 2 minus green 159 *
+| | +-- 4 minus green 160 *
+| | +-- 2 white diffusion 161 *
+| | +-- 4 white diffusion 162 *
+| | +-- 8 white diffusion 163 *
+| | +-- hampshire frost 164 *
+| | +-- new hampshire frost 165 *
+| | +-- hollywood frost 166 *
+| | +-- 2 hampshire frost 167 *
+| | +-- 4 hampshire frost 168 *
+| | +-- 8 hampshire frost 169 *
+| | +-- tough spun fr - full 170 *
+| | +-- 4 171 *
+| | +-- 2 172 *
+| | +-- 8 173 *
+| | +-- lee heat shield 174 *
+| | +-- lee scrim 175 *
+| | +-- black scrim 176 *
+| | +-- 8 plus green 177 *
+| | +-- 8 minus green 178 *
+| | +-- 4 CT blue 179 *
+| | +-- 2 CT blue 180 *
+| | +-- 4 CT orange 181 *
+| | +-- 2 CT orange 182 *
+| | +-- Double CT orange 183 *
+| | +-- .15 ND 184 *
+| | +-- 1.2 ND 185 *
+| | +-- soft green 186 *
+| | +-- jade 187 *
+| | +-- mallard green 188 *
+| | +-- forest green 189 *
+| | +-- follies pink 190 *
+| | +-- special rose pink 191 *
+| | +-- plum 192 *
+| | +-- special medium lavender 193 *
+| | +-- violet 194 *
+| | +-- fuchsia pink 195 *
+| | +-- glacier blue 196 *
+| | +-- lighter blue 197 *
+| | +-- special steel blue 198 *
+| | +-- special medium blue 199 *
+| | +-- cornflower 200 *
+| | +-- lee lux 201 *
+| | +-- opal frost 202 *
+| | +-- 4 white diffusion 203 *
+| | +-- light opal frost 204 *
+| | +-- full CT straw 205 *
+| | +-- 2 CT straw 206 *
+| | +-- 4 CT straw 207 *
+| | +-- 8 CT straw 208 *
+| | +-- 8 white diffusion 209 *
+| | +-- 16 white diffusion 210 *
+| | +-- double new colour blue 211 *
+| | +-- new colour blue (Robertson blue) 212 *
+| | +-- 2 new colour blue 213 *
+| | +-- 4 new colour blue 214 *
+| | +-- waterfront green 215 *
+| | +-- sally green 216 *
+| | +-- marlene 217 *
+| | +-- madge 218 *
+| | +-- midnight maya 219 *
+| | +-- bacon brown 220 *
+| | +-- amber delight 221 *
+| | +-- ice and a slice 222 *
+| | +-- argent blue 224 *
+| | +-- ald gold 225 *
+| | +-- arctic white 226 *
+| | +-- silver 227 *
+| | +-- platinum 228 *
+| | +-- moonlight white 229 *
+| | +-- full CT eight five 230 *
+| | +-- one and eigth digital LED CTO 231 *
+| | +-- full digital  LED CTO 232 *
+| | +-- seven eights digital  LED CTO 233 *
+| | +-- three quarter digital  LED CTO 234 *
+| | +-- half mustard yellow 235 *
+| | +-- quarter mustard yellow 236 *
+| | +-- industrial sodium 237 *
+| | +-- HI sodium 238 *
+| | +-- urban sodium 239 *
+| | +-- LO sodium 240 *
+| | +-- perfect lavender 241 *
+| | +-- provence 242 *
+| | +-- special pale lavender 243 *
+| | +--  cold lavender 244 *
+| | +-- lily 245 *
+| | +-- lily frost 246 *
+| | +-- kings fals lavender 247 *
+| | +-- ultimate frost 248 *
+| | +-- cool lavender 249 *
+| | +-- electric lilac 250 *
+| | +-- spir special blue 251 *
+| | +-- cold blue 252 *
+| | +-- bedford blue 253 *
+| | +-- j winter blue 254 *
+| | +-- elysian blue 255 *
+| | +-- cabana blue 256 *
+| | +-- mikkel blue 257 *
+| | +-- shanklin frost 258 *
+| | +-- half shanklin frost 259 *
+| | +-- colour wash blue 260 *
+| | +-- durham daylight frost 261 *
+| | +-- berry blue 262 *
+| | +-- bray blue 263 *
+| | +-- virgin blue 264 *
+| | +-- ocean blue 265 *
+| | +-- old steel blue 266 *
+| | +-- QFD blue 267 *
+| | +-- steel green 268 *
+| | +-- scuba blue 269 *
+| | +-- liberty green 270 *
+| | +-- dirty ice 271 *
+| | +-- damp squib 272 *
+| | +-- velvet green 273 *
+| | +-- twickenham green 274 *
+| | +-- jas green 275 *
+| | +-- aurora borealis green 276 *
+| | +-- mustard yellow 277 *
+| | +-- bram brown 278 *
+| | +-- dirty white 279 *
+| | +-- brown 280 *
+| | +-- easy white 281 *
+| | +-- seedy pink 282 *
+| | +-- hampshire rose 283 *
+| | +-- durham frost 284 *
+| | +-- wheat 285 *
+| | +-- sun colour straw 286 *
+| | +-- lee yellow 287 *
+| | +-- oklahoma yellow 288 *
+| | +-- egg yolk yellow 289 *
+| | +-- burnt yellow 290 *
+| | +-- cardbox amber 291 *
+| | +-- soft amber key 1 292 *
+| | +-- soft amber key 2 293 *
+| | +-- nectarine 294 *
+| | +-- rust 295 *
+| | +-- millennium gold 296 *
+| | +-- bastard pink 297 *
+| | +-- AS golden amber 298 *
+| | +-- terry red 299 *
+| | +-- marius red 300 *
+| | +-- blood red 301 *
+| | +-- moroccan pink 302 *
+| | +-- moroccan frost 303 *
+| | +-- vanity fair 304 *
+| | +-- magical magenta 306 *
+| | +-- deep purple 307 *
+| | +-- chrysalis pink 308 *
+| | +-- special KH lavender 309 *
+| | +-- cool LED deep amber 310 *
+| | +-- cool LED orange 311 *
+| | +-- cool LED primary red 312 *
+| | +-- cool LED magenta 313 *
+| | +-- cool LED peacock blue 314 *
+| | +-- cool LED medium blue-green 315 *
+| | +-- cool LED steel blue 316 *
+| | +-- cool LED light blue 317 *
+| | +-- cool LED dark blue 318 *
+| | +-- cool LED mauve 319 *
+| | +-- cool LED bright pink 320 *
+| | +-- cool LED medium blue 321 *
+| | +-- cool LED primary green 322 *
+| | +-- cool LED apricot 323 *
+| | +-- cool LED deep orange 324 *
+| | +-- cool LED flame red 325 *
+| | +-- cool LED dark lavender 326 *
+| | +-- cool LED congo blue 327 *
+| | +-- cool LED light red 328 *
+| +-- Poly Colour 9 (80)
+| | +-- 0 1 *
+| | +-- 00 2 *
+| | +-- 12 3 *
+| | +-- 15 4 *
+| | +-- 16 5 *
+| | +-- 17 6 *
+| | +-- 18 7 *
+| | +-- 20 8 *
+| | +-- 21 9 *
+| | +-- 22 10 *
+| | +-- 24 11 *
+| | +-- 25 12 *
+| | +-- 26 13 *
+| | +-- 31 14 *
+| | +-- 33 15 *
+| | +-- 34 16 *
+| | +-- 35 17 *
+| | +-- 36 18 *
+| | +-- 37 19 *
+| | +-- 38 20 *
+| | +-- 40 21 *
+| | +-- 41 22 *
+| | +-- 43 23 *
+| | +-- 44 24 *
+| | +-- 45 25 *
+| | +-- 46 26 *
+| | +-- 52 27 *
+| | +-- 53 28 *
+| | +-- 54 29 *
+| | +-- 55 30 *
+| | +-- 57 31 *
+| | +-- 58 32 *
+| | +-- 59 33 *
+| | +-- 61 34 *
+| | +-- 63 35 *
+| | +-- 64 36 *
+| | +-- 65 37 *
+| | +-- 66 38 *
+| | +-- 67 39 *
+| | +-- 71 40 *
+| | +-- 72 41 *
+| | +-- 73 42 *
+| | +-- 74 43 *
+| | +-- 76 44 *
+| | +-- 77 45 *
+| | +-- 78 46 *
+| | +-- 79 47 *
+| | +-- 81 48 *
+| | +-- 84 49 *
+| | +-- 85 50 *
+| | +-- 86 51 *
+| | +-- 87 52 *
+| | +-- 88 53 *
+| | +-- 140 54 *
+| | +-- 170 55 *
+| | +-- 560 56 *
+| | +-- 700 57 *
+| | +-- 780 58 *
+| | +-- 783 59 *
+| | +-- 830 60 *
+| | +-- 872 61 *
+| | +-- 878 62 *
+| | +-- 925 63 *
+| | +-- 950 64 *
+| | +-- 975 65 *
+| | +-- A1 66 *
+| | +-- A2 67 *
+| | +-- A3 68 *
+| | +-- A4 69 *
+| | +-- A5 70 *
+| | +-- B1 71 *
+| | +-- B2 72 *
+| | +-- B3 73 *
+| | +-- B4 74 *
+| | +-- B5 75 *
+| | +-- B6 76 *
+| | +-- BL1 77 *
+| | +-- D00 78 *
+| | +-- FR4 79 *
+| | +-- PU4 80 *
+| +-- Roscolux 10 (191)
+| | +-- clear 1 *
+| | +-- light bastard amber 2 *
+| | +-- bastard amber 3 *
+| | +-- dark bastard amber 4 *
+| | +-- medium bastard amber 5 *
+| | +-- rose tint 6 *
+| | +-- no color straw 7 *
+| | +-- pale yellow 8 *
+| | +-- pale gold 9 *
+| | +-- pale amber gold 10 *
+| | +-- medium yellow 11 *
+| | +-- light straw 12 *
+| | +-- straw 13 *
+| | +-- straw tint 14 *
+| | +-- medium straw 15 *
+| | +-- deep straw 16 *
+| | +-- light amber 17 *
+| | +-- light flame 18 *
+| | +-- flame 19 *
+| | +-- fire 20 *
+| | +-- medium amber 21 *
+| | +-- golden amber 22 *
+| | +-- deep amber 23 *
+| | +-- orange 24 *
+| | +-- scarlet 25 *
+| | +-- orange red 26 *
+| | +-- light red 27 *
+| | +-- medium red 28 *
+| | +-- light salmon pink 29 *
+| | +-- salmon pink 30 *
+| | +-- medium salmon pink 31 *
+| | +-- no color pink 32 *
+| | +-- flesh pink 33 *
+| | +-- light pink 34 *
+| | +-- medium pink 35 *
+| | +-- pale rose pink 36 *
+| | +-- light rose 37 *
+| | +-- skelton exotic sangria 38 *
+| | +-- light salmon 39 *
+| | +-- salmon 40 *
+| | +-- deep salmon 41 *
+| | +-- deep pink 42 *
+| | +-- middle rose 43 *
+| | +-- rose 44 *
+| | +-- magenta 45 *
+| | +-- light rose purple 46 *
+| | +-- rose purple 47 *
+| | +-- medium purple 48 *
+| | +-- mauve 49 *
+| | +-- surprise pink 50 *
+| | +-- light lavender 51 *
+| | +-- pale lavender 52 *
+| | +-- special lavender 53 *
+| | +-- lilac 54 *
+| | +-- gypsy lavender 55 *
+| | +-- lavender 56 *
+| | +-- deep lavender 57 *
+| | +-- indigo 58 *
+| | +-- no color blue 59 *
+| | +-- mist blue 60 *
+| | +-- booster blue 61 *
+| | +-- pale blue 62 *
+| | +-- light steel blue 63 *
+| | +-- daylight blue 64 *
+| | +-- cool blue 65 *
+| | +-- light sky blue 66 *
+| | +-- sky blue 67 *
+| | +-- brilliant blue 68 *
+| | +-- nile blue 69 *
+| | +-- sea blue 70 *
+| | +-- azure blue 71 *
+| | +-- peacock blue 72 *
+| | +-- night blue 73 *
+| | +-- twilight blue 74 *
+| | +-- light green blue 75 *
+| | +-- green blue 76 *
+| | +-- trudy blue 77 *
+| | +-- bright blue 78 *
+| | +-- primary blue 79 *
+| | +-- urban blue 80 *
+| | +-- surprise blue 81 *
+| | +-- medium blue 82 *
+| | +-- zephyr blue 83 *
+| | +-- deep blue 84 *
+| | +-- pea green 85 *
+| | +-- pale yellow green 86 *
+| | +-- light green 87 *
+| | +-- moss green 88 *
+| | +-- dark yellow green 89 *
+| | +-- primary green 90 *
+| | +-- turquoise 91 *
+| | +-- blue green 92 *
+| | +-- kelly green 93 *
+| | +-- medium green 94 *
+| | +-- lime 95 *
+| | +-- light grey 96 *
+| | +-- medium grey 97 *
+| | +-- chocolate 98 *
+| | +-- frost 99 *
+| | +-- light frost 100 *
+| | +-- light tough frost 101 *
+| | +-- tough frost 102 *
+| | +-- tough silk 103 *
+| | +-- tough spun 104 *
+| | +-- light tough spun 105 *
+| | +-- tough rolux 106 *
+| | +-- opal tough frost 107 *
+| | +-- matte silk 108 *
+| | +-- hamburg frost 109 *
+| | +-- light tough rolux 110 *
+| | +-- tough white diffusion 111 *
+| | +-- 2 white diffusion 112 *
+| | +-- 4 white diffusion 113 *
+| | +-- light hamburg frost 114 *
+| | +-- red diffusion 115 *
+| | +-- blue diffusion 116 *
+| | +-- green diffusion 117 *
+| | +-- red cyc silk 118 *
+| | +-- blue cyc silk 119 *
+| | +-- green cyc silk 120 *
+| | +-- amber cyc silk 121 *
+| | +-- quarter hamburg frost 122 *
+| | +-- subtle hamburg frost 123 *
+| | +-- light tough silk 124 *
+| | +-- light opal 125 *
+| | +-- powder frost 126 *
+| | +-- pale bastard amber 127 *
+| | +-- real apricot 128 *
+| | +-- pale apricot 129 *
+| | +-- rose gold 130 *
+| | +-- daffodil 131 *
+| | +-- canary 132 *
+| | +-- Light Relief yellow 133 *
+| | +-- gallo gold 134 *
+| | +-- apricot 135 *
+| | +-- mayan sun 136 *
+| | +-- soft golden amber 137 *
+| | +-- gypsy red 138 *
+| | +-- henna sky 139 *
+| | +-- shell pink 140 *
+| | +-- cherry rose 141 *
+| | +-- blush pink 142 *
+| | +-- Billington pink 143 *
+| | +-- true pink 144 *
+| | +-- broadway pink 145 *
+| | +-- rose pink 146 *
+| | +-- neon pink 147 *
+| | +-- follies pink 148 *
+| | +-- tropical magenta 149 *
+| | +-- belladonna rose 150 *
+| | +-- purple jazz 151 *
+| | +-- Fisher fuchsia 152 *
+| | +-- lavender mist 153 *
+| | +-- lilac mist 154 *
+| | +-- pale violet 155 *
+| | +-- middle lavender 156 *
+| | +-- royal lavender 157 *
+| | +-- rose indigo 158 *
+| | +-- medium violet 159 *
+| | +-- clearwater 160 *
+| | +-- Hemsley blue 161 *
+| | +-- Tipton blue 162 *
+| | +-- aquamarine 163 *
+| | +-- blue bell 164 *
+| | +-- Tharon delft blue 165 *
+| | +-- jordan blue 166 *
+| | +-- slate blue 167 *
+| | +-- Winkler blue 168 *
+| | +-- tahitian blue 169 *
+| | +-- italian blue 170 *
+| | +-- theatre booster 1 171 *
+| | +-- theatre booster 2 172 *
+| | +-- theatre booster 3 173 *
+| | +-- sea green 174 *
+| | +-- cerulean blue 175 *
+| | +-- bermuda blue 176 *
+| | +-- iris purple 177 *
+| | +-- alice blue 178 *
+| | +-- baldassari blue 179 *
+| | +-- congo blue 180 *
+| | +-- sapphire blue 181 *
+| | +-- midnight blue 182 *
+| | +-- royal blue 183 *
+| | +-- leaf green 184 *
+| | +-- gaslight green 185 *
+| | +-- chroma green 186 *
+| | +-- pacific green 187 *
+| | +-- emerald green 188 *
+| | +-- teal green 189 *
+| | +-- pale grey 190 *
+| | +-- neutral grey 191 *
+| +-- Storaro Selection 11 (10)
+| | +-- storaro red 1 *
+| | +-- storaro orange 2 *
+| | +-- storaro yellow 3 *
+| | +-- storaro green 4 *
+| | +-- storaro cyan 5 *
+| | +-- storaro azure 6 *
+| | +-- storaro blue 7 *
+| | +-- storaro indigo 8 *
+| | +-- storaro violet 9 *
+| | +-- storaro magenta 10 *
+| +-- SuperGel 12 (136)
+| | +-- clear 1 *
+| | +-- light bastard amber 2 *
+| | +-- bastard amber 3 *
+| | +-- dark bastard amber 4 *
+| | +-- medium bastard amber 5 *
+| | +-- rose tint 6 *
+| | +-- no color straw 7 *
+| | +-- pale yellow 8 *
+| | +-- pale amber gold 9 *
+| | +-- medium yellow 10 *
+| | +-- light straw 11 *
+| | +-- straw tint 12 *
+| | +-- medium straw 13 *
+| | +-- deep straw 14 *
+| | +-- fire 15 *
+| | +-- medium amber 16 *
+| | +-- golden amber 17 *
+| | +-- deep amber 18 *
+| | +-- orange 19 *
+| | +-- scarlet 20 *
+| | +-- orange red 21 *
+| | +-- light red 22 *
+| | +-- medium red 23 *
+| | +-- light salmon pink 24 *
+| | +-- salmon pink 25 *
+| | +-- medium salmon pink 26 *
+| | +-- no color pink 27 *
+| | +-- light pink 28 *
+| | +-- medium pink 29 *
+| | +-- light rose 30 *
+| | +-- skelton exotic sangria 31 *
+| | +-- light salmon 32 *
+| | +-- deep pink 33 *
+| | +-- rose 34 *
+| | +-- magenta 35 *
+| | +-- light rose purple 36 *
+| | +-- rose purple 37 *
+| | +-- medium purple 38 *
+| | +-- mauve 39 *
+| | +-- light lavender 40 *
+| | +-- pale lavender 41 *
+| | +-- special lavender 42 *
+| | +-- lilac 43 *
+| | +-- gypsy lavender 44 *
+| | +-- lavender 45 *
+| | +-- deep lavender 46 *
+| | +-- indigo 47 *
+| | +-- mist blue 48 *
+| | +-- booster blue 49 *
+| | +-- pale blue 50 *
+| | +-- light steel blue 51 *
+| | +-- daylight blue 52 *
+| | +-- cool blue 53 *
+| | +-- light sky blue 54 *
+| | +-- sky blue 55 *
+| | +-- brilliant blue 56 *
+| | +-- nile blue 57 *
+| | +-- sea blue 58 *
+| | +-- azure blue 59 *
+| | +-- peacock blue 60 *
+| | +-- night blue 61 *
+| | +-- twilight blue 62 *
+| | +-- light green blue 63 *
+| | +-- trudy blue 64 *
+| | +-- bright blue 65 *
+| | +-- primary blue 66 *
+| | +-- urban blue 67 *
+| | +-- surprise blue 68 *
+| | +-- medium blue 69 *
+| | +-- zephyr blue 70 *
+| | +-- deep blue 71 *
+| | +-- pea green 72 *
+| | +-- moss green 73 *
+| | +-- dark yellow green 74 *
+| | +-- primary green 75 *
+| | +-- blue green 76 *
+| | +-- kelly green 77 *
+| | +-- medium blue green 78 *
+| | +-- lime 79 *
+| | +-- red diffusion 80 *
+| | +-- blue diffusion 81 *
+| | +-- green diffusion 82 *
+| | +-- red cyc silk 83 *
+| | +-- blue cyc silk 84 *
+| | +-- green cyc silk 85 *
+| | +-- amber cyc silk 86 *
+| | +-- warm peach 87 *
+| | +-- pale apricot 88 *
+| | +-- rose gold 89 *
+| | +-- canary 90 *
+| | +-- Light Relief yellow 91 *
+| | +-- apricot 92 *
+| | +-- mayan sun 93 *
+| | +-- gypsy red 94 *
+| | +-- shell pink 95 *
+| | +-- cherry rose 96 *
+| | +-- Billington pink 97 *
+| | +-- true pink 98 *
+| | +-- broadway pink 99 *
+| | +-- rose pink 100 *
+| | +-- neon pink 101 *
+| | +-- follies pink 102 *
+| | +-- tropical magenta 103 *
+| | +-- belladonna rose 104 *
+| | +-- purple jazz 105 *
+| | +-- Fisher fuchsia 106 *
+| | +-- lavender mist 107 *
+| | +-- lilly lavender 108 *
+| | +-- pale violet 109 *
+| | +-- middle lavender 110 *
+| | +-- royal lavender 111 *
+| | +-- rose indigo 112 *
+| | +-- medium violet 113 *
+| | +-- Hemsley blue 114 *
+| | +-- aquamarine 115 *
+| | +-- jordan blue 116 *
+| | +-- slate blue 117 *
+| | +-- Winkler blue 118 *
+| | +-- tahitian blue 119 *
+| | +-- italian blue 120 *
+| | +-- theatre booster 1 121 *
+| | +-- theatre booster 2 122 *
+| | +-- theatre booster 3 123 *
+| | +-- sea green 124 *
+| | +-- iris purple 125 *
+| | +-- congo blue 126 *
+| | +-- sapphire blue 127 *
+| | +-- midnight blue 128 *
+| | +-- royal blue 129 *
+| | +-- leaf green 130 *
+| | +-- gaslight green 131 *
+| | +-- chroma green 132 *
+| | +-- pacific green 133 *
+| | +-- emerald green 134 *
+| | +-- teal green 135 *
+| | +-- neutral grey 136 *
+| +-- Zircon 13 (12)
+| | +-- zircon minus green 1 1 *
+| | +-- zircon minus green 2 2 *
+| | +-- zircon minus green 3 3 *
+| | +-- zircon minus green 4 4 *
+| | +-- zircon minus green 5 5 *
+| | +-- zircon warm amber 2 6 *
+| | +-- zircon warm amber 4 7 *
+| | +-- zircon warm amber 6 8 *
+| | +-- zircon warm amber 8 9 *
+| | +-- zircon diffusion 1 10 *
+| | +-- zircon diffusion 2 11 *
+| | +-- zircon diffusion 3 12 *
+
+[17] Presets [DONE]
+
+[18] Worlds [DONE]
+| +-- Full 1 *
+
+[19] Filters [DONE]
+| +-- All 1 *
+
+[20] FadePaths 20 [DONE]
+
+[21] Programmer [DONE]
+
+[22] Groups [DONE]
+
+[23] Forms [DONE]
+| +-- Stomp 1 (1)
+| | +-- Stomp 1 (1)
+| | | +-- SubFormPoint 1 *
+| +-- Release 2 (1)
+| +-- Random 3 (1)
+| +-- Pwm 4 (1)
+| +-- Chase 5 (1)
+| +-- Flat Low 6 (1)
+| +-- Flat High 7 (1)
+| +-- Sin 8 (1)
+| +-- Cos 9 (1)
+| +-- Ramp Plus 10 (1)
+| +-- Ramp Minus 11 (1)
+| +-- Ramp 12 (1)
+| +-- Phase 1 13 (1)
+| +-- Phase 2 14 (1)
+| +-- Phase 3 15 (1)
+| +-- Bump 16 (1)
+| +-- Swing 17 (1)
+| +-- Ramp 50 18 (1)
+| +-- Circle 19 (2)
+| | +-- Circle 19.1 (8)
+| | | +-- SubFormPoint 1 *
+| | | +-- SubFormPoint 2 *
+| | | +-- SubFormPoint 3 *
+| | | +-- SubFormPoint 4 *
+| | | +-- SubFormPoint 5 *
+| | | +-- SubFormPoint 6 *
+| | | +-- SubFormPoint 7 *
+| | | +-- SubFormPoint 8 *
+| | +-- Circle 19.2 (8)
+| | | +-- SubFormPoint 1 *
+| | | +-- SubFormPoint 2 *
+| | | +-- SubFormPoint 3 *
+| | | +-- SubFormPoint 4 *
+| | | +-- SubFormPoint 5 *
+| | | +-- SubFormPoint 6 *
+| | | +-- SubFormPoint 7 *
+| | | +-- SubFormPoint 8 *
+| +-- Sound 20 (11)
+| +-- Flyout 21 (2)
+| | +-- dimmer 21.1 (4)
+| | | +-- SubFormPoint 1 *
+| | | +-- SubFormPoint 2 *
+| | | +-- SubFormPoint 3 *
+| | | +-- SubFormPoint 4 *
+| | +-- Position 21.2 (2)
+| | | +-- SubFormPoint 1 *
+| | | +-- SubFormPoint 2 *
+| +-- Wave 22 (2)
+| +-- Cross 23 (2)
+
+[24] Effects [DONE]
+
+[25] Sequences [DONE]
+
+[26] Timers [DONE]
+| +-- Stopwatch 1 *
+
+[27] MasterSections [DONE]
+
+[30] ExecutorPages [DONE]
+| +-- Temp 0 *
+| +-- Global 1 (42)
+| | +-- Page 1 *
+| | +-- Page 2 (1)
+| | | +-- WASH 2.2 *
+| | +-- Page 3 *
+| | +-- Page 4 *
+| | +-- Page 5 *
+| | +-- Page 6 *
+| | +-- Page 7 *
+| | +-- Page 8 *
+| | +-- Page 9 *
+| | +-- Page 10 *
+| | +-- Page 11 *
+| | +-- Page 12 *
+| | +-- Page 13 *
+| | +-- Page 14 *
+| | +-- Page 15 *
+| | +-- Page 16 *
+| | +-- Page 17 *
+| | +-- Page 18 *
+| | +-- Page 19 *
+| | +-- Page 20 *
+| | +-- Page 21 *
+| | +-- Page 22 *
+| | +-- Page 23 *
+| | +-- Page 24 *
+| | +-- Page 25 *
+| | +-- Page 26 *
+| | +-- Page 27 *
+| | +-- Page 28 *
+| | +-- Page 29 *
+| | +-- Page 30 *
+| | +-- Page 31 *
+| | +-- Page 32 *
+| | +-- Page 33 *
+| | +-- Page 34 *
+| | +-- Page 35 *
+| | +-- Page 36 *
+| | +-- Page 37 *
+| | +-- Page 38 *
+| | +-- Page 39 *
+| | +-- Page 40 *
+| | +-- Page 41 *
+| | +-- Page 42 *
+
+[31] ChannelPages [DONE]
+| +-- Page 1 *
+| +-- Page 2 *
+| +-- Page 3 *
+| +-- Page 4 *
+| +-- Page 5 *
+| +-- Page 6 *
+| +-- Page 7 *
+| +-- Page 8 *
+| +-- Page 9 *
+
+[33] Songs [DONE]
+
+[34] Agendas [DONE]
+
+[35] Timecodes [DONE]
+
+[36] RemoteTypes [DONE]
+| +-- AnalogRemotes 1 *
+| +-- MidiRemotes 2 *
+| +-- DMXRemotes 3 *
+
+[37] DMXSnapshotPool [DONE]
+
+[38] Layouts [DONE]
+| +-- Global (9)
+| | +-- LASER 1 (1)
+| | | +-- LayoutData 1 (2)
+| | | | +-- LayoutElementDefaults 1 *
+| | | | +-- LayoutElementDefaults 2 *
+| | +-- WASH 2  [== 38.1.1]
+| | +-- BIG BAR 3  [== 38.1.1]
+| | +-- small bar 4  [== 38.1.1]
+| | +-- RPointe1 5  [== 38.1.1]
+| | +-- SharpySL 6  [== 38.1.1]
+| | +-- WL 1..9 8  [== 38.1.1]
+| | +-- Layout 9  [== 38.1.1]
+
+[39] UserProfiles [PARTIAL]
+| +-- Default 1 (22)
+| | +-- UserSettings 1 (20)
+| | | +-- SheetSettings 1 (3)
+| | | | +-- Tools 1 *
+| | | | +-- LayerMask 2 *
+| | | | +-- Display 3 *
+| | | +-- SheetSettings 2 (3)
+| | | | +-- Tools 1 *
+| | | | +-- LayerMask 2 *
+| | | | +-- Display 3 *
+| | | +-- SheetSettings 3  [== 39.1.1.1]
+| | | +-- SheetSettings 4  [== 39.1.1.1]
+| | | +-- SheetSettings 5  [== 39.1.1.2]
+| | | +-- SheetSettings 6  [== 39.1.1.1]
+| | | +-- PresetColors 7 *
+| | | +-- Oops 8 *
+| | | +-- ColorDialog 9 *
+| | | +-- ColSettings 10 *
+| | | +-- HwActivateSettings 11 *
+| | | +-- DialogSettings 12 *
+| | | +-- HelpSettings 13 *
+| | | +-- TimecodeDialogSettings 14 *
+| | | +-- RemoteSettings 15 *
+| | | +-- ConsoleDialogSettings 16 *
+| | | +-- StageViewSettings 17 (1)
+| | | | +-- SheetSettings 1  [== 39.1.1.1]
+| | | +-- CommandAtSettings 18 *
+| | | +-- ColorDialog 19 *
+| | | +-- RunningPlaybacksDialog 20 *
+| | | +-- ShaperDialog 21 *
+| | | +-- ClockViewSettings 22 *
+| | | +-- StatusPopupUserSettingsCollect 23 (2)
+| | | | +-- StatusPopupUserSettings 1 *
+| | | | +-- StatusPopupUserSettings 2 *
+| | | +-- AutocreateSettings 24 *
+| | | +-- PMViewSettings 25 *
+| | | +-- ShaperDialog 26 *
+| | | +-- ShaperDialog 27 *
+| | | +-- ShaperDialog 28 *
+| | | +-- RDMViewSettings 29  [== 39.1.1.17]
+| | | +-- Gma3Settings 30 *
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (17)
+| | | +-- clear 1 *
+| | | +-- GROUP 2 *
+| | | +-- PROGRAM 3 *
+| | | +-- COLOUR 4 *
+| | | +-- View 5 5 *
+| | | +-- View 6 6 *
+| | | +-- View 7 7 *
+| | | +-- POINTE 8 *
+| | | +-- layout 9 *
+| | | +-- Fixtures 10 *
+| | | +-- DMX 11 *
+| | | +-- PRESETS 12 *
+| | | +-- SequFX 13 *
+| | | +-- EFFECTS 14 *
+| | | +-- View 15 15 *
+| | | +-- View 16 16 *
+| | | +-- PageExec 17 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- MatrixPool (2)
+| | | +-- Reset 1 *
+| | | +-- MAtricks 2 *
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (4)
+| | | | +-- DMX 1.5 *
+| | | | +-- PRESETS 1.6 *
+| | | | +-- SequFX 1.7 *
+| | | | +-- EFFECTS 1.8 *
+| | | | +-- PageExec 1.9 *
+| | | | +-- View 16 1.10 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13 (3)
+| | | +-- Move 1 *
+| | | +-- Circle 2 *
+| | | +-- Matrix2D 3 *
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.1.8]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Left 2 *
+| | | +-- Left 3 *
+| | | +-- Left 4 *
+| | | +-- Back 5 *
+| | | +-- Right 6 *
+| | | +-- Right 7 *
+| | | +-- Right 8 *
+| | | +-- Top 9 *
+| | | +-- Front View (2D) 10 *
+| | | +-- Side View (2D) 11 *
+| | | +-- Top View (2D) 12 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays (1)
+| | | +-- Display 1 1 *
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool (6)
+| | | +-- None 1 *
+| | | +-- Prog Only 2 *
+| | | +-- Active Only 3 *
+| | | +-- Parked 4 *
+| | | +-- Seq+ 5 *
+| | | +-- Seq- 6 *
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- Romar-J 2 (22)
+| | +-- UserSettings 1 (20)
+| | | +-- SheetSettings 1  [== 39.1.1.1]
+| | | +-- SheetSettings 2  [== 39.1.1.2]
+| | | +-- SheetSettings 3  [== 39.1.1.1]
+| | | +-- SheetSettings 4  [== 39.1.1.1]
+| | | +-- SheetSettings 5  [== 39.1.1.2]
+| | | +-- SheetSettings 6  [== 39.1.1.1]
+| | | +-- PresetColors 7 *
+| | | +-- Oops 8 *
+| | | +-- ColorDialog 9 *
+| | | +-- ColSettings 10 *
+| | | +-- HwActivateSettings 11 *
+| | | +-- DialogSettings 12 *
+| | | +-- HelpSettings 13 *
+| | | +-- TimecodeDialogSettings 14 *
+| | | +-- RemoteSettings 15 *
+| | | +-- ConsoleDialogSettings 16 *
+| | | +-- StageViewSettings 17  [== 39.1.1.17]
+| | | +-- CommandAtSettings 18 *
+| | | +-- ColorDialog 19 *
+| | | +-- RunningPlaybacksDialog 20 *
+| | | +-- ShaperDialog 21 *
+| | | +-- ClockViewSettings 22 *
+| | | +-- StatusPopupUserSettingsCollect 23  [== 39.1.1.23]
+| | | +-- AutocreateSettings 24 *
+| | | +-- PMViewSettings 25 *
+| | | +-- ShaperDialog 26 *
+| | | +-- ShaperDialog 27 *
+| | | +-- ShaperDialog 28 *
+| | | +-- RDMViewSettings 29  [== 39.1.1.17]
+| | | +-- Gma3Settings 30 *
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (14)
+| | | +-- ::View:: 1 *
+| | | +-- :World: 2 *
+| | | +-- ::Group:: 3 *
+| | | +-- ::MAtricks:: 4 *
+| | | +-- ::Filter:: 5 *
+| | | +-- ::Macro:: 6 *
+| | | +-- ::Sequence:: 7 *
+| | | +-- ::Effect:: 8 *
+| | | +-- ::Form:: 9 *
+| | | +-- ::Mask:: 10 *
+| | | +-- ::Timer:: 11 *
+| | | +-- ::Universe:: 12 *
+| | | +-- ::Image:: 13 *
+| | | +-- ::Layout:: 14 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8  [== 39.1.8]
+| | +-- MatrixPool (1)
+| | | +-- Reset 1 *
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.1.8]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Left 2 *
+| | | +-- Left 3 *
+| | | +-- Left 4 *
+| | | +-- Back 5 *
+| | | +-- Right 6 *
+| | | +-- Right 7 *
+| | | +-- Right 8 *
+| | | +-- Top 9 *
+| | | +-- Front View (2D) 10 *
+| | | +-- Side View (2D) 11 *
+| | | +-- Top View (2D) 12 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool (7)
+| | | +-- None 1 *
+| | | +-- Prog Only 2 *
+| | | +-- Active Only 3 *
+| | | +-- Parked 4 *
+| | | +-- Seq+ 5 *
+| | | +-- Seq- 6 *
+| | | +-- Mask 7 *
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- CC_19-TORONTO_Start 3 (22)
+| | +-- UserSettings 1 (20)
+| | | +-- SheetSettings 1 (3)
+| | | | +-- Tools 1 *
+| | | | +-- LayerMask 2 *
+| | | | +-- Display 3 *
+| | | +-- SheetSettings 2 (3)
+| | | | +-- Tools 1 *
+| | | | +-- LayerMask 2 *
+| | | | +-- Display 3 *
+| | | +-- SheetSettings 3 (3)
+| | | | +-- Tools 1 *
+| | | | +-- LayerMask 2 *
+| | | | +-- Display 3 *
+| | | +-- SheetSettings 4 (3)
+| | | | +-- Tools 1 *
+| | | | +-- LayerMask 2 *
+| | | | +-- Display 3 *
+| | | +-- SheetSettings 5  [== 39.1.1.2]
+| | | +-- SheetSettings 6  [== 39.1.1.1]
+| | | +-- PresetColors 7 *
+| | | +-- Oops 8 *
+| | | +-- ColorDialog 9 *
+| | | +-- ColSettings 10 *
+| | | +-- HwActivateSettings 11 *
+| | | +-- DialogSettings 12 *
+| | | +-- HelpSettings 13 *
+| | | +-- TimecodeDialogSettings 14 *
+| | | +-- RemoteSettings 15 *
+| | | +-- ConsoleDialogSettings 16 *
+| | | +-- StageViewSettings 17  [== 39.1.1.17]
+| | | +-- CommandAtSettings 18 *
+| | | +-- ColorDialog 19 *
+| | | +-- RunningPlaybacksDialog 20 *
+| | | +-- ShaperDialog 21 *
+| | | +-- ClockViewSettings 22 *
+| | | +-- StatusPopupUserSettingsCollect 23 (2)
+| | | | +-- StatusPopupUserSettings 1 *
+| | | | +-- StatusPopupUserSettings 2 *
+| | | +-- AutocreateSettings 24 *
+| | | +-- PMViewSettings 25 *
+| | | +-- ShaperDialog 26 *
+| | | +-- ShaperDialog 27 *
+| | | +-- ShaperDialog 28 *
+| | | +-- RDMViewSettings 29  [== 39.1.1.17]
+| | | +-- Gma3Settings 30 *
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (70)
+| | | +-- 1 -DIM- 1 *
+| | | +-- 2 -POS- 2 *
+| | | +-- 3 -GOB- 3 *
+| | | +-- 4 -COL- 4 *
+| | | +-- 5 -BEA- 5 *
+| | | +-- 6 -FOC- 6 *
+| | | +-- 7 -CTR- 7 *
+| | | +-- Macro 8 *
+| | | +-- 0 -ALL- 9 *
+| | | +-- 0 -EFF- 10 *
+| | | +-- 10 -VIE- 11 *
+| | | +-- 11 -ALL- 12 *
+| | | +-- 13 -SEQ- 13 *
+| | | +-- 14 -EXE- 14 *
+| | | +-- 15 -MAC- 15 *
+| | | +-- View 16 16 *
+| | | +-- View 17 17 *
+| | | +-- View 18 18 *
+| | | +-- 00 -View- 19 *
+| | | +-- 00 -Macro- 20 *
+| | | +-- 00 -Sequence- 21 *
+| | | +-- 00 -Group- 22 *
+| | | +-- 00 -Filter- 23 *
+| | | +-- 00 -Effect- 24 *
+| | | +-- 00 -Filter- 25 *
+| | | +-- 00 -Playback- 26 *
+| | | +-- Macro run 27 *
+| | | +-- View 28 28 *
+| | | +-- macro program 29 *
+| | | +-- -Group:Pre- 30 *
+| | | +-- View 31 31 *
+| | | +-- View 32 32 *
+| | | +-- World 33 *
+| | | +-- View 34 34 *
+| | | +-- View 35 35 *
+| | | +-- View 36 36 *
+| | | +-- View 37 37 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- MatrixPool (4)
+| | | +-- Reset 1 *
+| | | +-- Block _2 2 *
+| | | +-- Wing _2 Single _1 3 *
+| | | +-- Block _4 4 *
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (11)
+| | | | +-- scratch 1.5 *
+| | | | +-- View 32 1.6 *
+| | | +-- ViewButtonPage 2 (3)
+| | | | +-- 4 -COL- 2.16 *
+| | | | +-- 0 -EFF- 2.17 *
+| | | | +-- GROUP 2.18 *
+| | | | +-- ViewButton 2.19 *
+| | | | +-- MT 2.20 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 (3)
+| | | | +-- 00 -Playback- 11.13 *
+| | | | +-- 00 -Filter- 11.14 *
+| | | | +-- 00 -Effect- 11.15 *
+| | | | +-- 00 -Filter- 11.16 *
+| | | | +-- 00 -Group- 11.17 *
+| | | | +-- 00 -Sequence- 11.18 *
+| | | | +-- 00 -Macro- 11.19 *
+| | | | +-- 00 -View- 11.20 *
+| | | | +-- clock 11.21 *
+| | | | +-- playbacks 11.22 *
+| | | | +-- fix pos 11.23 *
+| | | | +-- 1 -DIM- 11.25 *
+| | | | +-- View 12 11.26 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Top View (2D) 2 *
+| | | +-- Front View (2D) 3 *
+| | | +-- Left 4 *
+| | | +-- Left 5 *
+| | | +-- Left 6 *
+| | | +-- Back 7 *
+| | | +-- Right 8 *
+| | | +-- Right 9 *
+| | | +-- Right 10 *
+| | | +-- Top 11 *
+| | | +-- Side View (2D) 13 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool (8)
+| | | +-- None 1 *
+| | | +-- Prog Only 2 *
+| | | +-- Active Only 3 *
+| | | +-- Parked 4 *
+| | | +-- Seq+ 5 *
+| | | +-- Seq- 6 *
+| | | +-- Mask 8 *
+| | | +-- Mask 9 *
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- CC_19-TORONTO_santi 4 (22)
+| | +-- UserSettings 1  [== 39.2.1]
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (23)
+| | | +-- View 1 1 *
+| | | +-- View 2 2 *
+| | | +-- View 3 3 *
+| | | +-- View 4 4 *
+| | | +-- View 5 5 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- MatrixPool  [== 39.2.9]
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (6)
+| | | | +-- View 1.1 *
+| | | | +-- groups 1.2 *
+| | | | +-- View 5 1.4 *
+| | | | +-- scratch 1.5 *
+| | | | +-- View 1 1.6 *
+| | | | +-- View 2 1.7 *
+| | | | +-- View 3 1.8 *
+| | | | +-- View 4 1.9 *
+| | | | +-- MT 1.10 *
+| | | | +-- groups 1.11 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.3.15]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Left 2 *
+| | | +-- Left 3 *
+| | | +-- Left 4 *
+| | | +-- Back 5 *
+| | | +-- Right 6 *
+| | | +-- Right 7 *
+| | | +-- Right 8 *
+| | | +-- Top 9 *
+| | | +-- Front View (2D) 10 *
+| | | +-- Side View (2D) 11 *
+| | | +-- Top View (2D) 12 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool  [== 39.1.24]
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- Hannah 5 (22)
+| | +-- UserSettings 1  [== 39.2.1]
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (7)
+| | | +-- PROGRAMMING 1 *
+| | | +-- PLAYBACK 2 *
+| | | +-- View 3 3 *
+| | | +-- Layout 4 *
+| | | +-- FX 5 *
+| | | +-- SHOW 6 *
+| | | +-- FX2 7 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8  [== 39.3.15]
+| | +-- MatrixPool  [== 39.2.9]
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (1)
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.3.15]
+| | +-- Cameras  [== 39.4.16]
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool  [== 39.1.24]
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- Fran 6 (22)
+| | +-- UserSettings 1  [== 39.1.1]
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (11)
+| | | +-- View 1 1 *
+| | | +-- View 2 2 *
+| | | +-- View 3 3 *
+| | | +-- ACTION 4 *
+| | | +-- View 5 5 *
+| | | +-- seq 6 *
+| | | +-- View 7 7 *
+| | | +-- JesseShow GO 8 *
+| | | +-- View 9 9 *
+| | | +-- View 10 10 *
+| | | +-- Programmer 11 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8  [== 39.1.8]
+| | +-- MatrixPool  [== 39.2.9]
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (7)
+| | | | +-- JesseShow GO 1.1 *
+| | | | +-- View 1 1.2 *
+| | | | +-- View 2 1.3 *
+| | | | +-- View 3 1.4 *
+| | | | +-- View 10 1.5 *
+| | | | +-- ACTION 1.6 *
+| | | | +-- seq 1.7 *
+| | | | +-- View 7 1.8 *
+| | | | +-- View 9 1.9 *
+| | | | +-- View 5 1.10 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.1.8]
+| | +-- Cameras  [== 39.2.16]
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool  [== 39.1.24]
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- old 7 (22)
+| | +-- UserSettings 1 (20)
+| | | +-- SheetSettings 1  [== 39.1.1.1]
+| | | +-- SheetSettings 2  [== 39.1.1.2]
+| | | +-- SheetSettings 3 (3)
+| | | | +-- Tools 1 *
+| | | | +-- LayerMask 2 *
+| | | | +-- Display 3 *
+| | | +-- SheetSettings 4  [== 39.1.1.1]
+| | | +-- SheetSettings 5  [== 39.1.1.2]
+| | | +-- SheetSettings 6  [== 39.1.1.1]
+| | | +-- PresetColors 7 *
+| | | +-- Oops 8 *
+| | | +-- ColorDialog 9 *
+| | | +-- ColSettings 10 *
+| | | +-- HwActivateSettings 11 *
+| | | +-- DialogSettings 12 *
+| | | +-- HelpSettings 13 *
+| | | +-- TimecodeDialogSettings 14 *
+| | | +-- RemoteSettings 15 *
+| | | +-- ConsoleDialogSettings 16 *
+| | | +-- StageViewSettings 17  [== 39.1.1.17]
+| | | +-- CommandAtSettings 18 *
+| | | +-- ColorDialog 19 *
+| | | +-- RunningPlaybacksDialog 20 *
+| | | +-- ShaperDialog 21 *
+| | | +-- ClockViewSettings 22 *
+| | | +-- StatusPopupUserSettingsCollect 23  [== 39.1.1.23]
+| | | +-- AutocreateSettings 24 *
+| | | +-- PMViewSettings 25 *
+| | | +-- ShaperDialog 26 *
+| | | +-- ShaperDialog 27 *
+| | | +-- ShaperDialog 28 *
+| | | +-- RDMViewSettings 29  [== 39.1.1.17]
+| | | +-- Gma3Settings 30 *
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (81)
+| | | +-- LAYOUT 1 *
+| | | +-- BUILD 2 *
+| | | +-- FIXTURE 3 *
+| | | +-- FIXTURE 4 *
+| | | +-- SEQ 5 *
+| | | +-- INFO 6 *
+| | | +-- FX 7 *
+| | | +-- CHANNEL 8 *
+| | | +-- SEQ POOL 9 *
+| | | +-- DIM FX 10 *
+| | | +-- PT FX 11 *
+| | | +-- COLOR FX 12 *
+| | | +-- PUNT 13 *
+| | | +-- FIXTURE 14 *
+| | | +-- PARKED 15 *
+| | | +-- PRG 16 *
+| | | +-- ALL 17 *
+| | | +-- LAYOUT 18 *
+| | | +-- FX 19 *
+| | | +-- MAIN 20 *
+| | | +-- View 21 21 *
+| | | +-- K20 ZOOM 22 *
+| | | +-- MYT GOBO 23 *
+| | | +-- BM GOBO 24 *
+| | | +-- SHAPE 25 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- MatrixPool  [== 39.2.9]
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (1)
+| | | | +-- SEQ 1.21 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Left 2 *
+| | | +-- Left 3 *
+| | | +-- Left 4 *
+| | | +-- Back 5 *
+| | | +-- Right 6 *
+| | | +-- Right 7 *
+| | | +-- Right 8 *
+| | | +-- Top 9 *
+| | | +-- Front View (2D) 10 *
+| | | +-- Side View (2D) 11 *
+| | | +-- Top View (2D) 12 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool (15)
+| | | +-- None 1 *
+| | | +-- Prog Only 2 *
+| | | +-- Active Only 3 *
+| | | +-- Parked 4 *
+| | | +-- Seq+ 5 *
+| | | +-- Seq- 6 *
+| | | +-- FIX 1 7 *
+| | | +-- FIX 2 8 *
+| | | +-- FIX 3 9 *
+| | | +-- FIX 4 10 *
+| | | +-- FIX 5 11 *
+| | | +-- FIX 6 12 *
+| | | +-- FIX 7 13 *
+| | | +-- PROGRAMMER 14 *
+| | | +-- PARKED 15 *
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- JULES_main 8 (22)
+| | +-- UserSettings 1 (20)
+| | | +-- SheetSettings 1  [== 39.1.1.1]
+| | | +-- SheetSettings 2  [== 39.1.1.2]
+| | | +-- SheetSettings 3  [== 39.1.1.1]
+| | | +-- SheetSettings 4  [== 39.1.1.1]
+| | | +-- SheetSettings 5  [== 39.1.1.2]
+| | | +-- SheetSettings 6  [== 39.1.1.1]
+| | | +-- PresetColors 7 *
+| | | +-- Oops 8 *
+| | | +-- ColorDialog 9 *
+| | | +-- ColSettings 10 *
+| | | +-- HwActivateSettings 11 *
+| | | +-- DialogSettings 12 *
+| | | +-- HelpSettings 13 *
+| | | +-- TimecodeDialogSettings 14 *
+| | | +-- RemoteSettings 15 *
+| | | +-- ConsoleDialogSettings 16 *
+| | | +-- StageViewSettings 17  [== 39.1.1.17]
+| | | +-- CommandAtSettings 18 *
+| | | +-- ColorDialog 19 *
+| | | +-- RunningPlaybacksDialog 20 *
+| | | +-- ShaperDialog 21 *
+| | | +-- ClockViewSettings 22 *
+| | | +-- StatusPopupUserSettingsCollect 23  [== 39.3.1.23]
+| | | +-- AutocreateSettings 24 *
+| | | +-- PMViewSettings 25 *
+| | | +-- ShaperDialog 26 *
+| | | +-- ShaperDialog 27 *
+| | | +-- ShaperDialog 28 *
+| | | +-- RDMViewSettings 29  [== 39.1.1.17]
+| | | +-- Gma3Settings 30 *
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (60)
+| | | +-- PROG3 1 *
+| | | +-- FX 2 *
+| | | +-- STAGE 3 *
+| | | +-- PROG 4 *
+| | | +-- TRAKK 5 *
+| | | +-- View 6 6 *
+| | | +-- PUNT 7 *
+| | | +-- View 8 8 *
+| | | +-- LAYOUT VIEW 9 *
+| | | +-- LAYOUT 10 *
+| | | +-- PROG 11 *
+| | | +-- PROG 12 *
+| | | +-- PROG3 13 *
+| | | +-- MAtricks 14 *
+| | | +-- LAYOUT 15 *
+| | | +-- ColPicker 16 *
+| | | +-- playback 17 *
+| | | +-- SMART 18 *
+| | | +-- View 19 19 *
+| | | +-- MATRICKS 20 *
+| | | +-- showtime 21 *
+| | | +-- seq 22 *
+| | | +-- MASTERS 23 *
+| | | +-- TIMECODE 24 *
+| | | +-- Fixt_DMX 25 *
+| | | +-- SHOWTIME 26 *
+| | | +-- showtime 27 *
+| | | +-- OTHERS 28 *
+| | | +-- FX 29 *
+| | | +-- View 30 30 *
+| | | +-- DIM 31 *
+| | | +-- POS 32 *
+| | | +-- GOBO 33 *
+| | | +-- COLOR 34 *
+| | | +-- BEAM 35 *
+| | | +-- FOCUS 36 *
+| | | +-- DIM FX 37 *
+| | | +-- COL FX 38 *
+| | | +-- P-T FX 39 *
+| | | +-- OTHERS FX 40 *
+| | | +-- main seq 41 *
+| | | +-- presets 42 *
+| | | +-- showtime 43 *
+| | | +-- group only 44 *
+| | | +-- selective FX 45 *
+| | | +-- View 46 46 *
+| | | +-- seq content 47 *
+| | | +-- seq content 48 *
+| | | +-- WORLDS 49 *
+| | | +-- macros 50 *
+| | | +-- worlds 51 *
+| | | +-- fixt in seq 52 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6 (2)
+| | | | +-- LayoutElementDefaults 1 *
+| | | | +-- LayoutElementDefaults 2 *
+| | +-- MatrixPool (11)
+| | | +-- Reset 1 *
+| | | +-- 2 WING PAN 2 *
+| | | +-- BLOCK OF 10 3 *
+| | | +-- BLOCK OF 8 4 *
+| | | +-- interleave 3 5 *
+| | | +-- BLOCK OF 2 6 *
+| | | +-- interleave 2 7 *
+| | | +-- ColStrike Plate cells 8 *
+| | | +-- ColStrike Beam Pixels 9 *
+| | | +-- MAtricks 10 *
+| | | +-- BLOCK OF 4 13 *
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (2)
+| | | | +-- showtime 1.30 *
+| | | | +-- SHOWTIME 1.31 *
+| | | | +-- LAYOUT 1.32 *
+| | | | +-- Fixt_DMX 1.33 *
+| | | | +-- STAGE 1.34 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Left 2 *
+| | | +-- Left 3 *
+| | | +-- Left 4 *
+| | | +-- Back 5 *
+| | | +-- Right 6 *
+| | | +-- Right 7 *
+| | | +-- Right 8 *
+| | | +-- Top 9 *
+| | | +-- Front View (2D) 10 *
+| | | +-- Side View (2D) 11 *
+| | | +-- Top View (2D) 12 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool  [== 39.1.24]
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- chris 9 (22)
+| | +-- UserSettings 1  [== 39.2.1]
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views *
+| | +-- MainViews *
+| | +-- StoreDefaults 8  [== 39.1.8]
+| | +-- MatrixPool  [== 39.2.9]
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.1.8]
+| | +-- Cameras  [== 39.2.16]
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool  [== 39.1.24]
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- chris clone 10 (22)
+| | +-- UserSettings 1  [== 39.2.1]
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (63)
+| | | +-- PROG3 1 *
+| | | +-- FX 2 *
+| | | +-- STAGE 3 *
+| | | +-- PROG 4 *
+| | | +-- TRAKK 5 *
+| | | +-- View 6 6 *
+| | | +-- PUNT 7 *
+| | | +-- View 8 8 *
+| | | +-- LAYOUT VIEW 9 *
+| | | +-- LAYOUT 10 *
+| | | +-- PROG 11 *
+| | | +-- PROG 12 *
+| | | +-- PROG3 13 *
+| | | +-- MAtricks 14 *
+| | | +-- LAYOUT 15 *
+| | | +-- ColPicker 16 *
+| | | +-- playback 17 *
+| | | +-- SMART 18 *
+| | | +-- View 19 19 *
+| | | +-- MATRICKS 20 *
+| | | +-- showtime 21 *
+| | | +-- seq 22 *
+| | | +-- MASTERS 23 *
+| | | +-- TIMECODE 24 *
+| | | +-- Fixt_DMX 25 *
+| | | +-- SHOWTIME 26 *
+| | | +-- showtime 27 *
+| | | +-- OTHERS 28 *
+| | | +-- FX 29 *
+| | | +-- View 30 30 *
+| | | +-- DIM 31 *
+| | | +-- POS 32 *
+| | | +-- GOBO 33 *
+| | | +-- COLOR 34 *
+| | | +-- BEAM 35 *
+| | | +-- FOCUS 36 *
+| | | +-- DIM FX 37 *
+| | | +-- COL FX 38 *
+| | | +-- P-T FX 39 *
+| | | +-- OTHERS FX 40 *
+| | | +-- main seq 41 *
+| | | +-- presets 42 *
+| | | +-- showtime 43 *
+| | | +-- group only 44 *
+| | | +-- selective FX 45 *
+| | | +-- View 46 46 *
+| | | +-- seq content 47 *
+| | | +-- seq content 48 *
+| | | +-- WORLDS 49 *
+| | | +-- macros 50 *
+| | | +-- Prog Only Fixt 51 *
+| | | +-- DMX 52 *
+| | | +-- Broken 53 *
+| | | +-- CN Grp 54 *
+| | | +-- Fixture 55 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6  [== 38.1.1.1]
+| | +-- MatrixPool (15)
+| | | +-- Reset 1 *
+| | | +-- 2 WING PAN 2 *
+| | | +-- BLOCK OF 10 3 *
+| | | +-- BLOCK OF 8 4 *
+| | | +-- interleave 3 5 *
+| | | +-- BLOCK OF 2 6 *
+| | | +-- interleave 2 7 *
+| | | +-- ColStrike Plate cells 8 *
+| | | +-- ColStrike Beam Pixels 9 *
+| | | +-- MAtricks 10 *
+| | | +-- Interleave 20 11 *
+| | | +-- Interleave 4 12 *
+| | | +-- BLOCK OF 4 13 *
+| | | +-- Block 20 14 *
+| | | +-- Interleave 3 15 *
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 (2)
+| | | | +-- showtime 1.30 *
+| | | | +-- SHOWTIME 1.31 *
+| | | | +-- LAYOUT 1.32 *
+| | | | +-- Fixt_DMX 1.33 *
+| | | | +-- STAGE 1.34 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.8.15]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Left 2 *
+| | | +-- Left 3 *
+| | | +-- Left 4 *
+| | | +-- Back 5 *
+| | | +-- Right 6 *
+| | | +-- Right 7 *
+| | | +-- Right 8 *
+| | | +-- Top 9 *
+| | | +-- Front View (2D) 10 *
+| | | +-- Side View (2D) 11 *
+| | | +-- Top View (2D) 12 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool  [== 39.1.24]
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- Video 11 (22)
+| | +-- UserSettings 1  [== 39.2.1]
+| | +-- Selection 2 *
+| | +-- BlindProgrammer *
+| | +-- BlindSelection 4 *
+| | +-- Displays (8)
+| | | +-- Display 1 1 *
+| | | +-- Display 2 2 *
+| | | +-- Display 3 3 *
+| | | +-- Display 4 4 *
+| | | +-- Display 5 5 *
+| | | +-- Display 6 6 *
+| | | +-- Display 7 7 *
+| | | +-- Display 8 8 *
+| | +-- Views (9)
+| | | +-- Smart 1 *
+| | | +-- Fixture 2 *
+| | | +-- CLEAR 3 *
+| | | +-- Presets 4 *
+| | | +-- Tracking 5 *
+| | | +-- Layout 6 *
+| | | +-- Content 7 *
+| | | +-- Cuelist 8 *
+| | | +-- Cmd 9 *
+| | +-- MainViews *
+| | +-- StoreDefaults 8 (6)
+| | | +-- GeneralDefaults 1 *
+| | | +-- CuelistDefaults 2 *
+| | | +-- PresetDefaults 3 *
+| | | +-- EffectDefaults 4 *
+| | | +-- ExecDefaults 5 *
+| | | +-- LayoutDefaults 6 (2)
+| | | | +-- LayoutElementDefaults 1 *
+| | | | +-- LayoutElementDefaults 2 *
+| | +-- MatrixPool  [== 39.2.9]
+| | +-- ViewButtons 10 (11)
+| | | +-- ViewButtonPage 1 *
+| | | +-- ViewButtonPage 2 *
+| | | +-- ViewButtonPage 3 *
+| | | +-- ViewButtonPage 4 *
+| | | +-- ViewButtonPage 5 *
+| | | +-- ViewButtonPage 6 *
+| | | +-- ViewButtonPage 7 *
+| | | +-- ViewButtonPage 8 *
+| | | +-- ViewButtonPage 9 *
+| | | +-- ViewButtonPage 10 *
+| | | +-- ViewButtonPage 11 *
+| | +-- ExecFix 11 *
+| | +-- EncoderResolution 12 *
+| | +-- Arrangements 13  [== 39.1.13]
+| | +-- LayerMask 14 *
+| | +-- StoreSettings 15  [== 39.3.15]
+| | +-- Cameras (12)
+| | | +-- Front 1 *
+| | | +-- Left 2 *
+| | | +-- Left 3 *
+| | | +-- Left 4 *
+| | | +-- Back 5 *
+| | | +-- Right 6 *
+| | | +-- Right 7 *
+| | | +-- Right 8 *
+| | | +-- Top 9 *
+| | | +-- Front View (2D) 10 *
+| | | +-- Side View (2D) 11 *
+| | | +-- Top View (2D) 12 *
+| | +-- RenderingOptions 17 *
+| | +-- EnviromentVariables 18 *
+| | +-- RemoteViews *
+| | +-- RemoteDisplays  [== 39.1.20]
+| | +-- RemoteMainViews *
+| | +-- PreviewProgrammer *
+| | +-- PreviewSelection 23 *
+| | +-- MaskPool  [== 39.1.24]
+| | +-- ColumnWidths 25 *
+| | +-- Views *
+| +-- user1 12 (22)
+| | +-- UserSettings 1 (20)
+| | | +-- SheetSettings 1  [== 39.1.1.1]
+| | | +-- SheetSettings 2  [== 39.1.1.2]
+| | | +-- SheetSettings 3  [== 39.1.1.1]
+| | | +-- SheetSettings 4  [== 39.1.1.1]
+| | | +-- SheetSettings 5  [== 39.1.1.2]
+| | | +-- SheetSettings 6  [== 39.1.1.1]
+| | | +-- PresetColors 7 *
+
+--- GAP INDEXES (no object at these root positions) ---
+  [12] MISS
+  [28] MISS
+  [29] MISS
+  [32] MISS
+  [40] MISS
+  [41] MISS
+  [42] MISS
+
+======================================================================
+MISS DETAIL (items in list output that cannot be cd into)
+======================================================================
+  In [10] LiveSetup:
+    depth=4 path=10.6.2.0 cd 0
+
+  In [12] ?:
+    depth=1 path=12 cd 12
+
+  In [23] Forms:
+    depth=3 path=23.2.2 cd 2
+    depth=3 path=23.3.3 cd 3
+    depth=3 path=23.4.4 cd 4
+    depth=3 path=23.5.5 cd 5
+    depth=3 path=23.6.6 cd 6
+    depth=3 path=23.7.7 cd 7
+    depth=3 path=23.8.8 cd 8
+    depth=3 path=23.9.9 cd 9
+    depth=3 path=23.10.10 cd 10
+    depth=3 path=23.11.11 cd 11
+    depth=3 path=23.12.12 cd 12
+    depth=3 path=23.13.13 cd 13
+    depth=3 path=23.14.14 cd 14
+    depth=3 path=23.15.15 cd 15
+    depth=3 path=23.16.16 cd 16
+    depth=3 path=23.17.17 cd 17
+    depth=3 path=23.18.18 cd 18
+    depth=3 path=23.20.48 cd 48
+    depth=3 path=23.20.49 cd 49
+    depth=3 path=23.20.50 cd 50
+    depth=3 path=23.22.192 cd 192
+    depth=3 path=23.22.193 cd 193
+    depth=3 path=23.22.194 cd 194
+    depth=3 path=23.23.192 cd 192
+    depth=3 path=23.23.193 cd 193
+    depth=3 path=23.23.194 cd 194
+
+  In [28] ?:
+    depth=1 path=28 cd 28
+
+  In [29] ?:
+    depth=1 path=29 cd 29
+
+  In [32] ?:
+    depth=1 path=32 cd 32
+
+  In [38] Layouts:
+    depth=3 path=38.1.7 cd 7
+    depth=3 path=38.1.10 cd 10
+    depth=3 path=38.1.11 cd 11
+    depth=3 path=38.1.12 cd 12
+
+  In [39] UserProfiles:
+    depth=5 path=39.1.10.1.11 cd 11
+    depth=5 path=39.1.10.1.12 cd 12
+    depth=5 path=39.1.10.1.13 cd 13
+    depth=4 path=39.3.6.38 cd 38
+    depth=4 path=39.3.6.39 cd 39
+    depth=4 path=39.3.6.40 cd 40
+    depth=5 path=39.3.10.1.7 cd 7
+    depth=5 path=39.3.10.1.8 cd 8
+    depth=5 path=39.3.10.1.9 cd 9
+    depth=5 path=39.3.10.11.12 cd 12
+    depth=5 path=39.3.10.11.24 cd 24
+    depth=5 path=39.3.10.11.27 cd 27
+    depth=5 path=39.3.10.11.28 cd 28
+    depth=5 path=39.3.10.11.29 cd 29
+    depth=4 path=39.3.16.12 cd 12
+    depth=4 path=39.3.24.7 cd 7
+    depth=4 path=39.4.6.6 cd 6
+    depth=4 path=39.4.6.7 cd 7
+    depth=4 path=39.4.6.8 cd 8
+    depth=5 path=39.4.10.1.3 cd 3
+    depth=5 path=39.4.10.1.12 cd 12
+    depth=5 path=39.4.10.1.13 cd 13
+    depth=5 path=39.4.10.1.14 cd 14
+    depth=5 path=39.5.10.1.3 cd 3
+    depth=4 path=39.7.6.26 cd 26
+    depth=4 path=39.7.6.27 cd 27
+    depth=4 path=39.7.6.28 cd 28
+    depth=4 path=39.8.6.53 cd 53
+    depth=4 path=39.8.6.54 cd 54
+    depth=4 path=39.8.6.55 cd 55
+    depth=4 path=39.8.9.11 cd 11
+    depth=4 path=39.8.9.12 cd 12
+    depth=5 path=39.8.10.1.35 cd 35
+    depth=5 path=39.8.10.1.36 cd 36
+    depth=5 path=39.8.10.1.37 cd 37
+    depth=4 path=39.10.6.56 cd 56
+    depth=4 path=39.10.6.57 cd 57
+    depth=4 path=39.10.6.58 cd 58
+    depth=5 path=39.10.10.1.35 cd 35
+    depth=5 path=39.10.10.1.36 cd 36
+    depth=5 path=39.10.10.1.37 cd 37
+
+======================================================================
+DUPLICATE SUBTREES (141 total, saving ~2000+ nodes)
+======================================================================
+  [39.1.1.1] SheetSettings 1 -> matched 20x
+  [39.1.1.2] SheetSettings 2 -> matched 10x
+  [39.1.13] Arrangements 13 -> matched 10x
+  [39.1.20] RemoteDisplays -> matched 10x
+  [39.1.1.17] StageViewSettings 17 -> matched 9x
+  [38.1.1.1] LayoutData 1 -> matched 8x
+  [10.3.1] 1 Universal Attributes -> matched 7x
+  [38.1.1] LASER 1 -> matched 7x
+  [39.1.8] StoreDefaults 8 -> matched 7x
+  [39.1.24] MaskPool -> matched 7x
+  [39.2.9] MatrixPool -> matched 6x
+  [39.2.1] UserSettings 1 -> matched 5x
+  [10.3.1.7] RdmNotifications 7 -> matched 4x
+  [39.3.15] StoreSettings 15 -> matched 4x
+  [10.3.7.1.1.1.1] Audio 1 -> matched 3x
+  [10.3.11.1.1.11.1] Index 1 -> matched 2x
+  [10.3.7.1.1.2] DIM 2 -> matched 2x
+  [10.3.11] 11 Robin Pointe Mode 2 -> matched 2x
+  [39.1.1.23] StatusPopupUserSettingsCollect 23 -> matched 2x
+  [39.2.16] Cameras -> matched 2x
+  [5.2.1] WINDELL-6OKD21F 1 -> matched 1x
+  [10.3.4.1.1.2] DIM 2 -> matched 1x
+  [10.3.11.1.1.5.3] Select Audio 3 -> matched 1x
+  [10.3.11.1.1.5.4] Rnd 100..1% 4 -> matched 1x
+  [10.3.11.1.1.9.1] Index2 1 -> matched 1x
+  [10.3.11.1.1.9.3] Rotate2 3 -> matched 1x
+  [10.3.11.1.1.11.3] Rot 3 -> matched 1x
+  [10.3.11.1.1.14] FOCUS 14 -> matched 1x
+  [10.3.11.2] Instances 2 -> matched 1x
+  [10] LiveSetup -> matched 1x
+  [39.4.16] Cameras -> matched 1x
+  [39.1.1] UserSettings 1 -> matched 1x
+  [39.3.1.23] StatusPopupUserSettingsCollect 23 -> matched 1x
+  [39.8.15] StoreSettings 15 -> matched 1x
+
+======================================================================
+BRANCH SUMMARY
+======================================================================
+  [ 1] Showfile 1                                  38 nodes  depth 1  [DONE]
+  [ 2] TimeConfig 2                                 1 nodes  depth 1  [DONE]
+  [ 3] Settings 3                                  18 nodes  depth 1  [DONE]
+  [ 4] DMX_Protocols                               10 nodes  depth 1  [DONE]
+  [ 5] NetConfig                                   10 nodes  depth 1  [DONE]
+  [ 6] CITPNetConfig 6                              1 nodes  depth 1  [DONE]
+  [ 7] TrackingSystems 7                            1 nodes  depth 1  [DONE]
+  [ 8] UserImagePool                               14 nodes  depth 1  [DONE]
+  [ 9] RDM_Data 9                                 259 nodes  depth 1  [DONE]
+  [10] LiveSetup                                  971 nodes  depth 1  [DONE]
+  [11] EditSetup                                    1 nodes  depth 1  [DONE]
+  [13] Macros                                       1 nodes  depth 1  [DONE]
+  [14] FlightRecordings                             1 nodes  depth 1  [DONE]
+  [15] Plugins                                      2 nodes  depth 1  [DONE]
+  [16] Gels                                      1447 nodes  depth 1  [DONE]
+  [17] Presets                                      1 nodes  depth 1  [DONE]
+  [18] Worlds                                       2 nodes  depth 1  [DONE]
+  [19] Filters                                      2 nodes  depth 1  [DONE]
+  [20] FadePaths 20                                 1 nodes  depth 1  [DONE]
+  [21] Programmer                                   1 nodes  depth 1  [DONE]
+  [22] Groups                                       1 nodes  depth 1  [DONE]
+  [23] Forms                                       52 nodes  depth 1  [DONE]
+  [24] Effects                                      1 nodes  depth 1  [DONE]
+  [25] Sequences                                    1 nodes  depth 1  [DONE]
+  [26] Timers                                       2 nodes  depth 1  [DONE]
+  [27] MasterSections                               1 nodes  depth 1  [DONE]
+  [30] ExecutorPages                               46 nodes  depth 1  [DONE]
+  [31] ChannelPages                                10 nodes  depth 1  [DONE]
+  [33] Songs                                        1 nodes  depth 1  [DONE]
+  [34] Agendas                                      1 nodes  depth 1  [DONE]
+  [35] Timecodes                                    1 nodes  depth 1  [DONE]
+  [36] RemoteTypes                                  4 nodes  depth 1  [DONE]
+  [37] DMXSnapshotPool                              1 nodes  depth 1  [DONE]
+  [38] Layouts                                     13 nodes  depth 1  [DONE]
+  [39] UserProfiles                              1214 nodes  depth 1  [PARTIAL]

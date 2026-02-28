@@ -201,3 +201,124 @@ async def list_destination(
         raw_response=raw_response,
         parsed_list=parsed,
     )
+
+
+@dataclass(frozen=True)
+class IndexScanEntry:
+    """One result from a sequential index scan.
+
+    Attributes:
+        index: The numeric index that was cd'd into.
+        location: Parsed location string from the prompt (e.g. ``"Groups/Global"``).
+        object_type: Parsed object type, or ``None``.
+        entries: Parsed list entries at this index.
+    """
+
+    index: int
+    location: Optional[str]
+    object_type: Optional[str]
+    entries: tuple
+
+
+async def scan_indexes(
+    client: GMA2TelnetClient,
+    *,
+    reset_to: str = "/",
+    max_index: int = 50,
+    stop_after_failures: int = 3,
+    timeout: float = 2.0,
+    delay: float = 0.3,
+) -> list[IndexScanEntry]:
+    """Scan numeric indexes via cd N → list → cd <reset_to>.
+
+    For each index N from 1 to *max_index*:
+      1. ``cd N``           — navigate into that index
+      2. ``list``           — enumerate children there
+      3. ``cd <reset_to>``  — return to the base location for a clean slate
+
+    The *reset_to* destination controls where each ``cd N`` starts from:
+
+    * ``"/"`` (default) — all scans start from root.  Use this to scan the
+      top-level object tree (Showfile, TimeConfig, Settings, …).
+    * ``"Sequence"`` — reset to the Sequence pool after each iteration so
+      that ``cd N`` enters Sequence N each time (lists its cues).
+    * ``"Group"`` — reset to the Group pool (groups have no sub-objects so
+      ``list`` will be empty, but the navigation result is still captured).
+
+    Stops early after *stop_after_failures* consecutive indexes that produce
+    no parsed entries (indicating the index is empty or invalid).
+
+    Args:
+        client: Connected GMA2TelnetClient instance.
+        reset_to: Destination to navigate to after each ``list`` before the
+            next ``cd N``.  Defaults to ``"/"`` (root).
+        max_index: Highest index to try (inclusive).
+        stop_after_failures: Stop scanning after this many consecutive
+            indexes with no list entries.
+        timeout: Per-command telnet timeout.
+        delay: Per-command delay after sending.
+
+    Returns:
+        List of :class:`IndexScanEntry`, one per index that returned entries.
+    """
+    results: list[IndexScanEntry] = []
+    consecutive_empty = 0
+
+    # Navigate to reset destination and record its location as the base
+    base_nav = await navigate(client, reset_to, timeout=timeout, delay=delay)
+    base_location = base_nav.parsed_prompt.location
+    logger.info("scan_indexes: base location = %r", base_location)
+
+    for idx in range(1, max_index + 1):
+        # cd N
+        nav = await navigate(client, str(idx), timeout=timeout, delay=delay)
+        after_location = nav.parsed_prompt.location
+        logger.info("scan_indexes: cd %d → location=%s", idx, after_location)
+
+        # If location didn't change, navigation failed (index doesn't exist)
+        if after_location == base_location:
+            logger.info(
+                "scan_indexes: index %d navigation failed (stayed at base), skipping list",
+                idx,
+            )
+            # Reset and count as empty
+            await navigate(client, reset_to, timeout=timeout, delay=delay)
+            consecutive_empty += 1
+            if consecutive_empty >= stop_after_failures:
+                logger.info(
+                    "scan_indexes: stopping after %d consecutive failures",
+                    stop_after_failures,
+                )
+                break
+            continue
+
+        # list
+        lst = await list_destination(client, timeout=timeout, delay=delay)
+        entries = lst.parsed_list.entries if lst.parsed_list else ()
+
+        # Reset to base location
+        await navigate(client, reset_to, timeout=timeout, delay=delay)
+
+        if entries:
+            consecutive_empty = 0
+            results.append(IndexScanEntry(
+                index=idx,
+                location=after_location,
+                object_type=nav.parsed_prompt.object_type,
+                entries=entries,
+            ))
+        else:
+            consecutive_empty += 1
+            logger.info(
+                "scan_indexes: index %d produced no entries (%d consecutive)",
+                idx, consecutive_empty,
+            )
+            if consecutive_empty >= stop_after_failures:
+                logger.info(
+                    "scan_indexes: stopping after %d consecutive empty indexes",
+                    stop_after_failures,
+                )
+                break
+
+    logger.info("scan_indexes: done — %d indexes with entries", len(results))
+    return results
