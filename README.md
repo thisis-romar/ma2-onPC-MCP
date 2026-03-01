@@ -23,14 +23,15 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  MCP Server Layer              src/server.py             │
-│  6 tools: create_fixture_group, execute_sequence,        │
-│           send_raw_command, navigate_console,             │
-│           get_console_location, list_console_destination  │
+│  13 tools: Navigation (4), Lighting Control (4),         │
+│    Programming (3), Info & Raw Access (2)                 │
+│  Safety gate: classifies commands before sending         │
 └────────────────────────┬─────────────────────────────────┘
                          │
 ┌────────────────────────▼─────────────────────────────────┐
 │  Navigation Layer          src/navigation.py             │
 │  navigate(), get_current_location(), list_destination()  │
+│  set_property(), scan_indexes()                          │
 │  Combines command builder + telnet I/O + prompt parsing  │
 └────────────────────────┬─────────────────────────────────┘
                          │
@@ -43,6 +44,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ┌────────────────────────▼─────────────────────────────────┐
 │  Telnet Client Layer       src/telnet_client.py           │
 │  Async connection, auth, send/receive via telnetlib3      │
+│  Input sanitization (strips \r\n to prevent injection)    │
 └──────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────┐
@@ -54,7 +56,8 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ┌──────────────────────────────────────────────────────────┐
 │  Vocabulary & Safety       src/vocab.py                   │
-│  Keyword classification and risk-tier analysis            │
+│  Keyword classification, risk-tier analysis, and          │
+│  runtime safety enforcement via classify_token()          │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -69,25 +72,28 @@ GMA_HOST=192.168.1.100     # grandMA2 console IP (required)
 GMA_USER=administrator     # default: administrator
 GMA_PASSWORD=admin         # default: admin
 GMA_PORT=30000             # default: 30000 (30001 = read-only)
+GMA_SAFETY_LEVEL=standard  # standard (default), admin, or read-only
 LOG_LEVEL=INFO             # default: INFO
 ```
 
+| Level | Behavior |
+|-------|----------|
+| `read-only` | Only SAFE_READ commands allowed (list, info, cd) |
+| `standard` | SAFE_READ + SAFE_WRITE allowed; DESTRUCTIVE requires `confirm_destructive=True` |
+| `admin` | All commands allowed without confirmation |
+
 ## MCP Tools
 
-The server exposes six tools to MCP clients:
+The server exposes 13 tools to MCP clients, grouped by category:
+
+### Navigation & Inspection
 
 | Tool | Description |
 |------|-------------|
-| `create_fixture_group` | Select a range of fixtures and save as a named group |
-| `execute_sequence` | Control sequence playback: go, pause, or goto cue |
-| `send_raw_command` | Send any grandMA2 command (use with caution) |
 | `navigate_console` | Navigate the console object tree via ChangeDest (cd) |
 | `get_console_location` | Query the current console destination without navigating |
 | `list_console_destination` | List objects at the current destination with parsed entries |
-
-### Navigation Tools
-
-The navigation tools provide structured exploration of the grandMA2 object tree:
+| `scan_console_indexes` | Batch scan numeric indexes at any tree level |
 
 ```
 cd /            → go to root
@@ -96,12 +102,35 @@ cd Group.1      → navigate to Group 1 (dot notation)
 cd 5            → navigate by element index
 cd "MySeq"      → navigate by name
 list            → enumerate objects at current destination
-list group      → list only groups at current destination
 ```
 
 **Workflow:** Use `navigate_console` to cd into a location, then `list_console_destination` to enumerate children. Both return JSON with raw telnet responses and parsed structure (object-type, object-id, element name).
 
 **Dot notation:** MA2 uses `[object-type].[object-id]` for object references (e.g., `Group.1`, `Preset.4.1`, `Sequence.3`).
+
+### Lighting Control
+
+| Tool | Description |
+|------|-------------|
+| `set_intensity` | Set dimmer level on fixtures, groups, or channels |
+| `apply_preset` | Apply a stored preset (color, position, gobo, beam, etc.) |
+| `execute_sequence` | Control sequence playback: go, pause, or goto cue |
+| `clear_programmer` | Clear programmer state (all, selection, active, or sequential) |
+
+### Programming
+
+| Tool | Description |
+|------|-------------|
+| `create_fixture_group` | Select a range of fixtures and save as a named group |
+| `store_current_cue` | Store programmer state into a cue (**DESTRUCTIVE**) |
+| `set_node_property` | Set a property on any node via dot-separated tree path |
+
+### Info & Raw Access
+
+| Tool | Description |
+|------|-------------|
+| `get_object_info` | Query info on any object (fixture, group, sequence, etc.) |
+| `send_raw_command` | Send any MA command directly (safety-gated, see below) |
 
 ### Claude Desktop Registration
 
@@ -242,9 +271,12 @@ The scanner includes several optimizations to handle large trees (7000+ nodes):
 
 ## Command Builder Reference
 
-The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions return `str`.
+The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are 100+ exported functions covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, and more.
 
 grandMA2 syntax: `[Function] [Object]` -- keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
+
+<details>
+<summary>Full command builder reference (click to expand)</summary>
 
 ### Navigation (ChangeDest)
 
@@ -372,6 +404,7 @@ Copy/Move options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
 | `assign_function("Toggle", "executor", 101)` | `assign toggle at executor 101` |
 | `assign_fade(3, 5)` | `assign fade 3 cue 5` |
 | `assign_to_layout("group", 1, 1, x=5, y=2)` | `assign group 1 at layout 1 /x=5 /y=2` |
+| `assign_property(1, "Telnet", "Login Disabled")` | `assign 1/Telnet="Login Disabled"` |
 | `empty("executor", 1)` | `empty executor 1` |
 | `temp_fader("executor", 1)` | `temp_fader executor 1` |
 
@@ -441,16 +474,31 @@ The `@` character is a placeholder for user input in macros (distinct from the `
 | `macro_with_input_after("Load")` | `Load @` |
 | `macro_with_input_before("Fade 20")` | `@ Fade 20` |
 
-## Vocabulary & Safety Tiers
+</details>
 
-The `src/vocab.py` module classifies all grandMA2 keywords into risk tiers for use in safety middleware:
+## Safety System
+
+### Risk Tiers
+
+The `src/vocab.py` module classifies all grandMA2 keywords into risk tiers:
 
 | Tier | Description | Examples |
 |------|-------------|----------|
-| `SAFE_READ` | Read-only queries | Info, List, CmdHelp, GetUserVar |
+| `SAFE_READ` | Read-only queries | Info, List, CmdHelp, ChangeDest |
 | `SAFE_WRITE` | Reversible state changes | Go, At, Clear, Park, SelFix |
 | `DESTRUCTIVE` | Data mutation or loss | Delete, Store, Copy, Move, Shutdown |
 | `UNKNOWN` | Unrecognized token | -- |
+
+### Runtime Safety Gate
+
+The `send_raw_command` tool enforces safety at runtime before any command reaches the console:
+
+1. **Command injection prevention** -- Line breaks (`\r`, `\n`) are rejected to prevent multi-command injection. The telnet client also strips them as a defense-in-depth measure.
+2. **Token classification** -- The first token of every command is classified via `classify_token()` against the grandMA2 v3.9 keyword vocabulary.
+3. **Tier enforcement** -- Based on `GMA_SAFETY_LEVEL`:
+   - `read-only`: Only `SAFE_READ` commands pass
+   - `standard` (default): `SAFE_READ` + `SAFE_WRITE` pass; `DESTRUCTIVE` blocked unless `confirm_destructive=True`
+   - `admin`: All commands pass without confirmation
 
 ```python
 from src.vocab import build_v39_spec, classify_token
@@ -495,7 +543,7 @@ gma2-mcp-telnet/
 ├── connect.sh                      # Interactive Telnet session via expect
 ├── Makefile                        # Shortcuts: server, log, test
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 6 tools)
+│   ├── server.py                   # MCP server (FastMCP, 13 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
@@ -507,8 +555,8 @@ gma2-mcp-telnet/
 │       ├── constants.py            # PRESET_TYPES, store option sets
 │       ├── helpers.py              # Internal option builder
 │       ├── objects/                # Object keywords (9 modules)
-│       └── functions/              # Function keywords (14 modules)
-├── tests/                          # 588 tests (pytest + pytest-asyncio)
+│       └── functions/              # Function keywords (15 modules)
+├── tests/                          # 592 tests (pytest + pytest-asyncio)
 ├── vscode-mcp-provider/            # VS Code MCP extension
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
