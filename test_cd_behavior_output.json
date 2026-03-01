@@ -1,0 +1,1149 @@
+{
+  "test_meta": {
+    "host": "127.0.0.1",
+    "port": 30000,
+    "elapsed_seconds": 52.03,
+    "step_count": 62
+  },
+  "steps": [
+    {
+      "label": "T1.1 cd /",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T1.2 list at root",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\rShowfile              1  \u001b[33mDate\u001b[37m=Feb 25 2026 \u001b[32mInfo=\u001b[37m (37)\n\rTimeConfig            2  \u001b[32mHour=\u001b[37m16 \u001b[32mMinute=\u001b[37m45 \u001b[32mSecond=\u001b[37m28 \u001b[32mDay=\u001b[37m27 \u001b[32mMonth=\u001b[37m2 \u001b[32mYear=\u001b[37m2026 \u001b[32mTimezone=\u001b[37m-4.00 \u001b[32mLongitude=\u001b[37m9.94 \u001b[32mLatitude=\u001b[37m49.79 \u001b[32mRegardDaylightSaving=\u001b[37mOn \u001b[32mStartDay=\u001b[37m26 \u001b[32mStartMonth=\u001b[37m3 \u001b[32mEndDay=\u001b[37m29 \u001b[32mEndMonth=\u001b[37m10 \u001b[32mShiftForwardAt=\u001b[37m2h \u001b[32mShiftBackwardAt=\u001b[37m3h \u001b[32mGPS=\u001b[37mOff \u001b[32mNTPServerIP=\u001b[37m0.0.0.0\n\rSettings              3  (6)\n\rDMX_Protocols         4  (6)\n\rNetConfig             5  (10)\n\rCITPNetConfig         6  \u001b[32mEnabled=\u001b[37mNo (4)\n\rTrackingSystems       7  \u001b[32mEnabled=\u001b[37mNo\n\rUserImagePool         8  (13)\n\rRDM_Data              9  (2)\n\rLiveSetup            10  (6)\n\rEditSetup            11\n\rMacros               13  (1)\n\rFlightRecordings     14\n\rPlugins              15  (1)\n\rGels                 16  (13)\n\rPresets              17  (1)\n\rWorlds               18  (1)\n\rFilters              19  (1)\n\rFadePaths            20  (16)\n\rProgrammer           21\n\rGroups               22  (1)\n\rForms                23  (23)\n\rEffects              24  (1)\n\rSequences            25  (1)\n\rTimers               26  (1)\n\rMasterSections       27  (5)\n\rExecutorPages        30  (2)\n\rChannelPages         31  \u001b[33mNo.\u001b[37m= \u001b[32mName=\u001b[37mChannelPages (9)\n\rSongs                33\n\rAgendas              34\n\rTimecodes            35\n\rRemoteTypes          36  (3)\n\rDMXSnapshotPool      37\n\rLayouts              38  (1)\n\rUserProfiles         39  (254)\n\rUsers                40  (3)\n\rPixelMapperContainer 41  (5)\n\rNDP_Root             42\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : List\n\rShowfile              1  Date=Feb 25 2026 Info= (37)\n\rTimeConfig            2  Hour=16 Minute=45 Second=28 Day=27 Month=2 Year=2026 Timezone=-4.00 Longitude=9.94 Latitude=49.79 RegardDaylightSaving=On StartDay=26 StartMonth=3 EndDay=29 EndMonth=10 ShiftForwardAt=2h ShiftBackwardAt=3h GPS=Off NTPServerIP=0.0.0.0\n\rSettings              3  (6)\n\rDMX_Protocols         4  (6)\n\rNetConfig             5  (10)\n\rCITPNetConfig         6  Enabled=No (4)\n\rTrackingSystems       7  Enabled=No\n\rUserImagePool         8  (13)\n\rRDM_Data              9  (2)\n\rLiveSetup            10  (6)\n\rEditSetup            11\n\rMacros               13  (1)\n\rFlightRecordings     14\n\rPlugins              15  (1)\n\rGels                 16  (13)\n\rPresets              17  (1)\n\rWorlds               18  (1)\n\rFilters              19  (1)\n\rFadePaths            20  (16)\n\rProgrammer           21\n\rGroups               22  (1)\n\rForms                23  (23)\n\rEffects              24  (1)\n\rSequences            25  (1)\n\rTimers               26  (1)\n\rMasterSections       27  (5)\n\rExecutorPages        30  (2)\n\rChannelPages         31  No.= Name=ChannelPages (9)\n\rSongs                33\n\rAgendas              34\n\rTimecodes            35\n\rRemoteTypes          36  (3)\n\rDMXSnapshotPool      37\n\rLayouts              38  (1)\n\rUserProfiles         39  (254)\n\rUsers                40  (3)\n\rPixelMapperContainer 41  (5)\n\rNDP_Root             42\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T2.1 cd .. at root",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\u001b[31mError : ChangeDest ..\u001b[37m\n\rError #72: COMMAND NOT EXECUTED\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\rError : ChangeDest ..\n\rError #72: COMMAND NOT EXECUTED\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "Expected to stay at root ('Fixture')"
+    },
+    {
+      "label": "T3.1a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.1b cd 1",
+      "command": "cd 1",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 1\n\r\rShowfile 1 >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 1\n\r\rShowfile 1 >",
+      "parsed_location": "Showfile 1",
+      "parsed_object_type": "Showfile",
+      "parsed_object_id": "1",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.1c list at cd 1",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m           \u001b[31mVersion    \u001b[32m\u001b[31mBeta  \u001b[32m\u001b[31mDate         \u001b[32m\u001b[31mName                                               \u001b[32m\u001b[31mInfo              \u001b[32m\u001b[37m\n\rHistory  1 3.7.0.5    No    Mar 16 2022  newshow                                            Showfile Created\n\rHistory  2 3.7.0.5    No    Mar 16 2022  newshow\n\rHistory  3 3.7.0.5    No    Mar 17 2022  nomad show start\n\rHistory  4 3.7.0.5    No    Mar 26 2022  nomad show part 1\n\rHistory  5 3.7.0.5    No    Mar 26 2022  nomad show part 1.1\n\rHistory  6 3.7.0.5    No    Jul 6 2022   nomad show part 1.2\n\rHistory  7 3.7.0.5    No    Jul 15 2022  new show for nomad\n\rHistory  8 3.7.0.5    No    Jul 27 2022  laala\n\rHistory  9 3.7.0.5    No    Jul 28 2022  masala\n\rHistory 10 3.7.0.5    No    Jul 28 2022  new nomad show file july 29th\n\rHistory 11 3.7.0.5    No    Jul 28 2022  new nomad show file july 29th test\n\rHistory 12 3.7.0.5    No    Aug 19 2022  new nomad show file\n\rHistory 13 3.7.0.5    No    Aug 19 2022  new nomad show file1\n\rHistory 14 3.7.0.5    No    Aug 20 2022  new nomad show file2\n\rHistory 15 3.7.0.5    No    Aug 20 2022  new nomad show file3\n\rHistory 16 3.7.0.5    No    Aug 22 2022  q - nomad show file v1\n\rHistory 17 3.7.0.5    No    Aug 23 2022  q - nomad show file v2\n\rHistory 18 3.7.0.5    No    Aug 23 2022  q - nomad show file v2 fixed\n\rHistory 19 3.7.0.5    No    Jan 27 2023  q - nomad show file v2 fixed new add ons\n\rHistory 20 3.7.0.5    No    Feb 2 2023   q - nomad show file v2 fixed new add ons plusssss\n\rHistory 21 3.7.0.5    No    Feb 4 2023   nomad clean show feb4th 1031\n\rHistory 22 3.7.0.5    No    May 4 2023   nomad clean show feb4th 1031 ak\n\rHistory 23 3.7.0.5    No    May 18 2023  nomad clean show may16th\n\rHistory 24 3.7.0.5    No    May 18 2023  nomad clean show may16th 104\n\rHistory 25 3.7.0.5    No    Aug 11 2023  nomad clean show august 11\n\rHistory 26 3.7.0.5    No    Aug 18 2023  nomad clean show august 18\n\rHistory 27 3.7.0.5    No    Aug 25 2023  nomad clean show august 25\n\rHistory 28 3.9.60.65  No    Aug 25 2023  nomad clean show august 25\n\rHistory 29 3.9.60.65  No    Oct 6 2023   nomad mike\n\rHistory 30 3.9.60.65  No    Oct 19 2023  nomad mike test\n\rHistory 31 3.9.60.65  No    Oct 19 2023  nomad wip\n\rHistory 32 3.9.60.65  No    Nov 11 2023  try\n\rHistory 33 3.9.60.65  No    May 4 2024   frdy\n\rHistory 34 3.9.60.65  No    May 5 2024   nomad\n\rHistory 35 3.9.60.65  No    Jul 5 2024   nomad22\n\rHistory 36 3.9.60.65  No    Sep 20 2025  nomad22 - 2\n\rHistory 37 3.9.60.74  No    Feb 25 2026  nomad725 - 2k25\n\r\rShowfile 1 >\u001b[K",
+      "stripped_response": "Executing : List\n\r           Version    Beta  Date         Name                                               Info              \n\rHistory  1 3.7.0.5    No    Mar 16 2022  newshow                                            Showfile Created\n\rHistory  2 3.7.0.5    No    Mar 16 2022  newshow\n\rHistory  3 3.7.0.5    No    Mar 17 2022  nomad show start\n\rHistory  4 3.7.0.5    No    Mar 26 2022  nomad show part 1\n\rHistory  5 3.7.0.5    No    Mar 26 2022  nomad show part 1.1\n\rHistory  6 3.7.0.5    No    Jul 6 2022   nomad show part 1.2\n\rHistory  7 3.7.0.5    No    Jul 15 2022  new show for nomad\n\rHistory  8 3.7.0.5    No    Jul 27 2022  laala\n\rHistory  9 3.7.0.5    No    Jul 28 2022  masala\n\rHistory 10 3.7.0.5    No    Jul 28 2022  new nomad show file july 29th\n\rHistory 11 3.7.0.5    No    Jul 28 2022  new nomad show file july 29th test\n\rHistory 12 3.7.0.5    No    Aug 19 2022  new nomad show file\n\rHistory 13 3.7.0.5    No    Aug 19 2022  new nomad show file1\n\rHistory 14 3.7.0.5    No    Aug 20 2022  new nomad show file2\n\rHistory 15 3.7.0.5    No    Aug 20 2022  new nomad show file3\n\rHistory 16 3.7.0.5    No    Aug 22 2022  q - nomad show file v1\n\rHistory 17 3.7.0.5    No    Aug 23 2022  q - nomad show file v2\n\rHistory 18 3.7.0.5    No    Aug 23 2022  q - nomad show file v2 fixed\n\rHistory 19 3.7.0.5    No    Jan 27 2023  q - nomad show file v2 fixed new add ons\n\rHistory 20 3.7.0.5    No    Feb 2 2023   q - nomad show file v2 fixed new add ons plusssss\n\rHistory 21 3.7.0.5    No    Feb 4 2023   nomad clean show feb4th 1031\n\rHistory 22 3.7.0.5    No    May 4 2023   nomad clean show feb4th 1031 ak\n\rHistory 23 3.7.0.5    No    May 18 2023  nomad clean show may16th\n\rHistory 24 3.7.0.5    No    May 18 2023  nomad clean show may16th 104\n\rHistory 25 3.7.0.5    No    Aug 11 2023  nomad clean show august 11\n\rHistory 26 3.7.0.5    No    Aug 18 2023  nomad clean show august 18\n\rHistory 27 3.7.0.5    No    Aug 25 2023  nomad clean show august 25\n\rHistory 28 3.9.60.65  No    Aug 25 2023  nomad clean show august 25\n\rHistory 29 3.9.60.65  No    Oct 6 2023   nomad mike\n\rHistory 30 3.9.60.65  No    Oct 19 2023  nomad mike test\n\rHistory 31 3.9.60.65  No    Oct 19 2023  nomad wip\n\rHistory 32 3.9.60.65  No    Nov 11 2023  try\n\rHistory 33 3.9.60.65  No    May 4 2024   frdy\n\rHistory 34 3.9.60.65  No    May 5 2024   nomad\n\rHistory 35 3.9.60.65  No    Jul 5 2024   nomad22\n\rHistory 36 3.9.60.65  No    Sep 20 2025  nomad22 - 2\n\rHistory 37 3.9.60.74  No    Feb 25 2026  nomad725 - 2k25\n\r\rShowfile 1 >",
+      "parsed_location": "Showfile 1",
+      "parsed_object_type": "Showfile",
+      "parsed_object_id": "1",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.1d cd .. (back from cd 1)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T3.2a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.2b cd 2",
+      "command": "cd 2",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 2\n\r\rTimeConfig 2 >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 2\n\r\rTimeConfig 2 >",
+      "parsed_location": "TimeConfig 2",
+      "parsed_object_type": "TimeConfig",
+      "parsed_object_id": "2",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.2c list at cd 2",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[31mWARNING, NO OBJECTS FOUND FOR LIST\u001b[37m\n\r\rTimeConfig 2 >\u001b[K",
+      "stripped_response": "Executing : List\n\rWARNING, NO OBJECTS FOUND FOR LIST\n\r\rTimeConfig 2 >",
+      "parsed_location": "TimeConfig 2",
+      "parsed_object_type": "TimeConfig",
+      "parsed_object_id": "2",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.2d cd .. (back from cd 2)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T3.3a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.3b cd 3",
+      "command": "cd 3",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 3\n\r\rSettings 3 >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 3\n\r\rSettings 3 >",
+      "parsed_location": "Settings 3",
+      "parsed_object_type": "Settings",
+      "parsed_object_id": "3",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.3c list at cd 3",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\rGlobal         1  \u001b[32mAgenda=\u001b[37mRunning \u001b[32mWysiwyg=\u001b[37mOff \u001b[32mForceLogin=\u001b[37mOff \u001b[32mRDM=\u001b[37mOff \u001b[32mRemotes=\u001b[37mLogin Disabled \u001b[32mTelnet=\u001b[37mLogin Enabled \u001b[32mMA-Net2TTL=\u001b[37m8 \u001b[32mMA-Net2DSCP=\u001b[37mCS4 (default) \u001b[32mSelectedTimecodeSlot=\u001b[37m1\n\rLocal          2  \u001b[32mDefaultLanguage=\u001b[37mEnglish \u001b[32mNetworkDMXifAlone=\u001b[37mOn \u001b[32mShowReleaseNotesonStart=\u001b[37mOn \u001b[32mExecCLI=\u001b[37mOn \u001b[32mDefaultGo,Goback,PauseCLI=\u001b[37mOff \u001b[32mIntensityBtnBackground=\u001b[37m16 \u001b[32mIntensityBtnHighlight=\u001b[37m255 \u001b[32mIntensityExecLED=\u001b[37m16 \u001b[32mIntensityDeskLamp=\u001b[37m255 \u001b[32mIntensity9Inch=\u001b[37m255 \u001b[32mIntensity15Inch=\u001b[37m255 \u001b[32mDesklockBackground=\u001b[37mBlack (3)\n\rShow           3  \u001b[32mOff=\u001b[37m0sec \u001b[32mGoBack=\u001b[37m0sec \u001b[32mGoto=\u001b[37mCuetiming \u001b[32mGoFast=\u001b[37m0sec \u001b[32mMIBDelay=\u001b[37m0.5sec \u001b[32mMIBFade=\u001b[37m2sec \u001b[32mStartup=\u001b[37m \u001b[32mXfadeReload=\u001b[37mOff \u001b[32mTimecodeRecordSingleUser=\u001b[37mOff \u001b[32mKillwithOffTime=\u001b[37mOff\n\rSound          4  (11)\n\rMidiConfig     5  \u001b[32mChannelMIDIIn=\u001b[37m1 \u001b[32mChannelMIDIOut=\u001b[37m1 \u001b[32mMIDIThru=\u001b[37mNo \u001b[32mMSCInDevice=\u001b[37m0 \u001b[32mMSCInGroup=\u001b[37m1 \u001b[32mMSCInPort=\u001b[37m6004 \u001b[32mMSCInMode=\u001b[37mDisabled \u001b[32mMSCInExec=\u001b[37mDefault Only \u001b[32mMSCInCommand=\u001b[37mGeneral Light \u001b[32mMSCOutDevice=\u001b[37m0 \u001b[32mMSCOutGroup=\u001b[37m1 \u001b[32mMSCOutPort=\u001b[37m6004 \u001b[32mMSCOutMode=\u001b[37mDisabled \u001b[32mMSCOutExec=\u001b[37mDefault Only \u001b[32mMSCOutCommand=\u001b[37mGeneral Light \u001b[32mSendTimecode=\u001b[37mNo \u001b[32mSendto=\u001b[37mGroup\n\rTimecodeStatus 6  (8)\n\r\rSettings 3 >\u001b[K",
+      "stripped_response": "Executing : List\n\rGlobal         1  Agenda=Running Wysiwyg=Off ForceLogin=Off RDM=Off Remotes=Login Disabled Telnet=Login Enabled MA-Net2TTL=8 MA-Net2DSCP=CS4 (default) SelectedTimecodeSlot=1\n\rLocal          2  DefaultLanguage=English NetworkDMXifAlone=On ShowReleaseNotesonStart=On ExecCLI=On DefaultGo,Goback,PauseCLI=Off IntensityBtnBackground=16 IntensityBtnHighlight=255 IntensityExecLED=16 IntensityDeskLamp=255 Intensity9Inch=255 Intensity15Inch=255 DesklockBackground=Black (3)\n\rShow           3  Off=0sec GoBack=0sec Goto=Cuetiming GoFast=0sec MIBDelay=0.5sec MIBFade=2sec Startup= XfadeReload=Off TimecodeRecordSingleUser=Off KillwithOffTime=Off\n\rSound          4  (11)\n\rMidiConfig     5  ChannelMIDIIn=1 ChannelMIDIOut=1 MIDIThru=No MSCInDevice=0 MSCInGroup=1 MSCInPort=6004 MSCInMode=Disabled MSCInExec=Default Only MSCInCommand=General Light MSCOutDevice=0 MSCOutGroup=1 MSCOutPort=6004 MSCOutMode=Disabled MSCOutExec=Default Only MSCOutCommand=General Light SendTimecode=No Sendto=Group\n\rTimecodeStatus 6  (8)\n\r\rSettings 3 >",
+      "parsed_location": "Settings 3",
+      "parsed_object_type": "Settings",
+      "parsed_object_id": "3",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.3d cd .. (back from cd 3)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T3.4a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.4b cd 4",
+      "command": "cd 4",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 4\n\r\rDMX_Protocols >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 4\n\r\rDMX_Protocols >",
+      "parsed_location": "DMX_Protocols",
+      "parsed_object_type": "DMX_Protocols",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.4c list at cd 4",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\rArt-Net  1  \u001b[32mOutActive=\u001b[37mOff \u001b[32mInActive=\u001b[37mOff \u001b[32mMaxUnicast=\u001b[37m5 \u001b[32mInfo=\u001b[37m (1)\n\rETC Net2 2  \u001b[32mActive=\u001b[37mOff \u001b[32mLocalStart=\u001b[37m1 \u001b[32mAmount=\u001b[37m8 \u001b[32mExternStart=\u001b[37m1 \u001b[32mGroups=\u001b[37m1 \u001b[32mPriority=\u001b[37m11 \u001b[32mTTL=\u001b[37m8 \u001b[32mInfo=\u001b[37m\n\rPathport 3  \u001b[32mActive=\u001b[37mOff \u001b[32mLocalStart=\u001b[37m1 \u001b[32mAmount=\u001b[37m8 \u001b[32mExternStart=\u001b[37m1 \u001b[32mTTL=\u001b[37m8 \u001b[32mInfo=\u001b[37m\n\rsACN     4  \u001b[32mOutActive=\u001b[37mOff \u001b[32mInActive=\u001b[37mOff \u001b[32mInfo=\u001b[37m (1)\n\rShownet  5  \u001b[32mActive=\u001b[37mOff \u001b[32mLocalStart=\u001b[37m1 \u001b[32mAmount=\u001b[37m8 \u001b[32mExternStart=\u001b[37m1 \u001b[32mPriority=\u001b[37m1 \u001b[32mInfo=\u001b[37m\n\rKinet1   6  \u001b[32mOutActive=\u001b[37mOff \u001b[32mInActive=\u001b[37mOff \u001b[32mInfo=\u001b[37m (1)\n\r\rDMX_Protocols >\u001b[K",
+      "stripped_response": "Executing : List\n\rArt-Net  1  OutActive=Off InActive=Off MaxUnicast=5 Info= (1)\n\rETC Net2 2  Active=Off LocalStart=1 Amount=8 ExternStart=1 Groups=1 Priority=11 TTL=8 Info=\n\rPathport 3  Active=Off LocalStart=1 Amount=8 ExternStart=1 TTL=8 Info=\n\rsACN     4  OutActive=Off InActive=Off Info= (1)\n\rShownet  5  Active=Off LocalStart=1 Amount=8 ExternStart=1 Priority=1 Info=\n\rKinet1   6  OutActive=Off InActive=Off Info= (1)\n\r\rDMX_Protocols >",
+      "parsed_location": "DMX_Protocols",
+      "parsed_object_type": "DMX_Protocols",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.4d cd .. (back from cd 4)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T3.5a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.5b cd 5",
+      "command": "cd 5",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 5\n\r\rNetConfig >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 5\n\r\rNetConfig >",
+      "parsed_location": "NetConfig",
+      "parsed_object_type": "NetConfig",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.5c list at cd 5",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m            \u001b[31mName            \u001b[32mXLRA    XLRB    XLRC    XLRD    XLRE    XLRF    XLRG    XLRH    XLRIn  \u001b[37m\n\rStations  1 Console         Out 1   Out 2   Out 3   Out 4   Out 5   Out 6   Off\n\rStations  2 onPC            Out 1   Out 2   In 1                                                    (2)\n\rStations  3 NPU             Out 1   Out 2   Out 3   Out 4   Out 5   Out 6   Out 7   Out 8\n\rStations  4 3D\n\rStations  5 VPU\n\rStations  6 NDP Dimmer      Out 1   Out 2   Out 3   Out 4\n\rStations  7 DMX Node        Out 1   Out 2   Out 3   Out 4   Out 5   Out 6   Out 7   Out 8\n\rStations  8 Network Switch\n\rStations  9 Reserved\n\rStations 10 Bridge\n\r\rNetConfig >\u001b[K",
+      "stripped_response": "Executing : List\n\r            Name            XLRA    XLRB    XLRC    XLRD    XLRE    XLRF    XLRG    XLRH    XLRIn  \n\rStations  1 Console         Out 1   Out 2   Out 3   Out 4   Out 5   Out 6   Off\n\rStations  2 onPC            Out 1   Out 2   In 1                                                    (2)\n\rStations  3 NPU             Out 1   Out 2   Out 3   Out 4   Out 5   Out 6   Out 7   Out 8\n\rStations  4 3D\n\rStations  5 VPU\n\rStations  6 NDP Dimmer      Out 1   Out 2   Out 3   Out 4\n\rStations  7 DMX Node        Out 1   Out 2   Out 3   Out 4   Out 5   Out 6   Out 7   Out 8\n\rStations  8 Network Switch\n\rStations  9 Reserved\n\rStations 10 Bridge\n\r\rNetConfig >",
+      "parsed_location": "NetConfig",
+      "parsed_object_type": "NetConfig",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.5d cd .. (back from cd 5)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T3.6a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.6b cd 6",
+      "command": "cd 6",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 6\n\r\rCITPNetConfig 6 >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 6\n\r\rCITPNetConfig 6 >",
+      "parsed_location": "CITPNetConfig 6",
+      "parsed_object_type": "CITPNetConfig",
+      "parsed_object_id": "6",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.6c list at cd 6",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m               \u001b[31mName              \u001b[32m\u001b[37m\n\rCITPStations 1 LightingConsoles\n\rCITPStations 2 MediaServers\n\rCITPStations 3 Visualizers\n\rCITPStations 4 OperationHubs\n\r\rCITPNetConfig 6 >\u001b[K",
+      "stripped_response": "Executing : List\n\r               Name              \n\rCITPStations 1 LightingConsoles\n\rCITPStations 2 MediaServers\n\rCITPStations 3 Visualizers\n\rCITPStations 4 OperationHubs\n\r\rCITPNetConfig 6 >",
+      "parsed_location": "CITPNetConfig 6",
+      "parsed_object_type": "CITPNetConfig",
+      "parsed_object_id": "6",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.6d cd .. (back from cd 6)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T3.7a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.7b cd 7",
+      "command": "cd 7",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 7\n\r\rTrackingSystems 7 >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 7\n\r\rTrackingSystems 7 >",
+      "parsed_location": "TrackingSystems 7",
+      "parsed_object_type": "TrackingSystems",
+      "parsed_object_id": "7",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.7c list at cd 7",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[31mWARNING, NO OBJECTS FOUND FOR LIST\u001b[37m\n\r\rTrackingSystems 7 >\u001b[K",
+      "stripped_response": "Executing : List\n\rWARNING, NO OBJECTS FOUND FOR LIST\n\r\rTrackingSystems 7 >",
+      "parsed_location": "TrackingSystems 7",
+      "parsed_object_type": "TrackingSystems",
+      "parsed_object_id": "7",
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.7d cd .. (back from cd 7)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T3.8a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.8b cd 8",
+      "command": "cd 8",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 8\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 8\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T3.8c list at cd 8",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m             \u001b[31mNo.  \u001b[32m\u001b[31mName          \u001b[32m\u001b[31mWidth  \u001b[32m\u001b[31mHeight  \u001b[32m\u001b[31mBytes  \u001b[32m\u001b[31mInfo  \u001b[32m\u001b[37m\n\rUserImage  1 1    PAR           240    240     3629\n\rUserImage  2 2    Fresnel       240    240     3711\n\rUserImage  3 3    Leko          240    240     3702\n\rUserImage  4 4    Zoom Profile  240    240     3620\n\rUserImage  5 5    Blinder       240    240     4065\n\rUserImage  6 6    2Lite         240    91      5546\n\rUserImage  7 7    Moving 1      240    240     3653\n\rUserImage  8 8    Moving 2      240    240     3635\n\rUserImage  9 9    Moving 3      240    240     3635\n\rUserImage 10 10   Moving 4      240    240     3635\n\rUserImage 11 11   Scanner       240    240     1362\n\rUserImage 12 12   Strobe        240    240     3403\n\rUserImage 13 13   Smoke         240    240     4447\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : List\n\r             No.  Name          Width  Height  Bytes  Info  \n\rUserImage  1 1    PAR           240    240     3629\n\rUserImage  2 2    Fresnel       240    240     3711\n\rUserImage  3 3    Leko          240    240     3702\n\rUserImage  4 4    Zoom Profile  240    240     3620\n\rUserImage  5 5    Blinder       240    240     4065\n\rUserImage  6 6    2Lite         240    91      5546\n\rUserImage  7 7    Moving 1      240    240     3653\n\rUserImage  8 8    Moving 2      240    240     3635\n\rUserImage  9 9    Moving 3      240    240     3635\n\rUserImage 10 10   Moving 4      240    240     3635\n\rUserImage 11 11   Scanner       240    240     1362\n\rUserImage 12 12   Strobe        240    240     3403\n\rUserImage 13 13   Smoke         240    240     4447\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 13,
+      "list_entries": [
+        {
+          "object_type": "UserImage",
+          "object_id": "1",
+          "name": "PAR",
+          "raw_line": "UserImage  1 1    PAR           240    240     3629"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "2",
+          "name": "Fresnel",
+          "raw_line": "UserImage  2 2    Fresnel       240    240     3711"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "3",
+          "name": "Leko",
+          "raw_line": "UserImage  3 3    Leko          240    240     3702"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "4",
+          "name": "Zoom Profile",
+          "raw_line": "UserImage  4 4    Zoom Profile  240    240     3620"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "5",
+          "name": "Blinder",
+          "raw_line": "UserImage  5 5    Blinder       240    240     4065"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "6",
+          "name": "2Lite",
+          "raw_line": "UserImage  6 6    2Lite         240    91      5546"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "7",
+          "name": "Moving 1",
+          "raw_line": "UserImage  7 7    Moving 1      240    240     3653"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "8",
+          "name": "Moving 2",
+          "raw_line": "UserImage  8 8    Moving 2      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "9",
+          "name": "Moving 3",
+          "raw_line": "UserImage  9 9    Moving 3      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "10",
+          "name": "Moving 4",
+          "raw_line": "UserImage 10 10   Moving 4      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "11",
+          "name": "Scanner",
+          "raw_line": "UserImage 11 11   Scanner       240    240     1362"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "12",
+          "name": "Strobe",
+          "raw_line": "UserImage 12 12   Strobe        240    240     3403"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "13",
+          "name": "Smoke",
+          "raw_line": "UserImage 13 13   Smoke         240    240     4447"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "label": "T3.8d cd .. (back from cd 8)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root"
+    },
+    {
+      "label": "T4.8a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T4.8b cd 8",
+      "command": "cd 8",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 8\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 8\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T4.8c list at UserImagePool",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m             \u001b[31mNo.  \u001b[32m\u001b[31mName          \u001b[32m\u001b[31mWidth  \u001b[32m\u001b[31mHeight  \u001b[32m\u001b[31mBytes  \u001b[32m\u001b[31mInfo  \u001b[32m\u001b[37m\n\rUserImage  1 1    PAR           240    240     3629\n\rUserImage  2 2    Fresnel       240    240     3711\n\rUserImage  3 3    Leko          240    240     3702\n\rUserImage  4 4    Zoom Profile  240    240     3620\n\rUserImage  5 5    Blinder       240    240     4065\n\rUserImage  6 6    2Lite         240    91      5546\n\rUserImage  7 7    Moving 1      240    240     3653\n\rUserImage  8 8    Moving 2      240    240     3635\n\rUserImage  9 9    Moving 3      240    240     3635\n\rUserImage 10 10   Moving 4      240    240     3635\n\rUserImage 11 11   Scanner       240    240     1362\n\rUserImage 12 12   Strobe        240    240     3403\n\rUserImage 13 13   Smoke         240    240     4447\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : List\n\r             No.  Name          Width  Height  Bytes  Info  \n\rUserImage  1 1    PAR           240    240     3629\n\rUserImage  2 2    Fresnel       240    240     3711\n\rUserImage  3 3    Leko          240    240     3702\n\rUserImage  4 4    Zoom Profile  240    240     3620\n\rUserImage  5 5    Blinder       240    240     4065\n\rUserImage  6 6    2Lite         240    91      5546\n\rUserImage  7 7    Moving 1      240    240     3653\n\rUserImage  8 8    Moving 2      240    240     3635\n\rUserImage  9 9    Moving 3      240    240     3635\n\rUserImage 10 10   Moving 4      240    240     3635\n\rUserImage 11 11   Scanner       240    240     1362\n\rUserImage 12 12   Strobe        240    240     3403\n\rUserImage 13 13   Smoke         240    240     4447\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 13,
+      "list_entries": [
+        {
+          "object_type": "UserImage",
+          "object_id": "1",
+          "name": "PAR",
+          "raw_line": "UserImage  1 1    PAR           240    240     3629"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "2",
+          "name": "Fresnel",
+          "raw_line": "UserImage  2 2    Fresnel       240    240     3711"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "3",
+          "name": "Leko",
+          "raw_line": "UserImage  3 3    Leko          240    240     3702"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "4",
+          "name": "Zoom Profile",
+          "raw_line": "UserImage  4 4    Zoom Profile  240    240     3620"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "5",
+          "name": "Blinder",
+          "raw_line": "UserImage  5 5    Blinder       240    240     4065"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "6",
+          "name": "2Lite",
+          "raw_line": "UserImage  6 6    2Lite         240    91      5546"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "7",
+          "name": "Moving 1",
+          "raw_line": "UserImage  7 7    Moving 1      240    240     3653"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "8",
+          "name": "Moving 2",
+          "raw_line": "UserImage  8 8    Moving 2      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "9",
+          "name": "Moving 3",
+          "raw_line": "UserImage  9 9    Moving 3      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "10",
+          "name": "Moving 4",
+          "raw_line": "UserImage 10 10   Moving 4      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "11",
+          "name": "Scanner",
+          "raw_line": "UserImage 11 11   Scanner       240    240     1362"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "12",
+          "name": "Strobe",
+          "raw_line": "UserImage 12 12   Strobe        240    240     3403"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "13",
+          "name": "Smoke",
+          "raw_line": "UserImage 13 13   Smoke         240    240     4447"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "label": "T4.8d cd 1 (into child)",
+      "command": "cd 1",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 1\n\r\rUserImagePool /PAR 1 >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 1\n\r\rUserImagePool /PAR 1 >",
+      "parsed_location": "UserImagePool /PAR 1",
+      "parsed_object_type": null,
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T4.8e list at child",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[31mWARNING, NO OBJECTS FOUND FOR LIST\u001b[37m\n\r\rUserImagePool /PAR 1 >\u001b[K",
+      "stripped_response": "Executing : List\n\rWARNING, NO OBJECTS FOUND FOR LIST\n\r\rUserImagePool /PAR 1 >",
+      "parsed_location": "UserImagePool /PAR 1",
+      "parsed_object_type": null,
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T4.8f cd .. (child -> parent)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to parent 'UserImagePool'"
+    },
+    {
+      "label": "T4.8g cd .. (parent -> root)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root 'Fixture'"
+    },
+    {
+      "label": "T4.16a cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T4.16b cd 16",
+      "command": "cd 16",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 16\n\r\rGels >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 16\n\r\rGels >",
+      "parsed_location": "Gels",
+      "parsed_object_type": "Gels",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T4.16c list at Gels",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m           \u001b[31mNo.  \u001b[32mName               \u001b[37m\n\rGelPool  1 1    MA colors           (13)\n\rGelPool  2 2    CalColor            (33)\n\rGelPool  3 3    Cinegel             (69)\n\rGelPool  4 4    Cinelux             (51)\n\rGelPool  5 5    E Colour            (224)\n\rGelPool  6 6    GamColor            (144)\n\rGelPool  7 7    Gel                 (153)\n\rGelPool  8 8    Lee                 (328)\n\rGelPool  9 9    Poly Colour         (80)\n\rGelPool 10 10   Roscolux            (191)\n\rGelPool 11 11   Storaro Selection   (10)\n\rGelPool 12 12   SuperGel            (136)\n\rGelPool 13 13   Zircon              (12)\n\r\rGels >\u001b[K",
+      "stripped_response": "Executing : List\n\r           No.  Name               \n\rGelPool  1 1    MA colors           (13)\n\rGelPool  2 2    CalColor            (33)\n\rGelPool  3 3    Cinegel             (69)\n\rGelPool  4 4    Cinelux             (51)\n\rGelPool  5 5    E Colour            (224)\n\rGelPool  6 6    GamColor            (144)\n\rGelPool  7 7    Gel                 (153)\n\rGelPool  8 8    Lee                 (328)\n\rGelPool  9 9    Poly Colour         (80)\n\rGelPool 10 10   Roscolux            (191)\n\rGelPool 11 11   Storaro Selection   (10)\n\rGelPool 12 12   SuperGel            (136)\n\rGelPool 13 13   Zircon              (12)\n\r\rGels >",
+      "parsed_location": "Gels",
+      "parsed_object_type": "Gels",
+      "parsed_object_id": null,
+      "list_entry_count": 13,
+      "list_entries": [
+        {
+          "object_type": "GelPool",
+          "object_id": "1",
+          "name": "MA colors",
+          "raw_line": "GelPool  1 1    MA colors           (13)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "2",
+          "name": "CalColor",
+          "raw_line": "GelPool  2 2    CalColor            (33)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "3",
+          "name": "Cinegel",
+          "raw_line": "GelPool  3 3    Cinegel             (69)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "4",
+          "name": "Cinelux",
+          "raw_line": "GelPool  4 4    Cinelux             (51)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "5",
+          "name": "E Colour",
+          "raw_line": "GelPool  5 5    E Colour            (224)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "6",
+          "name": "GamColor",
+          "raw_line": "GelPool  6 6    GamColor            (144)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "7",
+          "name": "Gel",
+          "raw_line": "GelPool  7 7    Gel                 (153)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "8",
+          "name": "Lee",
+          "raw_line": "GelPool  8 8    Lee                 (328)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "9",
+          "name": "Poly Colour",
+          "raw_line": "GelPool  9 9    Poly Colour         (80)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "10",
+          "name": "Roscolux",
+          "raw_line": "GelPool 10 10   Roscolux            (191)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "11",
+          "name": "Storaro Selection",
+          "raw_line": "GelPool 11 11   Storaro Selection   (10)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "12",
+          "name": "SuperGel",
+          "raw_line": "GelPool 12 12   SuperGel            (136)"
+        },
+        {
+          "object_type": "GelPool",
+          "object_id": "13",
+          "name": "Zircon",
+          "raw_line": "GelPool 13 13   Zircon              (12)"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "label": "T4.16d cd 1 (into child)",
+      "command": "cd 1",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 1\n\r\rGels/MA colors 1 >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 1\n\r\rGels/MA colors 1 >",
+      "parsed_location": "Gels/MA colors 1",
+      "parsed_object_type": null,
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T4.16e list at child",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m       \u001b[31mNo.  \u001b[32mName        Key  Color              \u001b[37m\n\rGel  1 1    White       1    100.0 100.0 100.0\n\rGel  2 2    Red         2    100.0 0.0 0.0\n\rGel  3 3    Orange      3    100.0 50.0 0.0\n\rGel  4 4    Yellow      4    100.0 100.0 0.0\n\rGel  5 5    Fern Green  5    50.0 100.0 0.0\n\rGel  6 6    Green       6    0.0 100.0 0.0\n\rGel  7 7    Sea Green   7    0.0 100.0 50.0\n\rGel  8 8    Cyan        8    0.0 100.0 100.0\n\rGel  9 9    Lavender    9    0.0 50.0 100.0\n\rGel 10 10   Blue        10   0.0 0.0 100.0\n\rGel 11 11   Violet      11   50.0 0.0 100.0\n\rGel 12 12   Magenta     12   100.0 0.0 100.0\n\rGel 13 13   Pink        13   100.0 0.0 50.0\n\r\rGels/MA colors 1 >\u001b[K",
+      "stripped_response": "Executing : List\n\r       No.  Name        Key  Color              \n\rGel  1 1    White       1    100.0 100.0 100.0\n\rGel  2 2    Red         2    100.0 0.0 0.0\n\rGel  3 3    Orange      3    100.0 50.0 0.0\n\rGel  4 4    Yellow      4    100.0 100.0 0.0\n\rGel  5 5    Fern Green  5    50.0 100.0 0.0\n\rGel  6 6    Green       6    0.0 100.0 0.0\n\rGel  7 7    Sea Green   7    0.0 100.0 50.0\n\rGel  8 8    Cyan        8    0.0 100.0 100.0\n\rGel  9 9    Lavender    9    0.0 50.0 100.0\n\rGel 10 10   Blue        10   0.0 0.0 100.0\n\rGel 11 11   Violet      11   50.0 0.0 100.0\n\rGel 12 12   Magenta     12   100.0 0.0 100.0\n\rGel 13 13   Pink        13   100.0 0.0 50.0\n\r\rGels/MA colors 1 >",
+      "parsed_location": "Gels/MA colors 1",
+      "parsed_object_type": null,
+      "parsed_object_id": null,
+      "list_entry_count": 13,
+      "list_entries": [
+        {
+          "object_type": "Gel",
+          "object_id": "1",
+          "name": "White",
+          "raw_line": "Gel  1 1    White       1    100.0 100.0 100.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "2",
+          "name": "Red",
+          "raw_line": "Gel  2 2    Red         2    100.0 0.0 0.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "3",
+          "name": "Orange",
+          "raw_line": "Gel  3 3    Orange      3    100.0 50.0 0.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "4",
+          "name": "Yellow",
+          "raw_line": "Gel  4 4    Yellow      4    100.0 100.0 0.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "5",
+          "name": "Fern Green",
+          "raw_line": "Gel  5 5    Fern Green  5    50.0 100.0 0.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "6",
+          "name": "Green",
+          "raw_line": "Gel  6 6    Green       6    0.0 100.0 0.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "7",
+          "name": "Sea Green",
+          "raw_line": "Gel  7 7    Sea Green   7    0.0 100.0 50.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "8",
+          "name": "Cyan",
+          "raw_line": "Gel  8 8    Cyan        8    0.0 100.0 100.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "9",
+          "name": "Lavender",
+          "raw_line": "Gel  9 9    Lavender    9    0.0 50.0 100.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "10",
+          "name": "Blue",
+          "raw_line": "Gel 10 10   Blue        10   0.0 0.0 100.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "11",
+          "name": "Violet",
+          "raw_line": "Gel 11 11   Violet      11   50.0 0.0 100.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "12",
+          "name": "Magenta",
+          "raw_line": "Gel 12 12   Magenta     12   100.0 0.0 100.0"
+        },
+        {
+          "object_type": "Gel",
+          "object_id": "13",
+          "name": "Pink",
+          "raw_line": "Gel 13 13   Pink        13   100.0 0.0 50.0"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "label": "T4.16f cd .. (child -> parent)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\rGels >\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\rGels >",
+      "parsed_location": "Gels",
+      "parsed_object_type": "Gels",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to parent 'Gels'"
+    },
+    {
+      "label": "T4.16g cd .. (parent -> root)",
+      "command": "cd ..",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m \u001b[32m..\u001b[37m\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest ..\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd .. returned to root 'Fixture'"
+    },
+    {
+      "label": "T5.1 cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T5.2 cd 99 (should miss)",
+      "command": "cd 99",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 99\n\r\u001b[31mError : ChangeDest 99\u001b[37m\n\rError #72: COMMAND NOT EXECUTED\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest 99\n\rError : ChangeDest 99\n\rError #72: COMMAND NOT EXECUTED\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "CONFIRMED MISS - stayed at root"
+    },
+    {
+      "label": "T6.1 cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T6.2 cd 8 (UserImagePool)",
+      "command": "cd 8",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 8\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 8\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T6.3 cd 15 from UserImagePool",
+      "command": "cd 15",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 15\n\r\u001b[31mError : ChangeDest 15\u001b[37m\n\rError #72: COMMAND NOT EXECUTED\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 15\n\rError : ChangeDest 15\n\rError #72: COMMAND NOT EXECUTED\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "CIRCULAR at depth 2 - same as parent 'UserImagePool'"
+    },
+    {
+      "label": "T6.4 cd 15 again (depth 3)",
+      "command": "cd 15",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 15\n\r\u001b[31mError : ChangeDest 15\u001b[37m\n\rError #72: COMMAND NOT EXECUTED\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 15\n\rError : ChangeDest 15\n\rError #72: COMMAND NOT EXECUTED\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "CIRCULAR at depth 3 - matches ancestor 'UserImagePool'"
+    },
+    {
+      "label": "T6.5 list at depth 3",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\r\u001b[32m             \u001b[31mNo.  \u001b[32m\u001b[31mName          \u001b[32m\u001b[31mWidth  \u001b[32m\u001b[31mHeight  \u001b[32m\u001b[31mBytes  \u001b[32m\u001b[31mInfo  \u001b[32m\u001b[37m\n\rUserImage  1 1    PAR           240    240     3629\n\rUserImage  2 2    Fresnel       240    240     3711\n\rUserImage  3 3    Leko          240    240     3702\n\rUserImage  4 4    Zoom Profile  240    240     3620\n\rUserImage  5 5    Blinder       240    240     4065\n\rUserImage  6 6    2Lite         240    91      5546\n\rUserImage  7 7    Moving 1      240    240     3653\n\rUserImage  8 8    Moving 2      240    240     3635\n\rUserImage  9 9    Moving 3      240    240     3635\n\rUserImage 10 10   Moving 4      240    240     3635\n\rUserImage 11 11   Scanner       240    240     1362\n\rUserImage 12 12   Strobe        240    240     3403\n\rUserImage 13 13   Smoke         240    240     4447\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : List\n\r             No.  Name          Width  Height  Bytes  Info  \n\rUserImage  1 1    PAR           240    240     3629\n\rUserImage  2 2    Fresnel       240    240     3711\n\rUserImage  3 3    Leko          240    240     3702\n\rUserImage  4 4    Zoom Profile  240    240     3620\n\rUserImage  5 5    Blinder       240    240     4065\n\rUserImage  6 6    2Lite         240    91      5546\n\rUserImage  7 7    Moving 1      240    240     3653\n\rUserImage  8 8    Moving 2      240    240     3635\n\rUserImage  9 9    Moving 3      240    240     3635\n\rUserImage 10 10   Moving 4      240    240     3635\n\rUserImage 11 11   Scanner       240    240     1362\n\rUserImage 12 12   Strobe        240    240     3403\n\rUserImage 13 13   Smoke         240    240     4447\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 13,
+      "list_entries": [
+        {
+          "object_type": "UserImage",
+          "object_id": "1",
+          "name": "PAR",
+          "raw_line": "UserImage  1 1    PAR           240    240     3629"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "2",
+          "name": "Fresnel",
+          "raw_line": "UserImage  2 2    Fresnel       240    240     3711"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "3",
+          "name": "Leko",
+          "raw_line": "UserImage  3 3    Leko          240    240     3702"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "4",
+          "name": "Zoom Profile",
+          "raw_line": "UserImage  4 4    Zoom Profile  240    240     3620"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "5",
+          "name": "Blinder",
+          "raw_line": "UserImage  5 5    Blinder       240    240     4065"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "6",
+          "name": "2Lite",
+          "raw_line": "UserImage  6 6    2Lite         240    91      5546"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "7",
+          "name": "Moving 1",
+          "raw_line": "UserImage  7 7    Moving 1      240    240     3653"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "8",
+          "name": "Moving 2",
+          "raw_line": "UserImage  8 8    Moving 2      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "9",
+          "name": "Moving 3",
+          "raw_line": "UserImage  9 9    Moving 3      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "10",
+          "name": "Moving 4",
+          "raw_line": "UserImage 10 10   Moving 4      240    240     3635"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "11",
+          "name": "Scanner",
+          "raw_line": "UserImage 11 11   Scanner       240    240     1362"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "12",
+          "name": "Strobe",
+          "raw_line": "UserImage 12 12   Strobe        240    240     3403"
+        },
+        {
+          "object_type": "UserImage",
+          "object_id": "13",
+          "name": "Smoke",
+          "raw_line": "UserImage 13 13   Smoke         240    240     4447"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "label": "T7.1 cd / (recovery from deep)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - cd / successfully returned to root after deep nav"
+    },
+    {
+      "label": "T7.2 list at root (verify recovery)",
+      "command": "list",
+      "raw_response": "Executing : \u001b[32mList\u001b[37m\n\rShowfile              1  \u001b[33mDate\u001b[37m=Feb 25 2026 \u001b[32mInfo=\u001b[37m (37)\n\rTimeConfig            2  \u001b[32mHour=\u001b[37m16 \u001b[32mMinute=\u001b[37m46 \u001b[32mSecond=\u001b[37m12 \u001b[32mDay=\u001b[37m27 \u001b[32mMonth=\u001b[37m2 \u001b[32mYear=\u001b[37m2026 \u001b[32mTimezone=\u001b[37m-4.00 \u001b[32mLongitude=\u001b[37m9.94 \u001b[32mLatitude=\u001b[37m49.79 \u001b[32mRegardDaylightSaving=\u001b[37mOn \u001b[32mStartDay=\u001b[37m26 \u001b[32mStartMonth=\u001b[37m3 \u001b[32mEndDay=\u001b[37m29 \u001b[32mEndMonth=\u001b[37m10 \u001b[32mShiftForwardAt=\u001b[37m2h \u001b[32mShiftBackwardAt=\u001b[37m3h \u001b[32mGPS=\u001b[37mOff \u001b[32mNTPServerIP=\u001b[37m0.0.0.0\n\rSettings              3  (6)\n\rDMX_Protocols         4  (6)\n\rNetConfig             5  (10)\n\rCITPNetConfig         6  \u001b[32mEnabled=\u001b[37mNo (4)\n\rTrackingSystems       7  \u001b[32mEnabled=\u001b[37mNo\n\rUserImagePool         8  (13)\n\rRDM_Data              9  (2)\n\rLiveSetup            10  (6)\n\rEditSetup            11\n\rMacros               13  (1)\n\rFlightRecordings     14\n\rPlugins              15  (1)\n\rGels                 16  (13)\n\rPresets              17  (1)\n\rWorlds               18  (1)\n\rFilters              19  (1)\n\rFadePaths            20  (16)\n\rProgrammer           21\n\rGroups               22  (1)\n\rForms                23  (23)\n\rEffects              24  (1)\n\rSequences            25  (1)\n\rTimers               26  (1)\n\rMasterSections       27  (5)\n\rExecutorPages        30  (2)\n\rChannelPages         31  \u001b[33mNo.\u001b[37m= \u001b[32mName=\u001b[37mChannelPages (9)\n\rSongs                33\n\rAgendas              34\n\rTimecodes            35\n\rRemoteTypes          36  (3)\n\rDMXSnapshotPool      37\n\rLayouts              38  (1)\n\rUserProfiles         39  (254)\n\rUsers                40  (3)\n\rPixelMapperContainer 41  (5)\n\rNDP_Root             42\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : List\n\rShowfile              1  Date=Feb 25 2026 Info= (37)\n\rTimeConfig            2  Hour=16 Minute=46 Second=12 Day=27 Month=2 Year=2026 Timezone=-4.00 Longitude=9.94 Latitude=49.79 RegardDaylightSaving=On StartDay=26 StartMonth=3 EndDay=29 EndMonth=10 ShiftForwardAt=2h ShiftBackwardAt=3h GPS=Off NTPServerIP=0.0.0.0\n\rSettings              3  (6)\n\rDMX_Protocols         4  (6)\n\rNetConfig             5  (10)\n\rCITPNetConfig         6  Enabled=No (4)\n\rTrackingSystems       7  Enabled=No\n\rUserImagePool         8  (13)\n\rRDM_Data              9  (2)\n\rLiveSetup            10  (6)\n\rEditSetup            11\n\rMacros               13  (1)\n\rFlightRecordings     14\n\rPlugins              15  (1)\n\rGels                 16  (13)\n\rPresets              17  (1)\n\rWorlds               18  (1)\n\rFilters              19  (1)\n\rFadePaths            20  (16)\n\rProgrammer           21\n\rGroups               22  (1)\n\rForms                23  (23)\n\rEffects              24  (1)\n\rSequences            25  (1)\n\rTimers               26  (1)\n\rMasterSections       27  (5)\n\rExecutorPages        30  (2)\n\rChannelPages         31  No.= Name=ChannelPages (9)\n\rSongs                33\n\rAgendas              34\n\rTimecodes            35\n\rRemoteTypes          36  (3)\n\rDMXSnapshotPool      37\n\rLayouts              38  (1)\n\rUserProfiles         39  (254)\n\rUsers                40  (3)\n\rPixelMapperContainer 41  (5)\n\rNDP_Root             42\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "OK - same entry count as initial root list (0)"
+    },
+    {
+      "label": "T8.1 cd / (reset)",
+      "command": "cd /",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m /\n\r\r [Fixture]>\u001b[K",
+      "stripped_response": "Executing : ChangeDest /\n\r\r [Fixture]>",
+      "parsed_location": "Fixture",
+      "parsed_object_type": "Fixture",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T8.2 empty command at root",
+      "command": "",
+      "raw_response": "",
+      "stripped_response": "",
+      "parsed_location": null,
+      "parsed_object_type": null,
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "Empty command returned location=None"
+    },
+    {
+      "label": "T8.3 cd 8",
+      "command": "cd 8",
+      "raw_response": "Executing : \u001b[32mChangeDest\u001b[37m 8\n\r\rUserImagePool  >\u001b[K",
+      "stripped_response": "Executing : ChangeDest 8\n\r\rUserImagePool  >",
+      "parsed_location": "UserImagePool",
+      "parsed_object_type": "UserImagePool",
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": ""
+    },
+    {
+      "label": "T8.4 empty command at UserImagePool",
+      "command": "",
+      "raw_response": "",
+      "stripped_response": "",
+      "parsed_location": null,
+      "parsed_object_type": null,
+      "parsed_object_id": null,
+      "list_entry_count": 0,
+      "list_entries": [],
+      "notes": "Empty command returned location=None"
+    }
+  ]
+}

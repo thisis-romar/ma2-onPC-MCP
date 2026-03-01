@@ -176,6 +176,7 @@ def build_v39_spec(
         "ListLibrary", "ListMacroLibrary", "ListOops", "ListOwner",
         "ListPluginLibrary", "ListShows", "ListUpdate", "ListUserVar",
         "ListVar", "GetUserVar", "Select", "CmdHelp",
+        "ChangeDest",
     }
     safe_write = {
         "At", "Go", "GoBack", "Goto", "On", "Off", "Toggle",

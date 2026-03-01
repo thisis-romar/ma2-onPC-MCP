@@ -16,3 +16,9 @@ __pycache__/
 
 # augment
 .augment/
+
+# Node
+node_modules/
+
+# Build output
+dist/

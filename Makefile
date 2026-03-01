@@ -2,7 +2,8 @@ server:
 	./connect.sh
 
 log:
-	telnet 2.0.0.166 30001
+	@echo "Usage: make log GMA_HOST=<ip>"
+	telnet $(GMA_HOST) 30001
 
 test:
 	uv run pytest -v

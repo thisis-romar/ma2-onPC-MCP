@@ -78,6 +78,7 @@ from .edit import (
 # Assignment Function Keywords
 from .assignment import (
     assign,
+    assign_property,
     assign_function,
     assign_fade,
     assign_to_layout,
@@ -156,6 +157,11 @@ from .variables import (
     add_var,
 )
 
+# Navigation Function Keywords (ChangeDest / cd)
+from .navigation import (
+    changedest,
+)
+
 # Backward Compatibility Aliases
 # select_group -> group (from objects.py)
 # call_preset -> preset (from objects.py)
@@ -225,6 +231,7 @@ __all__ = [
     "move",
     # Assign
     "assign",
+    "assign_property",
     "assign_function",
     "assign_fade",
     "assign_to_layout",
@@ -275,6 +282,8 @@ __all__ = [
     "set_var",
     "add_user_var",
     "add_var",
+    # Navigation Function Keywords
+    "changedest",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",

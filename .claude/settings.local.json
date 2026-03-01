@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run:*)",
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(taskkill:*)",
+      "Bash(tasklist:*)"
+    ]
+  }
+}

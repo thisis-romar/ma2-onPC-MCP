@@ -115,6 +115,36 @@ def assign(
     return cmd
 
 
+def assign_property(
+    target_index: Union[int, str],
+    property_name: str,
+    value: str,
+) -> str:
+    """
+    Build an inline property assignment command.
+
+    When cd'd into a parent node, sets a property on a child entry.
+    Produces: ``assign [index]/property=value``
+
+    Args:
+        target_index: Child index within current listing (e.g. 1 for Global in Settings)
+        property_name: Property name (e.g. "Telnet", "OutActive")
+        value: Property value (e.g. "Login Enabled", "On")
+
+    Returns:
+        str: MA command for inline property assignment
+
+    Examples:
+        >>> assign_property(1, "Telnet", "Login Disabled")
+        'assign 1/Telnet="Login Disabled"'
+        >>> assign_property(1, "OutActive", "On")
+        'assign 1/OutActive=On'
+    """
+    if " " in str(value):
+        return f'assign {target_index}/{property_name}="{value}"'
+    return f"assign {target_index}/{property_name}={value}"
+
+
 def assign_function(
     function: str,
     target_type: str,
