@@ -8,6 +8,7 @@ Usage:
     uv run python -m src.server
 """
 
+import functools
 import json
 import logging
 import os
@@ -152,12 +153,33 @@ async def get_client() -> GMA2TelnetClient:
     return _client
 
 
+def _handle_errors(func):
+    """Decorator that catches exceptions in MCP tools and returns JSON errors."""
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except ConnectionError as e:
+            logger.error("Connection error in %s: %s", func.__name__, e)
+            return json.dumps({"error": f"Connection failed: {e}"}, indent=2)
+        except RuntimeError as e:
+            logger.error("Runtime error in %s: %s", func.__name__, e)
+            return json.dumps({"error": f"Runtime error: {e}"}, indent=2)
+        except Exception as e:
+            logger.error("Unexpected error in %s: %s", func.__name__, e, exc_info=True)
+            return json.dumps({"error": f"Unexpected error: {e}"}, indent=2)
+
+    return wrapper
+
+
 # ============================================================
 # MCP Tools Definition
 # ============================================================
 
 
 @mcp.tool()
+@_handle_errors
 async def create_fixture_group(
     start_fixture: int,
     end_fixture: int,
@@ -205,6 +227,7 @@ async def create_fixture_group(
 
 
 @mcp.tool()
+@_handle_errors
 async def execute_sequence(
     sequence_id: int,
     action: str,
@@ -249,6 +272,7 @@ async def execute_sequence(
 
 
 @mcp.tool()
+@_handle_errors
 async def send_raw_command(
     command: str,
     confirm_destructive: bool = False,
@@ -351,6 +375,7 @@ async def send_raw_command(
 
 
 @mcp.tool()
+@_handle_errors
 async def navigate_console(
     destination: str,
     object_id: int | None = None,
@@ -408,6 +433,7 @@ async def navigate_console(
 
 
 @mcp.tool()
+@_handle_errors
 async def get_console_location() -> str:
     """
     Query the current grandMA2 console destination without navigating.
@@ -439,6 +465,7 @@ async def get_console_location() -> str:
 
 
 @mcp.tool()
+@_handle_errors
 async def list_console_destination(
     object_type: str | None = None,
 ) -> str:
@@ -486,6 +513,7 @@ async def list_console_destination(
 
 
 @mcp.tool()
+@_handle_errors
 async def scan_console_indexes(
     reset_to: str = "/",
     max_index: int = 50,
@@ -550,6 +578,7 @@ async def scan_console_indexes(
 
 
 @mcp.tool()
+@_handle_errors
 async def set_node_property(
     path: str,
     property_name: str,
@@ -612,6 +641,7 @@ async def set_node_property(
 
 
 @mcp.tool()
+@_handle_errors
 async def set_intensity(
     target_type: str,
     target_id: int,
@@ -661,6 +691,7 @@ async def set_intensity(
 
 
 @mcp.tool()
+@_handle_errors
 async def apply_preset(
     preset_type: str,
     preset_id: int,
@@ -725,6 +756,7 @@ async def apply_preset(
 
 
 @mcp.tool()
+@_handle_errors
 async def store_current_cue(
     cue_number: int,
     sequence_id: int | None = None,
@@ -787,6 +819,7 @@ async def store_current_cue(
 
 
 @mcp.tool()
+@_handle_errors
 async def get_object_info(
     object_type: str,
     object_id: int | str,
@@ -824,6 +857,7 @@ async def get_object_info(
 
 
 @mcp.tool()
+@_handle_errors
 async def clear_programmer(
     mode: str = "all",
 ) -> str:
