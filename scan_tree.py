@@ -45,6 +45,9 @@ Options:
     --no-leaf-shortcut   Disable known-leaf-type optimization
     --progress-file PATH JSONL progress file (auto-derived if empty)
     --resume             Resume scan from progress file
+    --heartbeat-every 200  Print heartbeat every N nodes (0=disabled)
+    --branch-timeout 0   Per-branch timeout in seconds (0=unlimited)
+    --disconnect-timeout 5  Timeout for telnet disconnect (default: 5s)
 """
 
 from __future__ import annotations
@@ -91,6 +94,9 @@ class ScanConfig:
     no_leaf_shortcut: bool = False # disable known-leaf optimization
     progress_path: str = ""       # JSONL progress file path (auto if empty)
     resume: bool = False          # resume from progress file
+    heartbeat_every: int = 200    # print heartbeat every N nodes (0=disabled)
+    branch_timeout: float = 0    # per-branch timeout in seconds (0=unlimited)
+    disconnect_timeout: float = 5.0  # timeout for telnet disconnect
 
 
 # ---------------------------------------------------------------------------
@@ -238,17 +244,23 @@ def _serialize_entries(entries) -> list[dict]:
         col3 = getattr(e, "col3", None)
         if col3 is not None:
             d["col3"] = col3
+        columns = getattr(e, "columns", None)
+        if columns:
+            d["columns"] = columns
         result.append(d)
     return result
 
 
-def _entry_type_map(entries) -> dict[int, str]:
+def _entry_type_map(entries) -> dict:
     """Map child index -> object_type from a parent's list entries.
 
     Used by leaf-type shortcutting to skip ``list`` calls on children
     whose type is in KNOWN_LEAF_TYPES.
+
+    Also stores ``_raw_entries`` (serialized dicts) so the leaf shortcut
+    can look up names without navigating.
     """
-    type_map: dict[int, str] = {}
+    type_map: dict = {}
     for e in entries:
         oid = e.object_id if hasattr(e, 'object_id') else e.get("object_id")
         otype = e.object_type if hasattr(e, 'object_type') else e.get("object_type")
@@ -258,6 +270,8 @@ def _entry_type_map(entries) -> dict[int, str]:
                 type_map[idx] = otype
             except (ValueError, AttributeError):
                 pass
+    # Attach serialized entries for name lookups
+    type_map["_raw_entries"] = _serialize_entries(entries)
     return type_map
 
 
@@ -443,8 +457,82 @@ async def _scan_children(
             print(f"  MAX NODES REACHED ({cfg.max_nodes}) — stopping branch")
             break
 
+        # Heartbeat: periodic status during long branches
+        if (cfg.heartbeat_every > 0
+                and stats["visited"] > 0
+                and stats["visited"] % cfg.heartbeat_every == 0):
+            elapsed = time.monotonic() - stats.get("_start_time", time.monotonic())
+            rate = stats["visited"] / elapsed if elapsed > 0 else 0
+            print(
+                f"  [HEARTBEAT] {stats['visited']} nodes visited, "
+                f"{stats.get('duplicates', 0)} dups, "
+                f"{elapsed:.0f}s elapsed ({rate:.1f} nodes/s) — "
+                f"depth={depth} path={parent_path_str}"
+            )
+
+        # Branch timeout check
+        if cfg.branch_timeout > 0:
+            branch_elapsed = time.monotonic() - stats.get("_branch_start", time.monotonic())
+            if branch_elapsed > cfg.branch_timeout:
+                print(
+                    f"  [BRANCH TIMEOUT] {branch_elapsed:.0f}s > "
+                    f"{cfg.branch_timeout:.0f}s limit — aborting branch {parent_path_str}"
+                )
+                break
+
         child_abs_path = parent_abs_path + [idx]
         child_path_str = ".".join(str(i) for i in child_abs_path)
+
+        # Known leaf-type shortcutting: skip cd+list entirely for known leaf types.
+        # Build the node from the parent's list entry data — no navigation needed.
+        known_leaf = (
+            not cfg.no_leaf_shortcut
+            and child_type_map is not None
+            and child_type_map.get(idx) in KNOWN_LEAF_TYPES
+        )
+
+        if known_leaf:
+            consecutive_failures = 0
+            stats["visited"] += 1
+            leaf_type = child_type_map[idx]
+            # Look up name from parent entries if available
+            leaf_name = None
+            for e_raw in (child_type_map.get("_raw_entries") or []):
+                oid = e_raw.get("object_id")
+                if oid is not None:
+                    try:
+                        if int(str(oid).split(".")[0]) == idx:
+                            leaf_name = e_raw.get("name")
+                            break
+                    except (ValueError, AttributeError):
+                        pass
+            location_str = f"{leaf_type} {idx}" if not leaf_name else f"{leaf_type} {idx}/{leaf_name}"
+            print(
+                f"  [d={depth} | {child_path_str} | "
+                f"+{stats['visited']} ~{stats['skipped']}] "
+                f"idx {idx} -> {location_str!r} [LEAF-SHORTCUT, no cd]"
+            )
+            node = TreeNode(
+                path=child_path_str,
+                index=idx,
+                location=location_str,
+                object_type=leaf_type,
+                raw_list_text="",
+                raw_list_entries=[],
+                is_leaf=True,
+            )
+            consecutive_empty_leaves += 1
+            children.append(node)
+            # No cd was done, so no cd .. needed — continue to next sibling
+            # Consecutive empty leaf early exit
+            if (cfg.empty_leaf_limit > 0
+                    and consecutive_empty_leaves >= cfg.empty_leaf_limit):
+                print(
+                    f"  Stopping branch at depth {depth}: "
+                    f"{cfg.empty_leaf_limit} consecutive empty leaves"
+                )
+                break
+            continue
 
         # cd N — enter child (with reconnect support)
         nav = await _safe_navigate(client, str(idx), cfg, abs_path=parent_abs_path)
@@ -491,42 +579,23 @@ async def _scan_children(
                 await _reconnect(client, cfg)
                 await _navigate_to_path_raw(client, child_abs_path, cfg)
 
-        # Known leaf-type shortcutting: skip list call for known leaf types
+        # list — capture full raw output + parsed entries (with reconnect)
         child_obj_type = _extract_type(child_location)
-        known_leaf = (
-            not cfg.no_leaf_shortcut
-            and child_type_map is not None
-            and child_type_map.get(idx) in KNOWN_LEAF_TYPES
+        lst = await _safe_list(client, cfg, abs_path=child_abs_path)
+        entries = lst.parsed_list.entries
+        raw_list_text = _clean_list_text(lst.raw_response)
+        raw_entries = _serialize_entries(entries)
+
+        is_leaf = (len(entries) == 0) or (depth >= cfg.max_depth)
+
+        leaf_tag = " [LEAF]" if is_leaf else ""
+        if depth >= cfg.max_depth and len(entries) > 0:
+            leaf_tag = f" [DEPTH-CAP: {len(entries)} entries not recursed]"
+        print(
+            f"  [d={depth} | {child_path_str} | "
+            f"+{stats['visited']} ~{stats['skipped']}] "
+            f"cd {idx} -> {child_location!r} ({len(entries)} entries){leaf_tag}"
         )
-
-        if known_leaf:
-            entries = []
-            raw_list_text = ""
-            raw_entries = []
-            is_leaf = True
-            leaf_tag = " [LEAF-SHORTCUT]"
-            print(
-                f"  [d={depth} | {child_path_str} | "
-                f"+{stats['visited']} ~{stats['skipped']}] "
-                f"cd {idx} -> {child_location!r} (skipped list — known leaf type)"
-            )
-        else:
-            # list — capture full raw output + parsed entries (with reconnect)
-            lst = await _safe_list(client, cfg, abs_path=child_abs_path)
-            entries = lst.parsed_list.entries
-            raw_list_text = _clean_list_text(lst.raw_response)
-            raw_entries = _serialize_entries(entries)
-
-            is_leaf = (len(entries) == 0) or (depth >= cfg.max_depth)
-
-            leaf_tag = " [LEAF]" if is_leaf else ""
-            if depth >= cfg.max_depth and len(entries) > 0:
-                leaf_tag = f" [DEPTH-CAP: {len(entries)} entries not recursed]"
-            print(
-                f"  [d={depth} | {child_path_str} | "
-                f"+{stats['visited']} ~{stats['skipped']}] "
-                f"cd {idx} -> {child_location!r} ({len(entries)} entries){leaf_tag}"
-            )
 
         node = TreeNode(
             path=child_path_str,
@@ -627,7 +696,8 @@ async def scan_tree(
          c. Recurse into sub-levels until list returns 0 entries (leaf)
          d. cd / -> return to root between top-level branches
     """
-    stats = {"visited": 0, "skipped": 0, "duplicates": 0}
+    stats = {"visited": 0, "skipped": 0, "duplicates": 0,
+             "_start_time": time.monotonic(), "_branch_start": time.monotonic()}
     sig_cache: dict[str, str] = {}  # entries_signature -> first path that had it
     progress_path = _progress_file_path(cfg)
 
@@ -637,13 +707,20 @@ async def scan_tree(
     if cfg.resume:
         resumed_nodes, resumed_branches, resumed_stats, resumed_sigs = _load_progress(progress_path)
         if resumed_branches:
-            stats = resumed_stats
+            stats.update(resumed_stats)
+            stats["_start_time"] = time.monotonic()
             sig_cache = resumed_sigs
             print(
                 f"Resumed {len(resumed_branches)} branches from {progress_path}\n"
                 f"  Continuing with {stats['visited']} visited, "
                 f"{stats['skipped']} skipped, {stats.get('duplicates', 0)} duplicates"
             )
+    else:
+        # Fresh run: truncate progress file to avoid mixing data from prior runs
+        import os
+        if os.path.exists(progress_path):
+            open(progress_path, "w").close()
+            print(f"Truncated stale progress file: {progress_path}")
 
     # Step 1: cd / — go to root
     print("Navigating to root (cd /)...")
@@ -682,7 +759,8 @@ async def scan_tree(
             print(f"\nMAX NODES REACHED ({cfg.max_nodes}) — stopping scan")
             break
 
-        # Progress indicator
+        # Progress indicator + reset per-branch timer
+        stats["_branch_start"] = time.monotonic()
         print(f"\n--- Root branch {branch_num}/{total_root} (index {idx}) ---")
 
         # cd N — enter root child (with reconnect)
@@ -791,9 +869,12 @@ async def scan_tree(
         _write_branch_progress(progress_path, idx, node, stats)
 
         # Progress summary after each root branch
+        branch_elapsed = time.monotonic() - stats["_branch_start"]
+        total_elapsed = time.monotonic() - stats["_start_time"]
         print(
-            f"  Branch {branch_num}/{total_root} done. "
-            f"Total: {stats['visited']} visited, {stats['skipped']} skipped"
+            f"  Branch {branch_num}/{total_root} done in {branch_elapsed:.1f}s. "
+            f"Total: {stats['visited']} visited, {stats['skipped']} skipped "
+            f"({total_elapsed:.0f}s elapsed)"
         )
 
     return root_children, stats
@@ -820,7 +901,7 @@ def _write_branch_progress(
     record = {
         "branch_index": branch_index,
         "node": node_to_dict(node),
-        "stats_snapshot": dict(stats),
+        "stats_snapshot": {k: v for k, v in stats.items() if not k.startswith("_")},
         "timestamp": time.time(),
     }
     with open(progress_path, "a", encoding="utf-8") as f:
@@ -962,8 +1043,13 @@ async def main_async(cfg: ScanConfig) -> None:
         elapsed = time.monotonic() - t_start
 
     finally:
-        await client.disconnect()
-        print("\nDisconnected.")
+        try:
+            await asyncio.wait_for(client.disconnect(), timeout=cfg.disconnect_timeout)
+            print("\nDisconnected.")
+        except asyncio.TimeoutError:
+            print(f"\nDisconnect timed out after {cfg.disconnect_timeout}s — forcing close.")
+        except Exception as e:
+            print(f"\nDisconnect error: {e} — continuing.")
 
     # Write JSON output
     output = {
@@ -1030,6 +1116,12 @@ def parse_args() -> ScanConfig:
                    help="JSONL progress file path (auto-derived from --output if empty)")
     p.add_argument("--resume",              action="store_true",
                    help="Resume scan from progress file")
+    p.add_argument("--heartbeat-every",    type=int, default=200,  dest="heartbeat_every",
+                   help="Print heartbeat every N nodes, 0=disabled (default: 200)")
+    p.add_argument("--branch-timeout",     type=float, default=0,  dest="branch_timeout",
+                   help="Per-branch timeout in seconds, 0=unlimited (default: 0)")
+    p.add_argument("--disconnect-timeout", type=float, default=5.0, dest="disconnect_timeout",
+                   help="Timeout for telnet disconnect in seconds (default: 5)")
     args = p.parse_args()
 
     return ScanConfig(
@@ -1050,6 +1142,9 @@ def parse_args() -> ScanConfig:
         no_leaf_shortcut=args.no_leaf_shortcut,
         progress_path=args.progress_path,
         resume=args.resume,
+        heartbeat_every=args.heartbeat_every,
+        branch_timeout=args.branch_timeout,
+        disconnect_timeout=args.disconnect_timeout,
     )
 
 

@@ -48,7 +48,8 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ┌──────────────────────────────────────────────────────────┐
 │  Prompt Parser             src/prompt_parser.py           │
 │  parse_prompt() — detect console location from responses  │
-│  parse_list_output() — extract object entries from list   │
+│  parse_list_output() — extract entries + column headers   │
+│    with automatic header detection and column mapping     │
 └──────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────┐
@@ -146,22 +147,104 @@ When no recognizable prompt is found, the raw response is preserved for manual i
 
 ### List Output Parsing
 
-After cd-ing into a destination, `list` returns tabular feedback. The parser extracts entries:
+After cd-ing into a destination, `list` returns tabular output with column headers followed by data rows. The parser automatically detects headers and maps column values to named fields.
 
-| Raw line | object_type | object_id | name |
-|----------|-------------|-----------|------|
-| `Group.1  Front Wash` | `Group` | `1` | `Front Wash` |
-| `Preset.4.1  Deep Blue` | `Preset` | `4.1` | `Deep Blue` |
-| `1  Front Wash` | `None` | `1` | `Front Wash` |
-| `Group.5` | `Group` | `5` | `None` |
+**Entry structure:**
 
-Prompt lines (`[Group]>`) are detected and separated from data entries. Unrecognized lines (headers, separators) are skipped.
+| Field | Description |
+|-------|-------------|
+| `object_type` | Type name (e.g. `Group`, `UserImage`, `History`) |
+| `object_id` | Numeric ID within the parent |
+| `name` | Display name |
+| `col3` | Third column for tabular entries (e.g. version number) |
+| `columns` | Dict mapping extra header names to their values |
+| `raw_line` | Full original line for manual inspection |
+
+**Column parsing examples:**
+
+| Header Row | Entry | Parsed `columns` |
+|------------|-------|-------------------|
+| `No.  Name  Width  Height  Bytes  Info` | `UserImage 1 ... PAR  240  240  3629` | `{Width: 240, Height: 240, Bytes: 3629}` |
+| `Version  Beta  Date  Name  Info` | `History 1 3.7.0.5 ... Mar 16 2022` | `{Date: Mar 16 2022, ...}` |
+| `No.  Name  Key  Color` | `Gel 1 ... R80  100.0 100.0 100.0` | `{Key: R80, Color: 100.0 100.0 100.0}` |
+| *(root-level key=value)* | `Settings 3  Agenda=Running (6)` | `{Agenda: Running, child_count: 6}` |
+
+Root-level entries use `key=value` format (parsed automatically), while tabular entries use positional columns aligned to the header row.
+
+## Tree Scanner
+
+`scan_tree.py` recursively walks the grandMA2 object tree via Telnet, building a complete JSON map of every node, child, and leaf in the console's internal data structure.
+
+### How It Works
+
+1. `cd /` -- navigate to root
+2. `list` -- enumerate children (get valid indexes + full column output)
+3. `cd N` -- enter each child by index
+4. `list` -- capture raw output (headers + columns + values)
+5. Recurse until `list` returns 0 entries (leaf) or max depth is reached
+6. `cd ..` / `cd /` -- return to parent between branches
+
+### Usage
+
+```bash
+# Quick scan (depth 4, for testing)
+uv run python scan_tree.py --max-depth 4 --output scan_test.json
+
+# Full scan (depth 20, all optimizations)
+uv run python scan_tree.py --max-depth 20 --output scan_full.json
+
+# Resume an interrupted scan
+uv run python scan_tree.py --max-depth 20 --output scan_full.json --resume
+```
+
+### Scanner Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--host` | from `.env` | Console IP address |
+| `--port` | 30000 | Telnet port |
+| `--max-depth` | 20 | Maximum recursion depth |
+| `--max-nodes` | 0 | Stop after N nodes (0 = unlimited) |
+| `--max-index` | 60 | Fallback index limit when list has no parseable IDs |
+| `--failures` | 3 | Stop branch after N consecutive missing indexes |
+| `--output` | `scan_output.json` | Output JSON file path |
+| `--delay` | 0.08 | Seconds between commands |
+| `--timeout` | 0.8 | Telnet read timeout per command |
+| `--max-gap-probe` | 5 | Max gap between consecutive IDs to probe |
+| `--empty-leaf-limit` | 10 | Stop after N consecutive empty leaves (0 = off) |
+| `--health-check-interval` | 500 | Health check every N nodes (0 = disabled) |
+| `--no-leaf-shortcut` | false | Disable known-leaf-type optimization |
+| `--progress-file` | auto | JSONL progress file path |
+| `--resume` | false | Resume scan from progress file |
+| `--heartbeat-every` | 200 | Print heartbeat status every N nodes (0 = disabled) |
+| `--branch-timeout` | 0 | Per-branch timeout in seconds (0 = unlimited) |
+| `--disconnect-timeout` | 5 | Timeout for telnet disconnect in seconds |
+
+### Speed Optimizations
+
+The scanner includes several optimizations to handle large trees (7000+ nodes):
+
+- **Known leaf-type shortcutting** -- Builds leaf nodes from parent list data without cd+list, saving ~1s per node for known types (History, Gel, Universe, RDM_Universe, UserImage)
+- **Smart gap probing** -- Only fills gaps <=5 between known IDs, preventing ranges like [1, 467] from generating 466 extra probes
+- **Duplicate detection** -- Compares raw `list` output signatures to skip identical subtrees (saves ~1000 nodes on a typical full scan)
+- **Consecutive empty leaf early exit** -- Stops scanning a branch after 10 consecutive empty slots
+- **Subsequent-read timeout** -- Reduced from 0.3s to 0.1s per telnet read, saving ~100 min across a full scan
+
+### Resilience Features
+
+- **Auto-reconnect** -- Detects dead connections (empty responses) and reconnects with full path recovery
+- **Progressive save** -- Writes completed branches to a JSONL file after each root branch, preventing data loss on interruption
+- **Resume support** -- Reloads progress file on startup, skips completed branches, and rebuilds duplicate-detection cache for continuity across sessions
+- **Heartbeat logging** -- Prints periodic status during long-running branches so progress is visible even when a single branch takes hours
+- **Branch timeout** -- Optional per-branch time limit to skip branches that exceed a threshold, preventing the scanner from getting stuck
+- **Disconnect timeout** -- Wraps telnet disconnect in a timeout to prevent process hangs from stale connections
+- **Progress file hygiene** -- Fresh (non-resume) runs truncate the progress file to avoid mixing data from prior runs
 
 ## Command Builder Reference
 
 The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions return `str`.
 
-grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
+grandMA2 syntax: `[Function] [Object]` -- keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
 ### Navigation (ChangeDest)
 
@@ -384,69 +467,6 @@ result = classify_token("li", spec)
 
 The vocabulary is sourced from `src/grandMA2_v3_9_telnet_keyword_vocabulary.json` (grandMA2 v3.9).
 
-## Tree Scanner
-
-`scan_tree.py` recursively walks the grandMA2 object tree via Telnet, building a complete JSON map of every node, child, and leaf in the console's internal data structure.
-
-### How It Works
-
-1. `cd /` — navigate to root
-2. `list` — enumerate children (get valid indexes + full column output)
-3. `cd N` — enter each child by index
-4. `list` — capture raw output (headers + columns + values)
-5. Recurse until `list` returns 0 entries (leaf) or max depth is reached
-6. `cd ..` / `cd /` — return to parent between branches
-
-### Usage
-
-```bash
-# Quick scan (depth 4, for testing)
-uv run python scan_tree.py --max-depth 4 --output scan_test.json
-
-# Full scan (depth 20, all optimizations)
-uv run python scan_tree.py --max-depth 20 --output scan_full.json
-
-# Resume an interrupted scan
-uv run python scan_tree.py --max-depth 20 --output scan_full.json --resume
-```
-
-### Scanner Options
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--host` | from `.env` | Console IP address |
-| `--port` | 30000 | Telnet port |
-| `--max-depth` | 20 | Maximum recursion depth |
-| `--max-nodes` | 0 | Stop after N nodes (0 = unlimited) |
-| `--max-index` | 60 | Fallback index limit when list has no parseable IDs |
-| `--failures` | 3 | Stop branch after N consecutive missing indexes |
-| `--output` | `scan_output.json` | Output JSON file path |
-| `--delay` | 0.08 | Seconds between commands |
-| `--timeout` | 0.8 | Telnet read timeout per command |
-| `--max-gap-probe` | 5 | Max gap between consecutive IDs to probe |
-| `--empty-leaf-limit` | 10 | Stop after N consecutive empty leaves (0 = off) |
-| `--health-check-interval` | 500 | Health check every N nodes (0 = disabled) |
-| `--no-leaf-shortcut` | false | Disable known-leaf-type optimization |
-| `--progress-file` | auto | JSONL progress file path |
-| `--resume` | false | Resume scan from progress file |
-
-### Speed Optimizations
-
-The scanner includes several optimizations to handle large trees (1000+ nodes):
-
-- **Smart gap probing** — Only fills gaps ≤5 between known IDs, preventing ranges like [1, 467] from generating 466 extra probes
-- **Known leaf-type shortcutting** — Skips `list` calls for types known to be leaves (History, Gel, Universe, RDM_Universe, UserImage), saving ~1s per node
-- **Health check tuning** — Checks connection every 500 nodes (instead of 100) with faster probe timeouts
-- **Consecutive empty leaf early exit** — Stops scanning a branch after 10 consecutive empty slots
-- **Subsequent-read timeout** — Reduced from 0.3s to 0.1s per telnet read, saving ~100 min across a full scan
-- **Duplicate detection** — Compares raw `list` output signatures to skip subtrees that are identical to already-scanned nodes
-
-### Resilience Features
-
-- **Auto-reconnect** — Detects dead connections (empty responses) and reconnects with full path recovery
-- **Progressive save** — Appends completed branches to a JSONL file after each root branch, preventing data loss on interruption
-- **Resume support** — Reloads progress file on startup, skips completed branches, and rebuilds duplicate-detection cache for continuity across sessions
-
 ## VS Code MCP Provider
 
 The `vscode-mcp-provider/` directory contains a VS Code extension that registers the grandMA2 MCP server for AI assistant discovery.
@@ -472,10 +492,6 @@ npm run compile
 gma2-mcp-telnet/
 ├── main.py                         # Login test script
 ├── scan_tree.py                    # Recursive object-tree scanner
-├── condensed_tree.py               # Collapse flat branches from scan logs
-├── parse_log_tree.py               # Parse scan logs into tree schematics
-├── test_list_format.py             # Debug cd index parsing with live console
-├── test_regex.py                   # Validate regex patterns for list parsing
 ├── connect.sh                      # Interactive Telnet session via expect
 ├── Makefile                        # Shortcuts: server, log, test
 ├── src/
@@ -491,42 +507,9 @@ gma2-mcp-telnet/
 │       ├── constants.py            # PRESET_TYPES, store option sets
 │       ├── helpers.py              # Internal option builder
 │       ├── objects/                # Object keywords (9 modules)
-│       │   ├── fixtures.py         #   fixture, channel
-│       │   ├── groups.py           #   group
-│       │   ├── cues.py             #   cue, cue_part, sequence
-│       │   ├── presets.py          #   preset, preset_type
-│       │   ├── executors.py        #   executor
-│       │   ├── attributes.py       #   attribute, feature
-│       │   ├── layouts.py          #   layout
-│       │   ├── dmx.py              #   dmx, dmx_universe
-│       │   └── time.py             #   timecode, timecode_slot, timer
 │       └── functions/              # Function keywords (14 modules)
-│           ├── navigation.py       #   changedest (cd dot-notation)
-│           ├── store.py            #   store, store_cue, store_group, store_preset
-│           ├── selection.py        #   select_fixture, clear*
-│           ├── playback.py         #   go, goback, goto, gofast, defgo
-│           ├── values.py           #   at, fixture_at, channel_at, ...
-│           ├── edit.py             #   copy, move, delete, remove, cut, paste
-│           ├── assignment.py       #   assign, empty, temp_fader
-│           ├── labeling.py         #   label, appearance
-│           ├── info.py             #   list_*, info_*
-│           ├── call.py             #   call
-│           ├── park.py             #   park, unpark
-│           ├── variables.py        #   set_var, set_user_var, add_var, add_user_var
-│           ├── helping.py          #   at_relative, page_next, condition_and, ...
-│           └── macro.py            #   macro_with_input_after/before
 ├── tests/                          # 588 tests (pytest + pytest-asyncio)
-│   ├── conftest.py
-│   ├── test_navigation.py          # navigate(), get_current_location(), list_destination()
-│   ├── test_navigation_commands.py # changedest() command string tests
-│   ├── test_prompt_parser.py       # parse_prompt(), parse_list_output()
-│   ├── test_telnet_client.py
-│   ├── test_vocab.py
-│   └── test_*.py                   # One file per command category
-├── vscode-mcp-provider/             # VS Code MCP extension
-│   ├── src/extension.ts             #   Extension entry point
-│   ├── package.json                 #   Extension manifest
-│   └── tsconfig.json                #   TypeScript config
+├── vscode-mcp-provider/            # VS Code MCP extension
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
 ├── pyproject.toml

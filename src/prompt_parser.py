@@ -162,7 +162,7 @@ def parse_prompt(raw: str) -> ConsolePrompt:
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
+@dataclass
 class ListEntry:
     """Single object entry parsed from MA2 list output.
 
@@ -176,6 +176,10 @@ class ListEntry:
             May differ from object_id for SubForm entries where both cols
             carry the parent's form number and the real cd index is the
             entry's ordinal position (1, 2, 3…).
+        columns: Mapping of column header names to their values for this
+            entry, parsed from the tabular output.  For tabular entries
+            these are the extra columns after ``name``; for root entries
+            these are parsed ``key=value`` properties.
     """
 
     object_type: Optional[str] = None
@@ -183,6 +187,7 @@ class ListEntry:
     name: Optional[str] = None
     raw_line: Optional[str] = None
     col3: Optional[str] = None
+    columns: Optional[dict[str, str]] = None
 
 
 @dataclass(frozen=True)
@@ -193,11 +198,14 @@ class ListOutput:
         raw_response: Complete raw telnet output.
         entries: Extracted list entries.
         prompt: Trailing prompt parsed from the output (if present).
+        column_headers: Detected column header names from the header row,
+            if one was found before the data lines.
     """
 
     raw_response: str
     entries: tuple[ListEntry, ...]
     prompt: Optional[ConsolePrompt] = None
+    column_headers: tuple[str, ...] = ()
 
 
 # Patterns for extracting entries from list output lines:
@@ -254,11 +262,92 @@ _LIST_ID_RE = re.compile(
 )
 
 
+_SKIP_PREFIXES = ("Executing :", "Error :", "Error #", "WARNING,", "Widget ")
+
+
+def _is_skip_line(stripped: str) -> bool:
+    """Return True if *stripped* should be skipped entirely."""
+    return stripped.startswith(_SKIP_PREFIXES)
+
+
+def _is_prompt_line(stripped: str) -> bool:
+    """Return True if *stripped* looks like a console prompt."""
+    if _BRACKET_PROMPT_RE.search(stripped):
+        return True
+    if _ANGLE_PROMPT_RE.search(stripped) and ">Executing" not in stripped:
+        return True
+    return False
+
+
+def _is_data_line(stripped: str) -> bool:
+    """Return True if *stripped* matches any data-line pattern."""
+    if _LIST_TABULAR_RE.match(stripped):
+        return True
+    if _LIST_ROOT_RE.match(stripped):
+        return True
+    if _LIST_DOT_RE.match(stripped):
+        return True
+    if _LIST_ID_RE.match(stripped):
+        return True
+    return False
+
+
+def _detect_header(lines: list[str]) -> list[str]:
+    """Detect column header line from list output.
+
+    Scans *lines* for the first non-skippable, non-prompt, non-data line
+    that appears before any data line.  Splits it on 2+ spaces to extract
+    column names.
+
+    Returns:
+        List of column name strings, or empty list if no header detected.
+    """
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if _is_skip_line(stripped):
+            continue
+        if _is_prompt_line(stripped):
+            continue
+        if _is_data_line(stripped):
+            # Hit a data line before finding a header — no header row
+            return []
+        # This is a non-data, non-skip, non-prompt line before any data.
+        # Treat it as a header if it contains at least 2 space-separated words.
+        parts = re.split(r"\s{2,}", stripped)
+        if len(parts) >= 2:
+            return [p.strip() for p in parts if p.strip()]
+        # Single-word non-data line — not a useful header, keep scanning
+    return []
+
+
+def _parse_root_properties(props: str) -> dict[str, str]:
+    """Parse ``key=value`` properties and ``(N)`` child count from root entries.
+
+    Handles multi-word values like ``Date=Feb 25 2026`` by consuming
+    everything up to the next ``Key=`` boundary or end of string.
+    """
+    columns: dict[str, str] = {}
+    if not props:
+        return columns
+    # Match key=value where value extends to the next key= or (N) or end
+    for kv_match in re.finditer(r"(\w+)=(.*?)(?=\s+\w+=|\s*\(\d+\)\s*$|\s*$)", props):
+        val = kv_match.group(2).strip()
+        if val:
+            columns[kv_match.group(1)] = val
+    count_m = re.search(r"\((\d+)\)", props)
+    if count_m:
+        columns["child_count"] = count_m.group(1)
+    return columns
+
+
 def parse_list_output(raw: str) -> ListOutput:
     """Parse raw telnet output from a ``list`` command.
 
-    Extracts object entries (type, id, name) from each line of the list
-    output.  Also detects a trailing prompt if present.
+    Extracts object entries (type, id, name, extra columns) from each line
+    of the list output.  Detects the column header row (if present) and maps
+    extra column values to their header names.
 
     The parser is intentionally lenient — unrecognised lines are skipped,
     and the raw output is always preserved.
@@ -267,13 +356,19 @@ def parse_list_output(raw: str) -> ListOutput:
         raw: Raw telnet output string from a ``list`` command.
 
     Returns:
-        :class:`ListOutput` with extracted entries and optional prompt.
+        :class:`ListOutput` with extracted entries, column headers,
+        and optional prompt.
     """
     if not raw or not raw.strip():
         return ListOutput(raw_response=raw, entries=())
 
     raw = _strip_ansi(raw)
     lines = raw.strip().splitlines()
+
+    # --- Phase 1: detect column header row ---
+    header_columns = _detect_header(lines)
+
+    # --- Phase 2: parse data lines ---
     entries: list[ListEntry] = []
     prompt: Optional[ConsolePrompt] = None
 
@@ -283,7 +378,7 @@ def parse_list_output(raw: str) -> ListOutput:
             continue
 
         # Skip MA2 feedback prefixes, error lines, and widget config lines
-        if stripped.startswith(("Executing :", "Error :", "Error #", "WARNING,", "Widget ")):
+        if _is_skip_line(stripped):
             continue
 
         # Skip lines that look like a prompt (don't treat as data)
@@ -291,8 +386,6 @@ def parse_list_output(raw: str) -> ListOutput:
             prompt = parse_prompt(stripped)
             continue
 
-        # Skip lines that are clearly prompts via angle-bracket pattern
-        # But don't skip lines that contain ">Executing" (command echo appended to prompt)
         if _ANGLE_PROMPT_RE.search(stripped) and ">Executing" not in stripped:
             prompt = parse_prompt(stripped)
             continue
@@ -301,15 +394,32 @@ def parse_list_output(raw: str) -> ListOutput:
         m = _LIST_TABULAR_RE.match(stripped)
         if m:
             rest = m.group(4)
-            # Name is the first field; extra columns follow 2+ spaces
-            name_part = re.split(r"\s{2,}", rest, maxsplit=1)[0].strip()
-            name = name_part if name_part else None
+            # Split on 2+ spaces to get [name, extra1, extra2, ...]
+            parts = re.split(r"\s{2,}", rest)
+            name = parts[0].strip() if parts else None
+            extra_values = [p.strip() for p in parts[1:]] if len(parts) > 1 else []
+
+            # Map extra values to column headers
+            columns: Optional[dict[str, str]] = None
+            if extra_values:
+                columns = {}
+                # header_columns[0] = col2/col3 header (e.g. "No.", "Version")
+                # header_columns[1] = name header (e.g. "Name", "LongName")
+                # header_columns[2:] = extra column headers
+                extra_headers = header_columns[2:] if len(header_columns) > 2 else []
+                for i, val in enumerate(extra_values):
+                    if i < len(extra_headers):
+                        columns[extra_headers[i]] = val
+                    else:
+                        columns[f"col{i + 5}"] = val
+
             entries.append(ListEntry(
                 object_type=m.group(1),
                 object_id=m.group(2),  # col2 (pool slot)
                 name=name,
                 raw_line=stripped,
                 col3=m.group(3),       # col3 (No. or version)
+                columns=columns,
             ))
             continue
 
@@ -318,11 +428,14 @@ def parse_list_output(raw: str) -> ListOutput:
         if m:
             name = m.group(1)          # the type name IS the display name at root
             obj_id = m.group(2)        # the cd index
+            props = m.group(3)
+            root_cols = _parse_root_properties(props) if props else None
             entries.append(ListEntry(
                 object_type=m.group(1),
                 object_id=obj_id,
                 name=name,
                 raw_line=stripped,
+                columns=root_cols if root_cols else None,
             ))
             continue
 
@@ -352,10 +465,11 @@ def parse_list_output(raw: str) -> ListOutput:
             ))
             continue
 
-        # Unrecognised line — skip silently (could be a header, separator, etc.)
+        # Unrecognised line — skip silently (separator, etc.)
 
     return ListOutput(
         raw_response=raw,
         entries=tuple(entries),
         prompt=prompt,
+        column_headers=tuple(header_columns),
     )
