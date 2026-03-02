@@ -332,8 +332,8 @@ class TestApplyPresetTool:
         result = await apply_preset(preset_type="color", preset_id=3)
         data = json.loads(result)
 
-        assert data["commands_sent"] == ["call preset 2.3"]
-        mock_client.send_command_with_response.assert_called_once_with("call preset 2.3")
+        assert data["commands_sent"] == ["call preset 4.3"]
+        mock_client.send_command_with_response.assert_called_once_with("call preset 4.3")
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -351,8 +351,8 @@ class TestApplyPresetTool:
         calls = mock_client.send_command_with_response.call_args_list
         assert len(calls) == 2
         assert calls[0][0][0] == "group 2"
-        assert calls[1][0][0] == "call preset 3.1"
-        assert data["commands_sent"] == ["group 2", "call preset 3.1"]
+        assert calls[1][0][0] == "call preset 2.1"
+        assert data["commands_sent"] == ["group 2", "call preset 2.1"]
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -371,7 +371,7 @@ class TestApplyPresetTool:
 
         calls = mock_client.send_command_with_response.call_args_list
         assert calls[0][0][0] == "selfix fixture 1 thru 10"
-        assert calls[1][0][0] == "call preset 4.5"
+        assert calls[1][0][0] == "call preset 3.5"
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -866,7 +866,7 @@ class TestStoreNewPresetTool:
         result = await store_new_preset(preset_type="color", preset_id=5)
         data = json.loads(result)
 
-        assert data["command_sent"] == "store preset 2.5"
+        assert data["command_sent"] == "store preset 4.5"
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")

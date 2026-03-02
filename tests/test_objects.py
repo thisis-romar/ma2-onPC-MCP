@@ -108,7 +108,7 @@ class TestPresetCommands:
         from src.commands import store_preset
 
         result = store_preset("color", 5)
-        assert result == "store preset 2.5"
+        assert result == "store preset 4.5"
 
     def test_label_preset(self):
         """Test labeling a preset."""

@@ -257,11 +257,11 @@ class TestInfoCommands:
         assert result == "info preset 4.5"
 
     def test_info_preset_by_name(self):
-        """Test info preset by name: info preset 2.1 (color=2)"""
+        """Test info preset by name: info preset 4.1 (color=4)"""
         from src.commands import info_preset
 
         result = info_preset("color", 1)
-        assert result == "info preset 2.1"
+        assert result == "info preset 4.1"
 
     def test_info_preset_add_text(self):
         """Test info preset add text."""

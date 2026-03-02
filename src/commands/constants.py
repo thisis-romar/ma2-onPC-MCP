@@ -15,12 +15,12 @@ PRESET_TYPES = {
     "dimmer": 1,
     "position": 2,
     "gobo": 3,
-    "color": 2,  # color also uses preset type 2
-    "beam": 4,
-    "focus": 5,
-    "control": 6,
-    "shapers": 7,
-    "video": 8,
+    "color": 4,
+    "beam": 5,
+    "focus": 6,
+    "control": 7,
+    "shapers": 8,
+    "video": 9,
 }
 
 

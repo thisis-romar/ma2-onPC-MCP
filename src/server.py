@@ -842,7 +842,7 @@ async def apply_preset(
     Presets are stored lighting looks (color, position, gobo, etc.) that
     can be recalled by type and ID. Optionally select fixtures/group first.
 
-    Preset types: "dimmer" (1), "color" (2), "position" (3), "gobo" (4),
+    Preset types: "dimmer" (1), "position" (2), "gobo" (3), "color" (4),
     "beam" (5), "focus" (6), "control" (7), "shapers" (8), "video" (9)
 
     Args:
@@ -877,7 +877,7 @@ async def apply_preset(
     preset_type_str = preset_type.lower()
     # Map common names to numbers for the call syntax
     type_map = {
-        "dimmer": "1", "color": "2", "position": "3", "gobo": "4",
+        "dimmer": "1", "position": "2", "gobo": "3", "color": "4",
         "beam": "5", "focus": "6", "control": "7", "shapers": "8", "video": "9",
     }
     type_num = type_map.get(preset_type_str, preset_type_str)
@@ -1316,7 +1316,7 @@ async def store_new_preset(
     Saves the active fixture values (from the programmer) into a preset
     slot for later recall with apply_preset.
 
-    Preset types: "dimmer" (1), "color" (2), "position" (3), "gobo" (4),
+    Preset types: "dimmer" (1), "position" (2), "gobo" (3), "color" (4),
     "beam" (5), "focus" (6), "control" (7), "shapers" (8), "video" (9)
 
     SAFETY: This is a STORE operation which modifies show data.

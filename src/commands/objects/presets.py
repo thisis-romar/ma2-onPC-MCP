@@ -6,7 +6,7 @@ Contains Object Keywords related to presets:
 - preset_type: Call or select preset types
 
 Preset Types mapping:
-- dimmer=1, color=2, gobo=3, beam=4, focus=5, control=6, shapers=7, video=8
+- dimmer=1, position=2, gobo=3, color=4, beam=5, focus=6, control=7, shapers=8, video=9
 """
 
 

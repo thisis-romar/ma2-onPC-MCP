@@ -549,11 +549,11 @@ class TestDeleteCommands:
     # ---- Delete Preset Convenience ----
 
     def test_delete_preset_by_name(self):
-        """Test delete preset by name: delete preset 2.5 (color = presettype 2)"""
+        """Test delete preset by name: delete preset 4.5 (color = presettype 4)"""
         from src.commands import delete_preset
 
         result = delete_preset("color", 5)
-        assert result == "delete preset 2.5"
+        assert result == "delete preset 4.5"
 
     def test_delete_preset_by_number(self):
         """Test delete preset by number: delete preset 1.1"""
