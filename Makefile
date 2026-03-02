@@ -1,5 +1,5 @@
 server:
-	./connect.sh
+	./scripts/connect.sh
 
 log:
 	@echo "Usage: make log GMA_HOST=<ip>"

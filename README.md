@@ -222,7 +222,7 @@ Root-level entries use `key=value` format (parsed automatically), while tabular 
 
 ## Tree Scanner
 
-`scan_tree.py` recursively walks the grandMA2 object tree via Telnet, building a complete JSON map of every node, child, and leaf in the console's internal data structure.
+`scripts/scan_tree.py` recursively walks the grandMA2 object tree via Telnet, building a complete JSON map of every node, child, and leaf in the console's internal data structure.
 
 ### How It Works
 
@@ -237,13 +237,13 @@ Root-level entries use `key=value` format (parsed automatically), while tabular 
 
 ```bash
 # Quick scan (depth 4, for testing)
-uv run python scan_tree.py --max-depth 4 --output scan_test.json
+uv run python scripts/scan_tree.py --max-depth 4 --output scan_test.json
 
 # Full scan (depth 20, all optimizations)
-uv run python scan_tree.py --max-depth 20 --output scan_full.json
+uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json
 
 # Resume an interrupted scan
-uv run python scan_tree.py --max-depth 20 --output scan_full.json --resume
+uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resume
 ```
 
 ### Scanner Options
@@ -558,10 +558,13 @@ npm run compile
 
 ```
 gma2-mcp-telnet/
-├── main.py                         # Login test script
-├── scan_tree.py                    # Recursive object-tree scanner
-├── connect.sh                      # Interactive Telnet session via expect
 ├── Makefile                        # Shortcuts: server, log, test
+├── scripts/
+│   ├── main.py                     # Login test script
+│   ├── scan_tree.py                # Recursive object-tree scanner
+│   ├── condensed_tree.py           # Condensed tree output formatter
+│   ├── parse_log_tree.py           # Log-based tree parser
+│   └── connect.sh                  # Interactive Telnet session via expect
 ├── src/
 │   ├── server.py                   # MCP server (FastMCP, 28 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
@@ -576,7 +579,7 @@ gma2-mcp-telnet/
 │       ├── helpers.py              # Internal option builder
 │       ├── objects/                # Object keywords (9 modules)
 │       └── functions/              # Function keywords (15 modules)
-├── tests/                          # 634 tests (pytest + pytest-asyncio)
+├── tests/                          # 756 tests (pytest + pytest-asyncio)
 ├── vscode-mcp-provider/            # VS Code MCP extension
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
@@ -610,7 +613,7 @@ uv run pytest --cov=src tests/      # with coverage
 ### Login Test
 
 ```bash
-python main.py                      # test Telnet connection to console
+python scripts/main.py              # test Telnet connection to console
 ```
 
 ### Direct Telnet
