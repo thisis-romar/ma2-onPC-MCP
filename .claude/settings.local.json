@@ -6,7 +6,19 @@
       "Bash(ls:*)",
       "Bash(python:*)",
       "Bash(taskkill:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(grep -c \"def test_\" /c/Users/romar/gma2-mcp-telnet/tests/test_*.py)",
+      "Bash(du:*)",
+      "Bash(python3:*)",
+      "Bash(grep -c \"def test_\" \"C:\\\\Users\\\\romar\\\\gma2-mcp-telnet\\\\tests\"/*.py)",
+      "Bash(xargs wc:*)",
+      "Bash(uv sync:*)",
+      "Bash(gh run:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:help.malighting.com)",
+      "WebFetch(domain:help2.malighting.com)",
+      "WebFetch(domain:consoletraining.com)",
+      "Bash(PYTHONPATH=. uv run python scripts/test_keywords.py)"
     ]
   }
 }
