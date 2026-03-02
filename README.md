@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 1.1.0
+version: 1.2.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-01T00:00:00Z
+last_updated: 2026-03-02T00:00:00Z
 ---
 
 # GMA2 MCP
@@ -47,7 +47,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
                          │
 ┌────────────────────────▼─────────────────────────────────┐
 │  Command Builder Layer     src/commands/                  │
-│  100+ pure functions generating grandMA2 command strings  │
+│  110+ pure functions generating grandMA2 command strings  │
 │  Including changedest() for cd dot-notation commands      │
 └────────────────────────┬─────────────────────────────────┘
                          │
@@ -66,8 +66,9 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ┌──────────────────────────────────────────────────────────┐
 │  Vocabulary & Safety       src/vocab.py                   │
-│  Keyword classification, risk-tier analysis, and          │
-│  runtime safety enforcement via classify_token()          │
+│  148 keywords: 56 Object, 79 Function, 7 Helping, 6 Char │
+│  KeywordCategory + RiskTier classification via            │
+│  classify_token() with Object Keyword context metadata    │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -301,7 +302,7 @@ The scanner includes several optimizations to handle large trees (7000+ nodes):
 
 ## Command Builder Reference
 
-The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are 100+ exported functions covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, and more.
+The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are 110+ exported functions covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, and more.
 
 grandMA2 syntax: `[Function] [Object]` -- keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -327,7 +328,7 @@ grandMA2 syntax: `[Function] [Object]` -- keywords are classified as **Function*
 | `fixture(34)` | Select by Fixture ID | `fixture 34` |
 | `channel(11, sub_id=5)` | Select by Channel ID | `channel 11.5` |
 | `group(3)` | Select a group | `group 3` |
-| `preset("color", 5)` | Apply a preset | `preset 2.5` |
+| `preset("color", 5)` | Apply a preset | `preset 4.5` |
 | `cue(5)` | Reference a cue | `cue 5` |
 | `cue_part(5, 2)` | Reference a cue part | `cue 5 part 2` |
 | `sequence(3)` | Reference a sequence | `sequence 3` |
@@ -444,7 +445,7 @@ Copy/Move options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
 |----------|--------|
 | `label("group", 3, "All Studiocolors")` | `label group 3 "All Studiocolors"` |
 | `label_group(1, "Front")` | `label group 1 "Front"` |
-| `label_preset("color", 1, "Red")` | `label preset 2.1 "Red"` |
+| `label_preset("color", 1, "Red")` | `label preset 4.1 "Red"` |
 | `appearance("preset", "0.1", red=100)` | `appearance preset 0.1 /r=100` |
 | `appearance("group", 1, color="FF0000")` | `appearance group 1 /color=FF0000` |
 
@@ -454,7 +455,7 @@ Copy/Move options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
 |----------|--------|
 | `list_objects("cue")` | `list cue` |
 | `list_group()` | `list group` |
-| `list_preset("color")` | `list preset 4` |
+| `list_preset("color")` | `list preset "color"` |
 | `info("cue", 1)` | `info cue 1` |
 | `info_group(3)` | `info group 3` |
 
@@ -508,16 +509,50 @@ The `@` character is a placeholder for user input in macros (distinct from the `
 
 ## Safety System
 
+### Keyword Categories
+
+The vocabulary (schema v2.0) classifies all 148 grandMA2 keywords into categories:
+
+| Category | Count | Description | Examples |
+|----------|-------|-------------|----------|
+| `OBJECT` | 56 | Console objects (nouns) | Channel, Fixture, Group, Preset, Executor |
+| `FUNCTION` | 79 | Actions (verbs) | Store, Delete, Go, At, List, Info |
+| `HELPING` | 7 | Syntax connectors | And, Thru, Fade, Delay, If |
+| `SPECIAL_CHAR` | 6 | Operator symbols | Plus +, Minus -, Dot ., Slash / |
+
+Object Keywords carry additional metadata from live telnet verification:
+
+| Field | Description |
+|-------|-------------|
+| `context_change` | Whether the keyword changes the `[default]>` prompt context |
+| `canonical` | Console-normalized spelling (e.g., DMX resolves to Dmx) |
+| `notes` | Behavior notes from live telnet testing |
+
+Of the 56 Object Keywords: 51 change the default prompt context, 2 reset it (Channel, Default), and 3 don't change it (Full, Normal, Zero -- these set dimmer values).
+
 ### Risk Tiers
 
-The `src/vocab.py` module classifies all grandMA2 keywords into risk tiers:
+Each keyword is also assigned a risk tier for safety gating:
 
 | Tier | Description | Examples |
 |------|-------------|----------|
 | `SAFE_READ` | Read-only queries | Info, List, CmdHelp, ChangeDest |
-| `SAFE_WRITE` | Reversible state changes | Go, At, Clear, Park, SelFix |
+| `SAFE_WRITE` | Reversible state changes | Go, At, Clear, Park, SelFix, + all Object Keywords |
 | `DESTRUCTIVE` | Data mutation or loss | Delete, Store, Copy, Move, Shutdown |
 | `UNKNOWN` | Unrecognized token | -- |
+
+All Object Keywords (Channel, Fixture, Group, etc.) are classified as `SAFE_WRITE` because they change programmer context but don't mutate show data.
+
+### Console Aliases
+
+The vocabulary includes 4 console-normalized aliases verified via live telnet:
+
+| Input | Resolves To |
+|-------|-------------|
+| `DMX` | `Dmx` |
+| `DMXUniverse` | `DmxUniverse` |
+| `Sound` | `SoundChannel` |
+| `RDM` | `RdmFixtureType` |
 
 ### Runtime Safety Gate
 
@@ -538,12 +573,22 @@ spec = build_v39_spec()
 result = classify_token("Delete", spec)
 # result.risk == RiskTier.DESTRUCTIVE
 # result.canonical == "Delete"
+# result.category == KeywordCategory.FUNCTION
 
-result = classify_token("li", spec)
-# result.risk == RiskTier.SAFE_READ  (alias for "List")
+result = classify_token("Channel", spec)
+# result.risk == RiskTier.SAFE_WRITE
+# result.category == KeywordCategory.OBJECT
+
+result = classify_token("DMX", spec)
+# result.canonical == "Dmx"  (alias resolution)
+# result.category == KeywordCategory.OBJECT
+
+# Object Keyword metadata
+entry = spec.object_keyword_entries["Channel"]
+# entry.context_change == True  (resets prompt to [Channel]>)
 ```
 
-The vocabulary is sourced from `src/grandMA2_v3_9_telnet_keyword_vocabulary.json` (grandMA2 v3.9).
+The vocabulary is sourced from `src/grandMA2_v3_9_telnet_keyword_vocabulary.json` (schema v2.0, categorized keywords with Object Keyword metadata).
 
 ## VS Code MCP Provider
 
@@ -574,22 +619,25 @@ gma2-mcp-telnet/
 │   ├── scan_tree.py                # Recursive object-tree scanner
 │   ├── condensed_tree.py           # Condensed tree output formatter
 │   ├── parse_log_tree.py           # Log-based tree parser
-│   └── connect.sh                  # Interactive Telnet session via expect
+│   ├── connect.sh                  # Interactive Telnet session via expect
+│   ├── test_keywords.py            # Live Object Keyword validation
+│   ├── validate_ft_channels.py     # FT ChannelType CD vs DMX order
+│   └── research_hierarchy.py       # Preset/Sequence/Executor hierarchy
 ├── src/
 │   ├── server.py                   # MCP server (FastMCP, 28 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
 │   ├── tools.py                    # Global client instance management
-│   ├── vocab.py                    # Keyword vocabulary & safety tiers
-│   ├── grandMA2_v3_9_telnet_keyword_vocabulary.json
+│   ├── vocab.py                    # Keyword vocabulary, categories & safety tiers
+│   ├── grandMA2_v3_9_telnet_keyword_vocabulary.json  # Schema v2.0
 │   └── commands/
-│       ├── __init__.py             # Public API (100+ exports)
+│       ├── __init__.py             # Public API (110+ exports)
 │       ├── constants.py            # PRESET_TYPES, store option sets
 │       ├── helpers.py              # Internal option builder
 │       ├── objects/                # Object keywords (9 modules)
 │       └── functions/              # Function keywords (15 modules)
-├── tests/                          # 756 tests (pytest + pytest-asyncio)
+├── tests/                          # 781 tests (715 unit + 66 live)
 ├── vscode-mcp-provider/            # VS Code MCP extension
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
