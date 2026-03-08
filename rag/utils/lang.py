@@ -54,7 +54,7 @@ def detect_language(path: str) -> str:
 
 def detect_kind(path: str, language: str) -> RagKind:
     """Classify a file as source, test, doc, or config."""
-    p = PurePosixPath(path)
+    p = PurePosixPath(path.replace("\\", "/"))
     parts = p.parts
 
     # Tests
