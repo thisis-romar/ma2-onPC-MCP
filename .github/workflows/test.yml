@@ -25,10 +25,10 @@ jobs:
         run: uv sync
 
       - name: Lint with Ruff
-        run: uv run ruff check src/ tests/
+        run: uv run ruff check src/ tests/ rag/
 
       - name: Type check
-        run: uv run mypy src/
+        run: uv run mypy src/ rag/
         continue-on-error: true
 
       - name: Run tests

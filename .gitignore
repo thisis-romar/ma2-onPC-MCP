@@ -30,3 +30,6 @@ scan_output*.jsonl
 scan_full_log*.txt
 gma2_full_tree.txt
 test_cd_behavior_output.json
+
+# RAG database
+rag/store/*.db

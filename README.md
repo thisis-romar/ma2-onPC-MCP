@@ -3,7 +3,7 @@ title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
 version: 1.2.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-02T00:00:00Z
+last_updated: 2026-03-07T00:00:00Z
 ---
 
 # GMA2 MCP
@@ -13,6 +13,24 @@ last_updated: 2026-03-02T00:00:00Z
 MCP server for controlling grandMA2 lighting consoles via Telnet.
 
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so that AI assistants (Claude Desktop, etc.) can operate a lighting console programmatically.
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Configuration](#configuration)
+- [MCP Tools](#mcp-tools)
+- [Client Setup](#client-setup)
+- [RAG Pipeline](#rag-pipeline)
+- [Console Navigation & Prompt Parsing](#console-navigation-prompt-parsing)
+- [Tree Scanner](#tree-scanner)
+- [Command Builder Reference](#command-builder-reference)
+- [Safety System](#safety-system)
+- [Project Structure](#project-structure)
+- [Dependencies](#dependencies)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Quick Start
 
@@ -70,6 +88,13 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 │  KeywordCategory + RiskTier classification via            │
 │  classify_token() with Object Keyword context metadata    │
 └──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│  RAG Pipeline              rag/                           │
+│  Ingest: crawl → chunk → embed → store (SQLite)          │
+│  Retrieve: query → cosine similarity → rerank            │
+│  Providers: GitHubModelsProvider, ZeroVectorProvider      │
+└──────────────────────────────────────────────────────────┘
 ```
 
 All network I/O is isolated in `telnet_client.py`. Command builders are pure functions that return strings. The navigation layer orchestrates cd/list workflows with parsed telnet feedback.
@@ -79,13 +104,21 @@ All network I/O is isolated in `telnet_client.py`. Command builders are pure fun
 Create a `.env` file (see `.env.template`):
 
 ```env
+# grandMA2 Console
 GMA_HOST=192.168.1.100     # grandMA2 console IP (required)
 GMA_USER=administrator     # default: administrator
 GMA_PASSWORD=admin         # default: admin
 GMA_PORT=30000             # default: 30000 (30001 = read-only)
 GMA_SAFETY_LEVEL=standard  # standard (default), admin, or read-only
 LOG_LEVEL=INFO             # default: INFO
+
+# RAG Pipeline (optional)
+GITHUB_MODELS_TOKEN=                          # GitHub PAT with models:read scope
+RAG_EMBED_MODEL=openai/text-embedding-3-small # embedding model
+RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 ```
+
+Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](https://github.com/settings/tokens). See [GitHub Docs — Managing personal access tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
 | Level | Behavior |
 |-------|----------|
@@ -97,7 +130,8 @@ LOG_LEVEL=INFO             # default: INFO
 
 The server exposes 28 tools to MCP clients, grouped by category:
 
-### Navigation & Inspection
+<details>
+<summary><strong>Navigation & Inspection (4 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
@@ -119,7 +153,10 @@ list            → enumerate objects at current destination
 
 **Dot notation:** MA2 uses `[object-type].[object-id]` for object references (e.g., `Group.1`, `Preset.4.1`, `Sequence.3`).
 
-### Lighting Control
+</details>
+
+<details>
+<summary><strong>Lighting Control (8 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
@@ -132,7 +169,10 @@ list            → enumerate objects at current destination
 | `park_fixture` | Park a fixture/channel at its current or a specified value |
 | `unpark_fixture` | Release a park lock on a fixture/channel |
 
-### Programming
+</details>
+
+<details>
+<summary><strong>Programming (8 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
@@ -145,7 +185,10 @@ list            → enumerate objects at current destination
 | `delete_object` | Delete any object by type and ID (**DESTRUCTIVE**) |
 | `run_macro` | Execute a stored macro by ID |
 
-### Assignment & Layout
+</details>
+
+<details>
+<summary><strong>Assignment & Layout (4 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
@@ -154,7 +197,10 @@ list            → enumerate objects at current destination
 | `edit_object` | Edit, cut, or paste objects (cut/paste **DESTRUCTIVE**) |
 | `remove_content` | Remove content from objects — fixtures, effects, preset types (**DESTRUCTIVE**) |
 
-### Info & Queries
+</details>
+
+<details>
+<summary><strong>Info & Queries (4 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
@@ -163,7 +209,11 @@ list            → enumerate objects at current destination
 | `manage_variable` | Set or add to console variables (global or user-scoped) |
 | `send_raw_command` | Send any MA command directly (safety-gated, see below) |
 
-### Claude Desktop Registration
+</details>
+
+## Client Setup
+
+### Claude Desktop
 
 Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
@@ -183,6 +233,97 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
+### VS Code
+
+The `vscode-mcp-provider/` directory contains a VS Code extension that registers the grandMA2 MCP server for AI assistant discovery.
+
+- Registers the MCP server via the Model Context Protocol stdio transport
+- Compatible with Claude, GitHub Copilot (when MCP-supported), and other MCP-aware assistants
+- Launches the server using `uv run python -m src.server` in the workspace
+
+```bash
+cd vscode-mcp-provider
+npm install
+npm run compile
+# Then install the extension in VS Code (F5 to debug, or package with vsce)
+```
+
+See [`vscode-mcp-provider/README.md`](vscode-mcp-provider/README.md) for full details.
+
+## RAG Pipeline
+
+The `rag/` module indexes the repository into a local SQLite vector store for semantic code search, enabling AI assistants to find relevant grandMA2 command examples and documentation.
+
+```
+crawl → chunk → embed → store (SQLite) → query → rerank
+```
+
+### Setup
+
+1. Get a GitHub PAT with `models:read` scope at [github.com/settings/tokens](https://github.com/settings/tokens)
+2. Set your token:
+   ```bash
+   export GITHUB_MODELS_TOKEN=ghp_...
+   ```
+   Or add `GITHUB_MODELS_TOKEN=ghp_...` to your `.env` file.
+
+### Usage
+
+```bash
+# Ingest repository into vector store
+uv run python scripts/rag_ingest.py --provider github -v
+
+# Semantic vector search
+uv run python scripts/rag_query.py "store cue with fade" -v
+
+# Text-only keyword search (no token needed)
+uv run python scripts/rag_query.py "store cue with fade"
+```
+
+### Provider Options
+
+| Flag | Behavior |
+|------|----------|
+| `--provider github` | Use GitHub Models embeddings (requires `GITHUB_MODELS_TOKEN`) |
+| `--provider zero` | Zero-vector stub (for testing without an API token) |
+| *(no flag)* | Auto-detect: GitHub if token is set, otherwise zero-vector (ingest) or text search (query) |
+
+<details>
+<summary><strong>Pipeline stages</strong></summary>
+
+#### Ingest
+
+| Stage | Module | Description |
+|-------|--------|-------------|
+| Crawl | `rag/ingest/crawl_repo.py` | Walk repo files, respect ignore patterns (`rag/ignore.py`) |
+| Chunk | `rag/ingest/chunk.py` | Split files into overlapping token-bounded chunks |
+| Extract | `rag/ingest/extract.py` | Extract symbol names (functions, classes, headings) |
+| Embed | `rag/ingest/embed.py` | Generate vector embeddings via GitHub Models API |
+| Store | `rag/store/sqlite.py` | Write chunks + vectors to SQLite |
+| Orchestrate | `rag/ingest/index.py` | End-to-end ingest pipeline |
+
+#### Retrieve
+
+| Stage | Module | Description |
+|-------|--------|-------------|
+| Query | `rag/retrieve/query.py` | Embed query, cosine similarity search against stored vectors |
+| Rerank | `rag/retrieve/rerank.py` | Sort and filter results by relevance score |
+
+</details>
+
+<details>
+<summary><strong>Chunking strategies</strong></summary>
+
+| Language | Strategy | Boundary |
+|----------|----------|----------|
+| Python | AST-based | Top-level `def`/`class` boundaries via `ast.parse` |
+| Markdown | Heading-based | `#` heading lines |
+| Other | Line-based | Fixed-size line windows with overlap |
+
+Defaults: max 1200 tokens/chunk, 20-line overlap. Configured in `rag/config.py`.
+
+</details>
+
 ## Console Navigation & Prompt Parsing
 
 The navigation system combines three layers to discover console state via telnet:
@@ -191,7 +332,8 @@ The navigation system combines three layers to discover console state via telnet
 2. **Telnet client** sends the command and captures the raw response
 3. **Prompt parser** extracts the current location from the response
 
-### Prompt Parsing
+<details>
+<summary><strong>Prompt parsing patterns</strong></summary>
 
 The parser detects MA2 console prompts using multiple patterns:
 
@@ -205,7 +347,10 @@ The parser detects MA2 console prompts using multiple patterns:
 
 When no recognizable prompt is found, the raw response is preserved for manual inspection.
 
-### List Output Parsing
+</details>
+
+<details>
+<summary><strong>List output parsing</strong></summary>
 
 After cd-ing into a destination, `list` returns tabular output with column headers followed by data rows. The parser automatically detects headers and maps column values to named fields.
 
@@ -230,6 +375,8 @@ After cd-ing into a destination, `list` returns tabular output with column heade
 | *(root-level key=value)* | `Settings 3  Agenda=Running (6)` | `{Agenda: Running, child_count: 6}` |
 
 Root-level entries use `key=value` format (parsed automatically), while tabular entries use positional columns aligned to the header row.
+
+</details>
 
 ## Tree Scanner
 
@@ -257,7 +404,8 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json
 uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resume
 ```
 
-### Scanner Options
+<details>
+<summary><strong>Scanner options</strong></summary>
 
 | Flag | Default | Description |
 |------|---------|-------------|
@@ -280,7 +428,10 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 | `--branch-timeout` | 0 | Per-branch timeout in seconds (0 = unlimited) |
 | `--disconnect-timeout` | 5 | Timeout for telnet disconnect in seconds |
 
-### Speed Optimizations
+</details>
+
+<details>
+<summary><strong>Speed optimizations</strong></summary>
 
 The scanner includes several optimizations to handle large trees (7000+ nodes):
 
@@ -290,7 +441,10 @@ The scanner includes several optimizations to handle large trees (7000+ nodes):
 - **Consecutive empty leaf early exit** -- Stops scanning a branch after 10 consecutive empty slots
 - **Subsequent-read timeout** -- Reduced from 0.3s to 0.1s per telnet read, saving ~100 min across a full scan
 
-### Resilience Features
+</details>
+
+<details>
+<summary><strong>Resilience features</strong></summary>
 
 - **Auto-reconnect** -- Detects dead connections (empty responses) and reconnects with full path recovery
 - **Progressive save** -- Writes completed branches to a JSONL file after each root branch, preventing data loss on interruption
@@ -300,6 +454,8 @@ The scanner includes several optimizations to handle large trees (7000+ nodes):
 - **Disconnect timeout** -- Wraps telnet disconnect in a timeout to prevent process hangs from stale connections
 - **Progress file hygiene** -- Fresh (non-resume) runs truncate the progress file to avoid mixing data from prior runs
 
+</details>
+
 ## Command Builder Reference
 
 The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are 110+ exported functions covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, and more.
@@ -307,7 +463,7 @@ The command builder (`src/commands/`) generates grandMA2 command strings without
 grandMA2 syntax: `[Function] [Object]` -- keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
 <details>
-<summary>Full command builder reference (click to expand)</summary>
+<summary><strong>Full command builder reference (click to expand)</strong></summary>
 
 ### Navigation (ChangeDest)
 
@@ -565,6 +721,9 @@ The `send_raw_command` tool enforces safety at runtime before any command reache
    - `standard` (default): `SAFE_READ` + `SAFE_WRITE` pass; `DESTRUCTIVE` blocked unless `confirm_destructive=True`
    - `admin`: All commands pass without confirmation
 
+<details>
+<summary><strong>classify_token() example</strong></summary>
+
 ```python
 from src.vocab import build_v39_spec, classify_token
 
@@ -590,24 +749,7 @@ entry = spec.object_keyword_entries["Channel"]
 
 The vocabulary is sourced from `src/grandMA2_v3_9_telnet_keyword_vocabulary.json` (schema v2.0, categorized keywords with Object Keyword metadata).
 
-## VS Code MCP Provider
-
-The `vscode-mcp-provider/` directory contains a VS Code extension that registers the grandMA2 MCP server for AI assistant discovery.
-
-### Features
-
-- Registers the MCP server via the Model Context Protocol stdio transport
-- Compatible with Claude, GitHub Copilot (when MCP-supported), and other MCP-aware assistants
-- Launches the server using `uv run python -m src.server` in the workspace
-
-### Setup
-
-```bash
-cd vscode-mcp-provider
-npm install
-npm run compile
-# Then install the extension in VS Code (F5 to debug, or package with vsce)
-```
+</details>
 
 ## Project Structure
 
@@ -617,6 +759,8 @@ gma2-mcp-telnet/
 ├── scripts/
 │   ├── main.py                     # Login test script
 │   ├── scan_tree.py                # Recursive object-tree scanner
+│   ├── rag_ingest.py               # RAG ingestion script
+│   ├── rag_query.py                # RAG query script
 │   ├── condensed_tree.py           # Condensed tree output formatter
 │   ├── parse_log_tree.py           # Log-based tree parser
 │   ├── connect.sh                  # Interactive Telnet session via expect
@@ -637,6 +781,25 @@ gma2-mcp-telnet/
 │       ├── helpers.py              # Internal option builder
 │       ├── objects/                # Object keywords (9 modules)
 │       └── functions/              # Function keywords (15 modules)
+├── rag/
+│   ├── config.py                   # Pipeline constants (chunk size, top-k, etc.)
+│   ├── types.py                    # Data types (RepoFile, Chunk, SearchHit)
+│   ├── ignore.py                   # Ignore patterns for repo crawling
+│   ├── ingest/
+│   │   ├── crawl_repo.py           # Repository file walker
+│   │   ├── chunk.py                # AST/heading/line-based chunking
+│   │   ├── extract.py              # Symbol extraction (functions, classes, headings)
+│   │   ├── embed.py                # Embedding providers (GitHub Models, zero-vector)
+│   │   └── index.py                # End-to-end ingest orchestration
+│   ├── retrieve/
+│   │   ├── query.py                # Vector similarity + text search
+│   │   └── rerank.py               # Result ranking
+│   ├── store/
+│   │   └── sqlite.py               # SQLite vector store
+│   └── utils/
+│       ├── hash.py                 # SHA-256 hashing
+│       ├── lang.py                 # Language detection
+│       └── text.py                 # Text utilities
 ├── tests/                          # 781 tests (715 unit + 66 live)
 ├── vscode-mcp-provider/            # VS Code MCP extension
 ├── doc/
@@ -653,6 +816,7 @@ gma2-mcp-telnet/
 | `mcp>=1.21.0` | Model Context Protocol server framework |
 | `python-dotenv>=1.0.0` | Load `.env` configuration |
 | `telnetlib3>=2.0.8` | Async Telnet client (replaces deprecated `telnetlib`) |
+| `httpx` *(transitive via mcp)* | HTTP client used by GitHub Models embedding provider |
 | `pytest>=9.0.1` | Testing (dev) |
 | `pytest-asyncio>=1.3.0` | Async test support (dev) |
 
@@ -665,6 +829,7 @@ Requires Python >= 3.12.
 ```bash
 make test                           # or: uv run pytest -v
 uv run pytest tests/test_vocab.py   # run a specific file
+uv run pytest tests/test_rag_*.py   # RAG pipeline tests
 uv run pytest --cov=src tests/      # with coverage
 ```
 
@@ -688,6 +853,10 @@ make log GMA_HOST=192.168.1.100     # read-only log stream (port 30001)
 **Authentication errors** -- Confirm username/password, check the user exists on the console, ensure `.env` has no extra spaces.
 
 **Command not working** -- Verify syntax against the grandMA2 User Manual. Ensure referenced objects (fixtures, groups, presets) exist in the show file.
+
+**RAG ingest fails with 401** -- Verify `GITHUB_MODELS_TOKEN` has the `models:read` scope. Regenerate at [github.com/settings/tokens](https://github.com/settings/tokens).
+
+**RAG query returns no results** -- Run `scripts/rag_ingest.py` first. Check that `rag/store/rag.db` exists and is non-empty.
 
 ## License
 

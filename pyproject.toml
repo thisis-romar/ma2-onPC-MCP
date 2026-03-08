@@ -44,7 +44,7 @@ select = ["E", "W", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501", "SIM108"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["src"]
+known-first-party = ["src", "rag"]
 
 [tool.mypy]
 python_version = "3.12"
