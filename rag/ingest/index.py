@@ -10,21 +10,22 @@ from rag.ingest.chunk import chunk_file
 from rag.ingest.crawl_repo import crawl_repo
 from rag.ingest.embed import EmbeddingProvider
 from rag.store.sqlite import RagStore
-from rag.types import DocumentRecord, IngestResult
+from rag.types import DocumentRecord, IngestResult, RepoFile
 from rag.utils.hash import sha256
 
 logger = logging.getLogger(__name__)
 
 
 def ingest(
-    root_dir: str | Path,
+    root_dir: str | Path | None = None,
     repo_ref: str = "worktree",
     embedding_provider: EmbeddingProvider | None = None,
     db_path: str | Path = RAG_DB_PATH,
+    files: list[RepoFile] | None = None,
 ) -> IngestResult:
-    """Ingest a repository into the RAG store.
+    """Ingest a repository (or pre-crawled files) into the RAG store.
 
-    1. Crawl all files in *root_dir*
+    1. Crawl all files in *root_dir* (or use pre-crawled *files*)
     2. For each file, check if it has changed (hash-based dedup)
     3. Chunk the file
     4. Optionally compute embeddings
@@ -36,7 +37,10 @@ def ingest(
     result = IngestResult()
 
     try:
-        files = crawl_repo(root_dir)
+        if files is None:
+            if root_dir is None:
+                raise ValueError("Either root_dir or files must be provided")
+            files = crawl_repo(root_dir)
 
         for file in files:
             doc_id = sha256(f"{repo_ref}:{file.path}")
