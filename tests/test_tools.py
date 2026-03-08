@@ -1931,3 +1931,65 @@ class TestStoreObjectTool:
         data = json.loads(result)
 
         assert "/overwrite" in data["command_sent"]
+
+
+class TestSearchCodebaseTool:
+    """Tests for the search_codebase MCP tool (tool #29)."""
+
+    @pytest.mark.asyncio
+    @patch("pathlib.Path.exists", return_value=False)
+    async def test_missing_db_returns_error(self, _mock_exists):
+        """Returns an error JSON when the RAG index has not been built."""
+        from src.server import search_codebase
+
+        result = await search_codebase(query="navigate")
+        data = json.loads(result)
+
+        assert "error" in data
+        assert "rag_ingest" in data["error"]
+
+    @pytest.mark.asyncio
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch("rag.retrieve.query.rag_query")
+    async def test_text_search_returns_hits(self, mock_rag_query, _mock_exists):
+        """Returns formatted hits from the RAG index using text search."""
+        from rag.types import RagHit
+        from src.server import search_codebase
+
+        mock_rag_query.return_value = [
+            RagHit(
+                chunk_id="c1", path="src/navigation.py", kind="source",
+                start_line=1, end_line=15, score=1.0, text="def navigate(): ..."
+            )
+        ]
+
+        result = await search_codebase(query="navigate", top_k=5)
+        hits = json.loads(result)
+
+        assert len(hits) == 1
+        assert hits[0]["path"] == "src/navigation.py"
+        assert hits[0]["kind"] == "source"
+        assert hits[0]["lines"] == "1-15"
+        assert hits[0]["score"] == 1.0
+        assert "navigate" in hits[0]["text"]
+
+    @pytest.mark.asyncio
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch("rag.retrieve.query.rag_query")
+    async def test_kind_filter(self, mock_rag_query, _mock_exists):
+        """Filters results to the requested kind."""
+        from rag.types import RagHit
+        from src.server import search_codebase
+
+        mock_rag_query.return_value = [
+            RagHit(chunk_id="c1", path="src/nav.py", kind="source",
+                   start_line=1, end_line=5, score=1.0, text="source chunk"),
+            RagHit(chunk_id="c2", path="tests/test_nav.py", kind="test",
+                   start_line=1, end_line=5, score=1.0, text="test chunk"),
+        ]
+
+        result = await search_codebase(query="navigate", kind="source")
+        hits = json.loads(result)
+
+        assert len(hits) == 1
+        assert hits[0]["kind"] == "source"

@@ -42,17 +42,25 @@ uv sync
 # 2. Configure
 cp .env.template .env        # then edit with your console IP
 
-# 3. Run
+# 3. Install git hooks (auto-updates RAG index on every commit)
+make install-hooks
+
+# 4. Run
 uv run python -m src.server  # starts MCP server (stdio transport)
 ```
+
+> **Optional — semantic search:** Add `GITHUB_MODELS_TOKEN=ghp_...` to `.env`, then run
+> `uv run python scripts/rag_ingest.py --provider github` once to rebuild the index with
+> real embeddings. The `search_codebase` MCP tool will automatically use semantic ranking
+> when the token is present.
 
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  MCP Server Layer              src/server.py             │
-│  28 tools: Navigation (4), Lighting (8), Programming (8),│
-│    Assignment (4), Info & Queries (4)                     │
+│  29 tools: Navigation (4), Lighting (8), Programming (8), │
+│    Assignment (4), Info & Queries (4), Codebase Search (1)│
 │  Safety gate: classifies commands before sending         │
 └────────────────────────┬─────────────────────────────────┘
                          │
@@ -128,7 +136,7 @@ Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](ht
 
 ## MCP Tools
 
-The server exposes 28 tools to MCP clients, grouped by category:
+The server exposes 29 tools to MCP clients, grouped by category:
 
 <details>
 <summary><strong>Navigation & Inspection (4 tools)</strong></summary>
@@ -768,7 +776,7 @@ gma2-mcp-telnet/
 │   ├── validate_ft_channels.py     # FT ChannelType CD vs DMX order
 │   └── research_hierarchy.py       # Preset/Sequence/Executor hierarchy
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 28 tools)
+│   ├── server.py                   # MCP server (FastMCP, 29 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser

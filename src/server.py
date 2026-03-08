@@ -246,6 +246,12 @@ mcp = FastMCP(
     27. manage_variable - Set or add to console variables (global/user)
     28. send_raw_command - Send any MA command directly (safety-gated)
 
+    --- Codebase & Documentation Search ---
+    29. search_codebase - Semantic/keyword search across this server's own source code,
+        tests, docs, AND the official grandMA2 help documentation (when indexed).
+        Use this to discover command builder signatures, safety rules,
+        implementation details, or grandMA2 console operation instructions.
+
     SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
     """,
 )
@@ -2029,6 +2035,73 @@ async def store_object(
         "raw_response": raw_response,
         "blocked": False,
     }, indent=2)
+
+
+# ============================================================
+# Codebase Search (RAG)
+# ============================================================
+
+
+@mcp.tool()
+@_handle_errors
+async def search_codebase(
+    query: str,
+    top_k: int = 8,
+    kind: str | None = None,
+) -> str:
+    """Search this server's source code and grandMA2 documentation using the RAG index.
+
+    Use this to look up command builders, safety rules, module internals,
+    or any grandMA2 console operation detail. Works without any API key
+    (text search fallback). If a RAG index has been built with embeddings,
+    results are ranked by semantic similarity.
+
+    Args:
+        query:  Natural language or keyword query (e.g. "navigate console",
+                "store preset", "how to patch fixtures")
+        top_k:  Number of results to return (default 8, max 20)
+        kind:   Optional filter — one of: "source", "test", "doc", "config"
+
+    Returns:
+        JSON array of matching code/doc chunks with path, line range, score, and text.
+        Returns an error JSON if the RAG index has not been built yet.
+
+    Examples:
+        - Find command builders: query="store preset", kind="source"
+        - Find grandMA2 docs: query="how to patch fixtures", kind="doc"
+        - Search everything: query="effects engine"
+        - Find test examples: query="navigate_console", kind="test"
+    """
+    from pathlib import Path
+    from rag.retrieve.query import rag_query
+
+    db = Path(__file__).parent.parent / "rag" / "store" / "rag.db"
+    if not db.exists():
+        return json.dumps({
+            "error": "RAG index not found. Build it first: uv run python scripts/rag_ingest.py"
+        }, indent=2)
+
+    provider = None
+    token = os.getenv("GITHUB_MODELS_TOKEN") or os.getenv("GITHUB_TOKEN")
+    if token:
+        from rag.ingest.embed import GitHubModelsProvider
+        provider = GitHubModelsProvider(token=token)
+
+    hits = rag_query(query, embedding_provider=provider, top_k=min(top_k, 20), db_path=db)
+
+    if kind:
+        hits = [h for h in hits if h.kind == kind]
+
+    return json.dumps([
+        {
+            "path": hit.path,
+            "kind": hit.kind,
+            "lines": f"{hit.start_line}-{hit.end_line}",
+            "score": round(hit.score, 4),
+            "text": hit.text,
+        }
+        for hit in hits
+    ], indent=2)
 
 
 # ============================================================
