@@ -43,6 +43,12 @@ from .call import (
     call,
 )
 
+# Import/Export Function Keywords
+from .importexport import (
+    export_object,
+    import_object,
+)
+
 # Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove)
 from .edit import (
     copy,
@@ -176,6 +182,9 @@ from .variables import (
 )
 
 __all__ = [
+    # Import/Export Function Keywords
+    "export_object",
+    "import_object",
     # Store / Update
     "store",
     "store_cue",

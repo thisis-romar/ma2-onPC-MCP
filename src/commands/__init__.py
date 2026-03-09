@@ -61,6 +61,9 @@ from .functions import (
     assign_function,
     assign_property,
     assign_to_layout,
+    # Import/Export Function Keywords
+    export_object,
+    import_object,
     # At Function Keyword
     at,
     at_full,
@@ -212,6 +215,9 @@ __all__ = [
     "timecode",
     "timecode_slot",
     "timer",
+    # Import/Export Function Keywords
+    "export_object",
+    "import_object",
     # Assign Function Keyword
     "assign",
     "assign_delay",
