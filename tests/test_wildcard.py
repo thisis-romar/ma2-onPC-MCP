@@ -12,10 +12,8 @@ Also validates the cd-tree name-correlation workflow:
   list → discover names → derive pattern → build wildcard command.
 """
 
-import pytest
-from src.commands import quote_name, MA2_SPECIAL_CHARS
-from src.commands.functions.info import list_objects, info
-
+from src.commands import MA2_SPECIAL_CHARS, quote_name
+from src.commands.functions.info import info, list_objects
 
 # ============================================================================
 # quote_name() — Rule A: literal mode (default)

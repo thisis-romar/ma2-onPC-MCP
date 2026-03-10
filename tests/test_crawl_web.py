@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from rag.ingest.crawl_web import (
     _convert_headings_to_markdown,
     _extract_links,
@@ -13,8 +11,6 @@ from rag.ingest.crawl_web import (
     _normalize_url,
     crawl_web,
 )
-from rag.types import RepoFile
-
 
 # ---------------------------------------------------------------------------
 # URL normalisation

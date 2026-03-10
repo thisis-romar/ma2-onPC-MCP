@@ -36,7 +36,6 @@ pytestmark = pytest.mark.asyncio(loop_scope="module")
 # All tool functions are imported directly from the server module
 from src.server import (  # noqa: E402
     adjust_value_relative,
-    discover_object_names,
     apply_preset,
     assign_cue_trigger,
     assign_executor_property,
@@ -50,6 +49,7 @@ from src.server import (  # noqa: E402
     copy_or_move_object,
     create_fixture_group,
     delete_object,
+    discover_object_names,
     edit_object,
     execute_sequence,
     export_objects,

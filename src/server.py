@@ -13,10 +13,14 @@ import json
 import logging
 import os
 import re
+from datetime import UTC
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from src.commands import (
+    add_to_selection as build_add_to_selection,
+)
 from src.commands import (
     add_user_var as build_add_user_var,
 )
@@ -43,37 +47,24 @@ from src.commands import (
     assign_to_layout as build_assign_to_layout,
 )
 from src.commands import (
+    at_relative as build_at_relative,
+)
+from src.commands import (
     attribute_at,
     call,
     channel_at,
-    executor_at as build_executor_at,
     fixture_at,
-    flash_executor as build_flash_executor,
     go_macro,
     go_sequence,
     goto_cue,
-    goto_timecode as build_goto_timecode,
     group_at,
     label_group,
-    off_executor as build_off_executor,
-    on_executor as build_on_executor,
     pause_sequence,
     select_fixture,
-    solo_executor as build_solo_executor,
     store_group,
-    update_cue as build_update_cue,
 )
 from src.commands import (
-    export_object as build_export_object,
-)
-from src.commands import (
-    import_object as build_import_object,
-)
-from src.commands import (
-    import_fixture_type_cmd as build_import_fixture_type_cmd,
-)
-from src.commands import (
-    import_layer_cmd as build_import_layer_cmd,
+    blackout as build_blackout,
 )
 from src.commands import (
     clear as build_clear,
@@ -86,6 +77,9 @@ from src.commands import (
 )
 from src.commands import (
     clear_selection as build_clear_selection,
+)
+from src.commands import (
+    clear_selection as build_clear_selection2,
 )
 from src.commands import (
     copy as build_copy,
@@ -106,8 +100,23 @@ from src.commands import (
     delete_cue as build_delete_cue,
 )
 from src.commands import (
+    delete_fixture as build_delete_fixture,
+)
+from src.commands import (
     # edit_object
     edit as build_edit,
+)
+from src.commands import (
+    executor_at as build_executor_at,
+)
+from src.commands import (
+    export_object as build_export_object,
+)
+from src.commands import (
+    flash_executor as build_flash_executor,
+)
+from src.commands import (
+    get_user_var as build_get_user_var,
 )
 from src.commands import (
     # playback_action
@@ -126,6 +135,21 @@ from src.commands import (
     goto as build_goto,
 )
 from src.commands import (
+    goto_timecode as build_goto_timecode,
+)
+from src.commands import (
+    highlight as build_highlight,
+)
+from src.commands import (
+    import_fixture_type_cmd as build_import_fixture_type_cmd,
+)
+from src.commands import (
+    import_layer_cmd as build_import_layer_cmd,
+)
+from src.commands import (
+    import_object as build_import_object,
+)
+from src.commands import (
     info as build_info,
 )
 from src.commands import (
@@ -142,7 +166,16 @@ from src.commands import (
     list_cue as build_list_cue,
 )
 from src.commands import (
+    list_effect_library as build_list_effect_library,
+)
+from src.commands import (
     list_group as build_list_group,
+)
+from src.commands import (
+    list_library as build_list_library,
+)
+from src.commands import (
+    list_macro_library as build_list_macro_library,
 )
 from src.commands import (
     list_messages as build_list_messages,
@@ -152,16 +185,49 @@ from src.commands import (
     list_objects as build_list_objects,
 )
 from src.commands import (
+    list_oops as build_list_oops,
+)
+from src.commands import (
     list_preset as build_list_preset,
 )
 from src.commands import (
+    list_shows as build_list_shows,
+)
+from src.commands import (
+    list_user_var as build_list_user_var,
+)
+from src.commands import (
+    list_var as build_list_var,
+)
+from src.commands import (
+    load_show as build_load_show,
+)
+from src.commands import (
     move as build_move,
+)
+from src.commands import (
+    new_show as build_new_show,
+)
+from src.commands import (
+    off_executor as build_off_executor,
+)
+from src.commands import (
+    on_executor as build_on_executor,
+)
+from src.commands import (
+    page_next as build_page_next,
+)
+from src.commands import (
+    page_previous as build_page_previous,
 )
 from src.commands import (
     park as build_park,
 )
 from src.commands import (
     paste as build_paste,
+)
+from src.commands import (
+    release_executor as build_release_executor,
 )
 from src.commands import (
     # remove_content
@@ -174,18 +240,13 @@ from src.commands import (
     remove_fixture as build_remove_fixture,
 )
 from src.commands import (
+    remove_from_selection as build_remove_from_selection,
+)
+from src.commands import (
     remove_preset_type as build_remove_preset_type,
 )
 from src.commands import (
     remove_selection as build_remove_selection,
-)
-from src.commands import (
-    add_to_selection as build_add_to_selection,
-    at_relative as build_at_relative,
-    clear_selection as build_clear_selection2,
-    page_next as build_page_next,
-    page_previous as build_page_previous,
-    remove_from_selection as build_remove_from_selection,
 )
 from src.commands import (
     set_user_var as build_set_user_var,
@@ -193,6 +254,9 @@ from src.commands import (
 from src.commands import (
     # manage_variable
     set_var as build_set_var,
+)
+from src.commands import (
+    solo_executor as build_solo_executor,
 )
 from src.commands import (
     # store_object
@@ -211,25 +275,12 @@ from src.commands import (
     unpark as build_unpark,
 )
 from src.commands import (
-    blackout as build_blackout,
-    delete_fixture as build_delete_fixture,
-    get_user_var as build_get_user_var,
-    highlight as build_highlight,
-    list_effect_library as build_list_effect_library,
-    list_library as build_list_library,
-    list_macro_library as build_list_macro_library,
-    list_oops as build_list_oops,
-    list_shows as build_list_shows,
-    list_user_var as build_list_user_var,
-    list_var as build_list_var,
-    load_show as build_load_show,
-    new_show as build_new_show,
-    release_executor as build_release_executor,
+    update_cue as build_update_cue,
 )
 from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
-from src.vocab import CD_INVALID_INDEXES, CD_NUMERIC_INDEX, RiskTier, build_v39_spec, classify_token
+from src.vocab import RiskTier, build_v39_spec, classify_token
 
 # Load environment variables
 load_dotenv()
@@ -2395,6 +2446,7 @@ async def search_codebase(
         - Find test examples: query="navigate_console", kind="test"
     """
     from pathlib import Path
+
     from rag.retrieve.query import rag_query
 
     db = Path(__file__).parent.parent / "rag" / "store" / "rag.db"
@@ -3767,9 +3819,9 @@ async def generate_fixture_layer_xml(
         str: JSON with file_path, filename, fixture_count, layer_index, layer_name
     """
     import os
-    from datetime import datetime, timezone
-    from xml.etree.ElementTree import Element, SubElement, tostring
+    from datetime import datetime
     from xml.dom import minidom
+    from xml.etree.ElementTree import Element, SubElement, tostring
 
     output_dir = (
         r"C:\ProgramData\MA Lighting Technologies"
@@ -3791,7 +3843,7 @@ async def generate_fixture_layer_xml(
         "stream_vers": "60",
     })
     SubElement(root, "Info", {
-        "datetime": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+        "datetime": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S"),
         "showfile": showfile,
     })
     layer_el = SubElement(root, "Layer", {
