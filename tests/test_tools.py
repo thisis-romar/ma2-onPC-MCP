@@ -1154,6 +1154,80 @@ class TestQueryObjectListTool:
         assert data["command_sent"] == "list sequence"
 
 
+class TestListSystemVariablesTool:
+    """Tests for the list_system_variables MCP tool."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_parses_key_value_pairs(self, mock_get_client):
+        from src.server import list_system_variables
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            return_value="VERSION = 3.9.60\r\n$TIME = 12:00:00\r\n$FADERPAGE = 1\r\n[channel]>"
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await list_system_variables()
+        data = json.loads(result)
+
+        assert data["variable_count"] >= 1
+        assert "$VERSION" in data["variables"] or "$TIME" in data["variables"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_filter_prefix(self, mock_get_client):
+        from src.server import list_system_variables
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            return_value=(
+                "$SELECTEDEXEC = 201\r\n$SELECTEDEXECCUE = 1\r\n"
+                "$TIME = 12:00:00\r\n[channel]>"
+            )
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await list_system_variables(filter_prefix="SELECTED")
+        data = json.loads(result)
+
+        assert all("SELECTED" in k.upper() for k in data["variables"])
+        assert "$TIME" not in data["variables"]
+        assert data["variable_count"] == 2
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_strips_dollar_prefix_from_raw(self, mock_get_client):
+        from src.server import list_system_variables
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            return_value="$HOSTNAME = console1\r\n[channel]>"
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await list_system_variables()
+        data = json.loads(result)
+
+        assert "$HOSTNAME" in data["variables"]
+        assert data["variables"]["$HOSTNAME"] == "console1"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_empty_response(self, mock_get_client):
+        from src.server import list_system_variables
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await list_system_variables()
+        data = json.loads(result)
+
+        assert data["variable_count"] == 0
+        assert data["variables"] == {}
+
+
 class TestPlaybackActionTool:
     """Tests for the playback_action MCP tool."""
 

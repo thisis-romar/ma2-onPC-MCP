@@ -1640,6 +1640,46 @@ async def query_object_list(
 
 @mcp.tool()
 @_handle_errors
+async def list_system_variables(
+    filter_prefix: str | None = None,
+) -> str:
+    """
+    List all grandMA2 built-in system variables (SAFE_READ).
+
+    Sends `ListVar` to the console and returns parsed key=value pairs.
+    System variables include $SELECTEDEXEC, $TIME, $DATE, $VERSION, $HOSTSTATUS,
+    $FADERPAGE, $BUTTONPAGE, $SELECTEDFIXTURESCOUNT, $USER, $HOSTNAME, etc.
+
+    Args:
+        filter_prefix: Optional prefix filter (case-insensitive).
+            e.g. "SELECTED" returns only $SELECTEDEXEC, $SELECTEDEXECCUE, etc.
+            Omit to return all variables.
+
+    Returns:
+        str: JSON with `variables` dict (name→value), `variable_count`, and `raw_response`.
+    """
+    client = await get_client()
+    raw = await client.send_command_with_response("ListVar")
+
+    variables = {}
+    for line in raw.splitlines():
+        line = line.strip()
+        if "=" in line and not line.startswith("["):
+            name, _, value = line.partition("=")
+            name = name.strip().lstrip("$")
+            value = value.strip()
+            if filter_prefix is None or name.upper().startswith(filter_prefix.upper()):
+                variables[f"${name}"] = value
+
+    return json.dumps({
+        "variables": variables,
+        "variable_count": len(variables),
+        "raw_response": raw,
+    }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
 async def playback_action(
     action: str,
     object_type: str | None = None,
