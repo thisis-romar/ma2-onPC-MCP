@@ -393,6 +393,15 @@ class TestStoreCueTool:
     """Tests for the store_current_cue MCP tool."""
 
     @pytest.mark.asyncio
+    async def test_store_cue_blocked_without_confirm(self):
+        """confirm_destructive gate blocks without the flag."""
+        from src.server import store_current_cue
+        result = await store_current_cue(cue_number=5)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+    @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_store_basic_cue(self, mock_get_client):
         """Test storing a simple cue."""
@@ -402,7 +411,7 @@ class TestStoreCueTool:
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
 
-        result = await store_current_cue(cue_number=5)
+        result = await store_current_cue(cue_number=5, confirm_destructive=True)
         data = json.loads(result)
 
         assert data["commands_sent"] == ["store cue 5"]
@@ -418,7 +427,7 @@ class TestStoreCueTool:
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
 
-        result = await store_current_cue(cue_number=3, sequence_id=2)
+        result = await store_current_cue(cue_number=3, sequence_id=2, confirm_destructive=True)
         data = json.loads(result)
 
         assert data["commands_sent"] == ["store cue 3 sequence 2"]
@@ -433,7 +442,7 @@ class TestStoreCueTool:
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
 
-        result = await store_current_cue(cue_number=3, label="Opening Look")
+        result = await store_current_cue(cue_number=3, label="Opening Look", confirm_destructive=True)
         json.loads(result)
 
         calls = mock_client.send_command_with_response.call_args_list
@@ -451,7 +460,7 @@ class TestStoreCueTool:
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
 
-        result = await store_current_cue(cue_number=1, merge=True)
+        result = await store_current_cue(cue_number=1, merge=True, confirm_destructive=True)
         data = json.loads(result)
 
         assert data["commands_sent"] == ["store cue 1 /merge"]
@@ -3162,6 +3171,32 @@ class TestStoreCueWithTimingTool:
         result = await store_cue_with_timing(cue_id=1, confirm_destructive=True, fade_time=5.0, merge=True)
         data = json.loads(result)
         assert "/merge" in data["command_sent"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_cue_with_timing_sequence_id(self, mock_get_client):
+        from src.server import store_cue_with_timing
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+        result = await store_cue_with_timing(
+            cue_id=4, confirm_destructive=True, fade_time=10.0, sequence_id=2
+        )
+        data = json.loads(result)
+        assert "store cue 4" in data["command_sent"]
+        assert "sequence 2" in data["command_sent"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_cue_with_timing_no_sequence_id(self, mock_get_client):
+        """Without sequence_id, command should NOT contain 'sequence'."""
+        from src.server import store_cue_with_timing
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+        result = await store_cue_with_timing(cue_id=4, confirm_destructive=True, fade_time=10.0)
+        data = json.loads(result)
+        assert "sequence" not in data["command_sent"]
 
 
 class TestSelectExecutorTool:

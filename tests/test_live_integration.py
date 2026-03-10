@@ -573,7 +573,7 @@ class TestLayer4Programming:
 
     async def test_store_current_cue(self, live_client):
         """4.2 — Store programmer into cue 99."""
-        result = await store_current_cue(99, label="Live Test Cue")
+        result = await store_current_cue(99, label="Live Test Cue", confirm_destructive=True)
         data = validate_response_list(result, ["commands_sent", "raw_response"])
         cmds_joined = " ".join(data["commands_sent"]).lower()
         assert "store" in cmds_joined

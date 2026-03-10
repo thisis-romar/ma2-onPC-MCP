@@ -1038,31 +1038,53 @@ async def store_current_cue(
     label: str | None = None,
     merge: bool = False,
     overwrite: bool = False,
+    confirm_destructive: bool = False,
 ) -> str:
     """
-    Store the current programmer state as a cue.
+    Store the current programmer state as a cue (DESTRUCTIVE).
 
     Saves whatever is currently in the programmer (selected fixtures +
     active values) into a cue in the specified sequence. This is how
     lighting looks are programmed into a show.
 
-    SAFETY: This is a STORE operation which modifies show data.
+    Executor-sequence relationship:
+      When sequence_id is omitted, MA2 stores into the sequence assigned to
+      the currently selected executor on the console. Use select_executor()
+      first to set the target, or pass sequence_id explicitly to make the
+      destination unambiguous regardless of executor selection state.
+
+      select executor N      → sets executor N as the active store target
+      Store Cue M            → stores into the sequence on selected executor
+      Store Cue M Sequence S → stores into sequence S directly (preferred)
 
     Args:
         cue_number: Cue number to store (required)
-        sequence_id: Sequence to store into (omit to use selected executor)
+        sequence_id: Sequence to store into. Omit to use the selected executor's
+                     sequence (call select_executor() first if needed)
         label: Optional name for the cue
         merge: Merge new values into existing cue (default False)
         overwrite: Replace existing cue completely (default False)
+        confirm_destructive: Must be True to execute (DESTRUCTIVE operation)
 
     Returns:
         str: JSON with commands_sent and raw_response.
 
     Examples:
-        - Store cue 5: cue_number=5
-        - Store cue 3 named "Opening Look": cue_number=3, label="Opening Look"
-        - Merge into cue 1: cue_number=1, merge=True
+        - Store cue 5 (explicit sequence): cue_number=5, sequence_id=1, confirm_destructive=True
+        - Store cue 3 named "Opening Look": cue_number=3, label="Opening Look", confirm_destructive=True
+        - Merge into cue 1: cue_number=1, merge=True, confirm_destructive=True
     """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": (
+                "Store Cue is a DESTRUCTIVE operation. Pass confirm_destructive=True to proceed. "
+                "Tip: pass sequence_id explicitly to target a specific sequence rather than relying "
+                "on the currently selected executor."
+            ),
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
     commands_sent = []
     client = await get_client()
 
@@ -3017,9 +3039,14 @@ async def store_cue_with_timing(
     merge: bool = False,
     overwrite: bool = False,
     cue_name: str | None = None,
+    sequence_id: int | None = None,
 ) -> str:
     """
     Store a cue with inline fade and outtime parameters (DESTRUCTIVE).
+
+    When sequence_id is omitted, MA2 stores into the sequence on the currently
+    selected executor. Pass sequence_id explicitly to target a specific sequence
+    regardless of executor selection state (same behavior as store_current_cue).
 
     Args:
         cue_id: Cue number to store
@@ -3029,6 +3056,7 @@ async def store_cue_with_timing(
         merge: Merge into existing cue
         overwrite: Overwrite existing cue
         cue_name: Optional cue label
+        sequence_id: Sequence to store into (omit to use selected executor)
 
     Returns:
         str: JSON result with command sent
@@ -3049,6 +3077,8 @@ async def store_cue_with_timing(
         merge=merge,
         overwrite=overwrite,
     )
+    if sequence_id is not None:
+        cmd += f" sequence {sequence_id}"
     response = await client.send_command_with_response(cmd)
     return json.dumps({
         "command_sent": cmd,

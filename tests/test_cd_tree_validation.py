@@ -191,6 +191,7 @@ class TestCueTreeVerification:
         result = await store_current_cue(
             cue_number=TEST_CUE_NUMBER,
             sequence_id=TEST_SEQUENCE_ID,
+            confirm_destructive=True,
         )
 
         data = json.loads(result)
