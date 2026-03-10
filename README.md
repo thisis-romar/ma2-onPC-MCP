@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 1.2.0
+version: 2.0.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-07T00:00:00Z
+last_updated: 2026-03-10T00:00:00Z
 ---
 
 # GMA2 MCP
@@ -59,8 +59,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  MCP Server Layer              src/server.py             │
-│  29 tools: Navigation (4), Lighting (8), Programming (8), │
-│    Assignment (4), Info & Queries (4), Codebase Search (1)│
+│  77 tools across 12 categories                           │
 │  Safety gate: classifies commands before sending         │
 └────────────────────────┬─────────────────────────────────┘
                          │
@@ -74,7 +73,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ┌────────────────────────▼─────────────────────────────────┐
 │  Command Builder Layer     src/commands/                  │
 │  110+ pure functions generating grandMA2 command strings  │
-│  Including changedest() for cd dot-notation commands      │
+│  helpers.py: quote_name(), _build_options() flag assembly │
 └────────────────────────┬─────────────────────────────────┘
                          │
 ┌────────────────────────▼─────────────────────────────────┐
@@ -136,7 +135,7 @@ Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](ht
 
 ## MCP Tools
 
-The server exposes 29 tools to MCP clients, grouped by category:
+The server exposes **77 tools** to MCP clients, grouped by category:
 
 <details>
 <summary><strong>Navigation & Inspection (4 tools)</strong></summary>
@@ -164,15 +163,13 @@ list            → enumerate objects at current destination
 </details>
 
 <details>
-<summary><strong>Lighting Control (8 tools)</strong></summary>
+<summary><strong>Lighting Control (6 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
 | `set_intensity` | Set dimmer level on fixtures, groups, or channels |
 | `set_attribute` | Set attribute values (Pan, Tilt, Zoom, etc.) on fixtures/groups |
 | `apply_preset` | Apply a stored preset (color, position, gobo, beam, etc.) |
-| `execute_sequence` | Legacy sequence playback: go, pause, or goto cue |
-| `playback_action` | Full playback control: go, go_back, goto, fast_forward, fast_back, def_go, def_pause |
 | `clear_programmer` | Clear programmer state (all, selection, active, or sequential) |
 | `park_fixture` | Park a fixture/channel at its current or a specified value |
 | `unpark_fixture` | Release a park lock on a fixture/channel |
@@ -180,42 +177,176 @@ list            → enumerate objects at current destination
 </details>
 
 <details>
-<summary><strong>Programming (8 tools)</strong></summary>
+<summary><strong>Programmer / Selection (5 tools)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `modify_selection` | Select, deselect, or toggle fixtures in the programmer |
+| `adjust_value_relative` | Adjust programmer values relatively (+ or –) |
+| `select_fixtures_by_group` | Select all fixtures in a named group |
+| `select_executor` | Set the active executor for subsequent operations |
+| `if_filter` | Apply an IfOutput / IfActive filter to limit programmer scope |
+
+</details>
+
+<details>
+<summary><strong>Playback & Executor (8 tools)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `execute_sequence` | Legacy sequence playback: go, pause, or goto cue |
+| `playback_action` | Full playback control: go, go_back, goto, fast_forward, fast_back, def_go, def_pause |
+| `control_executor` | Control an executor (go, pause, stop, flash, etc.) |
+| `get_executor_status` | Query status of an executor (current cue, level, state) |
+| `set_executor_level` | Set the fader level on an executor |
+| `navigate_page` | Navigate to a specific page or page +/– |
+| `release_executor` | Release (deactivate) an executor |
+| `blackout_toggle` | Toggle grandmaster blackout on/off |
+
+</details>
+
+<details>
+<summary><strong>Programming / Store (11 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
 | `create_fixture_group` | Select a range of fixtures and save as a named group |
 | `store_current_cue` | Store programmer state into a cue (**DESTRUCTIVE**) |
-| `store_new_preset` | Store programmer state as a new preset (dimmer, color, position, etc.) |
+| `store_new_preset` | Store programmer state as a new preset (**DESTRUCTIVE**) |
 | `store_object` | Store generic objects — macros, effects, worlds, etc. (**DESTRUCTIVE**) |
-| `set_node_property` | Set a property on any node via dot-separated tree path |
-| `copy_or_move_object` | Copy or move objects between slots (with merge/overwrite options) |
-| `delete_object` | Delete any object by type and ID (**DESTRUCTIVE**) |
+| `store_cue_with_timing` | Store a cue with explicit fade/delay timing (**DESTRUCTIVE**) |
+| `update_cue_data` | Update an existing cue with current programmer values |
+| `set_cue_timing` | Edit fade, delay, or trigger timing on an existing cue |
+| `set_sequence_property` | Set a property on a sequence (e.g. looping, autoprepare) |
+| `assign_cue_trigger` | Assign a trigger type (Go, Follow, Time) to a cue |
+| `remove_from_programmer` | Remove specific fixtures or channels from the programmer |
 | `run_macro` | Execute a stored macro by ID |
 
 </details>
 
 <details>
-<summary><strong>Assignment & Layout (4 tools)</strong></summary>
+<summary><strong>Timecode & Timer (3 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
-| `assign_object` | Assign objects, functions, fades, or layout positions (**DESTRUCTIVE**) |
-| `label_or_appearance` | Label or set visual appearance of objects (**DESTRUCTIVE**) |
-| `edit_object` | Edit, cut, or paste objects (cut/paste **DESTRUCTIVE**) |
-| `remove_content` | Remove content from objects — fixtures, effects, preset types (**DESTRUCTIVE**) |
+| `control_timecode` | Start, stop, or jump a timecode show |
+| `control_timer` | Start, stop, or reset a timer |
+| `store_timecode_event` | Store an event into a timecode show at the current time |
 
 </details>
 
 <details>
-<summary><strong>Info & Queries (4 tools)</strong></summary>
+<summary><strong>Assignment & Layout (6 tools)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `assign_object` | Assign objects, functions, fades, or layout positions (**DESTRUCTIVE**) |
+| `assign_executor_property` | Set a property on an executor (e.g. name, page, size) |
+| `label_or_appearance` | Label or set visual appearance of objects (**DESTRUCTIVE**) |
+| `edit_object` | Edit, cut, or paste objects (cut/paste **DESTRUCTIVE**) |
+| `remove_content` | Remove content from objects — fixtures, effects, preset types (**DESTRUCTIVE**) |
+| `save_recall_view` | Save or recall a screen view configuration |
+
+</details>
+
+<details>
+<summary><strong>Show Management (6 tools)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `save_show` | Save the current show file to disk |
+| `list_shows` | List available show files on the console |
+| `load_show` | Load a show file by name (**DESTRUCTIVE**) |
+| `new_show` | Create a new empty show (**DESTRUCTIVE**) |
+| `export_objects` | Export show objects (groups, presets, macros, etc.) to a file |
+| `import_objects` | Import objects from a file into the show (**DESTRUCTIVE**) |
+
+</details>
+
+<details>
+<summary><strong>Fixture Setup & Patch (13 tools)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `list_fixture_types` | List fixture types loaded in the show |
+| `list_layers` | List fixture layers in the patch |
+| `list_universes` | List configured DMX universes |
+| `list_library` | Browse the MA2 fixture library |
+| `list_fixtures` | List fixtures currently patched in the show |
+| `browse_patch_schedule` | Browse the DMX patch schedule (fixture → universe → address) |
+| `patch_fixture` | Patch a fixture to a DMX universe and address |
+| `unpatch_fixture` | Remove a fixture's DMX patch assignment |
+| `set_fixture_type_property` | Set a property on a fixture type |
+| `manage_matricks` | Manage MAtricks (fixture matrix) objects |
+| `import_fixture_type` | Import a fixture type from the MA2 library (**DESTRUCTIVE**) |
+| `import_fixture_layer` | Import a fixture layer XML file into the show patch (**DESTRUCTIVE**) |
+| `generate_fixture_layer_xml` | Generate a grandMA2 fixture layer XML file for import |
+
+**Fixture import workflow:**
+```python
+# 1. Generate the XML file
+generate_fixture_layer_xml(
+    filename="my_dimmers",
+    layer_name="Dimmers",
+    layer_index=1,
+    fixtures=[
+        {"fixture_id": 1, "name": "Dim 1", "fixture_type_no": 2,
+         "fixture_type_name": "2 Dimmer 00", "dmx_address": 1, "num_channels": 1},
+        # ... more fixtures
+    ],
+    showfile="myshow",
+)
+
+# 2. Import the fixture type from library
+import_fixture_type(
+    manufacturer="Martin",
+    fixture="Mac700Profile_Extended",
+    mode="Extended",
+    confirm_destructive=True,
+)
+
+# 3. Import the layer
+import_fixture_layer(filename="my_dimmers", layer_index=1, confirm_destructive=True)
+```
+
+</details>
+
+<details>
+<summary><strong>Info, Queries & Discovery (8 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
 | `get_object_info` | Query info on any object (fixture, group, sequence, etc.) |
 | `query_object_list` | List cues, groups, presets, attributes, or messages from the show |
+| `get_variable` | Get the current value of a console variable |
+| `list_sequence_cues` | List all cues in a sequence with timing and labels |
+| `discover_object_names` | Discover named objects in a pool via the cd tree |
+| `highlight_fixtures` | Toggle highlight mode for selected fixtures |
+| `set_node_property` | Set a property on any node via dot-separated tree path |
+| `list_undo_history` | List recent undo history entries |
+
+</details>
+
+<details>
+<summary><strong>Console & Utilities (6 tools)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `send_raw_command` | Send any MA command directly (safety-gated) |
+| `copy_or_move_object` | Copy or move objects between slots (with merge/overwrite options) |
+| `delete_object` | Delete any object by type and ID (**DESTRUCTIVE**) |
 | `manage_variable` | Set or add to console variables (global or user-scoped) |
-| `send_raw_command` | Send any MA command directly (safety-gated, see below) |
+| `undo_last_action` | Undo the last console action |
+| `toggle_console_mode` | Toggle console modes: blind, highlight, freeze, solo |
+
+</details>
+
+<details>
+<summary><strong>Codebase Search / RAG (1 tool)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `search_codebase` | Semantic search over the indexed codebase and MA2 docs |
 
 </details>
 
@@ -623,6 +754,18 @@ Copy/Move options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
 | `info("cue", 1)` | `info cue 1` |
 | `info_group(3)` | `info group 3` |
 
+### Import / Export
+
+| Function | Output |
+|----------|--------|
+| `export_object("Group", 1, "mygroups")` | `export Group 1 "mygroups"` |
+| `import_object("mygroups", "Group", 5)` | `import "mygroups" at Group 5` |
+| `import_fixture_type_cmd("Martin", "Mac700Profile_Extended", "Extended")` | `Import "Martin@Mac700Profile_Extended@Extended"` |
+| `import_layer_cmd("dimmers")` | `Import "dimmers"` |
+| `import_layer_cmd("mac700s", 2)` | `Import "mac700s" At 2` |
+
+Note: `import_fixture_type_cmd` and `import_layer_cmd` are context-dependent — they must be sent while inside `EditSetup/FixtureTypes` and `EditSetup/Layers` respectively. Use the `import_fixture_type` and `import_fixture_layer` MCP tools which handle the context navigation automatically.
+
 ### Park & Unpark
 
 | Function | Output |
@@ -776,7 +919,7 @@ gma2-mcp-telnet/
 │   ├── validate_ft_channels.py     # FT ChannelType CD vs DMX order
 │   └── research_hierarchy.py       # Preset/Sequence/Executor hierarchy
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 29 tools)
+│   ├── server.py                   # MCP server (FastMCP, 77 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
@@ -786,7 +929,7 @@ gma2-mcp-telnet/
 │   └── commands/
 │       ├── __init__.py             # Public API (110+ exports)
 │       ├── constants.py            # PRESET_TYPES, store option sets
-│       ├── helpers.py              # Internal option builder
+│       ├── helpers.py              # quote_name(), _build_options() flag assembly
 │       ├── objects/                # Object keywords (9 modules)
 │       └── functions/              # Function keywords (15 modules)
 ├── rag/
@@ -808,7 +951,7 @@ gma2-mcp-telnet/
 │       ├── hash.py                 # SHA-256 hashing
 │       ├── lang.py                 # Language detection
 │       └── text.py                 # Text utilities
-├── tests/                          # 781 tests (715 unit + 66 live)
+├── tests/                          # 1147 unit tests + 43 live tests (skipped by default)
 ├── vscode-mcp-provider/            # VS Code MCP extension
 ├── doc/
 │   └── 2024-09-30_grandMA2_User_Manual_v3-9.pdf
@@ -835,10 +978,10 @@ Requires Python >= 3.12.
 ### Running Tests
 
 ```bash
-make test                           # or: uv run pytest -v
-uv run pytest tests/test_vocab.py   # run a specific file
-uv run pytest tests/test_rag_*.py   # RAG pipeline tests
-uv run pytest --cov=src tests/      # with coverage
+make test                           # or: python -m pytest -v
+python -m pytest tests/test_vocab.py   # run a specific file
+python -m pytest tests/test_rag_*.py   # RAG pipeline tests
+python -m pytest --cov=src tests/      # with coverage
 ```
 
 ### Login Test
