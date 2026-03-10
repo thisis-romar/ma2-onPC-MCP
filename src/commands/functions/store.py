@@ -250,16 +250,36 @@ def load_show(name: str) -> str:
     return f'loadshow "{name}"'
 
 
-def new_show(name: str, *, noconfirm: bool = False) -> str:
+def new_show(
+    name: str,
+    *,
+    noconfirm: bool = False,
+    keep_timeconfig: bool = False,
+    keep_globalsettings: bool = False,
+    keep_localsettings: bool = False,
+    keep_protocols: bool = False,
+    keep_network: bool = False,
+    keep_user: bool = False,
+) -> str:
     """
     Construct a NewShow command to create a new empty show.
+
+    By default all show data and configuration is cleared.  Pass the
+    ``keep_*`` flags to preserve specific sections from the current show —
+    each flag corresponds to un-checking the matching "Clear …" checkbox
+    in the grandMA2 New Show dialog.
 
     Args:
         name: New show file name
         noconfirm: Suppress the save-existing-show dialog (required when
-            an existing show is loaded, otherwise the console blocks
-            waiting for a [1]/2/3 response that can't be sent over a
-            stateless telnet connection)
+            an existing show is loaded — stateless telnet cannot answer
+            the [1]/2/3 prompt).
+        keep_timeconfig: Preserve Time Config (→ /timeconfig)
+        keep_globalsettings: Preserve Global Settings (→ /globalsettings)
+        keep_localsettings: Preserve Local Settings (→ /localsettings)
+        keep_protocols: Preserve Network Protocols (→ /protocols)
+        keep_network: Preserve Network Config (→ /network)
+        keep_user: Preserve User Profiles (→ /user)
 
     Returns:
         str: MA command to create a new show
@@ -269,10 +289,24 @@ def new_show(name: str, *, noconfirm: bool = False) -> str:
         'newshow "my_new_show"'
         >>> new_show("my_new_show", noconfirm=True)
         'newshow "my_new_show" /noconfirm'
+        >>> new_show("my_new_show", noconfirm=True, keep_timeconfig=True, keep_network=True)
+        'newshow "my_new_show" /noconfirm /timeconfig /network'
     """
     cmd = f'newshow "{name}"'
     if noconfirm:
         cmd += " /noconfirm"
+    if keep_timeconfig:
+        cmd += " /timeconfig"
+    if keep_globalsettings:
+        cmd += " /globalsettings"
+    if keep_localsettings:
+        cmd += " /localsettings"
+    if keep_protocols:
+        cmd += " /protocols"
+    if keep_network:
+        cmd += " /network"
+    if keep_user:
+        cmd += " /user"
     return cmd
 
 

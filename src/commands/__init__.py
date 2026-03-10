@@ -69,6 +69,8 @@ from .functions import (
     # Import/Export Function Keywords
     export_object,
     import_object,
+    import_fixture_type_cmd,
+    import_layer_cmd,
     # At Function Keyword
     at,
     at_full,
@@ -247,6 +249,8 @@ __all__ = [
     # Import/Export Function Keywords
     "export_object",
     "import_object",
+    "import_fixture_type_cmd",
+    "import_layer_cmd",
     # Assign Function Keyword
     "assign",
     "assign_delay",

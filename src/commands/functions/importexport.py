@@ -11,9 +11,19 @@ Live-validated on grandMA2 onPC 3.9.60.65. Key findings:
 - MA2 routes files to type-specific subfolders automatically:
     macros/, effects/, plugins/, matricks/, masks/ — or importexport/ (default)
 
+Fixture type import (EditSetup/FixtureTypes context):
+- Key format: "manufacturer@fixture@mode"  e.g. "Martin@Mac700Profile_Extended@Extended"
+- Must be sent while in EditSetup/FixtureTypes context (via ChangeDest navigation)
+
+Fixture layer import (EditSetup/Layers context):
+- File must exist in importexport/ directory
+- Must be sent while in EditSetup/Layers context (via ChangeDest navigation)
+
 Included functions:
 - export_object: Build an Export command
 - import_object: Build an Import command
+- import_fixture_type_cmd: Build Import command for a library fixture type (EditSetup/FixtureTypes context)
+- import_layer_cmd: Build Import command for a fixture layer XML file (EditSetup/Layers context)
 """
 
 # Object types that can be exported (validated live on MA2 3.9.60.65)
@@ -145,4 +155,56 @@ def import_object(
     if options:
         parts.extend(options)
 
+    return " ".join(parts)
+
+
+def import_fixture_type_cmd(manufacturer: str, fixture: str, mode: str) -> str:
+    """
+    Build the Import command for a library fixture type.
+
+    Must be sent while in EditSetup/FixtureTypes context (via ChangeDest navigation).
+    MA2 key format: 'manufacturer@fixture@mode'
+
+    Args:
+        manufacturer: Manufacturer name as it appears in MA2 library (e.g. "Martin")
+        fixture: Fixture model name (e.g. "Mac700Profile_Extended")
+        mode: Mode string (e.g. "Extended", "Standard")
+
+    Returns:
+        str: MA2 import command string for the fixture type
+
+    Examples:
+        >>> import_fixture_type_cmd("Martin", "Mac700Profile_Extended", "Extended")
+        'Import "Martin@Mac700Profile_Extended@Extended"'
+        >>> import_fixture_type_cmd("Generic", "Dimmer", "Mode 1")
+        'Import "Generic@Dimmer@Mode 1"'
+    """
+    return f'Import "{manufacturer}@{fixture}@{mode}"'
+
+
+def import_layer_cmd(filename: str, layer_index: int | None = None) -> str:
+    """
+    Build the Import command for a fixture layer XML file.
+
+    Must be sent while in EditSetup/Layers context (via ChangeDest navigation).
+    The file must exist in the MA2 importexport directory.
+
+    Args:
+        filename: Layer XML filename without extension or path
+        layer_index: Target layer slot. None = MA2 picks next free slot
+
+    Returns:
+        str: MA2 import command string for the layer file
+
+    Examples:
+        >>> import_layer_cmd("dimmers")
+        'Import "dimmers"'
+        >>> import_layer_cmd("mac700s", 2)
+        'Import "mac700s" At 2'
+        >>> import_layer_cmd("my_fixtures", 1)
+        'Import "my_fixtures" At 1'
+    """
+    parts = ["Import", f'"{filename}"']
+    if layer_index is not None:
+        parts.extend(["At", str(layer_index)])
     return " ".join(parts)

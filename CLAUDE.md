@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 2.1.0
+version: 3.0.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-09T12:00:00Z
+last_updated: 2026-03-10T00:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing 56 tools so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **77 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,11 +19,12 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 56 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 77 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/commands/` | 110+ pure command-builder functions, grouped by keyword type |
+| `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
 | `src/vocab.py` | 148 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
 | `rag/retrieve/` | cosine similarity search + rerank |
@@ -37,11 +38,12 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 ```bash
 # Run all tests
-make test                                         # or: uv run pytest -v
+make test                         # or: python -m pytest -v
+# NOTE: uv run may fail with "trampoline" error on Windows — use python -m as fallback
 
 # Run a subset
-uv run pytest tests/test_vocab.py                # single file
-uv run pytest tests/test_rag_*.py               # RAG tests only
+python -m pytest tests/test_vocab.py       # single file
+python -m pytest tests/test_rag_*.py      # RAG tests only
 
 # Start MCP server
 uv run python -m src.server
@@ -91,6 +93,40 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
+- Current counts (2026-03-10): **1129 unit tests**, **132 live integration tests**.
+
+### New Show — connectivity preservation
+
+Always use the default `preserve_connectivity=True` when calling `new_show()`.
+Creating a new show without `/globalsettings` **resets Telnet to "Login Disabled"**, severing the MCP connection.
+The three flags auto-applied by `preserve_connectivity=True` are:
+
+| MA2 flag | What it preserves |
+|---|---|
+| `/globalsettings` | Telnet login enabled/disabled + MA-Net2 TTL/DSCP |
+| `/network` | IP addresses and MA-Net2 network config |
+| `/protocols` | Art-Net, sACN, DMX protocol assignments |
+
+Only pass `preserve_connectivity=False` when the user **explicitly** wants a completely clean show AND understands they must manually re-enable Telnet in Setup → Console → Global Settings on the console.
+
+### Name quoting — quote_name()
+
+All label/info/list commands that include a name use `quote_name(name, match_mode)` from `src/commands/helpers.py`.
+
+- **Rule A (default)**: quote if the name contains any MA2 special character (`* @ $ . / ; [ ] ( ) " space`). Plain names are emitted bare — no quotes added.
+- **match_mode="wildcard"**: emits the name raw so `*` acts as a wildcard operator.
+- Callers must pass the **raw name**, not a pre-quoted string (e.g. `"Mac700 Front"` not `'"Mac700 Front"'`).
+
+### Wildcard workflow — discover_object_names
+
+To build a wildcard filter for any object pool:
+
+1. Call `discover_object_names("Group")` → returns `names_only` list + `wildcard_tip`
+2. Derive a pattern from the names (e.g. `Mac700*`)
+3. Pass to `list_objects("group", name="Mac700*", match_mode="wildcard")` → `list group Mac700*`
+
+The tool navigates to the pool, lists all entries, extracts names, then returns to root (`cd /`).
+Works with any keyword (`"Group"`, `"Sequence"`, `"Macro"`, etc.) or numeric cd index.
 
 ---
 
@@ -110,6 +146,7 @@ Three tiers enforced before any command reaches the console:
 - Never pass `confirm_destructive=True` automatically — the caller must opt in.
 - Line breaks (`\r`, `\n`) in command strings are rejected by the safety gate.
 - Classification entry point: `classify_token(token, spec)` in `src/vocab.py`.
+- **`new_show` without `/globalsettings` disables Telnet** — always keep `preserve_connectivity=True` (the default).
 
 ---
 
@@ -179,3 +216,5 @@ last_updated: YYYY-MM-DDTHH:MM:SSZ
 - Do not commit `rag/store/rag.db` or `rag/store/web_crawl_cache.json` — local artifacts, listed in `.gitignore`.
 - Do not edit `src/grandMA2_v3_9_telnet_keyword_vocabulary.json` manually — it is the source-of-truth keyword vocabulary.
 - Do not duplicate README.md content here — README is for humans, CLAUDE.md is for the agent.
+- Do not call `new_show` with `preserve_connectivity=False` unless the user explicitly accepts that Telnet will be disabled and they will re-enable it manually on the console.
+- Do not pass pre-quoted strings to `quote_name()` — pass raw names only (e.g. `"Mac700 Front"`, not `'"Mac700 Front"'`).

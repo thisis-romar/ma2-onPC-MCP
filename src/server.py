@@ -70,6 +70,12 @@ from src.commands import (
     import_object as build_import_object,
 )
 from src.commands import (
+    import_fixture_type_cmd as build_import_fixture_type_cmd,
+)
+from src.commands import (
+    import_layer_cmd as build_import_layer_cmd,
+)
+from src.commands import (
     clear as build_clear,
 )
 from src.commands import (
@@ -1485,6 +1491,7 @@ async def store_new_preset(
     preset_id: int,
     merge: bool = False,
     overwrite: bool = False,
+    confirm_destructive: bool = False,
 ) -> str:
     """
     Store the current programmer values as a preset.
@@ -1501,15 +1508,20 @@ async def store_new_preset(
         preset_type: Preset type name (e.g. "color", "position", "gobo")
         preset_id: Preset number within that type
         merge: Merge into existing preset (default False)
-        overwrite: Replace existing preset (default False)
+        overwrite: Replace existing preset with /o flag (default False)
+        confirm_destructive: Must be True to execute (DESTRUCTIVE operation)
 
     Returns:
         str: JSON with command_sent and raw_response.
 
     Examples:
-        - Store color preset 5: preset_type="color", preset_id=5
-        - Merge into position preset 3: preset_type="position", preset_id=3, merge=True
+        - Store color preset 5: preset_type="color", preset_id=5, confirm_destructive=True
+        - Overwrite position preset 3: preset_type="position", preset_id=3, overwrite=True, confirm_destructive=True
     """
+    if not confirm_destructive:
+        return json.dumps({
+            "error": "Store Preset is a DESTRUCTIVE operation. Pass confirm_destructive=True to proceed."
+        }, indent=2)
     client = await get_client()
     cmd = build_store_preset(
         preset_type, preset_id,
@@ -3524,6 +3536,229 @@ async def import_objects(
 
 
 # ============================================================
+# Tools 74–76 — Fixture Type / Layer Import + XML Generation
+# ============================================================
+
+
+@mcp.tool()
+@_handle_errors
+async def import_fixture_type(
+    manufacturer: str,
+    fixture: str,
+    mode: str,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Import a fixture type from the MA2 library into the show (DESTRUCTIVE).
+
+    Navigates to EditSetup/FixtureTypes context, imports the fixture type
+    by 'manufacturer@fixture@mode' key, then returns to root context.
+
+    Use list_library(library_type="fixture") first to find the exact key values.
+
+    Args:
+        manufacturer: Manufacturer name exactly as in MA2 library (e.g. "Martin", "Generic")
+        fixture: Fixture model name (e.g. "Mac700Profile_Extended")
+        mode: Mode name (e.g. "Extended", "Standard")
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON with steps list (command + response per step), fixture_key, risk_tier
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Import fixture type modifies the show. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    client = await get_client()
+    sequence = [
+        'ChangeDest "EditSetup"',
+        'ChangeDest "FixtureTypes"',
+        build_import_fixture_type_cmd(manufacturer, fixture, mode),
+        'ChangeDest /',
+    ]
+    steps = []
+    for cmd in sequence:
+        raw = await client.send_command_with_response(cmd)
+        steps.append({"command": cmd, "response": raw})
+
+    return json.dumps({
+        "steps": steps,
+        "fixture_key": f"{manufacturer}@{fixture}@{mode}",
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
+async def import_fixture_layer(
+    filename: str,
+    layer_index: int | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Import a fixture layer XML file into the show patch (DESTRUCTIVE).
+
+    Navigates to EditSetup/Layers context, imports the XML layer file,
+    then returns to root context. Use generate_fixture_layer_xml to
+    create the XML file before calling this tool.
+
+    The file must exist in the MA2 importexport directory:
+      C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\
+
+    Args:
+        filename: Layer XML filename without extension or path
+        layer_index: Target layer slot. None = MA2 picks next free slot
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON with steps list (command + response per step), filename, risk_tier
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Import fixture layer modifies the show patch. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    client = await get_client()
+    sequence = [
+        'ChangeDest "EditSetup"',
+        'ChangeDest "Layers"',
+        build_import_layer_cmd(filename, layer_index),
+        'ChangeDest /',
+    ]
+    steps = []
+    for cmd in sequence:
+        raw = await client.send_command_with_response(cmd)
+        steps.append({"command": cmd, "response": raw})
+
+    return json.dumps({
+        "steps": steps,
+        "filename": filename,
+        "layer_index": layer_index,
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
+async def generate_fixture_layer_xml(
+    filename: str,
+    layer_name: str,
+    layer_index: int,
+    fixtures: list[dict],
+    showfile: str = "grandma2",
+    overwrite: bool = False,
+) -> str:
+    """
+    Generate a grandMA2 fixture layer XML file and save it to the importexport directory.
+
+    The output file can be imported immediately using import_fixture_layer.
+    No telnet connection required — this tool writes a local file only.
+
+    Output directory:
+      C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\
+
+    Each fixture dict must contain:
+        fixture_id (int): grandMA2 fixture ID (e.g. 111)
+        name (str): Display name (e.g. "Dim 1" or "Mac 700 1")
+        fixture_type_no (int): Fixture type number from list_fixture_types()
+        fixture_type_name (str): Display name of the fixture type
+        dmx_address (int): 1-based DMX start address within its universe
+        num_channels (int): Total DMX channel count for this fixture type
+
+    Args:
+        filename: Output filename without extension
+        layer_name: Layer display name shown in MA2 UI
+        layer_index: Layer index number (1-based) for the <Layer> XML element
+        fixtures: List of fixture parameter dicts (see schema above)
+        showfile: Show name embedded in XML <Info> element
+        overwrite: If True, overwrite existing file; if False, return error on conflict
+
+    Returns:
+        str: JSON with file_path, filename, fixture_count, layer_index, layer_name
+    """
+    import os
+    from datetime import datetime, timezone
+    from xml.etree.ElementTree import Element, SubElement, tostring
+    from xml.dom import minidom
+
+    output_dir = (
+        r"C:\ProgramData\MA Lighting Technologies"
+        r"\grandma\gma2_V_3.9.60\importexport"
+    )
+    file_path = os.path.join(output_dir, f"{filename}.xml")
+
+    if os.path.exists(file_path) and not overwrite:
+        return json.dumps({
+            "error": (
+                f"File already exists: {file_path}. "
+                "Pass overwrite=True to replace it."
+            ),
+        }, indent=2)
+
+    root = Element("MA", {
+        "major_vers": "3",
+        "minor_vers": "9",
+        "stream_vers": "60",
+    })
+    SubElement(root, "Info", {
+        "datetime": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+        "showfile": showfile,
+    })
+    layer_el = SubElement(root, "Layer", {
+        "index": str(layer_index),
+        "name": layer_name,
+    })
+
+    for idx, fx in enumerate(fixtures):
+        fx_el = SubElement(layer_el, "Fixture", {
+            "index": str(idx),
+            "name": fx["name"],
+            "fixture_id": str(fx["fixture_id"]),
+        })
+        ft_el = SubElement(fx_el, "FixtureType", {"name": fx["fixture_type_name"]})
+        SubElement(ft_el, "No").text = str(fx["fixture_type_no"])
+
+        sf_el = SubElement(fx_el, "SubFixture", {
+            "index": "0",
+            "react_to_grandmaster": "true",
+            "color": "ffffff",
+        })
+        patch_el = SubElement(sf_el, "Patch")
+        SubElement(patch_el, "Address").text = str(fx["dmx_address"])
+
+        pos_el = SubElement(sf_el, "AbsolutePosition")
+        SubElement(pos_el, "Location", {"x": "0", "y": "0", "z": "0"})
+        SubElement(pos_el, "Rotation", {"x": "0", "y": "-0", "z": "0"})
+        SubElement(pos_el, "Scaling", {"x": "1", "y": "1", "z": "1"})
+
+        for ch in range(fx["num_channels"]):
+            SubElement(sf_el, "Channel", {"index": str(ch)})
+
+    raw_xml = tostring(root, encoding="unicode")
+    pretty_bytes = minidom.parseString(raw_xml).toprettyxml(indent="  ", encoding="utf-8")
+    # Replace minidom's XML declaration (includes standalone attr) with a clean one
+    lines = pretty_bytes.split(b"\n")
+    xml_bytes = b'<?xml version="1.0" encoding="utf-8"?>\n' + b"\n".join(lines[1:])
+
+    os.makedirs(output_dir, exist_ok=True)
+    with open(file_path, "wb") as f:
+        f.write(xml_bytes)
+
+    return json.dumps({
+        "file_path": file_path,
+        "filename": filename,
+        "fixture_count": len(fixtures),
+        "layer_index": layer_index,
+        "layer_name": layer_name,
+    }, indent=2)
+
+
+# ============================================================
 # Tools 55–56 — Fixture & Sequence/Cue Discovery (SAFE_READ)
 # ============================================================
 
@@ -3799,16 +4034,61 @@ async def load_show(
 async def new_show(
     name: str,
     confirm_destructive: bool = False,
+    preserve_connectivity: bool = True,
+    keep_timeconfig: bool = False,
+    keep_globalsettings: bool = False,
+    keep_localsettings: bool = False,
+    keep_protocols: bool = False,
+    keep_network: bool = False,
+    keep_user: bool = False,
 ) -> str:
     """
     Create a new empty show (DESTRUCTIVE — replaces current show).
 
+    CONNECTIVITY WARNING
+    --------------------
+    Creating a new show clears Global Settings, which **disables Telnet login**
+    and severs the MCP connection.  ``preserve_connectivity=True`` (the default)
+    automatically adds /globalsettings + /network + /protocols so Telnet stays
+    enabled and network/DMX config is preserved.
+
+    Set ``preserve_connectivity=False`` only if you intend to manually
+    re-enable Telnet on the console afterwards (Setup → Console → Global
+    Settings → Telnet → Login Enabled).
+
+    Keep flags (correspond to un-checking "Clear …" in the MA2 New Show dialog):
+
+    | Flag               | Dialog checkbox          | MA2 flag        | Included by preserve_connectivity |
+    |--------------------|--------------------------|-----------------|-----------------------------------|
+    | keep_globalsettings| Clear Global Settings    | /globalsettings | YES — contains Telnet login       |
+    | keep_network       | Clear Network Config     | /network        | YES — IP / MA-Net2 config         |
+    | keep_protocols     | Clear Network Protocols  | /protocols      | YES — Art-Net, sACN, etc.         |
+    | keep_timeconfig    | Clear Time Config        | /timeconfig     | no                                |
+    | keep_localsettings | Clear Local Settings     | /localsettings  | no                                |
+    | keep_user          | Clear User Profiles      | /user           | no                                |
+
     Args:
         name: New show file name.
         confirm_destructive: Must be True to proceed.
+        preserve_connectivity: Auto-add /globalsettings + /network + /protocols
+            to prevent Telnet being disabled (default True).
+        keep_timeconfig: Preserve Time Config from current show.
+        keep_globalsettings: Preserve Global Settings (overrides preserve_connectivity).
+        keep_localsettings: Preserve Local Settings from current show.
+        keep_protocols: Preserve Network Protocol settings (overrides preserve_connectivity).
+        keep_network: Preserve Network Config (overrides preserve_connectivity).
+        keep_user: Preserve User Profiles from current show.
 
     Returns:
-        str: JSON with command_sent, raw_response, risk_tier.
+        str: JSON with command_sent, raw_response, risk_tier,
+             and connectivity_flags listing which flags were applied.
+
+    AI assistant guidance
+    ---------------------
+    Always confirm ``preserve_connectivity=True`` unless the user explicitly
+    wants a completely clean show AND understands Telnet will be disabled.
+    Ask about keep_timeconfig, keep_localsettings, keep_user separately —
+    these have no connectivity impact and are purely about preserving show data.
     """
     if not confirm_destructive:
         return json.dumps({
@@ -3817,10 +4097,24 @@ async def new_show(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
+    # Merge preserve_connectivity defaults with explicit flags
+    effective_globalsettings = keep_globalsettings or preserve_connectivity
+    effective_network = keep_network or preserve_connectivity
+    effective_protocols = keep_protocols or preserve_connectivity
+
     # /noconfirm is always needed — the telnet connection is stateless
     # (each call reconnects) so it cannot answer the console's
     # "save old show first?" dialog mid-stream.
-    cmd = build_new_show(name, noconfirm=True)
+    cmd = build_new_show(
+        name,
+        noconfirm=True,
+        keep_timeconfig=keep_timeconfig,
+        keep_globalsettings=effective_globalsettings,
+        keep_localsettings=keep_localsettings,
+        keep_protocols=effective_protocols,
+        keep_network=effective_network,
+        keep_user=keep_user,
+    )
     client = await get_client()
     raw = await client.send_command_with_response(cmd)
     return json.dumps({
@@ -3828,6 +4122,12 @@ async def new_show(
         "raw_response": raw,
         "risk_tier": "DESTRUCTIVE",
         "blocked": False,
+        "preserve_connectivity": preserve_connectivity,
+        "connectivity_flags": {
+            "globalsettings": effective_globalsettings,
+            "network": effective_network,
+            "protocols": effective_protocols,
+        },
     }, indent=2)
 
 

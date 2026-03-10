@@ -863,7 +863,7 @@ class TestStoreNewPresetTool:
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
 
-        result = await store_new_preset(preset_type="color", preset_id=5)
+        result = await store_new_preset(preset_type="color", preset_id=5, confirm_destructive=True)
         data = json.loads(result)
 
         assert data["command_sent"] == "store preset 4.5"
@@ -879,11 +879,21 @@ class TestStoreNewPresetTool:
         mock_get_client.return_value = mock_client
 
         result = await store_new_preset(
-            preset_type="position", preset_id=3, merge=True
+            preset_type="position", preset_id=3, merge=True, confirm_destructive=True
         )
         data = json.loads(result)
 
         assert data["command_sent"] == "store preset 2.3 /merge"
+
+    @pytest.mark.asyncio
+    async def test_store_preset_requires_confirm_destructive(self):
+        """Test that store_new_preset blocks without confirm_destructive=True."""
+        from src.server import store_new_preset
+
+        result = await store_new_preset(preset_type="color", preset_id=5)
+        data = json.loads(result)
+
+        assert "error" in data
 
 
 class TestNavigateConsoleTool:
@@ -3567,6 +3577,226 @@ class TestImportObjectsTool:
         assert "error" in data
 
 
+class TestImportFixtureTypeTool:
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import import_fixture_type
+        result = await import_fixture_type(manufacturer="Martin", fixture="Mac700Profile_Extended", mode="Extended")
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_four_commands(self, mock_get_client):
+        from src.server import import_fixture_type
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Ok")
+        mock_get_client.return_value = mock_client
+        result = await import_fixture_type(
+            manufacturer="Martin",
+            fixture="Mac700Profile_Extended",
+            mode="Extended",
+            confirm_destructive=True,
+        )
+        data = json.loads(result)
+        assert len(data["steps"]) == 4
+        commands = [s["command"] for s in data["steps"]]
+        assert commands[0] == 'ChangeDest "EditSetup"'
+        assert commands[1] == 'ChangeDest "FixtureTypes"'
+        assert commands[2] == 'Import "Martin@Mac700Profile_Extended@Extended"'
+        assert commands[3] == 'ChangeDest /'
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_returns_fixture_key(self, mock_get_client):
+        from src.server import import_fixture_type
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Ok")
+        mock_get_client.return_value = mock_client
+        result = await import_fixture_type(
+            manufacturer="Generic",
+            fixture="Dimmer",
+            mode="Standard",
+            confirm_destructive=True,
+        )
+        data = json.loads(result)
+        assert data["fixture_key"] == "Generic@Dimmer@Standard"
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+
+class TestImportFixtureLayerTool:
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import import_fixture_layer
+        result = await import_fixture_layer(filename="dimmers")
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_four_commands_no_layer_index(self, mock_get_client):
+        from src.server import import_fixture_layer
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Ok")
+        mock_get_client.return_value = mock_client
+        result = await import_fixture_layer(filename="dimmers", confirm_destructive=True)
+        data = json.loads(result)
+        assert len(data["steps"]) == 4
+        commands = [s["command"] for s in data["steps"]]
+        assert commands[0] == 'ChangeDest "EditSetup"'
+        assert commands[1] == 'ChangeDest "Layers"'
+        assert commands[2] == 'Import "dimmers"'
+        assert commands[3] == 'ChangeDest /'
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_four_commands_with_layer_index(self, mock_get_client):
+        from src.server import import_fixture_layer
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Ok")
+        mock_get_client.return_value = mock_client
+        result = await import_fixture_layer(filename="mac700s", layer_index=2, confirm_destructive=True)
+        data = json.loads(result)
+        commands = [s["command"] for s in data["steps"]]
+        assert commands[2] == 'Import "mac700s" At 2'
+
+
+class TestGenerateFixtureLayerXmlTool:
+    """Tests for generate_fixture_layer_xml — writes to importexport dir."""
+
+    SAMPLE_FIXTURE = {
+        "fixture_id": 1,
+        "name": "Dim 1",
+        "fixture_type_no": 2,
+        "fixture_type_name": "2 Dimmer 00",
+        "dmx_address": 1,
+        "num_channels": 1,
+    }
+
+    @pytest.mark.asyncio
+    async def test_creates_file(self, tmp_path, monkeypatch):
+        from src.server import generate_fixture_layer_xml
+        monkeypatch.setattr("src.server.generate_fixture_layer_xml.__wrapped__", None, raising=False)
+        # Patch output dir to tmp_path
+        import src.server as srv
+        original = None
+
+        # We'll patch os.path.join indirectly by monkeypatching the output_dir
+        # inside the function — simplest approach: just call the real function
+        # since the importexport dir exists on this machine.
+        import os
+        output_dir = r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
+        test_filename = "_test_generate_xml_unit"
+        test_file = os.path.join(output_dir, f"{test_filename}.xml")
+        # Cleanup before
+        if os.path.exists(test_file):
+            os.unlink(test_file)
+
+        result = await generate_fixture_layer_xml(
+            filename=test_filename,
+            layer_name="Test Layer",
+            layer_index=1,
+            fixtures=[self.SAMPLE_FIXTURE],
+            showfile="unit_test",
+        )
+        data = json.loads(result)
+        assert data["fixture_count"] == 1
+        assert data["layer_index"] == 1
+        assert os.path.exists(data["file_path"])
+
+        # Validate XML structure
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(data["file_path"])
+        root = tree.getroot()
+        assert root.tag == "MA"
+        layer = root.find("Layer")
+        assert layer is not None
+        assert layer.get("name") == "Test Layer"
+        fixtures_el = layer.findall("Fixture")
+        assert len(fixtures_el) == 1
+        assert fixtures_el[0].get("fixture_id") == "1"
+
+        # Cleanup
+        os.unlink(data["file_path"])
+
+    @pytest.mark.asyncio
+    async def test_overwrite_blocked_by_default(self):
+        from src.server import generate_fixture_layer_xml
+        import os
+        output_dir = r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
+        test_filename = "_test_overwrite_block"
+        test_file = os.path.join(output_dir, f"{test_filename}.xml")
+        if os.path.exists(test_file):
+            os.unlink(test_file)
+
+        # First call — succeeds
+        await generate_fixture_layer_xml(
+            filename=test_filename,
+            layer_name="L",
+            layer_index=1,
+            fixtures=[self.SAMPLE_FIXTURE],
+        )
+        # Second call without overwrite — should fail
+        result = await generate_fixture_layer_xml(
+            filename=test_filename,
+            layer_name="L",
+            layer_index=1,
+            fixtures=[self.SAMPLE_FIXTURE],
+        )
+        data = json.loads(result)
+        assert "error" in data
+
+        os.unlink(test_file)
+
+    @pytest.mark.asyncio
+    async def test_overwrite_allowed(self):
+        from src.server import generate_fixture_layer_xml
+        import os
+        output_dir = r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
+        test_filename = "_test_overwrite_allow"
+        test_file = os.path.join(output_dir, f"{test_filename}.xml")
+        if os.path.exists(test_file):
+            os.unlink(test_file)
+
+        await generate_fixture_layer_xml(
+            filename=test_filename, layer_name="L", layer_index=1,
+            fixtures=[self.SAMPLE_FIXTURE],
+        )
+        result = await generate_fixture_layer_xml(
+            filename=test_filename, layer_name="L", layer_index=1,
+            fixtures=[self.SAMPLE_FIXTURE], overwrite=True,
+        )
+        data = json.loads(result)
+        assert "error" not in data
+        assert data["fixture_count"] == 1
+
+        os.unlink(test_file)
+
+    @pytest.mark.asyncio
+    async def test_channel_count(self):
+        from src.server import generate_fixture_layer_xml
+        import os, xml.etree.ElementTree as ET
+        output_dir = r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
+        test_filename = "_test_channel_count"
+        test_file = os.path.join(output_dir, f"{test_filename}.xml")
+        if os.path.exists(test_file):
+            os.unlink(test_file)
+
+        fx = dict(self.SAMPLE_FIXTURE)
+        fx["num_channels"] = 3
+        result = await generate_fixture_layer_xml(
+            filename=test_filename, layer_name="L", layer_index=1,
+            fixtures=[fx],
+        )
+        data = json.loads(result)
+        tree = ET.parse(data["file_path"])
+        channels = tree.getroot().findall(".//Channel")
+        assert len(channels) == 3
+
+        os.unlink(test_file)
+
 
     # ============================================================
     # Tests for validation helpers + refactored park/unpark/goto
@@ -4089,14 +4319,57 @@ class TestNewShow:
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_new_show_confirmed(self, mock_get_client):
+    async def test_new_show_confirmed_default_connectivity(self, mock_get_client):
+        """Default preserve_connectivity=True auto-adds /globalsettings /protocols /network."""
         from src.server import new_show
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
         result = await new_show(name="fresh", confirm_destructive=True)
         data = json.loads(result)
+        cmd = data["command_sent"]
+        assert "/globalsettings" in cmd
+        assert "/network" in cmd
+        assert "/protocols" in cmd
+        assert data["blocked"] is False
+        assert data["preserve_connectivity"] is True
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_new_show_no_connectivity_preservation(self, mock_get_client):
+        """preserve_connectivity=False: only /noconfirm, no keep flags unless explicit."""
+        from src.server import new_show
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Ok")
+        mock_get_client.return_value = mock_client
+        result = await new_show(name="fresh", confirm_destructive=True, preserve_connectivity=False)
+        data = json.loads(result)
         assert data["command_sent"] == 'newshow "fresh" /noconfirm'
+        assert data["blocked"] is False
+        assert data["preserve_connectivity"] is False
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_new_show_all_keep_flags(self, mock_get_client):
+        """All keep flags + preserve_connectivity=False → all six flags in command."""
+        from src.server import new_show
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Ok")
+        mock_get_client.return_value = mock_client
+        result = await new_show(
+            name="fresh",
+            confirm_destructive=True,
+            preserve_connectivity=False,
+            keep_timeconfig=True,
+            keep_globalsettings=True,
+            keep_localsettings=True,
+            keep_protocols=True,
+            keep_network=True,
+            keep_user=True,
+        )
+        data = json.loads(result)
+        cmd = data["command_sent"]
+        assert cmd == 'newshow "fresh" /noconfirm /timeconfig /globalsettings /localsettings /protocols /network /user'
         assert data["blocked"] is False
 
 

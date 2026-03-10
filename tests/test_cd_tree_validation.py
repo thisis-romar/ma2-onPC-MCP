@@ -217,6 +217,7 @@ class TestPresetTreeVerification:
         result = await store_new_preset(
             preset_type="color",
             preset_id=TEST_PRESET_ID,
+            confirm_destructive=True,
         )
 
         data = json.loads(result)

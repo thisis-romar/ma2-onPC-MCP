@@ -5,7 +5,12 @@ Live-validated on grandMA2 onPC 3.9.60.65.
 """
 
 import pytest
-from src.commands.functions.importexport import export_object, import_object
+from src.commands.functions.importexport import (
+    export_object,
+    import_object,
+    import_fixture_type_cmd,
+    import_layer_cmd,
+)
 
 
 class TestExportObjectBuilder:
@@ -76,3 +81,32 @@ class TestImportObjectBuilder:
 
     def test_mask(self):
         assert import_object("mask_test", "Mask", 5) == 'import "mask_test" at Mask 5'
+
+
+class TestImportFixtureTypeCmdBuilder:
+    def test_basic(self):
+        assert import_fixture_type_cmd("Martin", "Mac700Profile_Extended", "Extended") == \
+            'Import "Martin@Mac700Profile_Extended@Extended"'
+
+    def test_generic_dimmer(self):
+        assert import_fixture_type_cmd("Generic", "Dimmer", "Mode 1") == \
+            'Import "Generic@Dimmer@Mode 1"'
+
+    def test_at_signs_in_key(self):
+        result = import_fixture_type_cmd("A", "B", "C")
+        assert result == 'Import "A@B@C"'
+        assert result.count("@") == 2
+
+
+class TestImportLayerCmdBuilder:
+    def test_no_index(self):
+        assert import_layer_cmd("dimmers") == 'Import "dimmers"'
+
+    def test_with_index(self):
+        assert import_layer_cmd("mac700s", 2) == 'Import "mac700s" At 2'
+
+    def test_index_one(self):
+        assert import_layer_cmd("my_fixtures", 1) == 'Import "my_fixtures" At 1'
+
+    def test_filename_with_spaces(self):
+        assert import_layer_cmd("my layer file", 3) == 'Import "my layer file" At 3'

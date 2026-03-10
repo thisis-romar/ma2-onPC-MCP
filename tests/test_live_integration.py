@@ -589,7 +589,7 @@ class TestLayer4Programming:
         """4.4 — Store programmer as dimmer preset 99."""
         # Ensure programmer has content
         await set_intensity("fixture", 101, 80)
-        result = await store_new_preset("dimmer", 99)
+        result = await store_new_preset("dimmer", 99, confirm_destructive=True)
         data = validate_response(result, ["command_sent", "raw_response"])
         assert "store" in data["command_sent"].lower()
         assert "preset" in data["command_sent"].lower()
@@ -1250,4 +1250,74 @@ class TestLayer9LabelQuoting:
         cmd = data["command_sent"]
         assert "TestGroup" in cmd
         assert '"TestGroup"' not in cmd
+        print(f"  command_sent: {cmd}")
+
+
+# ---------------------------------------------------------------------------
+# Layer 10 — NewShow keep-flags live validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.live
+@pytest.mark.destructive
+class TestLayer10NewShowFlags:
+    """Layer 10 — new_show keep-flags verified on the wire (DESTRUCTIVE)."""
+
+    async def test_new_show_preserve_connectivity_default(self, live_client):
+        """10.1 — Default preserve_connectivity=True: /globalsettings /protocols /network on wire.
+
+        Telnet stays enabled so subsequent MCP tool calls continue to work.
+        """
+        result = await new_show(
+            name="Claude_MA2_Ctrl",
+            confirm_destructive=True,
+        )
+        data = validate_response(result, ["command_sent", "raw_response", "blocked"])
+        assert data["blocked"] is False
+        assert data["preserve_connectivity"] is True
+        cmd = data["command_sent"]
+        assert "/globalsettings" in cmd
+        assert "/network" in cmd
+        assert "/protocols" in cmd
+        print(f"  command_sent: {cmd}")
+        print(f"  connectivity_flags: {data.get('connectivity_flags')}")
+        print(f"  raw_response: {data['raw_response']}")
+
+    async def test_new_show_all_keep_flags(self, live_client):
+        """10.2 — All six keep flags + preserve_connectivity=False → all flags on wire."""
+        result = await new_show(
+            name="Claude_MA2_Ctrl",
+            confirm_destructive=True,
+            preserve_connectivity=False,
+            keep_timeconfig=True,
+            keep_globalsettings=True,
+            keep_localsettings=True,
+            keep_protocols=True,
+            keep_network=True,
+            keep_user=True,
+        )
+        data = validate_response(result, ["command_sent", "raw_response", "blocked"])
+        assert data["blocked"] is False
+        cmd = data["command_sent"]
+        assert cmd == (
+            'newshow "Claude_MA2_Ctrl" /noconfirm'
+            " /timeconfig /globalsettings /localsettings /protocols /network /user"
+        )
+        print(f"  command_sent: {cmd}")
+        print(f"  raw_response: {data['raw_response']}")
+
+    async def test_new_show_selective_keep(self, live_client):
+        """10.3 — preserve_connectivity=True (default) + keep_user: all connectivity + /user."""
+        result = await new_show(
+            name="Claude_MA2_Ctrl",
+            confirm_destructive=True,
+            keep_user=True,
+        )
+        data = validate_response(result, ["command_sent", "raw_response", "blocked"])
+        assert data["blocked"] is False
+        cmd = data["command_sent"]
+        assert "/globalsettings" in cmd
+        assert "/network" in cmd
+        assert "/protocols" in cmd
+        assert "/user" in cmd
         print(f"  command_sent: {cmd}")

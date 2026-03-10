@@ -47,6 +47,8 @@ from .call import (
 from .importexport import (
     export_object,
     import_object,
+    import_fixture_type_cmd,
+    import_layer_cmd,
 )
 
 # Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove)
@@ -205,6 +207,8 @@ __all__ = [
     # Import/Export Function Keywords
     "export_object",
     "import_object",
+    "import_fixture_type_cmd",
+    "import_layer_cmd",
     # Store / Update / Show management
     "store",
     "store_cue",
