@@ -4208,21 +4208,48 @@ async def get_variable(
     var_name: str | None = None,
 ) -> str:
     """
-    Read variables from the console.
+    Read variables from the console (SAFE_READ).
 
     Args:
-        action: "get_user" (read a user variable), "list_var" (list show variables),
-                or "list_user_var" (list user variables).
-        var_name: Variable name (required for get_user, e.g. "$mycounter").
+        action: One of:
+            "echo"         — read any variable via `Echo $NAME` (system + user vars).
+                             Use this for built-in system variables: $SELECTEDEXEC,
+                             $TIME, $DATE, $VERSION, $FADERPAGE, $BUTTONPAGE,
+                             $SELECTEDFIXTURESCOUNT, $USER, $HOSTNAME, $HOSTSTATUS, etc.
+            "get_user"     — read a user variable via GetUserVar.
+            "list_var"     — list all global show variables.
+            "list_user_var"— list all user-profile variables.
+        var_name: Variable name (required for "echo" and "get_user").
+                  May include or omit leading $. E.g. "SELECTEDEXEC" or "$mycounter".
 
     Returns:
         str: JSON with command_sent, raw_response, risk_tier.
+             For "echo", also includes `variable` and `value` keys.
     """
-    valid_actions = ("get_user", "list_var", "list_user_var")
+    valid_actions = ("echo", "get_user", "list_var", "list_user_var")
     if action not in valid_actions:
         return json.dumps({
             "error": f"action must be one of {valid_actions}",
             "blocked": True,
+        }, indent=2)
+
+    if action == "echo":
+        if not var_name:
+            return json.dumps({
+                "error": "var_name is required for echo action",
+                "blocked": True,
+            }, indent=2)
+        clean = var_name.lstrip("$")
+        cmd = f"Echo ${clean}"
+        client = await get_client()
+        raw = await client.send_command_with_response(cmd)
+        value = raw.split("[channel]>")[0].strip() if "[channel]>" in raw else raw.strip()
+        return json.dumps({
+            "variable": f"${clean}",
+            "value": value,
+            "command_sent": cmd,
+            "raw_response": raw,
+            "risk_tier": "SAFE_READ",
         }, indent=2)
 
     if action == "get_user":

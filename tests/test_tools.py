@@ -1228,6 +1228,54 @@ class TestListSystemVariablesTool:
         assert data["variables"] == {}
 
 
+class TestGetVariableEchoAction:
+    """Tests for get_variable with action='echo' (system variable reads)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_echo_no_dollar(self, mock_get_client):
+        from src.server import get_variable
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            return_value="3.9.60\r\n[channel]>"
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await get_variable(action="echo", var_name="VERSION")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "Echo $VERSION"
+        assert data["variable"] == "$VERSION"
+        assert data["value"] == "3.9.60"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_echo_strips_dollar(self, mock_get_client):
+        from src.server import get_variable
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            return_value="12:34:56\r\n[channel]>"
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await get_variable(action="echo", var_name="$TIME")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "Echo $TIME"
+        assert data["variable"] == "$TIME"
+        assert data["value"] == "12:34:56"
+
+    @pytest.mark.asyncio
+    async def test_echo_blocked_without_var_name(self):
+        from src.server import get_variable
+
+        result = await get_variable(action="echo")
+        data = json.loads(result)
+        assert data["blocked"] is True
+
+
 class TestPlaybackActionTool:
     """Tests for the playback_action MCP tool."""
 
