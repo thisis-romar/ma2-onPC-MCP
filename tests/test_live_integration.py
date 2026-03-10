@@ -206,7 +206,9 @@ class TestLayer0SafeRead:
         assert "parsed_prompt" in data
 
     async def test_list_console_destination(self, live_client):
-        """0.2 — List objects at current destination."""
+        """0.2 — List objects at current destination (navigate to root first to
+        avoid listing 189+ executors which can freeze onPC)."""
+        await navigate_console(destination="/")
         result = await list_console_destination()
         data = validate_response(result, ["entries", "entry_count"])
         assert data["entry_count"] >= 0

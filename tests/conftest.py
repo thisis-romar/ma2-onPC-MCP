@@ -4,10 +4,29 @@ Pytest Configuration File
 This file is used to define shared fixtures and test configuration.
 """
 
+import asyncio
+
 import pytest
 
 # Configure pytest-asyncio default mode
 pytest_plugins = ["pytest_asyncio"]
+
+# ---------------------------------------------------------------------------
+# Live-test pacing — prevent overwhelming grandMA2 onPC with rapid commands
+# ---------------------------------------------------------------------------
+# grandMA2 onPC can freeze/hang when receiving commands faster than it can
+# process them. This autouse fixture adds a mandatory cooldown after every
+# live test to give the console time to settle.
+
+LIVE_TEST_COOLDOWN = 1.0  # seconds between tests — onPC needs time to process
+
+
+@pytest.fixture(autouse=True)
+async def _live_test_pacing(request):
+    """Add cooldown after every ``@pytest.mark.live`` test."""
+    yield
+    if request.node.get_closest_marker("live"):
+        await asyncio.sleep(LIVE_TEST_COOLDOWN)
 
 
 def pytest_addoption(parser):

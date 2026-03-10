@@ -1,9 +1,9 @@
 ---
 title: "CD Tree \u2194 MCP Tool Correlation Matrix"
 description: Maps every MCP tool to its grandMA2 console object tree branch for navigation-based verification
-version: 1.0.0
+version: 2.0.0
 created: 2026-03-08T22:00:00Z
-last_updated: 2026-03-08T22:00:00Z
+last_updated: 2026-03-09T12:00:00Z
 ---
 
 # CD Tree \u2194 MCP Tool Correlation Matrix
@@ -14,7 +14,7 @@ This document maps every MCP tool to the grandMA2 console object tree branch
 it operates on. Use this to know which `cd` + `list` path to inspect when
 verifying that an MCP tool actually created/modified/deleted the expected object.
 
-## Quick Reference: 29 MCP Tools \u2192 Tree Branches
+## Quick Reference: 73 MCP Tools \u2192 Tree Branches
 
 ### Navigation & Inspection Tools (6)
 
@@ -72,6 +72,70 @@ verifying that an MCP tool actually created/modified/deleted the expected object
 | `send_raw_command` | Any | Depends on the raw command sent |
 | `search_codebase` | N/A | RAG search, no console interaction |
 
+### Import/Export Tools (2)
+
+| MCP Tool | Tree Branch | MA Command | Purpose |
+|----------|------------|------------|---------|
+| `export_objects` | _varies_ | `Export [Type] [Range] "file"` | Export show objects to XML file |
+| `import_objects` | _varies_ | `Import [Type] "file" At [id]` | Import objects from XML file |
+
+### Highlight & Blackout Tools (2)
+
+| MCP Tool | Tree Branch | MA Command | Purpose |
+|----------|------------|------------|---------|
+| `highlight_fixtures` | Programmer | `Highlight On/Off` | Toggle highlight mode for selected fixtures |
+| `blackout_toggle` | Global | `Blackout` | Toggle master blackout |
+
+### Executor & Playback Tools (1)
+
+| MCP Tool | Tree Branch | cd + list Verification | MA Command |
+|----------|------------|----------------------|------------|
+| `release_executor` | `cd Executor` | N/A (playback state) | `Release Executor N` |
+
+### Show Management Tools (2)
+
+| MCP Tool | Tree Branch | MA Command | Risk |
+|----------|------------|------------|------|
+| `load_show` | N/A | `LoadShow "name"` | DESTRUCTIVE — replaces current show |
+| `new_show` | N/A | `NewShow "name"` | DESTRUCTIVE — replaces current show |
+
+### Variable & History Tools (2)
+
+| MCP Tool | Tree Branch | MA Command | Purpose |
+|----------|------------|------------|---------|
+| `get_variable` | N/A | `GetUserVar`, `ListVar`, `ListUserVar` | Read variables (complement to `manage_variable`) |
+| `list_undo_history` | N/A | `ListOops` | Show undo history |
+
+### List & Library Tools (2)
+
+| MCP Tool | Tree Branch | MA Command | Purpose |
+|----------|------------|------------|---------|
+| `list_shows` | N/A | `ListShows` | List available show files |
+| `list_library` | N/A | `ListLibrary`, `ListEffectLibrary`, `ListMacroLibrary` | Browse fixture/effect/macro libraries |
+
+### LiveSetup Navigation Tools (3)
+
+| MCP Tool | Tree Branch | cd Path | Purpose |
+|----------|------------|---------|---------|
+| `list_fixture_types` | `cd 10.3` | `cd /` → `cd 10` → `cd 3` → `list` | List all fixture types in the show |
+| `list_layers` | `cd 10.4` | `cd /` → `cd 10` → `cd 4` → `list` | List all fixture layers |
+| `list_universes` | `cd 10.5` | `cd /` → `cd 10` → `cd 5` → `list` | List DMX universes |
+
+### MAtricks Tool (1)
+
+| MCP Tool | Tree Branch | cd Path | Purpose |
+|----------|------------|---------|---------|
+| `manage_matricks` | `cd MAtricks` | `set_property("MAtricks", ...)` | Configure MAtricks selection patterns |
+
+### Fixture Patching Tools (4)
+
+| MCP Tool | Tree Branch | cd Path | MA Command | Risk |
+|----------|------------|---------|------------|------|
+| `browse_patch_schedule` | `cd 10.3.N` | `cd /` → `cd 10` → `cd 3` → `cd N` → `list` | Navigation + list | SAFE_READ |
+| `patch_fixture` | `cd Fixture` | N/A | `Assign FixtureType At Fixture; Assign DMX At Fixture` | DESTRUCTIVE |
+| `unpatch_fixture` | `cd Fixture` | N/A | `Delete Fixture N` | DESTRUCTIVE |
+| `set_fixture_type_property` | `cd 10.3.N` | `set_property("10.3.N", ...)` | `cd` + `assign N/prop=val` | DESTRUCTIVE |
+
 ## Object Tree Branches (53 navigable via cd)
 
 ### Core Show Objects (most commonly used)
@@ -86,7 +150,7 @@ verifying that an MCP tool actually created/modified/deleted the expected object
 | **Effects** | `cd Effect` | `store_object("effect")` | `delete_object("effect")` | `query_object_list`, `list_console_destination` |
 | **Executors** | `cd Executor` | `assign_object(assign)` | `assign_object(empty)` | `list_console_destination` |
 | **Layouts** | `cd Layout` | `assign_object(layout)` | `delete_object("layout")` | `list_console_destination` |
-| **Fixtures** | `cd Fixture` | _(patched externally)_ | `delete_object("fixture")` | `query_object_list`, `list_console_destination` |
+| **Fixtures** | `cd Fixture` | `patch_fixture` | `delete_object("fixture")`, `unpatch_fixture` | `query_object_list`, `list_console_destination` |
 | **Channels** | `cd Channel` | _(patched externally)_ | \u2014 | `list_console_destination` |
 
 ### Page Context
@@ -107,8 +171,8 @@ verifying that an MCP tool actually created/modified/deleted the expected object
 | **Timers** | `cd Timer` | `store_object("timer")` |
 | **Users** | `cd User` | Read-only via `list` |
 | **User Profiles** | `cd UserProfile` | Read-only via `list` |
-| **DMX** | `cd Dmx`, `cd DmxUniverse` | `park_fixture`/`unpark_fixture` |
-| **Fixture Types** | `cd FixtureType` | Read-only via `list` |
+| **DMX** | `cd Dmx`, `cd DmxUniverse`, `cd 10.5` | `park_fixture`/`unpark_fixture`, `list_universes` |
+| **Fixture Types** | `cd FixtureType`, `cd 10.3` | `list_fixture_types`, `browse_patch_schedule`, `set_fixture_type_property` |
 | **Attributes** | `cd Attribute` | `set_attribute`, `query_object_list("attribute")` |
 | **Features** | `cd Feature` | Read-only via `list` |
 
@@ -129,6 +193,22 @@ verifying that an MCP tool actually created/modified/deleted the expected object
 `Mask`, `MAtricks`, `Part`, `PreviewExecutor`, `Programmer`, `Remote`,
 `Root`, `RdmFixtureType`, `Selection`, `SoundChannel`, `SpecialMaster`,
 `Messages`
+
+### LiveSetup Tree (cd 10) — Deep Navigation
+
+The LiveSetup branch is accessed via numeric index `cd 10` and supports
+deep dot-separated paths up to depth 8+.
+
+| Index Path | Node | MCP Tools |
+|------------|------|-----------|
+| `10` | LiveSetup | _(parent)_ |
+| `10.1` | DMX_Profiles | — |
+| `10.2` | PresetTypes | — |
+| `10.3` | FixtureTypes | `list_fixture_types` |
+| `10.3.N` | Fixture Type N | `browse_patch_schedule`, `set_fixture_type_property` |
+| `10.4` | Layers | `list_layers` |
+| `10.5` | Universes | `list_universes` |
+| `10.6` | Objects3D | — |
 
 ## Verification Pattern
 
@@ -177,6 +257,14 @@ delete_object("effect", 99, confirm_destructive=True)
 | Navigation & Inspection | 6 | `navigate_console`, `get_console_location`, `list_console_destination`, `scan_console_indexes`, `set_node_property`, `get_object_info` |
 | Object Create/Modify | 13 | `create_fixture_group`, `store_current_cue`, `store_new_preset`, `store_object`, `assign_object` (5 modes), `label_or_appearance`, `copy_or_move_object`, `edit_object`, `set_intensity` |
 | Object Delete | 2 | `delete_object`, `remove_content` |
-| Playback & Control | 5 | `execute_sequence`, `playback_action`, `run_macro`, `apply_preset`, `set_attribute` |
-| Utility | 3 | `clear_programmer`, `park_fixture`/`unpark_fixture`, `manage_variable`, `send_raw_command`, `search_codebase` |
-| **Total** | **29** | |
+| Playback & Control | 7 | `execute_sequence`, `playback_action`, `run_macro`, `apply_preset`, `set_attribute`, `release_executor`, `blackout_toggle` |
+| Import/Export | 2 | `export_objects`, `import_objects` |
+| Highlight & Selection | 1 | `highlight_fixtures` |
+| Show Management | 2 | `load_show`, `new_show` |
+| Variable & History | 2 | `get_variable`, `list_undo_history` |
+| List & Library | 2 | `list_shows`, `list_library` |
+| LiveSetup Navigation | 3 | `list_fixture_types`, `list_layers`, `list_universes` |
+| MAtricks | 1 | `manage_matricks` |
+| Fixture Patching | 4 | `browse_patch_schedule`, `patch_fixture`, `unpatch_fixture`, `set_fixture_type_property` |
+| Utility | 5 | `clear_programmer`, `park_fixture`/`unpark_fixture`, `manage_variable`, `send_raw_command`, `search_codebase` |
+| **Total** | **73** | |
