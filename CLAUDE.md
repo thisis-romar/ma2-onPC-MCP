@@ -1,7 +1,7 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.0.0
+version: 3.1.0
 created: 2026-03-01T00:00:00Z
 last_updated: 2026-03-10T00:00:00Z
 ---
@@ -10,7 +10,7 @@ last_updated: 2026-03-10T00:00:00Z
 
 ## Project Identity
 
-MCP server exposing **77 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **78 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,7 +19,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 77 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 78 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
@@ -93,7 +93,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-10): **1129 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-10): **1157 unit tests**, **132 live integration tests**.
 
 ### New Show — connectivity preservation
 
@@ -127,6 +127,62 @@ To build a wildcard filter for any object pool:
 
 The tool navigates to the pool, lists all entries, extracts names, then returns to root (`cd /`).
 Works with any keyword (`"Group"`, `"Sequence"`, `"Macro"`, etc.) or numeric cd index.
+
+### grandMA2 System Variables
+
+grandMA2 exposes 26 built-in read-only system variables. Access them via:
+
+- `list_system_variables()` — returns all 26 as `{"$NAME": "value"}` dict
+- `get_variable(action="echo", var_name="NAME")` — reads one variable (uses ListVar + filter internally)
+
+**ListVar telnet wire format:**
+```
+$Global : $VARNAME = VALUE
+```
+The `_parse_listvar()` helper in `src/server.py` strips the `$Global : ` scope prefix.
+
+**`Echo $VARNAME` does NOT work.** MA2 expands the variable before executing, so
+`Echo $TIME` becomes `Echo 19h26m52.284s` → UNKNOWN COMMAND. Always use `ListVar`.
+
+**`SelFix` vs `Select` for `$SELECTEDFIXTURESCOUNT`:**
+Only `SelFix N [Thru M]` updates `$SELECTEDFIXTURESCOUNT`. `Select Fixture N` does not.
+
+**`$SELECTEDEXEC` format:** `page.page.exec` (e.g. `1.1.201` for executor 201 on page 1).
+Changed by `select executor N` or physical console selection.
+
+**`$SELECTEDEXECCUE`:** `NONE` when no cue is active; cue number (e.g. `1`) when running.
+Changes on `Go Executor N`, returns to `NONE` on `Off Executor N`.
+
+**All 26 built-in system variables** (live-verified 2026-03-10, v3.9.60.65 onPC):
+
+| Variable | Example value | Notes |
+|----------|--------------|-------|
+| `$HOSTSUBTYPE` | `onPC` | |
+| `$HOSTTYPE` | `Console` | |
+| `$HOSTHARDWARE` | `GMA2` | |
+| `$HOSTNAME` | `WINDELL-6OKD21F` | Station name |
+| `$HOSTIP` | `127.0.0.1` | |
+| `$HOSTSTATUS` | `Master 1` | e.g. `Standalone`, `Master N` |
+| `$OS` | `WINDOWS` | |
+| `$VERSION` | `3.9.60.65` | Full build version |
+| `$TIME` | `19h26m52.284s` | MA2 internal time format |
+| `$DATE` | `10.3.2026` | `DD.M.YYYY` |
+| `$PATH` | `C:/ProgramData/.../gma2_V_3.9.60` | Software run path |
+| `$PLUGINPATH` | `.../plugins` | |
+| `$TEMPPATH` | `.../temp` | |
+| `$USER` | `administrator` | Current login |
+| `$USERPROFILE` | `Default` | |
+| `$USERRIGHTS` | `Admin` | |
+| `$SHOWFILE` | `claude_ma2_ctrl` | Current show name |
+| `$PRESET` | `GOBO` | Last active preset type |
+| `$ATTRIBUTE` | `GOBO1` | Current attribute context |
+| `$FEATURE` | `GOBO1` | Current feature context |
+| `$SELECTEDEXEC` | `1.1.1` | `page.page.exec` format |
+| `$SELECTEDEXECCUE` | `NONE` or `1` | Active cue on selected executor |
+| `$SELECTEDFIXTURESCOUNT` | `0`–`N` | Only updated by `SelFix`, not `Select` |
+| `$FADERPAGE` | `1` | |
+| `$BUTTONPAGE` | `1` | |
+| `$CHANNELPAGE` | `1` | |
 
 ---
 
