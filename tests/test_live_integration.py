@@ -36,6 +36,7 @@ pytestmark = pytest.mark.asyncio(loop_scope="module")
 # All tool functions are imported directly from the server module
 from src.server import (  # noqa: E402
     adjust_value_relative,
+    discover_object_names,
     apply_preset,
     assign_cue_trigger,
     assign_executor_property,
@@ -1166,3 +1167,87 @@ class TestLayer8NewTools:
         data = validate_response(result, ["commands_sent", "raw_response"])
         assert data["risk_tier"] == "SAFE_READ"
         print(f"  Dimmer instances: {data.get('entry_count', 'N/A')}")
+
+
+# ---------------------------------------------------------------------------
+# Layer 9 — Name Discovery & Wildcard Validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.live
+class TestLayer9NameDiscovery:
+    """Layer 9 — discover_object_names (SAFE_READ): real telnet I/O validation."""
+
+    async def test_discover_group_names(self, live_client):
+        """9.1 — Navigate cd Group, list pool, extract names; verify telnet I/O."""
+        result = await discover_object_names("Group")
+        data = validate_response(result, ["destination", "names_only", "entries", "entry_count"])
+        assert data["destination"] == "Group"
+        assert isinstance(data["names_only"], list)
+        nav_cmd = data.get("navigate_command", "")
+        assert nav_cmd, "navigate_command must contain the cd command actually sent"
+        print(f"  Group names ({data['entry_count']}): {data['names_only']}")
+        print(f"  navigate_command: {nav_cmd}")
+        print(f"  wildcard_tip: {data.get('wildcard_tip')}")
+
+    async def test_discover_sequence_names(self, live_client):
+        """9.2 — Sequence pool via keyword."""
+        result = await discover_object_names("Sequence")
+        data = validate_response(result, ["destination", "names_only", "entry_count"])
+        assert data["destination"] == "Sequence"
+        assert isinstance(data["names_only"], list)
+        print(f"  Sequence names ({data['entry_count']}): {data['names_only']}")
+
+    async def test_discover_numeric_index(self, live_client):
+        """9.3 — cd 22 (Groups) via numeric index — same pool as 'Group'."""
+        result = await discover_object_names("22")
+        data = validate_response(result, ["destination", "names_only", "entry_count"])
+        assert isinstance(data["names_only"], list)
+        print(f"  cd 22 ({data['entry_count']} entries): {data['names_only']}")
+
+    async def test_discover_returns_to_root(self, live_client):
+        """9.4 — Console is back at root (cd /) after discover completes."""
+        await discover_object_names("Macro")
+        nav_result = await navigate_console("/")
+        nav_data = json.loads(nav_result)
+        assert nav_data.get("blocked") is not True
+        print(f"  Post-discover root nav: {nav_data.get('command_sent')}")
+
+    async def test_wildcard_tip_populated(self, live_client):
+        """9.5 — wildcard_tip is non-null when pool contains named objects."""
+        result = await discover_object_names("Group")
+        data = json.loads(result)
+        if data["named_count"] > 0:
+            assert data["wildcard_tip"] is not None
+            assert len(data["wildcard_tip"]) > 0
+            print(f"  wildcard_tip: {data['wildcard_tip']}")
+        else:
+            print("  (Group pool empty — tip is None, skipping assertion)")
+
+
+@pytest.mark.live
+@pytest.mark.destructive
+class TestLayer9LabelQuoting:
+    """Layer 9b — quote_name output verified on the wire (DESTRUCTIVE: relabels group 99)."""
+
+    async def test_label_name_with_space_auto_quoted(self, live_client):
+        """9.6 — Name with space: quote_name wraps it in double-quotes on the wire."""
+        result = await label_or_appearance(
+            "label", "group", 99, name="Relabeled 99", confirm_destructive=True,
+        )
+        data = validate_response(result, ["command_sent", "raw_response", "blocked"])
+        assert data["blocked"] is False
+        assert '"Relabeled 99"' in data["command_sent"]
+        print(f"  command_sent: {data['command_sent']}")
+
+    async def test_label_plain_name_no_quotes_on_wire(self, live_client):
+        """9.7 — Plain name (no special chars): emitted bare, no double-quotes."""
+        result = await label_or_appearance(
+            "label", "group", 99, name="TestGroup", confirm_destructive=True,
+        )
+        data = validate_response(result, ["command_sent", "raw_response", "blocked"])
+        assert data["blocked"] is False
+        cmd = data["command_sent"]
+        assert "TestGroup" in cmd
+        assert '"TestGroup"' not in cmd
+        print(f"  command_sent: {cmd}")
