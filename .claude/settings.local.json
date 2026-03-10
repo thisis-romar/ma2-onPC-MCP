@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run:*)",
+      "Bash(git:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(taskkill:*)",
+      "Bash(tasklist:*)",
+      "Bash(xargs wc:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(sqlite3:*)",
+      "Bash(od:*)",
+      "Bash(where uv:*)",
+      "Bash(C:/Users/romar/.local/bin/uv.exe run:*)",
+      "WebFetch(domain:help.malighting.com)",
+      "WebFetch(domain:help2.malighting.com)",
+      "Bash(uv sync:*)",
+      "Bash(python3:*)"
+    ]
+  }
+}

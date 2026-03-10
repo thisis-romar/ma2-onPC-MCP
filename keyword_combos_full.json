@@ -1,0 +1,3908 @@
+{
+  "Release": [
+    {
+      "command": "Release Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Release Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mFixture\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mChannel\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mGroup\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mPreset\u001b[37m 1.99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mMacro\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mLayout\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mWorld\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mFilter\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mTimecode\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mTimer\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Release View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mRelease\u001b[37m \u001b[32mView\u001b[37m 99 |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Flash": [
+    {
+      "command": "Flash Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : Flash Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Flash Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Flash Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Flash Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : Flash Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : Flash Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : Flash Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[KSeq 4 Cue 1 Part 0 : \u001b[32mToggle\u001b[37m \u001b[32mExecutor\u001b[37m 160 |"
+    },
+    {
+      "command": "Flash Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : Flash Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : Flash World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : Flash Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : Flash Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : Flash Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Flash View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mFlash\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : Flash View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Solo": [
+    {
+      "command": "Solo Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mCue\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mFixture\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mChannel\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mGroup\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mPreset\u001b[37m 1.99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mMacro\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mLayout\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mWorld\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mFilter\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mTimecode\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mTimer\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Solo View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSolo\u001b[37m \u001b[32mView\u001b[37m 99 |  [Fixture]>\u001b[K"
+    }
+  ],
+  "On": [
+    {
+      "command": "On Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : On Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : On Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : On Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : On Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : On Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : On Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : On Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[KSeq 1 Cue 1 Part 0 : \u001b[32mToggle\u001b[37m \u001b[32mExecutor\u001b[37m 115 | Seq 2 Cue 1 Part 0 : \u001b[32mToggle\u001b[37m \u001b[32mExecutor\u001b[37m 130 | Seq 3 Cue 1 Part 0"
+    },
+    {
+      "command": "On Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : On Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : On World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : On Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : On Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : On Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "On View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOn\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : On View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Off": [
+    {
+      "command": "Off Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : Off Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Off Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Off Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Off Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : Off Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : Off Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : Off Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : Off Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : Off World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : Off Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : Off Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : Off Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Off View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mOff\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : Off View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Temp": [
+    {
+      "command": "Temp Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : Temp Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Temp Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Temp Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Temp Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : Temp Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : Temp Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : Temp Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[KSeq 1 Cue 1 Part 0 : \u001b[32mToggle\u001b[37m \u001b[32mExecutor\u001b[37m 115 | Seq 2 Cue 1 Part 0 : \u001b[32mToggle\u001b[37m \u001b[32mExecutor\u001b[37m 130 | Seq 3 Cue 1 Part"
+    },
+    {
+      "command": "Temp Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : Temp Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : Temp World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : Temp Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : Temp Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : Temp Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Temp View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTemp\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : Temp View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Top": [
+    {
+      "command": "Top Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : Top Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Top Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Top Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Top Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : Top Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : Top Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : Top Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[KMacro 3 Line 1 : \u001b[32mButtonPage\u001b[37m \u001b[32m+\u001b[37m | Macro 4 Line 1 : \u001b[32mButtonPage\u001b[37m \u001b[32m-\u001b[37m | Macro 3 Line 2 : \u001b[32mFaderPage\u001b[37m \u001b["
+    },
+    {
+      "command": "Top Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : Top Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : Top World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : Top Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : Top Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : Top Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Top View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mTop\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : Top View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Freeze": [
+    {
+      "command": "Freeze",
+      "accepted": true,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mCue\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mFixture\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mChannel\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mGroup\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mPreset\u001b[37m 1.99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mMacro\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mLayout\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mWorld\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mFilter\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mTimecode\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mTimer\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Freeze View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mFreeze\u001b[37m \u001b[32mView\u001b[37m 99 |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Pause": [
+    {
+      "command": "Pause Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : Pause Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Pause Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Pause Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Pause Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : Pause Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : Pause Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : Pause Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : Pause Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : Pause World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : Pause Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : Pause Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : Pause Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Pause View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mPause\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : Pause View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Go+": [
+    {
+      "command": "Go+ Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : Go + Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mCue\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mFixture\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mChannel\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mGroup\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mPreset\u001b[37m 1.99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mMacro\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mLayout\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mWorld\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mFilter\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mTimecode\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mTimer\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Go+ View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGo\u001b[37m \u001b[32m+\u001b[37m \u001b[32mView\u001b[37m 99 |  [Fixture]>\u001b[K"
+    }
+  ],
+  "GoBack": [
+    {
+      "command": "GoBack Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : GoBack Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : GoBack Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : GoBack Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : GoBack Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : GoBack Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : GoBack Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : GoBack Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[KMacro 3 Line 2 : \u001b[32mFaderPage\u001b[37m \u001b[32m+\u001b[37m | Macro 4 Line 2 : \u001b[32mFaderPage\u001b[37m \u001b[32m-\u001b[37m | Macro 3 Line 1 : \u001b[32mButtonPage\u001b[37m"
+    },
+    {
+      "command": "GoBack Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : GoBack Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : GoBack World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : GoBack Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : GoBack Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : GoBack Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "GoBack View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoBack\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : GoBack View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Goto": [
+    {
+      "command": "Goto Executor 201",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mExecutor\u001b[37m 201 | \u001b[31mError : Goto Executor 201\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Goto Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Goto Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Goto Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : Goto Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : Goto Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : Goto Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[KMacro 3 Line 1 : \u001b[32mButtonPage\u001b[37m \u001b[32m+\u001b[37m | Macro 4 Line 1 : \u001b[32mButtonPage\u001b[37m \u001b[32m-\u001b[37m | Macro 3 Line 2 : \u001b[32mFaderPage\u001b[37m \u001b"
+    },
+    {
+      "command": "Goto Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : Goto Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : Goto World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : Goto Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : Goto Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : Goto Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Goto View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mGoto\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : Goto View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Select": [
+    {
+      "command": "Select Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : Select Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Select Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Select Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mGroup\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mPreset\u001b[37m 1.99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mMacro\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mLayout\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mWorld\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mFilter\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mTimecode\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mTimer\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Select View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelect\u001b[37m \u001b[32mView\u001b[37m 99 |  [Fixture]>\u001b[K"
+    }
+  ],
+  "SelFix": [
+    {
+      "command": "SelFix Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Cue 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "28",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mCue\u001b[37m 99 | \u001b[31mError : SelFix Cue 99\u001b[37m | Error #28: NO CUE SOURCE GIVEN |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : SelFix Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : SelFix Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Group 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mGroup\u001b[37m 99 | \u001b[31mError : SelFix Group 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Preset 1.99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | \u001b[31mError : SelFix Preset 1.99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Macro 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mMacro\u001b[37m 99 | \u001b[31mError : SelFix Macro 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Page 1",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mPage\u001b[37m 1 | \u001b[31mError : SelFix Page 1\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Layout 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mLayout\u001b[37m 99 | \u001b[31mError : SelFix Layout 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix World 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mWorld\u001b[37m 99 | \u001b[31mError : SelFix World 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Filter 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mFilter\u001b[37m 99 | \u001b[31mError : SelFix Filter 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Timecode 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mTimecode\u001b[37m 99 | \u001b[31mError : SelFix Timecode 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix Timer 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mTimer\u001b[37m 99 | \u001b[31mError : SelFix Timer 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "SelFix View 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mSelFix\u001b[37m \u001b[32mView\u001b[37m 99 | \u001b[31mError : SelFix View 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Highlight": [
+    {
+      "command": "Highlight",
+      "accepted": true,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mCue\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mFixture\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mChannel\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mGroup\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mPreset\u001b[37m 1.99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mMacro\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mLayout\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mWorld\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mFilter\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mTimecode\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mTimer\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Highlight View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mHighlight\u001b[37m \u001b[32mView\u001b[37m 99 |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Blind": [
+    {
+      "command": "Blind",
+      "accepted": true,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mExecutor\u001b[37m 201 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mSequence\u001b[37m 99 | Blind is off. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mCue\u001b[37m 99 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mFixture\u001b[37m 99 | Blind is off. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mChannel\u001b[37m 99 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mGroup\u001b[37m 99 | Blind is off. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mPreset\u001b[37m 1.99 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mMacro\u001b[37m 99 | Blind is off. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mEffect\u001b[37m 99 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mPage\u001b[37m 1 | Blind is off. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mLayout\u001b[37m 99 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mWorld\u001b[37m 99 | Blind is off. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mFilter\u001b[37m 99 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mTimecode\u001b[37m 99 | Blind is off. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mTimer\u001b[37m 99 | Blind is on. |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Blind View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mBlind\u001b[37m \u001b[32mView\u001b[37m 99 | Blind is off. |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Store": [
+    {
+      "command": "Store Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mSequence\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mCue\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Fixture 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mFixture\u001b[37m 99 | \u001b[31mError : Store Fixture 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Channel 99",
+      "accepted": false,
+      "has_confirm": false,
+      "error_code": "72",
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mChannel\u001b[37m 99 | \u001b[31mError : Store Channel 99\u001b[37m | Error #72: COMMAND NOT EXECUTED |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mGroup\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mPreset\u001b[37m 1.99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mMacro\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mEffect\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mPage\u001b[37m 1 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mLayout\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mWorld\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mFilter\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mTimecode\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mTimer\u001b[37m 99 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Store View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mStore\u001b[37m \u001b[32mView\u001b[37m 99 |  [Fixture]>\u001b[K"
+    }
+  ],
+  "Delete": [
+    {
+      "command": "Delete Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mDelete\u001b[37m \u001b[32mExecutor\u001b[37m 201 |  [Fixture]>\u001b[K"
+    },
+    {
+      "command": "Delete Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Executing : \u001b[32mDelete\u001b[37m \u001b[32mSequence\u001b[37m 99 |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Delete View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Copy": [
+    {
+      "command": "Copy Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Copy View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Move": [
+    {
+      "command": "Move Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Move View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Label": [
+    {
+      "command": "Label Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Label View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Call": [
+    {
+      "command": "Call Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Call View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Info": [
+    {
+      "command": "Info Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Info View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "List": [
+    {
+      "command": "List Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "List View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Park": [
+    {
+      "command": "Park Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Park View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Unpark": [
+    {
+      "command": "Unpark Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Unpark View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Assign": [
+    {
+      "command": "Assign Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Assign View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Edit": [
+    {
+      "command": "Edit Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Edit View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Remove": [
+    {
+      "command": "Remove Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Remove View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Appearance": [
+    {
+      "command": "Appearance Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Appearance View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Update": [
+    {
+      "command": "Update Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Update View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "Oops": [
+    {
+      "command": "Oops",
+      "accepted": true,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "Oops View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "SaveShow": [
+    {
+      "command": "SaveShow",
+      "accepted": true,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "SaveShow View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ],
+  "DeleteShow": [
+    {
+      "command": "DeleteShow Executor 201",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Sequence 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Cue 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Fixture 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Channel 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Group 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Preset 1.99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Macro 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Effect 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Page 1",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Layout 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow World 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Filter 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Timecode 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow Timer 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    },
+    {
+      "command": "DeleteShow View 99",
+      "accepted": true,
+      "has_confirm": false,
+      "error_code": null,
+      "raw_snippet": "Invalid Key |  | ATTENTION: Please confirm! : The objects you are about to delete|are still in use. Do you want to continue? : | [1]: Ok |  2 : Cancel |"
+    }
+  ]
+}
