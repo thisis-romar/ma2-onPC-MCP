@@ -1157,22 +1157,32 @@ class TestQueryObjectListTool:
 class TestListSystemVariablesTool:
     """Tests for the list_system_variables MCP tool."""
 
+    # Real format from grandMA2 telnet: "$Global : $VARNAME = VALUE"
+    LISTVAR_RESPONSE = (
+        "$Global : $VERSION = 3.9.60.65\r\n"
+        "$Global : $TIME = 19h26m52.284s\r\n"
+        "$Global : $SELECTEDEXEC = 1.1.1\r\n"
+        "$Global : $SELECTEDEXECCUE = NONE\r\n"
+        "$Global : $FADERPAGE = 1\r\n"
+        " [Channel]>\r\n"
+    )
+
     @pytest.mark.asyncio
     @patch("src.server.get_client")
     async def test_parses_key_value_pairs(self, mock_get_client):
         from src.server import list_system_variables
 
         mock_client = MagicMock()
-        mock_client.send_command_with_response = AsyncMock(
-            return_value="VERSION = 3.9.60\r\n$TIME = 12:00:00\r\n$FADERPAGE = 1\r\n[channel]>"
-        )
+        mock_client.send_command_with_response = AsyncMock(return_value=self.LISTVAR_RESPONSE)
         mock_get_client.return_value = mock_client
 
         result = await list_system_variables()
         data = json.loads(result)
 
-        assert data["variable_count"] >= 1
-        assert "$VERSION" in data["variables"] or "$TIME" in data["variables"]
+        assert data["variable_count"] == 5
+        assert data["variables"]["$VERSION"] == "3.9.60.65"
+        assert data["variables"]["$TIME"] == "19h26m52.284s"
+        assert data["variables"]["$FADERPAGE"] == "1"
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -1180,12 +1190,7 @@ class TestListSystemVariablesTool:
         from src.server import list_system_variables
 
         mock_client = MagicMock()
-        mock_client.send_command_with_response = AsyncMock(
-            return_value=(
-                "$SELECTEDEXEC = 201\r\n$SELECTEDEXECCUE = 1\r\n"
-                "$TIME = 12:00:00\r\n[channel]>"
-            )
-        )
+        mock_client.send_command_with_response = AsyncMock(return_value=self.LISTVAR_RESPONSE)
         mock_get_client.return_value = mock_client
 
         result = await list_system_variables(filter_prefix="SELECTED")
@@ -1197,12 +1202,12 @@ class TestListSystemVariablesTool:
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_strips_dollar_prefix_from_raw(self, mock_get_client):
+    async def test_strips_scope_prefix(self, mock_get_client):
         from src.server import list_system_variables
 
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(
-            return_value="$HOSTNAME = console1\r\n[channel]>"
+            return_value="$Global : $HOSTNAME = console1\r\n [Channel]>\r\n"
         )
         mock_get_client.return_value = mock_client
 
@@ -1218,7 +1223,7 @@ class TestListSystemVariablesTool:
         from src.server import list_system_variables
 
         mock_client = MagicMock()
-        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_client.send_command_with_response = AsyncMock(return_value=" [Channel]>\r\n")
         mock_get_client.return_value = mock_client
 
         result = await list_system_variables()
@@ -1229,7 +1234,14 @@ class TestListSystemVariablesTool:
 
 
 class TestGetVariableEchoAction:
-    """Tests for get_variable with action='echo' (system variable reads)."""
+    """Tests for get_variable with action='echo' (system variable reads via ListVar)."""
+
+    LISTVAR_RESPONSE = (
+        "$Global : $VERSION = 3.9.60.65\r\n"
+        "$Global : $TIME = 19h26m52.284s\r\n"
+        "$Global : $FADERPAGE = 1\r\n"
+        " [Channel]>\r\n"
+    )
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -1237,17 +1249,16 @@ class TestGetVariableEchoAction:
         from src.server import get_variable
 
         mock_client = MagicMock()
-        mock_client.send_command_with_response = AsyncMock(
-            return_value="3.9.60\r\n[channel]>"
-        )
+        mock_client.send_command_with_response = AsyncMock(return_value=self.LISTVAR_RESPONSE)
         mock_get_client.return_value = mock_client
 
         result = await get_variable(action="echo", var_name="VERSION")
         data = json.loads(result)
 
-        assert data["command_sent"] == "Echo $VERSION"
+        assert data["command_sent"] == "ListVar"
         assert data["variable"] == "$VERSION"
-        assert data["value"] == "3.9.60"
+        assert data["value"] == "3.9.60.65"
+        assert data["found"] is True
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -1255,17 +1266,15 @@ class TestGetVariableEchoAction:
         from src.server import get_variable
 
         mock_client = MagicMock()
-        mock_client.send_command_with_response = AsyncMock(
-            return_value="12:34:56\r\n[channel]>"
-        )
+        mock_client.send_command_with_response = AsyncMock(return_value=self.LISTVAR_RESPONSE)
         mock_get_client.return_value = mock_client
 
         result = await get_variable(action="echo", var_name="$TIME")
         data = json.loads(result)
 
-        assert data["command_sent"] == "Echo $TIME"
         assert data["variable"] == "$TIME"
-        assert data["value"] == "12:34:56"
+        assert data["value"] == "19h26m52.284s"
+        assert data["found"] is True
 
     @pytest.mark.asyncio
     async def test_echo_blocked_without_var_name(self):

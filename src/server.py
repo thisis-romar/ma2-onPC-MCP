@@ -1638,6 +1638,30 @@ async def query_object_list(
     }, indent=2)
 
 
+def _parse_listvar(raw: str, filter_prefix: str | None = None) -> dict[str, str]:
+    """Parse ListVar telnet output into a {$NAME: value} dict.
+
+    ListVar lines have the format:  $Global : $VARNAME = VALUE
+    """
+    variables: dict[str, str] = {}
+    for line in raw.splitlines():
+        line = line.strip()
+        if "=" not in line or line.startswith("["):
+            continue
+        # Strip scope prefix: "$Global : $VARNAME = VALUE" → "$VARNAME = VALUE"
+        if " : " in line:
+            _, _, line = line.partition(" : ")
+            line = line.strip()
+        name, _, value = line.partition("=")
+        name = name.strip().lstrip("$")
+        value = value.strip()
+        if not name:
+            continue
+        if filter_prefix is None or name.upper().startswith(filter_prefix.upper()):
+            variables[f"${name}"] = value
+    return variables
+
+
 @mcp.tool()
 @_handle_errors
 async def list_system_variables(
@@ -1661,16 +1685,7 @@ async def list_system_variables(
     client = await get_client()
     raw = await client.send_command_with_response("ListVar")
 
-    variables = {}
-    for line in raw.splitlines():
-        line = line.strip()
-        if "=" in line and not line.startswith("["):
-            name, _, value = line.partition("=")
-            name = name.strip().lstrip("$")
-            value = value.strip()
-            if filter_prefix is None or name.upper().startswith(filter_prefix.upper()):
-                variables[f"${name}"] = value
-
+    variables = _parse_listvar(raw, filter_prefix=filter_prefix)
     return json.dumps({
         "variables": variables,
         "variable_count": len(variables),
@@ -4240,13 +4255,15 @@ async def get_variable(
                 "blocked": True,
             }, indent=2)
         clean = var_name.lstrip("$")
-        cmd = f"Echo ${clean}"
+        cmd = "ListVar"
         client = await get_client()
         raw = await client.send_command_with_response(cmd)
-        value = raw.split("[channel]>")[0].strip() if "[channel]>" in raw else raw.strip()
+        variables = _parse_listvar(raw)
+        value = variables.get(f"${clean}") or variables.get(f"${clean.upper()}")
         return json.dumps({
             "variable": f"${clean}",
             "value": value,
+            "found": value is not None,
             "command_sent": cmd,
             "raw_response": raw,
             "risk_tier": "SAFE_READ",
