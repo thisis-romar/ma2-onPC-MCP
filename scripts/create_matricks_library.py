@@ -3,25 +3,32 @@ Create a full MAtricks combinatorial library on grandMA2 onPC.
 
 Generates every combination of Wings × Groups × Blocks × Interleave
 (values 0 to --max-value, default 4) and stores each as a named MAtricks
-pool item.
+pool item via XML import, then applies color coding by Wings value.
 
-With max_value=4: 5^4 = 625 pool items, named W0_G0_B0_I0 through W4_G4_B4_I4.
+With max_value=4: 5^4 = 625 pool items, named W0-G0-B0-I0 through W4-G4-B4-I4.
+
+Phase 1: XML import (instant) — creates all pool entries with properties and names.
+Phase 2: Color application (~3 min) — sets appearance color per Wings value.
 
 Usage:
     # Quick test (2^4 = 16 items)
-    python scripts/create_matricks_library.py --max-value 1 --delay 0.5
+    python -m scripts.create_matricks_library --max-value 1
 
-    # Full run (625 items, ~22 min)
-    python scripts/create_matricks_library.py --max-value 4 --delay 0.3
+    # Full run (625 items)
+    python -m scripts.create_matricks_library --max-value 4
 
-    # Resume from slot 100
-    python scripts/create_matricks_library.py --start-slot 100
+    # Generate XML only (no telnet)
+    python -m scripts.create_matricks_library --xml-only
+
+    # Import only, skip color application
+    python -m scripts.create_matricks_library --no-color
 """
 
 import argparse
 import asyncio
-import os
 import time
+from datetime import datetime, timezone
+from pathlib import Path
 
 import dotenv
 
@@ -32,33 +39,114 @@ GMA_PORT = int(dotenv.get_key(".env", "GMA_PORT") or "30000")
 GMA_USER = dotenv.get_key(".env", "GMA_USER") or "administrator"
 GMA_PASSWORD = dotenv.get_key(".env", "GMA_PASSWORD") or ""
 
+# MA2 matricks XML directory
+MATRICKS_DIR = Path(
+    "C:/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/matricks"
+)
 
-async def send(client: GMA2TelnetClient, cmd: str, delay: float = 0.3) -> str:
-    response = await client.send_command_with_response(cmd)
-    if delay > 0:
-        await asyncio.sleep(delay)
-    return response
+XML_FILENAME = "matricks_combinatorial_library"
+
+# 25-color scheme: Wings=hue (5 hues), Groups=brightness (5 levels)
+# MA2 HSB: hue 0-360, saturation 0-100, brightness 0-100
+WINGS_HUES = {0: 0, 1: 72, 2: 144, 3: 216, 4: 288}
+GROUPS_BRIGHTNESS = {0: 100, 1: 80, 2: 60, 3: 45, 4: 30}
 
 
-def generate_combos(max_value: int) -> list[tuple[int, int, int, int, int, str]]:
-    """Generate all (slot, w, g, b, i, name) tuples."""
-    combos = []
-    slot = 1
+def get_matricks_color(wings: int, groups: int) -> tuple[int, int, int]:
+    """Return (hue, saturation, brightness) for a Wings×Groups combo."""
+    return (WINGS_HUES.get(wings, 0), 100, GROUPS_BRIGHTNESS.get(groups, 100))
+
+
+def hsb_to_hex(hue: int, saturation: int, brightness: int) -> str:
+    """Convert HSB (hue 0-360, sat 0-100, bright 0-100) to 6-digit hex color."""
+    import colorsys
+    r, g, b = colorsys.hsv_to_rgb(hue / 360, saturation / 100, brightness / 100)
+    return f"{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}"
+
+
+def generate_xml(max_value: int) -> tuple[str, int]:
+    """Generate MAtricks XML with all combinatorial entries.
+
+    Returns:
+        Tuple of (xml_string, entry_count)
+    """
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+
+    lines = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+        ' xmlns="http://schemas.malighting.de/grandma2/xml/MA"'
+        ' xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA'
+        ' http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd"'
+        ' major_vers="3" minor_vers="9" stream_vers="60">',
+        f'\t<Info datetime="{now}" showfile="claude_ma2_ctrl" />',
+    ]
+
+    index = 0  # 0-based index in XML
     for w in range(max_value + 1):
         for g in range(max_value + 1):
+            h, s, br = get_matricks_color(w, g)
+            hex_color = hsb_to_hex(h, s, br)
             for b in range(max_value + 1):
                 for i in range(max_value + 1):
-                    name = f"W{w}_G{g}_B{b}_I{i}"
-                    combos.append((slot, w, g, b, i, name))
-                    slot += 1
-    return combos
+                    name = f"W{w}-G{g}-B{b}-I{i}"
+                    lines.append(
+                        f'\t<Matrix index="{index}" name="{name}">'
+                    )
+                    lines.append(
+                        f'\t\t<Appearance Color="{hex_color}" />'
+                    )
+                    lines.append(
+                        f'\t\t<Settings wings="{w}" group_x="{g}"'
+                        f' block_x="{b}" interleave="{i}" />'
+                    )
+                    lines.append("\t</Matrix>")
+                    index += 1
+
+    lines.append("</MA>")
+    return "\n".join(lines), index
 
 
-async def create_matricks_library(
-    max_value: int = 4,
-    start_slot: int = 1,
+async def apply_colors(
+    client: GMA2TelnetClient,
+    max_value: int,
+    start_slot: int,
     delay: float = 0.3,
 ) -> None:
+    """Apply 25-color HSB appearance to MAtricks pool items (Wings×Groups)."""
+    total = (max_value + 1) ** 4
+    slot = start_slot
+    done = 0
+    t0 = time.time()
+
+    print(f"\nApplying 25-color scheme to {total} pool items...")
+
+    for w in range(max_value + 1):
+        for g in range(max_value + 1):
+            h, s, br = get_matricks_color(w, g)
+            entries_per_combo = (max_value + 1) ** 2  # block × interleave
+
+            for _ in range(entries_per_combo):
+                cmd = f"appearance matricks {slot} /h={h} /s={s} /br={br}"
+                await client.send_command_with_response(cmd)
+                await asyncio.sleep(delay)
+                slot += 1
+                done += 1
+
+            elapsed = time.time() - t0
+            print(f"  W={w} G={g} colored ({done}/{total}, {elapsed:.0f}s elapsed)")
+
+    elapsed = time.time() - t0
+    print(f"Color application complete in {elapsed:.0f}s")
+
+
+async def import_and_color(
+    max_value: int,
+    start_slot: int = 2,
+    apply_color: bool = True,
+    delay: float = 0.3,
+) -> None:
+    """Connect to MA2, import XML, and optionally apply colors."""
     client = GMA2TelnetClient(
         host=GMA_HOST,
         port=GMA_PORT,
@@ -69,52 +157,41 @@ async def create_matricks_library(
     await client.connect()
     print(f"Connected to {GMA_HOST}:{GMA_PORT}")
     await client.login()
-    print("Logged in\n")
+    print("Logged in")
 
-    combos = generate_combos(max_value)
-    total = len(combos)
-    print(f"Creating {total} MAtricks pool items (max_value={max_value})")
-    if start_slot > 1:
-        print(f"Resuming from slot {start_slot}")
-    print()
+    # Phase 1: Import XML
+    cmd = f'import "{XML_FILENAME}" at matricks {start_slot}'
+    print(f"\nPhase 1 — Importing: {cmd}")
+    response = await client.send_command_with_response(cmd)
+    print(f"Response: {response[:500]}")
 
-    t0 = time.time()
-    created = 0
+    # Phase 2: Apply colors
+    if apply_color:
+        print("\nPhase 2 — Applying colors by Wings value...")
+        await apply_colors(client, max_value, start_slot, delay)
 
-    for slot, w, g, b, i, name in combos:
-        if slot < start_slot:
-            continue
+    await client.disconnect()
 
-        # Store empty MAtricks entry
-        await send(client, f"store matricks {slot} /overwrite /noconfirm", delay)
 
-        # Navigate to MAtricks pool and assign properties
-        await send(client, "cd MAtricks", delay)
-        await send(client, f"assign {slot}/Wings={w}", delay)
-        await send(client, f"assign {slot}/Groups={g}", delay)
-        await send(client, f"assign {slot}/Blocks={b}", delay)
-        await send(client, f"assign {slot}/Interleave={i}", delay)
-        await send(client, "cd /", delay)
+async def color_only(
+    max_value: int,
+    start_slot: int = 2,
+    delay: float = 0.3,
+) -> None:
+    """Connect to MA2 and apply colors only (no import)."""
+    client = GMA2TelnetClient(
+        host=GMA_HOST,
+        port=GMA_PORT,
+        user=GMA_USER,
+        password=GMA_PASSWORD,
+    )
 
-        # Label the entry
-        await send(client, f'label matricks {slot} "{name}"', delay)
+    await client.connect()
+    print(f"Connected to {GMA_HOST}:{GMA_PORT}")
+    await client.login()
+    print("Logged in")
 
-        created += 1
-
-        # Progress report every 25 items
-        if created % 25 == 0 or slot == total:
-            elapsed = time.time() - t0
-            rate = created / elapsed if elapsed > 0 else 0
-            remaining = (total - slot) / rate if rate > 0 else 0
-            print(
-                f"  [{slot:>4}/{total}] {name}  "
-                f"({created} created, {rate:.1f}/s, ~{remaining:.0f}s remaining)"
-            )
-
-    elapsed = time.time() - t0
-    print(f"\nDone. {created} MAtricks pool items created in {elapsed:.1f}s")
-    print(f"Pool range: 1 to {total}")
-
+    await apply_colors(client, max_value, start_slot, delay)
     await client.disconnect()
 
 
@@ -127,20 +204,64 @@ def main() -> None:
         help="Maximum value for each property (default: 4, gives 5^4=625 items)"
     )
     parser.add_argument(
-        "--start-slot", type=int, default=1,
-        help="Resume from this pool slot (default: 1)"
+        "--start-slot", type=int, default=2,
+        help="First pool slot to import into (default: 2, slot 1 is Reset)"
+    )
+    parser.add_argument(
+        "--xml-only", action="store_true",
+        help="Generate XML file only, don't import via telnet"
+    )
+    parser.add_argument(
+        "--no-color", action="store_true",
+        help="Skip color application after import"
+    )
+    parser.add_argument(
+        "--color-only", action="store_true",
+        help="Apply colors only, skip XML generation and import"
     )
     parser.add_argument(
         "--delay", type=float, default=0.3,
-        help="Delay between commands in seconds (default: 0.3)"
+        help="Delay between appearance commands in seconds (default: 0.3)"
     )
     args = parser.parse_args()
 
-    asyncio.run(create_matricks_library(
+    count = (args.max_value + 1) ** 4
+
+    if args.color_only:
+        # Apply colors only — no XML generation or import
+        print(f"Applying colors to {count} pool items (slots {args.start_slot}-{args.start_slot + count - 1})...")
+        asyncio.run(color_only(
+            max_value=args.max_value,
+            start_slot=args.start_slot,
+            delay=args.delay,
+        ))
+        print(f"\nDone. Color scheme: Wings 0=White, 1=Red, 2=Green, 3=Blue, 4=Yellow")
+        return
+
+    # Generate XML
+    xml_content, count = generate_xml(args.max_value)
+    xml_path = MATRICKS_DIR / f"{XML_FILENAME}.xml"
+
+    print(f"Writing {count} MAtricks entries to {xml_path}")
+    xml_path.write_text(xml_content, encoding="utf-8")
+    print(f"XML file written ({len(xml_content)} bytes)")
+
+    if args.xml_only:
+        print("\n--xml-only: Skipping telnet import.")
+        return
+
+    # Import and optionally color
+    asyncio.run(import_and_color(
         max_value=args.max_value,
         start_slot=args.start_slot,
+        apply_color=not args.no_color,
         delay=args.delay,
     ))
+
+    last_slot = args.start_slot + count - 1
+    print(f"\nDone. {count} MAtricks pool items at slots {args.start_slot}-{last_slot}")
+    if not args.no_color:
+        print("Color scheme: Wings 0=White, 1=Red, 2=Green, 3=Blue, 4=Yellow")
 
 
 if __name__ == "__main__":

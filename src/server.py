@@ -2012,9 +2012,9 @@ async def label_or_appearance(
             When set, uses the specialized label_preset builder.
         confirm_destructive: Must be True to execute (safety gate)
         color: Hex color string for appearance (e.g. "FF0000")
-        red: Red component (0-255) for appearance
-        green: Green component (0-255) for appearance
-        blue: Blue component (0-255) for appearance
+        red: Red component (0-100) for appearance
+        green: Green component (0-100) for appearance
+        blue: Blue component (0-100) for appearance
         hue: Hue value for appearance
         saturation: Saturation value for appearance
         brightness: Brightness value for appearance
@@ -4912,24 +4912,28 @@ async def manage_matricks(
 @_handle_errors
 async def create_matricks_library(
     max_value: int = 4,
-    start_slot: int = 1,
+    start_slot: int = 2,
     confirm_destructive: bool = False,
 ) -> str:
     """
     Create a full MAtricks combinatorial library (DESTRUCTIVE).
 
     Generates every combination of Wings × Groups × Blocks × Interleave
-    (values 0 to max_value) and stores each as a named MAtricks pool item.
+    (values 0 to max_value) as XML with embedded appearance colors and
+    imports into the MAtricks pool. Colors are instant — no telnet loop needed.
 
-    With max_value=4: 5^4 = 625 pool items, named W0_G0_B0_I0 through W4_G4_B4_I4.
+    25-color scheme: Wings=hue (Red/YellowGreen/Cyan/Blue/Magenta),
+    Groups=brightness (100/80/60/45/30).
+
+    With max_value=4: 5^4 = 625 pool items, named W0-G0-B0-I0 through W4-G4-B4-I4.
 
     Args:
         max_value: Upper bound for each property (default 4, gives 5^4=625 items).
-        start_slot: First pool slot to write (default 1). Use to resume.
+        start_slot: First pool slot to import into (default 2, slot 1 is Reset).
         confirm_destructive: Must be True to execute (overwrites MAtricks pool entries).
 
     Returns:
-        str: JSON with pool_items_created, total_slots, first_slot, last_slot.
+        str: JSON with pool_items_created, color_scheme, first_slot, last_slot.
     """
     if not confirm_destructive:
         return json.dumps({
@@ -4938,48 +4942,78 @@ async def create_matricks_library(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
-    from src.commands import assign_property as _build_assign_property, store_matricks as _build_store_matricks
+    from datetime import datetime, timezone
+    from pathlib import Path
 
-    client = await get_client()
+    matricks_dir = Path(
+        "C:/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/matricks"
+    )
+    xml_filename = "matricks_combinatorial_library"
+
+    # 25-color scheme: Wings=hue (5 hues), Groups=brightness (5 levels)
+    wings_hues = {0: 0, 1: 72, 2: 144, 3: 216, 4: 288}
+    groups_brightness = {0: 100, 1: 80, 2: 60, 3: 45, 4: 30}
+
+    def _hsb_to_hex(hue: int, sat: int, bright: int) -> str:
+        import colorsys
+        r, g, b = colorsys.hsv_to_rgb(hue / 360, sat / 100, bright / 100)
+        return f"{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}"
+
+    # Generate XML with appearance colors embedded
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+    lines = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+        ' xmlns="http://schemas.malighting.de/grandma2/xml/MA"'
+        ' xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA'
+        ' http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd"'
+        ' major_vers="3" minor_vers="9" stream_vers="60">',
+        f'\t<Info datetime="{now}" showfile="" />',
+    ]
+
     total = (max_value + 1) ** 4
-    created = 0
-    slot = 0
-
+    index = 0
     for w in range(max_value + 1):
         for g in range(max_value + 1):
+            h = wings_hues.get(w, 0)
+            br = groups_brightness.get(g, 100)
+            hex_color = _hsb_to_hex(h, 100, br)
             for b in range(max_value + 1):
                 for i in range(max_value + 1):
-                    slot += 1
-                    if slot < start_slot:
-                        continue
+                    name = f"W{w}-G{g}-B{b}-I{i}"
+                    lines.append(f'\t<Matrix index="{index}" name="{name}">')
+                    lines.append(f'\t\t<Appearance Color="{hex_color}" />')
+                    lines.append(
+                        f'\t\t<Settings wings="{w}" group_x="{g}"'
+                        f' block_x="{b}" interleave="{i}" />'
+                    )
+                    lines.append("\t</Matrix>")
+                    index += 1
 
-                    name = f"W{w}_G{g}_B{b}_I{i}"
+    lines.append("</MA>")
 
-                    # Store empty MAtricks entry
-                    store_cmd = _build_store_matricks(slot, overwrite=True, noconfirm=True)
-                    await client.send_command_with_response(store_cmd)
+    # Write XML to MA2 matricks directory
+    xml_path = matricks_dir / f"{xml_filename}.xml"
+    xml_path.write_text("\n".join(lines), encoding="utf-8")
 
-                    # Navigate to MAtricks pool and assign properties
-                    await navigate(client, "MAtricks")
-                    for prop, val in [("Wings", w), ("Groups", g), ("Blocks", b), ("Interleave", i)]:
-                        assign_cmd = _build_assign_property(str(slot), prop, str(val))
-                        await client.send_command_with_response(assign_cmd)
-                    await navigate(client, "/")
-
-                    # Label the entry
-                    from src.commands import label as _build_label
-                    label_cmd = _build_label("matricks", slot, name)
-                    await client.send_command_with_response(label_cmd)
-
-                    created += 1
+    # Import via telnet — colors are embedded in XML, no telnet loop needed
+    client = await get_client()
+    import_cmd = f'import "{xml_filename}" at matricks {start_slot}'
+    response = await client.send_command_with_response(import_cmd)
 
     return json.dumps({
-        "pool_items_created": created,
+        "pool_items_created": total,
         "total_slots": total,
         "first_slot": start_slot,
-        "last_slot": slot,
-        "naming_scheme": "W{wings}_G{groups}_B{blocks}_I{interleave}",
+        "last_slot": start_slot + total - 1,
+        "naming_scheme": "W{wings}-G{groups}-B{blocks}-I{interleave}",
+        "color_scheme": {
+            "status": "embedded_in_xml",
+            "mapping": "25 colors: Wings=hue (Red/YellowGreen/Cyan/Blue/Magenta), Groups=brightness (100/80/60/45/30)",
+        },
         "max_value": max_value,
+        "xml_file": str(xml_path),
+        "import_response": response[:200],
         "risk_tier": "DESTRUCTIVE",
     }, indent=2)
 

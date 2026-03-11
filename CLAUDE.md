@@ -130,6 +130,20 @@ To build a wildcard filter for any object pool:
 The tool navigates to the pool, lists all entries, extracts names, then returns to root (`cd /`).
 Works with any keyword (`"Group"`, `"Sequence"`, `"Macro"`, etc.) or numeric cd index.
 
+### Appearance colors
+
+MA2 appearance commands use **0-100 percentage scale** for RGB and HSB — NOT 0-255.
+
+| Mode | Parameters | Range |
+|------|-----------|-------|
+| RGB | `/r=R /g=G /b=B` | 0-100 each |
+| HSB | `/h=H /s=S /br=BR` | hue 0-360, sat/bright 0-100 |
+| Hex | `/color=RRGGBB` | 6-digit hex, no `#` |
+
+**XML format:** `<Appearance Color="RRGGBB" />` embeds inside any pool object element (e.g. `<Matrix>`, `<Group>`). Colors imported via XML appear instantly — no telnet appearance loop needed.
+
+**MAtricks library color scheme:** 25 colors using HSB — Wings sets hue (5 hues evenly spaced: 0°, 72°, 144°, 216°, 288°), Groups sets brightness (100/80/60/45/30). Embedded in XML via `<Appearance Color="hex" />`.
+
 ### grandMA2 System Variables
 
 grandMA2 exposes 26 built-in read-only system variables. Access them via:

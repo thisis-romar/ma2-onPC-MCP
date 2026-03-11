@@ -621,7 +621,7 @@ class TestLayer4Programming:
     async def test_appearance_group(self, live_client):
         """4.8 — Set appearance on group 99."""
         result = await label_or_appearance(
-            "appearance", "group", 99, red=255, confirm_destructive=True,
+            "appearance", "group", 99, red=100, confirm_destructive=True,
         )
         data = validate_response(result, ["command_sent", "raw_response", "blocked"])
         assert data["blocked"] is False

@@ -1625,12 +1625,12 @@ class TestLabelOrAppearanceTool:
 
         result = await label_or_appearance(
             action="appearance", object_type="group", object_id=1,
-            red=255, green=0, blue=0, confirm_destructive=True
+            red=100, green=0, blue=0, confirm_destructive=True
         )
         data = json.loads(result)
 
         assert "appearance" in data["command_sent"].lower()
-        assert "/r=255" in data["command_sent"]
+        assert "/r=100" in data["command_sent"]
 
 
 class TestAssignObjectTool:
@@ -5409,7 +5409,7 @@ class TestCreateMAtricksLibraryTool:
     @pytest.mark.asyncio
     @patch("src.server.navigate", new_callable=AsyncMock)
     @patch("src.server.get_client")
-    async def test_creates_correct_count(self, mock_get_client, mock_navigate):
+    async def test_creates_with_embedded_colors(self, mock_get_client, mock_navigate):
         from src.server import create_matricks_library
 
         mock_client = MagicMock()
@@ -5417,19 +5417,28 @@ class TestCreateMAtricksLibraryTool:
         mock_get_client.return_value = mock_client
         mock_navigate.return_value = MagicMock()
 
-        result = await create_matricks_library(max_value=1, confirm_destructive=True)
+        result = await create_matricks_library(
+            max_value=1, confirm_destructive=True,
+        )
         data = json.loads(result)
 
         # 2^4 = 16 items for max_value=1
         assert data["pool_items_created"] == 16
         assert data["total_slots"] == 16
         assert data["max_value"] == 1
+        assert data["color_scheme"]["status"] == "embedded_in_xml"
 
-    def test_naming_scheme(self):
-        """Verify the naming scheme produces correct names."""
-        from scripts.create_matricks_library import generate_combos
+        # Only 1 import command — colors are in XML, no telnet loop
+        assert mock_client.send_command_with_response.call_count == 1
 
-        combos = generate_combos(1)
-        assert len(combos) == 16
-        assert combos[0] == (1, 0, 0, 0, 0, "W0_G0_B0_I0")
-        assert combos[-1] == (16, 1, 1, 1, 1, "W1_G1_B1_I1")
+    def test_naming_and_appearance_in_xml(self):
+        """Verify the XML generator produces correct names and appearance colors."""
+        from scripts.create_matricks_library import generate_xml
+
+        xml_content, count = generate_xml(1)
+        assert count == 16
+        assert 'name="W0-G0-B0-I0"' in xml_content
+        assert 'name="W1-G1-B1-I1"' in xml_content
+        # Appearance Color embedded for each entry
+        assert '<Appearance Color="' in xml_content
+        assert 'wings="1" group_x="1" block_x="1" interleave="1"' in xml_content
