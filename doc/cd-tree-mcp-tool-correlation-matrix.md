@@ -1,7 +1,7 @@
 ---
 title: "CD Tree \u2194 MCP Tool Correlation Matrix"
 description: Maps every MCP tool to its grandMA2 console object tree branch for navigation-based verification
-version: 2.2.0
+version: 2.3.0
 created: 2026-03-08T22:00:00Z
 last_updated: 2026-03-11T00:00:00Z
 ---
@@ -14,7 +14,7 @@ This document maps every MCP tool to the grandMA2 console object tree branch
 it operates on. Use this to know which `cd` + `list` path to inspect when
 verifying that an MCP tool actually created/modified/deleted the expected object.
 
-## Quick Reference: 86 MCP Tools \u2192 Tree Branches
+## Quick Reference: 87 MCP Tools \u2192 Tree Branches
 
 ### Navigation & Inspection Tools (6)
 
@@ -121,11 +121,12 @@ verifying that an MCP tool actually created/modified/deleted the expected object
 | `list_layers` | `cd 10.4` | `cd /` → `cd 10` → `cd 4` → `list` | List all fixture layers |
 | `list_universes` | `cd 10.5` | `cd /` → `cd 10` → `cd 5` → `list` | List DMX universes |
 
-### MAtricks Tool (1)
+### MAtricks Tools (2)
 
 | MCP Tool | Tree Branch | cd Path | Purpose |
 |----------|------------|---------|---------|
 | `manage_matricks` | `cd MAtricks` | `set_property("MAtricks", ...)` | Configure MAtricks selection patterns |
+| `create_matricks_library` | `cd MAtricks` | Store + assign + label loop | Generate combinatorial MAtricks pool (**DESTRUCTIVE**) |
 
 ### Fixture Patching Tools (4)
 
@@ -268,7 +269,7 @@ delete_object("effect", 99, confirm_destructive=True)
 | Variable & History | 2 | `get_variable`, `list_undo_history` |
 | List & Library | 2 | `list_shows`, `list_library` |
 | LiveSetup Navigation | 3 | `list_fixture_types`, `list_layers`, `list_universes` |
-| MAtricks | 1 | `manage_matricks` |
+| MAtricks | 2 | `manage_matricks`, `create_matricks_library` |
 | Fixture Patching | 4 | `browse_patch_schedule`, `patch_fixture`, `unpatch_fixture`, `set_fixture_type_property` |
 | Utility | 5 | `clear_programmer`, `park_fixture`/`unpark_fixture`, `manage_variable`, `send_raw_command`, `search_codebase` |
-| **Total** | **73** | |
+| **Total** | **74** | |

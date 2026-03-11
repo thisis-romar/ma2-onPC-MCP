@@ -428,6 +428,37 @@ def store_group(group_id: int) -> str:
     return f"store group {group_id}"
 
 
+def store_matricks(
+    matricks_id: int,
+    *,
+    overwrite: bool = False,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Construct a command to store a MAtricks pool entry.
+
+    Args:
+        matricks_id: MAtricks pool slot number
+        overwrite: Overwrite existing entry
+        noconfirm: Suppress confirmation dialog
+
+    Returns:
+        str: MA command to store a MAtricks entry
+
+    Examples:
+        >>> store_matricks(5)
+        'store matricks 5'
+        >>> store_matricks(5, overwrite=True, noconfirm=True)
+        'store matricks 5 /overwrite /noconfirm'
+    """
+    cmd = f"store matricks {matricks_id}"
+    if overwrite:
+        cmd += " /overwrite"
+    if noconfirm:
+        cmd += " /noconfirm"
+    return cmd
+
+
 def store_preset(
     preset_type: str,
     preset_id: int,

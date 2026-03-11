@@ -257,7 +257,7 @@ mcp = FastMCP(
     name="grandMA2-MCP",
     instructions="""
     This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following 86 tools to operate grandMA2:
+    You can use the following 87 tools to operate grandMA2:
 
     --- Navigation & Inspection ---
     1. navigate_console - Navigate the console object tree (cd)
@@ -4905,6 +4905,82 @@ async def manage_matricks(
         "command_sent": assign_cmd,
         "raw_response": raw,
         "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
+async def create_matricks_library(
+    max_value: int = 4,
+    start_slot: int = 1,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Create a full MAtricks combinatorial library (DESTRUCTIVE).
+
+    Generates every combination of Wings × Groups × Blocks × Interleave
+    (values 0 to max_value) and stores each as a named MAtricks pool item.
+
+    With max_value=4: 5^4 = 625 pool items, named W0_G0_B0_I0 through W4_G4_B4_I4.
+
+    Args:
+        max_value: Upper bound for each property (default 4, gives 5^4=625 items).
+        start_slot: First pool slot to write (default 1). Use to resume.
+        confirm_destructive: Must be True to execute (overwrites MAtricks pool entries).
+
+    Returns:
+        str: JSON with pool_items_created, total_slots, first_slot, last_slot.
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Create MAtricks Library overwrites MAtricks pool entries. Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    from src.commands import assign_property as _build_assign_property, store_matricks as _build_store_matricks
+
+    client = await get_client()
+    total = (max_value + 1) ** 4
+    created = 0
+    slot = 0
+
+    for w in range(max_value + 1):
+        for g in range(max_value + 1):
+            for b in range(max_value + 1):
+                for i in range(max_value + 1):
+                    slot += 1
+                    if slot < start_slot:
+                        continue
+
+                    name = f"W{w}_G{g}_B{b}_I{i}"
+
+                    # Store empty MAtricks entry
+                    store_cmd = _build_store_matricks(slot, overwrite=True, noconfirm=True)
+                    await client.send_command_with_response(store_cmd)
+
+                    # Navigate to MAtricks pool and assign properties
+                    await navigate(client, "MAtricks")
+                    for prop, val in [("Wings", w), ("Groups", g), ("Blocks", b), ("Interleave", i)]:
+                        assign_cmd = _build_assign_property(str(slot), prop, str(val))
+                        await client.send_command_with_response(assign_cmd)
+                    await navigate(client, "/")
+
+                    # Label the entry
+                    from src.commands import label as _build_label
+                    label_cmd = _build_label("matricks", slot, name)
+                    await client.send_command_with_response(label_cmd)
+
+                    created += 1
+
+    return json.dumps({
+        "pool_items_created": created,
+        "total_slots": total,
+        "first_slot": start_slot,
+        "last_slot": slot,
+        "naming_scheme": "W{wings}_G{groups}_B{blocks}_I{interleave}",
+        "max_value": max_value,
+        "risk_tier": "DESTRUCTIVE",
     }, indent=2)
 
 

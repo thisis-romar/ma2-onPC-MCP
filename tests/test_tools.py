@@ -5365,3 +5365,71 @@ class TestStoreCueSequenceId:
         result = store_cue(5, sequence_id=1, merge=True)
         assert "store cue 5 sequence 1" in result
         assert "/merge" in result
+
+
+# ============================================================
+# store_matricks Builder Tests
+# ============================================================
+
+
+class TestStoreMAtricksBuilder:
+    """Tests for the store_matricks command builder."""
+
+    def test_basic_store(self):
+        from src.commands.functions.store import store_matricks
+        assert store_matricks(5) == "store matricks 5"
+
+    def test_with_overwrite(self):
+        from src.commands.functions.store import store_matricks
+        assert store_matricks(10, overwrite=True) == "store matricks 10 /overwrite"
+
+    def test_with_all_options(self):
+        from src.commands.functions.store import store_matricks
+        result = store_matricks(99, overwrite=True, noconfirm=True)
+        assert result == "store matricks 99 /overwrite /noconfirm"
+
+
+# ============================================================
+# create_matricks_library Tool Tests
+# ============================================================
+
+
+class TestCreateMAtricksLibraryTool:
+    """Tests for the create_matricks_library MCP tool."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import create_matricks_library
+
+        result = await create_matricks_library(max_value=1)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "DESTRUCTIVE" in data["risk_tier"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.navigate", new_callable=AsyncMock)
+    @patch("src.server.get_client")
+    async def test_creates_correct_count(self, mock_get_client, mock_navigate):
+        from src.server import create_matricks_library
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Ok")
+        mock_get_client.return_value = mock_client
+        mock_navigate.return_value = MagicMock()
+
+        result = await create_matricks_library(max_value=1, confirm_destructive=True)
+        data = json.loads(result)
+
+        # 2^4 = 16 items for max_value=1
+        assert data["pool_items_created"] == 16
+        assert data["total_slots"] == 16
+        assert data["max_value"] == 1
+
+    def test_naming_scheme(self):
+        """Verify the naming scheme produces correct names."""
+        from scripts.create_matricks_library import generate_combos
+
+        combos = generate_combos(1)
+        assert len(combos) == 16
+        assert combos[0] == (1, 0, 0, 0, 0, "W0_G0_B0_I0")
+        assert combos[-1] == (16, 1, 1, 1, 1, "W1_G1_B1_I1")

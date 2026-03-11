@@ -1,7 +1,7 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 2.2.0
+version: 2.3.0
 created: 2025-02-27T00:00:00Z
 last_updated: 2026-03-11T00:00:00Z
 ---
@@ -59,7 +59,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  MCP Server Layer              src/server.py             │
-│  86 tools across 12 categories                           │
+│  87 tools across 12 categories                           │
 │  Safety gate: classifies commands before sending         │
 └────────────────────────┬─────────────────────────────────┘
                          │
@@ -135,7 +135,7 @@ Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](ht
 
 ## MCP Tools
 
-The server exposes **86 tools** to MCP clients, grouped by category:
+The server exposes **87 tools** to MCP clients, grouped by category:
 
 <details>
 <summary><strong>Navigation & Inspection (4 tools)</strong></summary>
@@ -280,6 +280,7 @@ list            → enumerate objects at current destination
 | `unpatch_fixture` | Remove a fixture's DMX patch assignment |
 | `set_fixture_type_property` | Set a property on a fixture type |
 | `manage_matricks` | Manage MAtricks (fixture matrix) objects |
+| `create_matricks_library` | Generate combinatorial MAtricks pool (Wings×Groups×Blocks×Interleave) (**DESTRUCTIVE**) |
 | `import_fixture_type` | Import a fixture type from the MA2 library (**DESTRUCTIVE**) |
 | `import_fixture_layer` | Import a fixture layer XML file into the show patch (**DESTRUCTIVE**) |
 | `generate_fixture_layer_xml` | Generate a grandMA2 fixture layer XML file for import |
@@ -938,7 +939,7 @@ gma2-mcp-telnet/
 │   ├── research_hierarchy.py       # Preset/Sequence/Executor hierarchy
 │   └── categorize_tools.py        # ML tool categorization CLI
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 86 tools)
+│   ├── server.py                   # MCP server (FastMCP, 87 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
