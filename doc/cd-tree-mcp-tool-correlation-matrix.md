@@ -1,9 +1,9 @@
 ---
 title: "CD Tree \u2194 MCP Tool Correlation Matrix"
 description: Maps every MCP tool to its grandMA2 console object tree branch for navigation-based verification
-version: 2.0.0
+version: 2.1.0
 created: 2026-03-08T22:00:00Z
-last_updated: 2026-03-09T12:00:00Z
+last_updated: 2026-03-11T00:00:00Z
 ---
 
 # CD Tree \u2194 MCP Tool Correlation Matrix
@@ -14,7 +14,7 @@ This document maps every MCP tool to the grandMA2 console object tree branch
 it operates on. Use this to know which `cd` + `list` path to inspect when
 verifying that an MCP tool actually created/modified/deleted the expected object.
 
-## Quick Reference: 73 MCP Tools \u2192 Tree Branches
+## Quick Reference: 82 MCP Tools \u2192 Tree Branches
 
 ### Navigation & Inspection Tools (6)
 
@@ -145,7 +145,7 @@ verifying that an MCP tool actually created/modified/deleted the expected object
 | **Groups** | `cd Group` | `create_fixture_group` | `delete_object("group")` | `query_object_list("group")`, `list_console_destination` |
 | **Sequences** | `cd Sequence` | `store_object("sequence")` | `delete_object("sequence")` | `query_object_list("sequence")`, `list_console_destination` |
 | **Cues** | `cd Sequence.N` | `store_current_cue` | `delete_object("cue")` | `query_object_list("cue")`, `list_console_destination` |
-| **Presets** | `cd Preset`, `cd PresetType.N` | `store_new_preset` | `delete_object("preset")` | `query_object_list("preset")`, `list_console_destination` |
+| **Presets** | `cd Preset`, `cd PresetType.N`, `cd 17.1.N` | `store_new_preset` | `delete_object("preset")` | `query_object_list("preset")`, `list_preset_pool`, `list_console_destination` |
 | **Macros** | `cd Macro` | `store_object("macro")` | `delete_object("macro")` | `query_object_list`, `list_console_destination` |
 | **Effects** | `cd Effect` | `store_object("effect")` | `delete_object("effect")` | `query_object_list`, `list_console_destination` |
 | **Executors** | `cd Executor` | `assign_object(assign)` | `assign_object(empty)` | `list_console_destination` |

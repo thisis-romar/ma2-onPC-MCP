@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 2.0.0
+version: 2.1.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-10T00:00:00Z
+last_updated: 2026-03-11T00:00:00Z
 ---
 
 # GMA2 MCP
@@ -59,7 +59,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  MCP Server Layer              src/server.py             │
-│  77 tools across 12 categories                           │
+│  82 tools across 12 categories                           │
 │  Safety gate: classifies commands before sending         │
 └────────────────────────┬─────────────────────────────────┘
                          │
@@ -91,7 +91,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ┌──────────────────────────────────────────────────────────┐
 │  Vocabulary & Safety       src/vocab.py                   │
-│  148 keywords: 56 Object, 79 Function, 7 Helping, 6 Char │
+│  141 keywords: 56 Object, 78 Function, 7 Helping, 6 Char │
 │  KeywordCategory + RiskTier classification via            │
 │  classify_token() with Object Keyword context metadata    │
 └──────────────────────────────────────────────────────────┘
@@ -135,7 +135,7 @@ Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](ht
 
 ## MCP Tools
 
-The server exposes **77 tools** to MCP clients, grouped by category:
+The server exposes **82 tools** to MCP clients, grouped by category:
 
 <details>
 <summary><strong>Navigation & Inspection (4 tools)</strong></summary>
@@ -177,7 +177,7 @@ list            → enumerate objects at current destination
 </details>
 
 <details>
-<summary><strong>Programmer / Selection (5 tools)</strong></summary>
+<summary><strong>Programmer / Selection (7 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
@@ -185,6 +185,8 @@ list            → enumerate objects at current destination
 | `adjust_value_relative` | Adjust programmer values relatively (+ or –) |
 | `select_fixtures_by_group` | Select all fixtures in a named group |
 | `select_executor` | Set the active executor for subsequent operations |
+| `select_feature` | Set active Feature context (updates $PRESET/$FEATURE/$ATTRIBUTE) |
+| `select_preset_type` | Activate a PresetType context (PresetType 1-9 or by name) |
 | `if_filter` | Apply an IfOutput / IfActive filter to limit programmer scope |
 
 </details>
@@ -312,15 +314,18 @@ import_fixture_layer(filename="my_dimmers", layer_index=1, confirm_destructive=T
 </details>
 
 <details>
-<summary><strong>Info, Queries & Discovery (8 tools)</strong></summary>
+<summary><strong>Info, Queries & Discovery (11 tools)</strong></summary>
 
 | Tool | Description |
 |------|-------------|
 | `get_object_info` | Query info on any object (fixture, group, sequence, etc.) |
 | `query_object_list` | List cues, groups, presets, attributes, or messages from the show |
 | `get_variable` | Get the current value of a console variable |
+| `list_system_variables` | List all 26 built-in system variables ($TIME, $SHOWFILE, etc.) |
 | `list_sequence_cues` | List all cues in a sequence with timing and labels |
 | `discover_object_names` | Discover named objects in a pool via the cd tree |
+| `browse_preset_type` | Browse Feature/Attribute/SubAttribute tree for a PresetType (cd 10.2.N) |
+| `list_preset_pool` | List presets in the Global preset pool by type (cd 17 tree) |
 | `highlight_fixtures` | Toggle highlight mode for selected fixtures |
 | `set_node_property` | Set a property on any node via dot-separated tree path |
 | `list_undo_history` | List recent undo history entries |
@@ -919,7 +924,7 @@ gma2-mcp-telnet/
 │   ├── validate_ft_channels.py     # FT ChannelType CD vs DMX order
 │   └── research_hierarchy.py       # Preset/Sequence/Executor hierarchy
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 77 tools)
+│   ├── server.py                   # MCP server (FastMCP, 82 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
@@ -967,6 +972,7 @@ gma2-mcp-telnet/
 | `mcp>=1.21.0` | Model Context Protocol server framework |
 | `python-dotenv>=1.0.0` | Load `.env` configuration |
 | `telnetlib3>=2.0.8` | Async Telnet client (replaces deprecated `telnetlib`) |
+| `beautifulsoup4>=4.12.0` | HTML parsing for RAG web doc crawler |
 | `httpx` *(transitive via mcp)* | HTTP client used by GitHub Models embedding provider |
 | `pytest>=9.0.1` | Testing (dev) |
 | `pytest-asyncio>=1.3.0` | Async test support (dev) |

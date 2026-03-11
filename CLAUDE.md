@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.1.0
+version: 3.2.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-10T00:00:00Z
+last_updated: 2026-03-11T00:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **78 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **82 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,13 +19,13 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 78 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 82 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/commands/` | 110+ pure command-builder functions, grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
-| `src/vocab.py` | 148 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
+| `src/vocab.py` | 141 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
 | `rag/retrieve/` | cosine similarity search + rerank |
 | `rag/store/sqlite.py` | SQLite vector store (`rag/store/rag.db`) |
@@ -93,7 +93,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-10): **1157 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-11): **1174 unit tests**, **132 live integration tests**.
 
 ### New Show — connectivity preservation
 
