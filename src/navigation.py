@@ -415,6 +415,23 @@ async def scan_indexes(
         lst = await list_destination(client, timeout=timeout, delay=delay)
         entries = lst.parsed_list.entries if lst.parsed_list else ()
 
+        # Supplement: detect rows the tabular parser misses (PresetType/Feature/
+        # Attribute/SubAttribute listings that have only one numeric ID column).
+        if not entries and lst.raw_response:
+            import re as _re
+            _TREE_ROW = _re.compile(
+                r"^\s*(PresetType|Feature|Attribute|SubAttribute)\s+\d+",
+                _re.IGNORECASE | _re.MULTILINE,
+            )
+            if _TREE_ROW.search(lst.raw_response):
+                # Node has children — count them as a synthetic non-empty result
+                matches = _TREE_ROW.findall(lst.raw_response)
+                logger.info(
+                    "scan_indexes: index %d has %d tree-row children (preset-tree format)",
+                    idx, len(matches),
+                )
+                entries = (None,) * len(matches)  # type: ignore[assignment]
+
         # Reset to base location
         await navigate(client, reset_to, timeout=timeout, delay=delay)
 

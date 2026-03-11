@@ -2621,6 +2621,119 @@ async def select_preset_type(
     }, indent=2)
 
 
+def _parse_preset_tree_list(raw: str) -> list[dict]:
+    """Parse grandMA2 list output from the PresetType cd-tree.
+
+    Handles rows of the form:
+      ``PresetType N  LibName  ScreenName  ...``
+      ``Feature N  LibName  ScreenName  ...``
+      ``Attribute N  LibName  ScreenName  ...``
+      ``SubAttribute N  LibName  ScreenName  ...``
+
+    These rows have only one numeric ID (not the two required by the standard
+    tabular parser), so they are skipped by parse_list_output().
+    """
+    import re
+    _ANSI = re.compile(r"\x1b\[[0-9;]*m|\x1b\[K")
+    _ROW = re.compile(
+        r"^\s*(PresetType|Feature|Attribute|SubAttribute)\s+(\d+)\s+(\S+)\s+(.*?)\s*$",
+        re.IGNORECASE,
+    )
+    entries = []
+    for line in raw.splitlines():
+        line = _ANSI.sub("", line).strip()
+        m = _ROW.match(line)
+        if m:
+            obj_type, obj_id, lib_name, rest = m.group(1), m.group(2), m.group(3), m.group(4)
+            # rest may contain "ScreenName  IdentifiedAs  DefaultScope  (count)"
+            parts = re.split(r"\s{2,}", rest)
+            entry = {
+                "type": obj_type,
+                "id": int(obj_id),
+                "library_name": lib_name,
+            }
+            if parts:
+                entry["screen_name"] = parts[0].strip()
+            if len(parts) > 1:
+                entry["identified_as"] = parts[1].strip()
+            if len(parts) > 2:
+                entry["extra"] = parts[2].strip()
+            entries.append(entry)
+    return entries
+
+
+@mcp.tool()
+@_handle_errors
+async def browse_preset_type(
+    preset_type_id: int,
+    depth: int = 1,
+) -> str:
+    """
+    Browse the feature/attribute tree under a preset type (SAFE_READ).
+
+    Navigates the grandMA2 LiveSetup preset-type cd-tree and lists children
+    at the requested depth. The tree structure (live-verified v3.9.60.65):
+
+      cd 10.2.N       → Features under PresetType N
+      cd 10.2.N.M     → Attributes under Feature M
+      cd 10.2.N.M.K   → SubAttributes under Attribute K  (leaf level)
+
+    Indexes at each level use sequential position (1 = first listed child),
+    NOT the internal library ID shown in the output.
+
+    Args:
+        preset_type_id: Preset type to browse (1=Dimmer, 2=Position, 3=Gobo,
+            4=Color, 5=Beam, 6=Focus, 7=Control, 8=Shapers, 9=Video)
+        depth: How deep to traverse (1=features only, 2=+attributes,
+            3=+subattributes). Defaults to 1.
+
+    Returns:
+        str: JSON with the tree structure at the requested depth.
+    """
+    if not 1 <= preset_type_id <= 9:
+        return json.dumps({"error": "preset_type_id must be 1-9", "blocked": True}, indent=2)
+    if not 1 <= depth <= 3:
+        return json.dumps({"error": "depth must be 1-3", "blocked": True}, indent=2)
+
+    client = await get_client()
+
+    async def list_path(path: str) -> tuple[str, list[dict]]:
+        await navigate(client, "/")
+        await navigate(client, path)
+        lst = await list_destination(client)
+        raw = lst.raw_response
+        entries = _parse_preset_tree_list(raw)
+        return raw, entries
+
+    # Depth 1: features under preset type
+    raw1, features = await list_path(f"10.2.{preset_type_id}")
+
+    result: dict = {
+        "preset_type_id": preset_type_id,
+        "cd_path": f"10.2.{preset_type_id}",
+        "features": features,
+        "risk_tier": "SAFE_READ",
+    }
+
+    if depth >= 2:
+        for fi, feat in enumerate(features, start=1):
+            feat_path = f"10.2.{preset_type_id}.{fi}"
+            _, attrs = await list_path(feat_path)
+            feat["cd_path"] = feat_path
+            feat["attributes"] = attrs
+
+            if depth >= 3:
+                for ai, attr in enumerate(attrs, start=1):
+                    attr_path = f"10.2.{preset_type_id}.{fi}.{ai}"
+                    _, sub_attrs = await list_path(attr_path)
+                    attr["cd_path"] = attr_path
+                    attr["sub_attributes"] = sub_attrs
+
+    # Return to root
+    await navigate(client, "/")
+    return json.dumps(result, indent=2)
+
+
 @mcp.tool()
 @_handle_errors
 async def modify_selection(
