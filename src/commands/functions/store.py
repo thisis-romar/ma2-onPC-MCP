@@ -61,6 +61,7 @@ def store_cue(
     overwrite: bool = False,
     remove: bool = False,
     noconfirm: bool = False,
+    quiet: bool = False,
     trackingshield: bool = False,
     cueonly: bool | None = None,
     tracking: bool | None = None,
@@ -85,6 +86,7 @@ def store_cue(
         overwrite: Remove stored values and store new values
         remove: Remove stored values for attributes with active values
         noconfirm: Suppress store confirmation pop-up
+        quiet: Suppress command feedback in the command line response area
         trackingshield: Use tracking shield for store
         cueonly: Prevent changes to track forward (True/False)
         tracking: Store with tracking
@@ -128,6 +130,7 @@ def store_cue(
         overwrite=overwrite,
         remove=remove,
         noconfirm=noconfirm,
+        quiet=quiet,
         trackingshield=trackingshield,
         cueonly=cueonly,
         tracking=tracking,

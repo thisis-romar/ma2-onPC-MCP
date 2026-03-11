@@ -1840,17 +1840,18 @@ async def manage_variable(
     input_dialog: bool = False,
 ) -> str:
     """
-    Set or add to console variables (global or user-scoped).
+    Set, add to, or list console variables (global or user-scoped).
 
     Variables are named values stored on the console that can be used in
-    macros and command line expressions.
+    macros and command line expressions. The $ prefix is automatically
+    added to var_name if not already present.
 
     Args:
-        action: "set" to assign a value, "add" to increment by a value
+        action: "set" to assign a value, "add" to increment, "list" to show all variables
         scope: "global" for system variables, "user" for user-scoped variables
-        var_name: Variable name (e.g. "myvar", "speed", "counter")
-        value: Value to set or add. Required for "add", optional for "set"
-            (if omitted with set + input_dialog, shows input dialog)
+        var_name: Variable name (e.g. "myvar" or "$myvar" — $ auto-added)
+        value: Value to set or add. Required for "add", optional for "set",
+            ignored for "list"
         input_dialog: If True with action="set", shows an input dialog
             on the console for the user to enter a value
 
@@ -1861,10 +1862,32 @@ async def manage_variable(
         - Set global var: action="set", scope="global", var_name="myvar", value=42
         - Set user var: action="set", scope="user", var_name="speed", value=100
         - Add to global: action="add", scope="global", var_name="counter", value=1
-        - Show input dialog: action="set", scope="user", var_name="name", input_dialog=True
+        - List global vars: action="list", scope="global"
+        - List user vars: action="list", scope="user"
     """
     action = action.lower()
     scope = scope.lower()
+
+    # Auto-prepend $ if not present (MA2 syntax requires $variablename)
+    if var_name and not var_name.startswith("$"):
+        var_name = f"${var_name}"
+
+    if action == "list":
+        if scope == "global":
+            cmd = build_list_var()
+        elif scope == "user":
+            cmd = build_list_user_var()
+        else:
+            return json.dumps({
+                "error": f"Unknown scope: {scope}. Use 'global' or 'user'.",
+                "blocked": True,
+            }, indent=2)
+        client = await get_client()
+        raw_response = await client.send_command_with_response(cmd)
+        return json.dumps({
+            "command_sent": cmd,
+            "raw_response": raw_response,
+        }, indent=2)
 
     if action == "set":
         if scope == "global":
@@ -1893,7 +1916,7 @@ async def manage_variable(
             }, indent=2)
     else:
         return json.dumps({
-            "error": f"Unknown action: {action}. Use 'set' or 'add'.",
+            "error": f"Unknown action: {action}. Use 'set', 'add', or 'list'.",
             "blocked": True,
         }, indent=2)
 

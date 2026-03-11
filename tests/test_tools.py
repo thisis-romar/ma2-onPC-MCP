@@ -1438,7 +1438,7 @@ class TestManageVariableTool:
         )
         data = json.loads(result)
 
-        assert data["command_sent"] == "setvar myvar = 42"
+        assert data["command_sent"] == "setvar $myvar = 42"
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -1455,7 +1455,7 @@ class TestManageVariableTool:
         )
         data = json.loads(result)
 
-        assert data["command_sent"] == "setuservar speed = 100"
+        assert data["command_sent"] == "setuservar $speed = 100"
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -1472,7 +1472,7 @@ class TestManageVariableTool:
         )
         data = json.loads(result)
 
-        assert data["command_sent"] == "addvar counter = 1"
+        assert data["command_sent"] == "addvar $counter = 1"
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
@@ -1489,7 +1489,7 @@ class TestManageVariableTool:
         )
         data = json.loads(result)
 
-        assert data["command_sent"] == "adduservar counter = 1"
+        assert data["command_sent"] == "adduservar $counter = 1"
 
     @pytest.mark.asyncio
     async def test_add_without_value(self):
