@@ -1,5 +1,13 @@
 -- RAG pipeline schema: documents and chunks tables
 
+-- Schema version tracking for future migrations
+CREATE TABLE IF NOT EXISTS _schema_version (
+    version     INTEGER PRIMARY KEY,
+    applied_at  TEXT NOT NULL           -- ISO 8601
+);
+INSERT OR IGNORE INTO _schema_version (version, applied_at)
+    VALUES (1, datetime('now'));
+
 CREATE TABLE IF NOT EXISTS documents (
     doc_id        TEXT PRIMARY KEY,   -- sha256(repo_ref + path)
     repo_ref      TEXT NOT NULL,      -- branch/commit/tag

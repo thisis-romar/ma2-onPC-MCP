@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from rag.config import DEFAULT_TOP_K, RAG_DB_PATH
@@ -9,6 +10,8 @@ from rag.ingest.embed import EmbeddingProvider
 from rag.retrieve.rerank import rerank
 from rag.store.sqlite import RagStore
 from rag.types import RagHit
+
+logger = logging.getLogger(__name__)
 
 
 def rag_query(
@@ -21,7 +24,8 @@ def rag_query(
     """Query the RAG index and return the top-K most relevant chunks.
 
     If an embedding_provider is given, uses vector similarity search.
-    Otherwise, falls back to text-based keyword search.
+    Falls back to text-based keyword search if no provider is given or
+    if a dimension mismatch is detected.
     """
     store = RagStore(db_path)
     store.init_db()
@@ -29,7 +33,11 @@ def rag_query(
     try:
         if embedding_provider is not None:
             query_embedding = embedding_provider.embed_one(query)
-            hits = store.search_by_embedding(query_embedding, top_k=top_k * 2)
+            try:
+                hits = store.search_by_embedding(query_embedding, top_k=top_k * 2)
+            except ValueError as exc:
+                logger.warning("Embedding search failed, falling back to text: %s", exc)
+                hits = store.search_by_text(query, top_k=top_k * 2)
         else:
             hits = store.search_by_text(query, top_k=top_k * 2)
 

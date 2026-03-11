@@ -38,6 +38,16 @@ class RagStore:
         schema = _SCHEMA_PATH.read_text(encoding="utf-8")
         self._conn.executescript(schema)
 
+    def get_schema_version(self) -> int:
+        """Return the current schema version, or 0 if the table doesn't exist."""
+        try:
+            row = self.conn.execute(
+                "SELECT MAX(version) FROM _schema_version"
+            ).fetchone()
+            return row[0] if row and row[0] is not None else 0
+        except sqlite3.OperationalError:
+            return 0
+
     def close(self) -> None:
         if self._conn:
             self._conn.close()
@@ -131,16 +141,26 @@ class RagStore:
     # ------------------------------------------------------------------
 
     def search_by_embedding(self, query_embedding: list[float], top_k: int = 12) -> list[RagHit]:
-        """Brute-force cosine similarity search over all chunks with embeddings."""
+        """Brute-force cosine similarity search over all chunks with embeddings.
+
+        Raises ``ValueError`` if the query embedding dimension doesn't match
+        the stored embeddings (checked against the first stored chunk).
+        """
         rows = self.conn.execute(
             "SELECT chunk_id, path, kind, start_line, end_line, text, embedding FROM chunks WHERE embedding IS NOT NULL"
         ).fetchall()
 
+        query_dim = len(query_embedding)
         scored: list[RagHit] = []
         for chunk_id, path, kind, start_line, end_line, text, emb_blob in rows:
             if emb_blob is None:
                 continue
             stored = _blob_to_floats(emb_blob)
+            if len(stored) != query_dim:
+                raise ValueError(
+                    f"Embedding dimension mismatch: query has {query_dim} dims, "
+                    f"stored chunk {chunk_id!r} has {len(stored)} dims"
+                )
             score = _cosine_similarity(query_embedding, stored)
             scored.append(RagHit(
                 chunk_id=chunk_id,
@@ -156,29 +176,44 @@ class RagStore:
         return scored[:top_k]
 
     def search_by_text(self, query: str, top_k: int = 12) -> list[RagHit]:
-        """Simple text-based search using SQLite LIKE for keyword matching."""
+        """Text search with occurrence-based ranking.
+
+        Scoring:
+        - Each case-insensitive occurrence of *query* in text adds 1.0.
+        - A symbol-level match (query appears in the symbols JSON) adds 5.0 bonus.
+        - Results are sorted by score descending.
+        """
         pattern = f"%{query}%"
         rows = self.conn.execute(
             """
-            SELECT chunk_id, path, kind, start_line, end_line, text
+            SELECT chunk_id, path, kind, start_line, end_line, text, symbols
             FROM chunks WHERE text LIKE ? OR symbols LIKE ?
-            LIMIT ?
             """,
-            (pattern, pattern, top_k),
+            (pattern, pattern),
         ).fetchall()
 
-        return [
-            RagHit(
-                chunk_id=row[0],
-                path=row[1],
-                kind=row[2],
-                start_line=row[3],
-                end_line=row[4],
-                score=1.0,  # no scoring for text search
-                text=row[5],
-            )
-            for row in rows
-        ]
+        query_lower = query.lower()
+        scored: list[RagHit] = []
+        for chunk_id, path, kind, start_line, end_line, text, symbols in rows:
+            # Count occurrences in text
+            score = float(text.lower().count(query_lower))
+            # Bonus for symbol-level match
+            if query_lower in symbols.lower():
+                score += 5.0
+            # Ensure minimum score of 1.0 for any match
+            score = max(score, 1.0)
+            scored.append(RagHit(
+                chunk_id=chunk_id,
+                path=path,
+                kind=kind,
+                start_line=start_line,
+                end_line=end_line,
+                score=score,
+                text=text,
+            ))
+
+        scored.sort(key=lambda h: h.score, reverse=True)
+        return scored[:top_k]
 
     def search_by_path(self, path_pattern: str) -> list[Chunk]:
         """Find chunks matching a path pattern (SQL LIKE)."""
@@ -210,11 +245,30 @@ class RagStore:
     # Stats
     # ------------------------------------------------------------------
 
-    def get_stats(self) -> dict[str, int]:
-        """Return document and chunk counts."""
+    def get_stats(self) -> dict[str, int | float]:
+        """Return document and chunk counts plus detailed metrics."""
         doc_count = self.conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
         chunk_count = self.conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
-        return {"documents": doc_count, "chunks": chunk_count}
+        embedded_count = self.conn.execute(
+            "SELECT COUNT(*) FROM chunks WHERE embedding IS NOT NULL"
+        ).fetchone()[0]
+        avg_chunk_size = self.conn.execute(
+            "SELECT COALESCE(AVG(LENGTH(text)), 0) FROM chunks"
+        ).fetchone()[0]
+
+        # Chunk counts by kind
+        kind_rows = self.conn.execute(
+            "SELECT kind, COUNT(*) FROM chunks GROUP BY kind ORDER BY kind"
+        ).fetchall()
+        by_kind = {row[0]: row[1] for row in kind_rows}
+
+        return {
+            "documents": doc_count,
+            "chunks": chunk_count,
+            "chunks_with_embeddings": embedded_count,
+            "avg_chunk_chars": round(avg_chunk_size, 1),
+            "chunks_by_kind": by_kind,  # type: ignore[dict-item]
+        }
 
 
 # ---------------------------------------------------------------------------
