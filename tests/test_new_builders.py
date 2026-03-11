@@ -4,12 +4,10 @@ Tests for new command builders added in session 2026-03-10:
   + extended highlight() with object support
 """
 
-import pytest
-from src.commands.functions.playback import solo, blind, freeze
 from src.commands.functions.edit import oops
-from src.commands.functions.store import save_show, delete_show, update
+from src.commands.functions.playback import blind, freeze, solo
 from src.commands.functions.selection import highlight
-
+from src.commands.functions.store import delete_show, save_show, update
 
 # ============================================================================
 # solo() — universal (live-verified: all 16 object types)

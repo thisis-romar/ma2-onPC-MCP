@@ -6,7 +6,6 @@ label generation, taxonomy I/O, and MCP tool wrappers.
 
 from __future__ import annotations
 
-import json
 import tempfile
 from pathlib import Path
 
@@ -21,12 +20,10 @@ from src.categorization.clustering import (
     kmeans,
     kmeans_plus_plus,
     normalize_minmax,
-    silhouette_score,
     silhouette_samples,
+    silhouette_score,
 )
 from src.categorization.features import (
-    ALL_MODULES,
-    ACTION_VERBS,
     ToolFeatures,
     extract_tool_features,
 )
@@ -499,7 +496,7 @@ class TestFullPipeline:
 
         categories: dict[str, dict] = {}
         for cid, label in cluster_labels.items():
-            cluster_tools = [t for t, l in zip(tools, labels) if int(l) == cid]
+            cluster_tools = [t for t, lbl in zip(tools, labels, strict=False) if int(lbl) == cid]
             categories[label] = {
                 "id": cid,
                 "tool_count": len(cluster_tools),

@@ -157,12 +157,7 @@ def _build_import_map(tree: ast.Module) -> dict[str, str]:
                 submod = _infer_submodule(alias.name)
                 mapping[local] = submod
         # Explicit submodule: from src.commands.functions.playback import go
-        elif mod.startswith("src.commands.functions."):
-            submod = mod.rsplit(".", 1)[-1]
-            for alias in node.names:
-                local = alias.asname or alias.name
-                mapping[local] = submod
-        elif mod.startswith("src.commands.objects."):
+        elif mod.startswith("src.commands.functions.") or mod.startswith("src.commands.objects."):
             submod = mod.rsplit(".", 1)[-1]
             for alias in node.names:
                 local = alias.asname or alias.name
@@ -273,9 +268,10 @@ def _detect_navigates(body: list[ast.stmt]) -> bool:
         if isinstance(node, ast.Attribute) and node.attr in _NAVIGATE_NAMES:
             return True
         # String literal containing "cd " (raw command navigation)
-        if isinstance(node, ast.Constant) and isinstance(node.value, str):
-            if "cd " in node.value.lower() or "changedest" in node.value.lower():
-                return True
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) and (
+            "cd " in node.value.lower() or "changedest" in node.value.lower()
+        ):
+            return True
     return False
 
 

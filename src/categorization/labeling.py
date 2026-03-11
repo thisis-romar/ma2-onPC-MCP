@@ -60,12 +60,12 @@ def generate_labels(
     -------
     dict mapping cluster id → label string
     """
-    unique_labels = sorted(set(int(l) for l in labels))
+    unique_labels = sorted(set(int(lbl) for lbl in labels))
     cluster_labels: dict[int, str] = {}
     used_labels: set[str] = set()
 
     for cid in unique_labels:
-        cluster_tools = [t for t, l in zip(tools, labels) if int(l) == cid]
+        cluster_tools = [t for t, lbl in zip(tools, labels, strict=False) if int(lbl) == cid]
         label = _label_for_cluster(cluster_tools)
 
         # Deduplicate

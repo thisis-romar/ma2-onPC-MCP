@@ -36,7 +36,6 @@ pytestmark = pytest.mark.asyncio(loop_scope="module")
 # All tool functions are imported directly from the server module
 from src.server import (  # noqa: E402
     adjust_value_relative,
-    discover_object_names,
     apply_preset,
     assign_cue_trigger,
     assign_executor_property,
@@ -50,6 +49,7 @@ from src.server import (  # noqa: E402
     copy_or_move_object,
     create_fixture_group,
     delete_object,
+    discover_object_names,
     edit_object,
     execute_sequence,
     export_objects,
@@ -427,12 +427,12 @@ class TestLayer2SelectionGroups:
     async def test_modify_selection_add(self, live_client):
         """2.4 — Add fixture 101 to selection."""
         result = await modify_selection("add", fixture_ids=[101])
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_modify_selection_clear(self, live_client):
         """2.5 — Clear selection."""
         result = await modify_selection("clear")
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
 
 # ---------------------------------------------------------------------------
@@ -536,17 +536,17 @@ class TestLayer3LightControl:
     async def test_navigate_page_next(self, live_client):
         """3.12 — Navigate to next executor page."""
         result = await navigate_page("next")
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_navigate_page_previous(self, live_client):
         """3.13 — Navigate to previous executor page (restore)."""
         result = await navigate_page("previous")
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_set_executor_level(self, live_client):
         """3.14 — Set executor 201 fader to 0%."""
         result = await set_executor_level(executor_id=201, level=0.0)
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_select_executor(self, live_client):
         """3.15 — Select executor 201."""
@@ -805,7 +805,7 @@ class TestLayer5CopyMoveAssign:
             property_name="width", executor_id=201, value=2,
             confirm_destructive=True,
         )
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_store_timecode_event_blocked(self, live_client):
         """5.12 — Verify store_timecode_event blocked without confirmation."""
@@ -883,12 +883,12 @@ class TestLayer6Playback:
     async def test_control_executor_on(self, live_client):
         """6.10 — Turn on executor 201."""
         result = await control_executor("on", executor_id=201)
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_control_executor_off(self, live_client):
         """6.11 — Turn off executor 201."""
         result = await control_executor("off", executor_id=201)
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_run_macro(self, live_client):
         """6.12 — Run macro 99 (empty, stored in Layer 4)."""
@@ -1020,7 +1020,7 @@ class TestLayer7Cleanup:
             property_name="width", executor_id=201, value=1,
             confirm_destructive=True,
         )
-        data = validate_response(result, ["command_sent", "raw_response"])
+        validate_response(result, ["command_sent", "raw_response"])
 
     async def test_restore_sequence_1_label(self, live_client):
         """7.12 — Restore sequence 1 label (best-effort)."""
