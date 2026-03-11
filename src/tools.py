@@ -25,17 +25,3 @@ def set_gma2_client(client) -> None:
     _gma2_client = client
 
 
-def get_gma2_client():
-    """
-    Get the global GMA2 client instance.
-
-    Returns:
-        GMA2TelnetClient: Global client instance
-
-    Raises:
-        RuntimeError: Client not initialized
-    """
-    global _gma2_client
-    if _gma2_client is None:
-        raise RuntimeError("GMA2 client not initialized, call set_gma2_client() first")
-    return _gma2_client

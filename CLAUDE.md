@@ -1,7 +1,7 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.2.0
+version: 3.3.0
 created: 2026-03-01T00:00:00Z
 last_updated: 2026-03-11T00:00:00Z
 ---
@@ -10,7 +10,7 @@ last_updated: 2026-03-11T00:00:00Z
 
 ## Project Identity
 
-MCP server exposing **82 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **86 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,7 +19,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 82 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 86 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
@@ -31,6 +31,8 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `rag/store/sqlite.py` | SQLite vector store (`rag/store/rag.db`) |
 | `scripts/rag_ingest.py` | CLI: ingest repo into RAG store |
 | `scripts/rag_ingest_web.py` | CLI: crawl MA2 help docs and ingest in daily batches |
+| `src/categorization/` | ML-based tool categorization: K-Means clustering + auto-labeling |
+| `scripts/categorize_tools.py` | CLI: extract features, embed, cluster, write taxonomy JSON |
 
 ---
 
@@ -93,7 +95,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-11): **1174 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-11): **1222 unit tests**, **132 live integration tests**.
 
 ### New Show — connectivity preservation
 

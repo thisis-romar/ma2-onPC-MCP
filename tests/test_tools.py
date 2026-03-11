@@ -26,7 +26,7 @@ class TestCreateFixtureGroupTool:
         mock_client.send_command = AsyncMock()
         mock_get_client.return_value = mock_client
 
-        result = await create_fixture_group(start_fixture=1, end_fixture=10, group_id=1)
+        result = await create_fixture_group(start_fixture=1, end_fixture=10, group_id=1, confirm_destructive=True)
 
         calls = mock_client.send_command.call_args_list
         assert len(calls) == 2
@@ -48,7 +48,7 @@ class TestCreateFixtureGroupTool:
         mock_get_client.return_value = mock_client
 
         await create_fixture_group(
-            start_fixture=1, end_fixture=10, group_id=1, group_name="Front Wash"
+            start_fixture=1, end_fixture=10, group_id=1, group_name="Front Wash", confirm_destructive=True
         )
 
         calls = mock_client.send_command.call_args_list
@@ -68,7 +68,7 @@ class TestCreateFixtureGroupTool:
         mock_get_client.return_value = mock_client
 
         await create_fixture_group(
-            start_fixture=1, end_fixture=10, group_id=1, group_name="Front Stage Wash"
+            start_fixture=1, end_fixture=10, group_id=1, group_name="Front Stage Wash", confirm_destructive=True
         )
 
         calls = mock_client.send_command.call_args_list
@@ -598,7 +598,7 @@ class TestSetNodePropertyTool:
         )
 
         result = await set_node_property(
-            path="3.1", property_name="Telnet", value="Login Disabled"
+            path="3.1", property_name="Telnet", value="Login Disabled", confirm_destructive=True
         )
         data = json.loads(result)
 
@@ -627,7 +627,7 @@ class TestSetNodePropertyTool:
         )
 
         result = await set_node_property(
-            path="3.1", property_name="Telnet", value="Bad"
+            path="3.1", property_name="Telnet", value="Bad", confirm_destructive=True
         )
         data = json.loads(result)
 
@@ -823,7 +823,7 @@ class TestCopyOrMoveObjectTool:
         mock_get_client.return_value = mock_client
 
         result = await copy_or_move_object(
-            action="copy", object_type="group", source_id=1, target_id=5
+            action="copy", object_type="group", source_id=1, target_id=5, confirm_destructive=True
         )
         data = json.loads(result)
 
@@ -840,7 +840,7 @@ class TestCopyOrMoveObjectTool:
         mock_get_client.return_value = mock_client
 
         result = await copy_or_move_object(
-            action="move", object_type="macro", source_id=3, target_id=10
+            action="move", object_type="macro", source_id=3, target_id=10, confirm_destructive=True
         )
         data = json.loads(result)
 
@@ -852,7 +852,7 @@ class TestCopyOrMoveObjectTool:
         from src.server import copy_or_move_object
 
         result = await copy_or_move_object(
-            action="cut", object_type="group", source_id=1, target_id=5
+            action="cut", object_type="group", source_id=1, target_id=5, confirm_destructive=True
         )
         data = json.loads(result)
 
@@ -4049,6 +4049,7 @@ class TestGenerateFixtureLayerXmlTool:
             layer_index=1,
             fixtures=[self.SAMPLE_FIXTURE],
             showfile="unit_test",
+            confirm_destructive=True,
         )
         data = json.loads(result)
         assert data["fixture_count"] == 1
@@ -4086,6 +4087,7 @@ class TestGenerateFixtureLayerXmlTool:
             layer_name="L",
             layer_index=1,
             fixtures=[self.SAMPLE_FIXTURE],
+            confirm_destructive=True,
         )
         # Second call without overwrite — should fail
         result = await generate_fixture_layer_xml(
@@ -4093,6 +4095,7 @@ class TestGenerateFixtureLayerXmlTool:
             layer_name="L",
             layer_index=1,
             fixtures=[self.SAMPLE_FIXTURE],
+            confirm_destructive=True,
         )
         data = json.loads(result)
         assert "error" in data
@@ -4111,11 +4114,11 @@ class TestGenerateFixtureLayerXmlTool:
 
         await generate_fixture_layer_xml(
             filename=test_filename, layer_name="L", layer_index=1,
-            fixtures=[self.SAMPLE_FIXTURE],
+            fixtures=[self.SAMPLE_FIXTURE], confirm_destructive=True,
         )
         result = await generate_fixture_layer_xml(
             filename=test_filename, layer_name="L", layer_index=1,
-            fixtures=[self.SAMPLE_FIXTURE], overwrite=True,
+            fixtures=[self.SAMPLE_FIXTURE], overwrite=True, confirm_destructive=True,
         )
         data = json.loads(result)
         assert "error" not in data
@@ -4137,7 +4140,7 @@ class TestGenerateFixtureLayerXmlTool:
         fx["num_channels"] = 3
         result = await generate_fixture_layer_xml(
             filename=test_filename, layer_name="L", layer_index=1,
-            fixtures=[fx],
+            fixtures=[fx], confirm_destructive=True,
         )
         data = json.loads(result)
         tree = ET.parse(data["file_path"])
@@ -5235,3 +5238,130 @@ class TestListPresetPoolTool:
         data = json.loads(result)
 
         assert "error" in data
+
+
+# ============================================================
+# Safety Gate Blocking Tests
+# ============================================================
+
+
+class TestSafetyGateCreateFixtureGroup:
+    """Test that create_fixture_group blocks without confirm_destructive."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import create_fixture_group
+
+        result = await create_fixture_group(1, 10, 1)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "DESTRUCTIVE" in data["risk_tier"]
+
+
+class TestSafetyGateSetNodeProperty:
+    """Test that set_node_property blocks without confirm_destructive."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import set_node_property
+
+        result = await set_node_property("3.1", "Telnet", "Login Disabled")
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "DESTRUCTIVE" in data["risk_tier"]
+
+
+class TestSafetyGateCopyOrMoveObject:
+    """Test that copy_or_move_object blocks without confirm_destructive."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import copy_or_move_object
+
+        result = await copy_or_move_object("copy", "group", 1, 5)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "DESTRUCTIVE" in data["risk_tier"]
+
+
+class TestSafetyGateGenerateFixtureLayerXml:
+    """Test that generate_fixture_layer_xml blocks without confirm_destructive."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import generate_fixture_layer_xml
+
+        result = await generate_fixture_layer_xml(
+            "test", "Layer", 1, [{"fixture_id": 1, "name": "F1",
+            "fixture_type_no": 1, "fixture_type_name": "FT",
+            "dmx_address": 1, "num_channels": 1}]
+        )
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "DESTRUCTIVE" in data["risk_tier"]
+
+
+class TestSafetyGateManageMatricks:
+    """Test that manage_matricks blocks without confirm_destructive."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import manage_matricks
+
+        result = await manage_matricks("Wings", "2")
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "DESTRUCTIVE" in data["risk_tier"]
+
+
+# ============================================================
+# is_connected Property Tests
+# ============================================================
+
+
+class TestIsConnectedProperty:
+    """Tests for GMA2TelnetClient.is_connected property."""
+
+    def test_initially_disconnected(self):
+        from src.telnet_client import GMA2TelnetClient
+        client = GMA2TelnetClient("127.0.0.1", 30000)
+        assert client.is_connected is False
+
+    def test_connected_after_mock_setup(self):
+        from src.telnet_client import GMA2TelnetClient
+        client = GMA2TelnetClient("127.0.0.1", 30000)
+        client._writer = MagicMock()
+        client._connection = MagicMock()
+        assert client.is_connected is True
+
+    def test_disconnected_when_writer_none(self):
+        from src.telnet_client import GMA2TelnetClient
+        client = GMA2TelnetClient("127.0.0.1", 30000)
+        client._writer = None
+        client._connection = MagicMock()
+        assert client.is_connected is False
+
+
+# ============================================================
+# store_cue sequence_id Builder Tests
+# ============================================================
+
+
+class TestStoreCueSequenceId:
+    """Tests for the store_cue builder with sequence_id parameter."""
+
+    def test_store_cue_with_sequence_id(self):
+        from src.commands.functions.store import store_cue
+        result = store_cue(5, sequence_id=99)
+        assert result == "store cue 5 sequence 99"
+
+    def test_store_cue_without_sequence_id(self):
+        from src.commands.functions.store import store_cue
+        result = store_cue(5)
+        assert result == "store cue 5"
+
+    def test_store_cue_sequence_with_options(self):
+        from src.commands.functions.store import store_cue
+        result = store_cue(5, sequence_id=1, merge=True)
+        assert "store cue 5 sequence 1" in result
+        assert "/merge" in result

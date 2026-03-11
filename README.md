@@ -1,7 +1,7 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 2.1.0
+version: 2.2.0
 created: 2025-02-27T00:00:00Z
 last_updated: 2026-03-11T00:00:00Z
 ---
@@ -59,7 +59,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  MCP Server Layer              src/server.py             │
-│  82 tools across 12 categories                           │
+│  86 tools across 12 categories                           │
 │  Safety gate: classifies commands before sending         │
 └────────────────────────┬─────────────────────────────────┘
                          │
@@ -135,7 +135,7 @@ Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](ht
 
 ## MCP Tools
 
-The server exposes **82 tools** to MCP clients, grouped by category:
+The server exposes **86 tools** to MCP clients, grouped by category:
 
 <details>
 <summary><strong>Navigation & Inspection (4 tools)</strong></summary>
@@ -335,6 +335,7 @@ import_fixture_layer(filename="my_dimmers", layer_index=1, confirm_destructive=T
 <details>
 <summary><strong>Console & Utilities (6 tools)</strong></summary>
 
+
 | Tool | Description |
 |------|-------------|
 | `send_raw_command` | Send any MA command directly (safety-gated) |
@@ -343,6 +344,18 @@ import_fixture_layer(filename="my_dimmers", layer_index=1, confirm_destructive=T
 | `manage_variable` | Set or add to console variables (global or user-scoped) |
 | `undo_last_action` | Undo the last console action |
 | `toggle_console_mode` | Toggle console modes: blind, highlight, freeze, solo |
+
+</details>
+
+<details>
+<summary><strong>ML-Based Tool Discovery (4 tools)</strong></summary>
+
+| Tool | Description |
+|------|-------------|
+| `list_tool_categories` | Browse auto-discovered tool categories via K-Means clustering |
+| `recluster_tools` | Re-run the full ML pipeline (extract → embed → cluster → label) |
+| `get_similar_tools` | Find the most similar tools by Euclidean distance in feature space |
+| `suggest_tool_for_task` | Suggest tools for a natural-language task description |
 
 </details>
 
@@ -922,15 +935,21 @@ gma2-mcp-telnet/
 │   ├── connect.sh                  # Interactive Telnet session via expect
 │   ├── test_keywords.py            # Live Object Keyword validation
 │   ├── validate_ft_channels.py     # FT ChannelType CD vs DMX order
-│   └── research_hierarchy.py       # Preset/Sequence/Executor hierarchy
+│   ├── research_hierarchy.py       # Preset/Sequence/Executor hierarchy
+│   └── categorize_tools.py        # ML tool categorization CLI
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 82 tools)
+│   ├── server.py                   # MCP server (FastMCP, 86 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
 │   ├── tools.py                    # Global client instance management
 │   ├── vocab.py                    # Keyword vocabulary, categories & safety tiers
 │   ├── grandMA2_v3_9_telnet_keyword_vocabulary.json  # Schema v2.0
+│   ├── categorization/              # ML-based tool categorization
+│   │   ├── features.py             # AST-based 50-dim structural features
+│   │   ├── clustering.py           # Pure numpy K-Means + silhouette
+│   │   ├── labeling.py             # Auto-generate category labels
+│   │   └── taxonomy.py             # JSON taxonomy I/O + query API
 │   └── commands/
 │       ├── __init__.py             # Public API (110+ exports)
 │       ├── constants.py            # PRESET_TYPES, store option sets
@@ -973,6 +992,7 @@ gma2-mcp-telnet/
 | `python-dotenv>=1.0.0` | Load `.env` configuration |
 | `telnetlib3>=2.0.8` | Async Telnet client (replaces deprecated `telnetlib`) |
 | `beautifulsoup4>=4.12.0` | HTML parsing for RAG web doc crawler |
+| `numpy>=1.26.0` | K-Means clustering and feature vectors for tool categorization |
 | `httpx` *(transitive via mcp)* | HTTP client used by GitHub Models embedding provider |
 | `pytest>=9.0.1` | Testing (dev) |
 | `pytest-asyncio>=1.3.0` | Async test support (dev) |

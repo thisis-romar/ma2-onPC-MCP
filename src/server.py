@@ -8,6 +8,7 @@ Usage:
     uv run python -m src.server
 """
 
+import asyncio
 import functools
 import json
 import logging
@@ -256,7 +257,7 @@ mcp = FastMCP(
     name="grandMA2-MCP",
     instructions="""
     This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following 73 tools to operate grandMA2:
+    You can use the following 86 tools to operate grandMA2:
 
     --- Navigation & Inspection ---
     1. navigate_console - Navigate the console object tree (cd)
@@ -309,6 +310,7 @@ mcp = FastMCP(
 # Global telnet client instance
 _client: GMA2TelnetClient | None = None
 _connected: bool = False
+_client_lock = asyncio.Lock()
 
 
 async def get_client() -> GMA2TelnetClient:
@@ -317,33 +319,34 @@ async def get_client() -> GMA2TelnetClient:
 
     On first call, establishes connection and login. Subsequent calls return
     the already connected client. If the connection has dropped, reconnects
-    automatically.
+    automatically. Uses an asyncio.Lock to prevent concurrent connection attempts.
     """
     global _client, _connected
 
-    # Check if existing connection is still healthy
-    if _client is not None and _connected and _client._writer is None:
-        logger.warning("Connection lost, reconnecting...")
-        _connected = False
-
-    if _client is None or not _connected:
-        _client = GMA2TelnetClient(
-            host=_GMA_HOST,
-            port=_GMA_PORT,
-            user=_GMA_USER,
-            password=_GMA_PASSWORD,
-        )
-        try:
-            await _client.connect()
-            await _client.login()
-            _connected = True
-            set_gma2_client(_client)
-            logger.info(f"Connected to grandMA2: {_GMA_HOST}:{_GMA_PORT}")
-        except Exception:
+    async with _client_lock:
+        # Check if existing connection is still healthy
+        if _client is not None and _connected and not _client.is_connected:
+            logger.warning("Connection lost, reconnecting...")
             _connected = False
-            raise
 
-    return _client
+        if _client is None or not _connected:
+            _client = GMA2TelnetClient(
+                host=_GMA_HOST,
+                port=_GMA_PORT,
+                user=_GMA_USER,
+                password=_GMA_PASSWORD,
+            )
+            try:
+                await _client.connect()
+                await _client.login()
+                _connected = True
+                set_gma2_client(_client)
+                logger.info(f"Connected to grandMA2: {_GMA_HOST}:{_GMA_PORT}")
+            except Exception:
+                _connected = False
+                raise
+
+        return _client
 
 
 def _handle_errors(func):
@@ -452,9 +455,10 @@ async def create_fixture_group(
     end_fixture: int,
     group_id: int,
     group_name: str | None = None,
+    confirm_destructive: bool = False,
 ) -> str:
     """
-    Create a group containing a specified range of fixtures.
+    Create a group containing a specified range of fixtures (DESTRUCTIVE).
 
     This tool selects the specified range of fixtures and saves them as a group.
     Optionally, a name can be assigned to the group.
@@ -464,6 +468,7 @@ async def create_fixture_group(
         end_fixture: Ending fixture number
         group_id: Group number to save
         group_name: (Optional) Group name, e.g., "Front Wash"
+        confirm_destructive: Must be True to execute (DESTRUCTIVE operation)
 
     Returns:
         str: Operation result message
@@ -472,6 +477,13 @@ async def create_fixture_group(
         - Save fixtures 1 to 10 as group 1
         - Save fixtures 1 to 10 as group 1 with name "Front Wash"
     """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Create Fixture Group uses Store (DESTRUCTIVE). Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
     client = await get_client()
 
     # Select fixtures
@@ -858,9 +870,10 @@ async def set_node_property(
     property_name: str,
     value: str,
     verify: bool = True,
+    confirm_destructive: bool = False,
 ) -> str:
     """
-    Set a property on a node in the grandMA2 object tree.
+    Set a property on a node in the grandMA2 object tree (DESTRUCTIVE).
 
     Uses the scan tree path notation (dot-separated indexes) to navigate
     to a node and set an inline property using Assign [index]/property=value.
@@ -874,15 +887,14 @@ async def set_node_property(
     After setting, navigates back to root (cd /).
     If verify=True (default), re-lists and confirms the property changed.
 
-    SAFETY: This modifies live console state. Double-check property names
-    and values before calling. Use list_console_destination to inspect
-    current values first.
+    SAFETY: This modifies live console state. Requires confirm_destructive=True.
 
     Args:
         path: Dot-separated index path (e.g. "3.1" for Settings/Global)
         property_name: Property to set (e.g. "Telnet", "OutActive")
         value: New value (e.g. "Login Enabled", "On")
         verify: Re-list after setting to confirm the change (default True)
+        confirm_destructive: Must be True to execute (DESTRUCTIVE operation)
 
     Returns:
         str: JSON with commands_sent, success, verified_value, and any errors.
@@ -891,6 +903,13 @@ async def set_node_property(
         - Set telnet to disabled: path="3.1", property_name="Telnet", value="Login Disabled"
         - Enable Art-Net output: path="4.1", property_name="OutActive", value="On"
     """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Set Node Property uses Assign (DESTRUCTIVE). Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
     client = await get_client()
     result = await set_property(
         client,
@@ -1091,11 +1110,10 @@ async def store_current_cue(
     # Build store cue command
     store_cmd = build_store_cue(
         cue_id=cue_number,
+        sequence_id=sequence_id,
         merge=merge,
         overwrite=overwrite,
     )
-    if sequence_id is not None:
-        store_cmd += f" sequence {sequence_id}"
 
     raw_response = await client.send_command_with_response(store_cmd)
     commands_sent.append(store_cmd)
@@ -1455,12 +1473,13 @@ async def copy_or_move_object(
     source_end: int | None = None,
     overwrite: bool = False,
     merge: bool = False,
+    confirm_destructive: bool = False,
 ) -> str:
     """
-    Copy or move an object to a new location.
+    Copy or move an object to a new location (DESTRUCTIVE).
 
     SAFETY: Both operations modify show data. Copy duplicates the object,
-    move relocates it (deleting the original).
+    move relocates it (deleting the original). Requires confirm_destructive=True.
 
     Args:
         action: "copy" or "move"
@@ -1470,6 +1489,7 @@ async def copy_or_move_object(
         source_end: Optional end ID for range copy/move
         overwrite: Overwrite target if it exists (default False)
         merge: Merge into target if it exists (default False)
+        confirm_destructive: Must be True to execute (DESTRUCTIVE operation)
 
     Returns:
         str: JSON with command_sent and raw_response.
@@ -1479,6 +1499,13 @@ async def copy_or_move_object(
         - Move macro 3 to 10: action="move", object_type="macro", source_id=3, target_id=10
         - Copy cue range: action="copy", object_type="cue", source_id=1, target_id=20, source_end=10
     """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Copy/Move is a DESTRUCTIVE operation. Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
     action = action.lower()
 
     if action == "copy":
@@ -3988,9 +4015,10 @@ async def generate_fixture_layer_xml(
     fixtures: list[dict],
     showfile: str = "grandma2",
     overwrite: bool = False,
+    confirm_destructive: bool = False,
 ) -> str:
     """
-    Generate a grandMA2 fixture layer XML file and save it to the importexport directory.
+    Generate a grandMA2 fixture layer XML file and save it to the importexport directory (DESTRUCTIVE).
 
     The output file can be imported immediately using import_fixture_layer.
     No telnet connection required — this tool writes a local file only.
@@ -4013,10 +4041,18 @@ async def generate_fixture_layer_xml(
         fixtures: List of fixture parameter dicts (see schema above)
         showfile: Show name embedded in XML <Info> element
         overwrite: If True, overwrite existing file; if False, return error on conflict
+        confirm_destructive: Must be True to execute (writes files to console importexport directory)
 
     Returns:
         str: JSON with file_path, filename, fixture_count, layer_index, layer_name
     """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Generate Fixture Layer XML writes files to disk. Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
     import os
     from datetime import datetime, timezone
     from xml.etree.ElementTree import Element, SubElement, tostring
@@ -4829,19 +4865,28 @@ async def list_library(
 async def manage_matricks(
     property_name: str,
     value: str,
+    confirm_destructive: bool = False,
 ) -> str:
     """
-    Configure MAtricks selection pattern properties (fan, symmetry, etc.).
+    Configure MAtricks selection pattern properties (fan, symmetry, etc.) (DESTRUCTIVE).
 
     Uses the set_property navigation pattern on the MAtricks object.
 
     Args:
         property_name: Property to set (e.g. "Wings", "Groups", "Interleave").
         value: New value for the property.
+        confirm_destructive: Must be True to execute (DESTRUCTIVE operation)
 
     Returns:
         str: JSON with commands_sent, success, verified_value, risk_tier.
     """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "Manage MAtricks uses Assign (DESTRUCTIVE). Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
     client = await get_client()
 
     # Navigate to root, then cd MAtricks
@@ -5216,6 +5261,282 @@ async def discover_object_names(destination: str) -> str:
             "names_only": names_only,
             "wildcard_tip": tip,
         },
+        indent=2,
+    )
+
+
+# ============================================================
+# Server Startup
+# ============================================================
+
+
+# ============================================================
+# Tools 83–86 — ML-Based Tool Categorization
+# ============================================================
+
+# Module-level cache for the taxonomy to avoid repeated disk reads.
+_taxonomy_cache: dict | None = None
+
+
+def _invalidate_taxonomy_cache() -> None:
+    global _taxonomy_cache
+    _taxonomy_cache = None
+
+
+def _load_taxonomy_cached() -> dict:
+    global _taxonomy_cache
+    if _taxonomy_cache is not None:
+        return _taxonomy_cache
+    from src.categorization.taxonomy import DEFAULT_TAXONOMY_PATH, load_taxonomy
+
+    if not DEFAULT_TAXONOMY_PATH.exists():
+        raise FileNotFoundError(
+            "Taxonomy not generated yet. Run: "
+            "uv run python scripts/categorize_tools.py --provider zero"
+        )
+    _taxonomy_cache = load_taxonomy()
+    return _taxonomy_cache
+
+
+@mcp.tool()
+@_handle_errors
+async def list_tool_categories(category: str | None = None) -> str:
+    """
+    List auto-discovered tool categories (SAFE_READ).
+
+    Returns the ML-generated taxonomy of all MCP tools grouped by
+    functional similarity.  Categories are discovered via unsupervised
+    K-Means clustering over hybrid features (structural metadata +
+    docstring embeddings).
+
+    Args:
+        category: Optional category name filter (case-insensitive partial match).
+
+    Returns:
+        str: JSON with categories, tool lists, and clustering metadata.
+    """
+    taxonomy = _load_taxonomy_cached()
+    from src.categorization.taxonomy import get_tools_by_category
+
+    filtered = get_tools_by_category(taxonomy, category)
+    return json.dumps(
+        {
+            "metadata": taxonomy.get("metadata", {}),
+            "categories": filtered,
+        },
+        indent=2,
+    )
+
+
+@mcp.tool()
+@_handle_errors
+async def recluster_tools(
+    provider: str = "zero",
+    k: int | None = None,
+    alpha: float = 0.4,
+) -> str:
+    """
+    Trigger re-clustering of all MCP tools (SAFE_READ).
+
+    Runs the full ML pipeline: extract features from tool definitions,
+    embed docstrings, cluster via K-Means, and regenerate the taxonomy.
+
+    Args:
+        provider: Embedding provider — "zero" (fast stub) or "github"
+                  (real embeddings, requires GITHUB_MODELS_TOKEN).
+        k: Override number of clusters.  None = auto-select via silhouette.
+        alpha: Structural feature weight (0–1). Embedding weight = 1 − alpha.
+
+    Returns:
+        str: JSON summary with categories, silhouette score, and tool assignments.
+    """
+    import importlib
+    from pathlib import Path
+
+    # Import lazily to avoid circular imports at module load time.
+    mod = importlib.import_module("scripts.categorize_tools")
+    server_path = str(Path(__file__).resolve())
+
+    result = mod.run(
+        provider_name=provider,
+        k_override=k,
+        alpha=alpha,
+        server_path=server_path,
+    )
+    _invalidate_taxonomy_cache()
+
+    return json.dumps(
+        {
+            "metadata": result["metadata"],
+            "category_count": len(result["categories"]),
+            "categories": {
+                name: {
+                    "tool_count": cat["tool_count"],
+                    "tools": [t["name"] for t in cat["tools"]],
+                }
+                for name, cat in result["categories"].items()
+            },
+        },
+        indent=2,
+    )
+
+
+@mcp.tool()
+@_handle_errors
+async def get_similar_tools(tool_name: str, top_n: int = 5) -> str:
+    """
+    Find the most similar MCP tools to a given tool (SAFE_READ).
+
+    Uses Euclidean distance in the combined feature space (structural +
+    embedding) from the last clustering run.
+
+    Args:
+        tool_name: Name of the reference tool (e.g. "playback_action").
+        top_n: Number of similar tools to return (default 5).
+
+    Returns:
+        str: JSON array of similar tools ranked by distance, with category.
+    """
+    import numpy as np
+
+    from src.categorization.clustering import euclidean_distance
+    from src.categorization.taxonomy import get_feature_matrix
+
+    taxonomy = _load_taxonomy_cached()
+    names, matrix = get_feature_matrix(taxonomy)
+
+    if tool_name not in names:
+        return json.dumps(
+            {"error": f"Tool '{tool_name}' not found in taxonomy. Available: {names[:10]}...", "blocked": True},
+            indent=2,
+        )
+
+    idx = names.index(tool_name)
+    ref_vec = matrix[idx]
+
+    # Compute distances to all other tools
+    distances: list[tuple[str, float]] = []
+    for i, name in enumerate(names):
+        if i == idx:
+            continue
+        dist = euclidean_distance(ref_vec, matrix[i])
+        distances.append((name, dist))
+
+    distances.sort(key=lambda x: x[1])
+    top = distances[:top_n]
+
+    # Find categories for each tool
+    categories = taxonomy.get("categories", {})
+    tool_to_category: dict[str, str] = {}
+    for cat_name, cat_data in categories.items():
+        for t in cat_data.get("tools", []):
+            tool_to_category[t["name"]] = cat_name
+
+    max_dist = top[-1][1] if top else 1.0
+    return json.dumps(
+        [
+            {
+                "name": name,
+                "similarity": round(1.0 - (dist / max_dist) if max_dist > 0 else 1.0, 4),
+                "distance": round(dist, 6),
+                "category": tool_to_category.get(name, "unknown"),
+            }
+            for name, dist in top
+        ],
+        indent=2,
+    )
+
+
+@mcp.tool()
+@_handle_errors
+async def suggest_tool_for_task(
+    task_description: str,
+    top_n: int = 3,
+    provider: str = "zero",
+) -> str:
+    """
+    Suggest MCP tools for a natural-language task description (SAFE_READ).
+
+    Embeds the task description and finds the closest tools by cosine
+    similarity against stored docstring embeddings.  Falls back to keyword
+    matching when using the zero-vector provider.
+
+    Args:
+        task_description: What you want to accomplish (e.g. "fade out all fixtures").
+        top_n: Number of suggestions to return (default 3).
+        provider: Embedding provider — "zero" (keyword fallback) or "github".
+
+    Returns:
+        str: JSON array of suggested tools with scores and descriptions.
+    """
+    import numpy as np
+
+    from src.categorization.clustering import cosine_similarity
+    from src.categorization.taxonomy import get_docstring_map, get_embedding_matrix
+
+    taxonomy = _load_taxonomy_cached()
+
+    # Find category map
+    categories = taxonomy.get("categories", {})
+    tool_to_category: dict[str, str] = {}
+    for cat_name, cat_data in categories.items():
+        for t in cat_data.get("tools", []):
+            tool_to_category[t["name"]] = cat_name
+
+    docstrings = get_docstring_map(taxonomy)
+
+    if provider == "zero":
+        # Keyword-based fallback: score tools by word overlap
+        task_words = set(task_description.lower().split())
+        scores: list[tuple[str, float]] = []
+        for name, doc in docstrings.items():
+            tool_words = set(name.replace("_", " ").lower().split()) | set(doc.lower().split())
+            overlap = len(task_words & tool_words)
+            if overlap > 0:
+                scores.append((name, float(overlap) / max(len(task_words), 1)))
+        scores.sort(key=lambda x: -x[1])
+    else:
+        # Embed task and compare via cosine similarity
+        names, emb_matrix = get_embedding_matrix(taxonomy)
+        if emb_matrix.size == 0 or np.allclose(emb_matrix, 0.0):
+            # Fall back to keyword matching
+            task_words = set(task_description.lower().split())
+            scores = []
+            for name, doc in docstrings.items():
+                tool_words = set(name.replace("_", " ").lower().split()) | set(doc.lower().split())
+                overlap = len(task_words & tool_words)
+                if overlap > 0:
+                    scores.append((name, float(overlap) / max(len(task_words), 1)))
+            scores.sort(key=lambda x: -x[1])
+        else:
+            from rag.ingest.embed import GitHubModelsProvider
+
+            token = os.environ.get("GITHUB_MODELS_TOKEN", "")
+            if not token:
+                return json.dumps(
+                    {"error": "GITHUB_MODELS_TOKEN not set. Use provider='zero' for keyword matching."},
+                    indent=2,
+                )
+            emb_provider = GitHubModelsProvider(token=token)
+            task_vec = np.array(emb_provider.embed_one(task_description), dtype=np.float64)
+
+            scores = []
+            for i, name in enumerate(names):
+                sim = cosine_similarity(task_vec, emb_matrix[i])
+                scores.append((name, sim))
+            scores.sort(key=lambda x: -x[1])
+
+    top = scores[:top_n]
+    return json.dumps(
+        [
+            {
+                "name": name,
+                "score": round(score, 4),
+                "category": tool_to_category.get(name, "unknown"),
+                "description": docstrings.get(name, ""),
+            }
+            for name, score in top
+        ],
         indent=2,
     )
 

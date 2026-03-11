@@ -88,6 +88,11 @@ class GMA2TelnetClient:
             f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}"
         )
 
+    @property
+    def is_connected(self) -> bool:
+        """Check whether the telnet connection appears healthy."""
+        return self._writer is not None and self._connection is not None
+
     def run_sync(self, coro: Any) -> Any:
         """
         Helper function to run async methods in synchronous environments.

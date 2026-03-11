@@ -119,6 +119,7 @@ class TestGroupTreeVerification:
             end_fixture=TEST_FIXTURE_END,
             group_id=TEST_GROUP_ID,
             group_name="Test Group",
+            confirm_destructive=True,
         )
 
         calls = mock_client.send_command.call_args_list

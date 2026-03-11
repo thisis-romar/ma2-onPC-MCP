@@ -34,3 +34,7 @@ keyword_combos*.json
 
 # RAG database
 rag/store/*.db
+
+# Tool categorization taxonomy (generated artifact)
+src/categorization/taxonomy.json
+*.taxonomy.json

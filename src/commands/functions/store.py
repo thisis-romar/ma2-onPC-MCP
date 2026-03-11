@@ -55,6 +55,7 @@ def store_cue(
     cue_id: int | None = None,
     end: int | None = None,
     *,
+    sequence_id: int | None = None,
     ranges: list[tuple[int, int]] | None = None,
     name: str | None = None,
     merge: bool = False,
@@ -80,6 +81,7 @@ def store_cue(
     Args:
         cue_id: The cue number to store
         end: End cue number for range (cue_id thru end)
+        sequence_id: Target sequence number (appends ``sequence N`` to command)
         ranges: List of (start, end) tuples for multiple ranges
         name: Optional name for the cue
         merge: Merge new values into existing
@@ -109,6 +111,8 @@ def store_cue(
         'store cue 1 thru 10'
         >>> store_cue(ranges=[(1, 10), (20, 30)])
         'store cue 1 thru 10 + 20 thru 30'
+        >>> store_cue(5, sequence_id=99)
+        'store cue 5 sequence 99'
     """
     if ranges:
         range_parts = [f"{start} thru {end}" for start, end in ranges]
@@ -121,6 +125,9 @@ def store_cue(
         raise ValueError("Must provide cue_id or ranges")
 
     cmd = f"store cue {cue_part}"
+
+    if sequence_id is not None:
+        cmd += f" sequence {sequence_id}"
 
     if name:
         cmd += f' "{name}"'
