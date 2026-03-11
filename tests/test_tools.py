@@ -5086,3 +5086,152 @@ class TestSetFixtureTypeProperty:
         assert data["blocked"] is False
         assert data["success"] is True
         mock_set_prop.assert_called_once()
+
+
+class TestStoreNewPresetScopeFlags:
+    """Tests for universal/selective/global_scope flags on store_new_preset."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_universal_color_preset(self, mock_get_client):
+        from src.server import store_new_preset
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="ok")
+        mock_get_client.return_value = mock_client
+
+        result = await store_new_preset(
+            preset_type="color", preset_id=6,
+            universal=True, overwrite=True,
+            confirm_destructive=True,
+        )
+        data = json.loads(result)
+
+        assert "/universal" in data["command_sent"]
+        assert "/overwrite" in data["command_sent"]
+        assert data["command_sent"].startswith("store preset 4.6")
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_selective_preset(self, mock_get_client):
+        from src.server import store_new_preset
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="ok")
+        mock_get_client.return_value = mock_client
+
+        result = await store_new_preset(
+            preset_type="position", preset_id=3,
+            selective=True,
+            confirm_destructive=True,
+        )
+        data = json.loads(result)
+
+        assert "/selective" in data["command_sent"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_store_global_scope_preset(self, mock_get_client):
+        from src.server import store_new_preset
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="ok")
+        mock_get_client.return_value = mock_client
+
+        result = await store_new_preset(
+            preset_type="dimmer", preset_id=2,
+            global_scope=True,
+            confirm_destructive=True,
+        )
+        data = json.loads(result)
+
+        assert "/global" in data["command_sent"]
+
+
+class TestListPresetPoolTool:
+    """Tests for the list_preset_pool MCP tool."""
+
+    POOL_OVERVIEW_RAW = (
+        "Executing : List\r\n"
+        "PresetPool 0 ALL        (1)\r\n"
+        "PresetPool 1 DIMMER\r\n"
+        "PresetPool 4 COLOR      (5)\r\n"
+        "Presets/Global  >\r\n"
+    )
+
+    COLOR_POOL_RAW = (
+        "Executing : List\r\n"
+        "Color 4.3 4.3  Red    Normal\r\n"
+        "Color 4.4 4.4  Green  Normal\r\n"
+        "Color 4.5 4.5  Blue   Normal\r\n"
+        "Presets/Global /Color 4 >\r\n"
+    )
+
+    @pytest.mark.asyncio
+    @patch("src.server.list_destination", new_callable=AsyncMock)
+    @patch("src.server.navigate", new_callable=AsyncMock)
+    async def test_overview_no_args(self, mock_navigate, mock_list_dest):
+        from src.server import list_preset_pool
+
+        mock_navigate.return_value = MagicMock()
+        mock_lst = MagicMock()
+        mock_lst.raw_response = self.POOL_OVERVIEW_RAW
+        mock_lst.parsed_list = MagicMock()
+        mock_lst.parsed_list.entries = []
+        mock_list_dest.return_value = mock_lst
+
+        result = await list_preset_pool()
+        data = json.loads(result)
+
+        assert data["cd_path"] == "17.1"
+        assert data["risk_tier"] == "SAFE_READ"
+        assert "Global PresetPool" in data["description"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.list_destination", new_callable=AsyncMock)
+    @patch("src.server.navigate", new_callable=AsyncMock)
+    async def test_color_pool_by_name(self, mock_navigate, mock_list_dest):
+        from src.server import list_preset_pool
+
+        mock_navigate.return_value = MagicMock()
+        mock_lst = MagicMock()
+        mock_lst.raw_response = self.COLOR_POOL_RAW
+        mock_lst.parsed_list = MagicMock()
+        mock_lst.parsed_list.entries = []
+        mock_list_dest.return_value = mock_lst
+
+        result = await list_preset_pool(preset_type="color")
+        data = json.loads(result)
+
+        assert data["pool_index"] == 4
+        assert data["cd_path"] == "17.1.4"
+
+    @pytest.mark.asyncio
+    @patch("src.server.list_destination", new_callable=AsyncMock)
+    @patch("src.server.navigate", new_callable=AsyncMock)
+    async def test_color_pool_by_number(self, mock_navigate, mock_list_dest):
+        from src.server import list_preset_pool
+
+        mock_navigate.return_value = MagicMock()
+        mock_lst = MagicMock()
+        mock_lst.raw_response = self.COLOR_POOL_RAW
+        mock_lst.parsed_list = MagicMock()
+        mock_lst.parsed_list.entries = []
+        mock_list_dest.return_value = mock_lst
+
+        result = await list_preset_pool(preset_type="4")
+        data = json.loads(result)
+
+        assert data["pool_index"] == 4
+
+    @pytest.mark.asyncio
+    @patch("src.server.navigate", new_callable=AsyncMock)
+    async def test_unknown_preset_type_returns_error(self, mock_navigate):
+        from src.server import list_preset_pool
+
+        mock_navigate.return_value = MagicMock()
+
+        result = await list_preset_pool(preset_type="bogus")
+        data = json.loads(result)
+
+        assert "error" in data

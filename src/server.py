@@ -1513,6 +1513,9 @@ async def store_new_preset(
     preset_id: int,
     merge: bool = False,
     overwrite: bool = False,
+    universal: bool = False,
+    selective: bool = False,
+    global_scope: bool = False,
     confirm_destructive: bool = False,
 ) -> str:
     """
@@ -1524,20 +1527,35 @@ async def store_new_preset(
     Preset types: "dimmer" (1), "position" (2), "gobo" (3), "color" (4),
     "beam" (5), "focus" (6), "control" (7), "shapers" (8), "video" (9)
 
+    Scope flags (mutually exclusive — pick at most one):
+      universal   — stores values indexed by fixture type (applies to any fixture
+                    of the same profile; not tied to specific fixture IDs).
+      selective   — stores values tied to the specific fixtures selected during
+                    store. Recalled preset only affects those fixture IDs.
+      global_scope — stores absolute values (no relative/tracking offset).
+
+    Workflow for universal color presets:
+      1. SelFix 1 Thru 999
+      2. attribute "ColorRgb1" at 100
+      3. store_new_preset("color", 6, universal=True, overwrite=True, confirm_destructive=True)
+
     SAFETY: This is a STORE operation which modifies show data.
 
     Args:
         preset_type: Preset type name (e.g. "color", "position", "gobo")
         preset_id: Preset number within that type
         merge: Merge into existing preset (default False)
-        overwrite: Replace existing preset with /o flag (default False)
+        overwrite: Replace existing preset with /overwrite flag (default False)
+        universal: Store as universal preset — applies to any fixture of the same type
+        selective: Store as selective preset — applies only to selected fixture IDs
+        global_scope: Store with global (absolute) values
         confirm_destructive: Must be True to execute (DESTRUCTIVE operation)
 
     Returns:
         str: JSON with command_sent and raw_response.
 
     Examples:
-        - Store color preset 5: preset_type="color", preset_id=5, confirm_destructive=True
+        - Store universal color preset: preset_type="color", preset_id=6, universal=True, confirm_destructive=True
         - Overwrite position preset 3: preset_type="position", preset_id=3, overwrite=True, confirm_destructive=True
     """
     if not confirm_destructive:
@@ -1548,6 +1566,8 @@ async def store_new_preset(
     cmd = build_store_preset(
         preset_type, preset_id,
         merge=merge, overwrite=overwrite,
+        universal=universal, selective=selective,
+        global_scope=global_scope,
     )
     raw_response = await client.send_command_with_response(cmd)
 
@@ -4517,6 +4537,91 @@ async def get_variable(
     return json.dumps({
         "command_sent": cmd,
         "raw_response": raw,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
+async def list_preset_pool(
+    preset_type: str | None = None,
+) -> str:
+    """
+    List presets stored in the show's Global preset pool.
+
+    Without arguments: returns all PresetPool entries with their counts
+    (Dimmer, Position, Gobo, Color, Beam, Focus, Control, Shapers, Video).
+
+    With preset_type: navigates into that pool and lists individual presets
+    with their slot number, name, and Special field.
+
+    CD tree path navigated:
+      cd 17 → cd 1 → list             (pool overview)
+      cd 17 → cd 1 → cd N → list      (individual preset type)
+
+    Pool index → type mapping (live-verified v3.9.60.65):
+      0=ALL  1=DIMMER  2=POSITION  3=GOBO  4=COLOR
+      5=BEAM  6=FOCUS  7=CONTROL  8=SHAPERS  9=VIDEO
+
+    Note: The "Special" column shows "Normal" (standard) or "Embedded" — it
+    does NOT indicate Universal vs Selective scope. Scope is an internal flag
+    only visible in the console GUI or show XML.
+
+    Args:
+        preset_type: Optional type to drill into. Accepts name ("color", "position")
+            or number ("4"). If omitted, returns pool overview.
+
+    Returns:
+        str: JSON with pool overview or individual preset list.
+    """
+    from src.commands.constants import PRESET_TYPES
+
+    client = await get_client()
+
+    # Navigate to Global preset pool
+    await navigate(client, "/")
+    await navigate(client, "17")
+    await navigate(client, "1")
+
+    if preset_type is None:
+        # Overview: list all pools
+        lst = await list_destination(client)
+        await navigate(client, "/")
+        return json.dumps({
+            "cd_path": "17.1",
+            "description": "Global PresetPool overview",
+            "raw_response": lst.raw_response if lst else "",
+            "entries": [
+                {"type": e.object_type, "id": e.object_id, "name": e.name}
+                for e in (lst.parsed_list.entries if lst and lst.parsed_list else [])
+            ],
+            "risk_tier": "SAFE_READ",
+        }, indent=2)
+
+    # Resolve preset_type to pool index
+    try:
+        pool_idx = int(preset_type)
+    except (ValueError, TypeError):
+        pool_idx = PRESET_TYPES.get(str(preset_type).lower())
+        if pool_idx is None:
+            await navigate(client, "/")
+            return json.dumps({
+                "error": f"Unknown preset_type {preset_type!r}. Use name (color, position) or number 1-9."
+            }, indent=2)
+
+    await navigate(client, str(pool_idx))
+    lst = await list_destination(client)
+    await navigate(client, "/")
+
+    return json.dumps({
+        "cd_path": f"17.1.{pool_idx}",
+        "preset_type": preset_type,
+        "pool_index": pool_idx,
+        "raw_response": lst.raw_response if lst else "",
+        "entries": [
+            {"type": e.object_type, "id": e.object_id, "name": e.name}
+            for e in (lst.parsed_list.entries if lst and lst.parsed_list else [])
+        ],
         "risk_tier": "SAFE_READ",
     }, indent=2)
 
