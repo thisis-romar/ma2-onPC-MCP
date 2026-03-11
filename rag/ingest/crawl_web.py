@@ -35,7 +35,7 @@ _HEADING_RE = re.compile(r"^(h[1-6])$", re.IGNORECASE)
 def crawl_web(
     start_urls: list[str],
     *,
-    url_prefix: str | None = None,
+    url_prefix: str | list[str] | None = None,
     delay: float = 0.5,
     max_pages: int = 2000,
 ) -> list[RepoFile]:
@@ -46,8 +46,10 @@ def crawl_web(
     start_urls:
         One or more seed URLs to begin crawling from.
     url_prefix:
-        Only follow links whose URL starts with this prefix.
-        If ``None``, derived from the first start URL.
+        Only follow links whose URL starts with one of these prefixes.
+        Accepts a single string or a list of strings.
+        If ``None``, one prefix is derived per start URL so that
+        multi-domain seed lists work correctly.
     delay:
         Seconds to wait between HTTP requests (politeness).
     max_pages:
@@ -62,12 +64,20 @@ def crawl_web(
     if not start_urls:
         return []
 
+    # Build the list of allowed URL prefixes
     if url_prefix is None:
-        # Derive prefix from the first start URL (up to last '/' in path)
-        parsed = urlparse(start_urls[0])
-        url_prefix = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-        if not url_prefix.endswith("/"):
-            url_prefix = url_prefix.rsplit("/", 1)[0] + "/"
+        prefixes: list[str] = []
+        for url in start_urls:
+            parsed = urlparse(url)
+            p = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+            if not p.endswith("/"):
+                p = p.rsplit("/", 1)[0] + "/"
+            if p not in prefixes:
+                prefixes.append(p)
+    elif isinstance(url_prefix, str):
+        prefixes = [url_prefix]
+    else:
+        prefixes = list(url_prefix)
 
     visited: set[str] = set()
     queue: deque[str] = deque()
@@ -93,8 +103,18 @@ def crawl_web(
             try:
                 resp = client.get(url)
                 resp.raise_for_status()
+            except httpx.TimeoutException:
+                logger.warning("Timeout (transient) fetching %s — skipping", url)
+                continue
+            except httpx.HTTPStatusError as exc:
+                status = exc.response.status_code
+                if status in {403, 404, 410}:
+                    logger.info("Permanent error %d for %s — skipping", status, url)
+                else:
+                    logger.warning("Transient error %d for %s — skipping", status, url)
+                continue
             except httpx.HTTPError as exc:
-                logger.warning("Failed to fetch %s: %s", url, exc)
+                logger.warning("Network error fetching %s: %s", url, exc)
                 continue
 
             content_type = resp.headers.get("content-type", "")
@@ -105,7 +125,7 @@ def crawl_web(
             soup = BeautifulSoup(resp.text, "html.parser")
 
             # Discover links
-            for link in _extract_links(soup, url, url_prefix):
+            for link in _extract_links(soup, url, prefixes):
                 if link not in visited:
                     visited.add(link)
                     queue.append(link)
@@ -151,7 +171,7 @@ def _normalize_url(url: str) -> str:
     return urlunparse(parsed._replace(fragment=""))
 
 
-def _extract_links(soup: BeautifulSoup, base_url: str, prefix: str) -> list[str]:
+def _extract_links(soup: BeautifulSoup, base_url: str, prefixes: list[str]) -> list[str]:
     """Extract and filter links from a page."""
     links: list[str] = []
     for tag in soup.find_all("a", href=True):
@@ -161,8 +181,8 @@ def _extract_links(soup: BeautifulSoup, base_url: str, prefix: str) -> list[str]
         absolute = urljoin(base_url, href)
         normalized = _normalize_url(absolute)
 
-        # Only follow links within the allowed prefix
-        if normalized.startswith(prefix):
+        # Only follow links within one of the allowed prefixes
+        if any(normalized.startswith(p) for p in prefixes):
             links.append(normalized)
 
     return links
