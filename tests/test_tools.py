@@ -2336,6 +2336,41 @@ class TestNavigatePageTool:
         assert len(data["steps"]) == 1
 
 
+class TestSelectFeatureTool:
+    """Tests for the select_feature MCP tool."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_feature_zoom(self, mock_get_client):
+        """Test selecting the Zoom feature bank."""
+        from src.server import select_feature
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await select_feature(feature_name="Zoom")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "Feature Zoom"
+        assert data["risk_tier"] == "SAFE_WRITE"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_feature_color(self, mock_get_client):
+        """Test selecting the Color feature bank."""
+        from src.server import select_feature
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await select_feature(feature_name="Color")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "Feature Color"
+
+
 class TestModifySelectionTool:
     """Tests for the modify_selection MCP tool (tool #32)."""
 

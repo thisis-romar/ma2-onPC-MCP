@@ -176,7 +176,7 @@ Changes on `Go Executor N`, returns to `NONE` on `Off Executor N`.
 | `$SHOWFILE` | `claude_ma2_ctrl` | Current show name |
 | `$PRESET` | `GOBO` | Last active preset type |
 | `$ATTRIBUTE` | `GOBO1` | Current attribute context |
-| `$FEATURE` | `GOBO1` | Current feature context |
+| `$FEATURE` | `GOBO1` | Read-only; change via `Feature [name]` (e.g. `Feature Zoom`) |
 | `$SELECTEDEXEC` | `1.1.1` | `page.page.exec` format |
 | `$SELECTEDEXECCUE` | `NONE` or `1` | Active cue on selected executor |
 | `$SELECTEDFIXTURESCOUNT` | `0`–`N` | Only updated by `SelFix`, not `Select` |
