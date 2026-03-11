@@ -2545,6 +2545,37 @@ async def navigate_page(
 
 @mcp.tool()
 @_handle_errors
+async def select_feature(
+    feature_name: str,
+) -> str:
+    """
+    Select the active feature bank on the grandMA2 console (SAFE_WRITE).
+
+    Sends `Feature [name]` which updates $FEATURE.
+    $FEATURE is read-only — SetVar has no effect on it.
+    Only `Feature [name]` changes the active feature context.
+
+    Common feature names: Dimmer, Position, Color, Gobo, Gobo2, Beam,
+    Focus, Control, Shapers, Video, Zoom, Iris, Frost, Prism
+
+    Args:
+        feature_name: Feature bank to activate (e.g. "Zoom", "Color", "Dimmer")
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier
+    """
+    cmd = f"Feature {feature_name}"
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
 async def modify_selection(
     action: str,
     fixture_ids: list[int] | None = None,
