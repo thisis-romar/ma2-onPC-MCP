@@ -180,9 +180,9 @@ Changes on `Go Executor N`, returns to `NONE` on `Off Executor N`.
 | `$SELECTEDEXEC` | `1.1.1` | `page.page.exec` format |
 | `$SELECTEDEXECCUE` | `NONE` or `1` | Active cue on selected executor |
 | `$SELECTEDFIXTURESCOUNT` | `0`–`N` | Only updated by `SelFix`, not `Select` |
-| `$FADERPAGE` | `1` | |
-| `$BUTTONPAGE` | `1` | |
-| `$CHANNELPAGE` | `1` | |
+| `$FADERPAGE` | `1` | Read-only; change via `Page N` (page must exist, or use `create_if_missing`) |
+| `$BUTTONPAGE` | `1` | Read-only; change via `Page N` |
+| `$CHANNELPAGE` | `1` | Read-only; change via `Page N` |
 
 ---
 

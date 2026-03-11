@@ -2301,6 +2301,40 @@ class TestNavigatePageTool:
 
         assert "3" in data["command_sent"]
 
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_navigate_page_create_if_missing(self, mock_get_client):
+        """Test that create_if_missing sends Store Page before Page N."""
+        from src.server import navigate_page
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await navigate_page(action="goto", page_number=5, create_if_missing=True)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "page 5"
+        assert len(data["steps"]) == 2
+        assert "Store Page 5" in data["steps"][0]["command"]
+        assert data["steps"][1]["command"] == "page 5"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_navigate_page_no_create_by_default(self, mock_get_client):
+        """Test that create_if_missing=False sends only Page N."""
+        from src.server import navigate_page
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await navigate_page(action="goto", page_number=3)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "page 3"
+        assert len(data["steps"]) == 1
+
 
 class TestModifySelectionTool:
     """Tests for the modify_selection MCP tool (tool #32)."""

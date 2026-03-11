@@ -2494,14 +2494,21 @@ async def navigate_page(
     action: str,
     page_number: int | None = None,
     steps: int | None = None,
+    create_if_missing: bool = False,
 ) -> str:
     """
     Navigate executor pages on the console.
 
+    $FADERPAGE, $BUTTONPAGE, and $CHANNELPAGE are read-only system variables —
+    SetVar has no effect on them. Only `Page N` (this tool) changes the active page.
+
     Args:
         action: "goto" (absolute page), "next" (page +), or "previous" (page -)
-        page_number: Target page number (required for "goto"; 1-240)
+        page_number: Target page number (required for "goto"; 1-999)
         steps: Number of pages to advance/go back (optional; for "next"/"previous")
+        create_if_missing: If True, sends `Store Page N /noconfirm` before navigating
+            to create the page if it does not yet exist. Only applies to action="goto".
+            Without this, MA2 returns Error #9 if the page doesn't exist.
 
     Returns:
         str: JSON result with command sent
@@ -2518,10 +2525,20 @@ async def navigate_page(
         cmd = build_page_previous(steps)
 
     client = await get_client()
+    result_steps = []
+
+    if create_if_missing and action == "goto":
+        store_cmd = f"Store Page {page_number} /noconfirm"
+        store_raw = await client.send_command_with_response(store_cmd)
+        result_steps.append({"command": store_cmd, "response": store_raw})
+
     response = await client.send_command_with_response(cmd)
+    result_steps.append({"command": cmd, "response": response})
+
     return json.dumps({
         "command_sent": cmd,
         "raw_response": response,
+        "steps": result_steps,
         "risk_tier": "SAFE_WRITE",
     }, indent=2)
 
