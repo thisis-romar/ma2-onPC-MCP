@@ -8,7 +8,7 @@ without re-extracting features.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
@@ -36,7 +36,7 @@ def save_taxonomy(
     payload = {
         "metadata": {
             **metadata,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         },
         "categories": categories,
         "tool_features": tool_features,

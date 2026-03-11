@@ -2446,8 +2446,9 @@ class TestBrowsePresetTypeTool:
     @patch("src.server.get_client")
     async def test_browse_depth1_returns_features(self, mock_get_client, mock_list_dest, mock_navigate):
         """depth=1 returns feature list for given preset type."""
-        from src.server import browse_preset_type
         from unittest.mock import MagicMock
+
+        from src.server import browse_preset_type
 
         mock_get_client.return_value = MagicMock()
         mock_navigate.return_value = MagicMock()
@@ -4029,8 +4030,6 @@ class TestGenerateFixtureLayerXmlTool:
         from src.server import generate_fixture_layer_xml
         monkeypatch.setattr("src.server.generate_fixture_layer_xml.__wrapped__", None, raising=False)
         # Patch output dir to tmp_path
-        import src.server as srv
-        original = None
 
         # We'll patch os.path.join indirectly by monkeypatching the output_dir
         # inside the function — simplest approach: just call the real function
@@ -4073,8 +4072,9 @@ class TestGenerateFixtureLayerXmlTool:
 
     @pytest.mark.asyncio
     async def test_overwrite_blocked_by_default(self):
-        from src.server import generate_fixture_layer_xml
         import os
+
+        from src.server import generate_fixture_layer_xml
         output_dir = r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
         test_filename = "_test_overwrite_block"
         test_file = os.path.join(output_dir, f"{test_filename}.xml")
@@ -4104,8 +4104,9 @@ class TestGenerateFixtureLayerXmlTool:
 
     @pytest.mark.asyncio
     async def test_overwrite_allowed(self):
-        from src.server import generate_fixture_layer_xml
         import os
+
+        from src.server import generate_fixture_layer_xml
         output_dir = r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
         test_filename = "_test_overwrite_allow"
         test_file = os.path.join(output_dir, f"{test_filename}.xml")
@@ -4128,8 +4129,10 @@ class TestGenerateFixtureLayerXmlTool:
 
     @pytest.mark.asyncio
     async def test_channel_count(self):
+        import os
+        import xml.etree.ElementTree as ET
+
         from src.server import generate_fixture_layer_xml
-        import os, xml.etree.ElementTree as ET
         output_dir = r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
         test_filename = "_test_channel_count"
         test_file = os.path.join(output_dir, f"{test_filename}.xml")

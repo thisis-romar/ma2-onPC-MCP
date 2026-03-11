@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from rag.ingest.crawl_web import (
     _convert_headings_to_markdown,
     _extract_links,
@@ -15,7 +13,6 @@ from rag.ingest.crawl_web import (
 )
 from rag.types import RepoFile
 from scripts.rag_ingest_web import _dedup_pages
-
 
 # ---------------------------------------------------------------------------
 # URL normalisation
@@ -62,7 +59,7 @@ class TestExtractLinks:
 
         soup = BeautifulSoup(_LINK_HTML, "html.parser")
         links = _extract_links(soup, "https://example.com/docs/index.html", ["https://example.com/docs/"])
-        assert not any("other.com" in l for l in links)
+        assert not any("other.com" in link for link in links)
 
     def test_resolves_relative_links(self):
         from bs4 import BeautifulSoup
@@ -89,7 +86,7 @@ class TestExtractLinks:
         links = _extract_links(soup, "https://help.example.com/docs/", prefixes)
         assert "https://help.example.com/docs/page1.html" in links
         assert "https://help2.example.com/docs/notes.html" in links
-        assert not any("other.com" in l for l in links)
+        assert not any("other.com" in link for link in links)
 
 
 # ---------------------------------------------------------------------------

@@ -4,12 +4,11 @@ Import/Export Command Builder Tests
 Live-validated on grandMA2 onPC 3.9.60.65.
 """
 
-import pytest
 from src.commands.functions.importexport import (
     export_object,
-    import_object,
     import_fixture_type_cmd,
     import_layer_cmd,
+    import_object,
 )
 
 
