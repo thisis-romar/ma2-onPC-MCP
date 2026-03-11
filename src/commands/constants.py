@@ -36,6 +36,7 @@ STORE_FLAG_OPTIONS = {
     "overwrite",
     "remove",
     "noconfirm",
+    "quiet",
     "global",
     "selective",
     "universal",
