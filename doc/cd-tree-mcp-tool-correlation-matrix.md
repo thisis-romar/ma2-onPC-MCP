@@ -203,7 +203,11 @@ deep dot-separated paths up to depth 8+.
 |------------|------|-----------|
 | `10` | LiveSetup | _(parent)_ |
 | `10.1` | DMX_Profiles | — |
-| `10.2` | PresetTypes | — |
+| `10.2` | PresetTypes (9 types: Dimmer-Video) | `browse_preset_type` |
+| `10.2.N` | PresetType N — lists Features | `browse_preset_type(depth=1)` |
+| `10.2.N.M` | Feature M under PresetType N — lists Attributes | `browse_preset_type(depth=2)` |
+| `10.2.N.M.K` | Attribute K — lists SubAttributes | `browse_preset_type(depth=3)` |
+| `10.2.N.M.K.L` | SubAttribute L — **leaf** (NO OBJECTS FOUND) | — |
 | `10.3` | FixtureTypes | `list_fixture_types` |
 | `10.3.N` | Fixture Type N | `browse_patch_schedule`, `set_fixture_type_property` |
 | `10.4` | Layers | `list_layers` |

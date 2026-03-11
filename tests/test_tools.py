@@ -2421,6 +2421,70 @@ class TestSelectPresetTypeTool:
         assert data["command_sent"] == 'PresetType "CONTROL"'
 
 
+class TestBrowsePresetTypeTool:
+    """Tests for the browse_preset_type MCP tool."""
+
+    FEATURE_LIST_RAW = (
+        "Executing : List\n"
+        "          LibraryName  ScreenName  IdentifiedAs\n"
+        "Feature 20 SHUTTER      Shutter     Beam -> Shutter   (2)\n"
+        "Feature 21 BEAM1        Beam        Beam -> Beam      (4)\n"
+        "LiveSetup/PresetTypes/BEAM 5 >\n"
+    )
+    ATTR_LIST_RAW = (
+        "Executing : List\n"
+        "             LibraryName   ScreenName\n"
+        "Attribute 22 SHUTTER       Shutter    (9)\n"
+        "Attribute  0 STROBE_RATIO  StrobeDutyCycle  (1)\n"
+        "LiveSetup/PresetTypes/BEAM 5/SHUTTER 20 >\n"
+    )
+    EMPTY_RAW = "Executing : List\nWARNING, NO OBJECTS FOUND FOR LIST\n[Fixture]>\n"
+
+    @pytest.mark.asyncio
+    @patch("src.server.navigate")
+    @patch("src.server.list_destination")
+    @patch("src.server.get_client")
+    async def test_browse_depth1_returns_features(self, mock_get_client, mock_list_dest, mock_navigate):
+        """depth=1 returns feature list for given preset type."""
+        from src.server import browse_preset_type
+        from unittest.mock import MagicMock
+
+        mock_get_client.return_value = MagicMock()
+        mock_navigate.return_value = MagicMock()
+
+        mock_ld = MagicMock()
+        mock_ld.raw_response = self.FEATURE_LIST_RAW
+        mock_list_dest.return_value = mock_ld
+
+        result = await browse_preset_type(preset_type_id=5, depth=1)
+        data = json.loads(result)
+
+        assert data["preset_type_id"] == 5
+        assert data["cd_path"] == "10.2.5"
+        assert data["risk_tier"] == "SAFE_READ"
+        assert len(data["features"]) == 2
+        assert data["features"][0]["library_name"] == "SHUTTER"
+        assert data["features"][1]["library_name"] == "BEAM1"
+
+    @pytest.mark.asyncio
+    async def test_browse_invalid_preset_type_id(self):
+        """preset_type_id outside 1-9 returns error."""
+        from src.server import browse_preset_type
+
+        result = await browse_preset_type(preset_type_id=10, depth=1)
+        data = json.loads(result)
+        assert "error" in data
+
+    @pytest.mark.asyncio
+    async def test_browse_invalid_depth(self):
+        """depth outside 1-3 returns error."""
+        from src.server import browse_preset_type
+
+        result = await browse_preset_type(preset_type_id=5, depth=4)
+        data = json.loads(result)
+        assert "error" in data
+
+
 class TestModifySelectionTool:
     """Tests for the modify_selection MCP tool (tool #32)."""
 
