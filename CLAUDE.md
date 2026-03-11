@@ -174,15 +174,42 @@ Changes on `Go Executor N`, returns to `NONE` on `Off Executor N`.
 | `$USERPROFILE` | `Default` | |
 | `$USERRIGHTS` | `Admin` | |
 | `$SHOWFILE` | `claude_ma2_ctrl` | Current show name |
-| `$PRESET` | `GOBO` | Last active preset type |
-| `$ATTRIBUTE` | `GOBO1` | Current attribute context |
-| `$FEATURE` | `GOBO1` | Read-only; change via `Feature [name]` (e.g. `Feature Zoom`) |
+| `$PRESET` | `GOBO` | Read-only; changes when `Feature [name]` or `PresetType [id]` is called |
+| `$ATTRIBUTE` | `GOBO1` | Read-only; fixture-dependent; changes with `Feature [name]` |
+| `$FEATURE` | `GOBO1` | Read-only; fixture-dependent; change via `Feature [name]` or `PresetType [id]` |
 | `$SELECTEDEXEC` | `1.1.1` | `page.page.exec` format |
 | `$SELECTEDEXECCUE` | `NONE` or `1` | Active cue on selected executor |
 | `$SELECTEDFIXTURESCOUNT` | `0`–`N` | Only updated by `SelFix`, not `Select` |
 | `$FADERPAGE` | `1` | Read-only; change via `Page N` (page must exist, or use `create_if_missing`) |
 | `$BUTTONPAGE` | `1` | Read-only; change via `Page N` |
 | `$CHANNELPAGE` | `1` | Read-only; change via `Page N` |
+
+### PresetType / Feature / CD-Tree Correlation (live-verified 2026-03-10, v3.9.60.65)
+
+Calling `Feature [name]` or `PresetType [id]` updates **all three** of `$PRESET`, `$FEATURE`, `$ATTRIBUTE` simultaneously. Feature names are fixture-dependent.
+
+| PresetType | ID | CD path   | $PRESET  | $FEATURE (1st) | $ATTRIBUTE (1st)  |
+|------------|----|-----------|----------|----------------|-------------------|
+| Dimmer     | 1  | cd 10.2.1 | DIMMER   | DIMMER         | DIM               |
+| Position   | 2  | cd 10.2.2 | POSITION | POSITION       | PAN               |
+| Gobo       | 3  | cd 10.2.3 | GOBO     | GOBO1          | GOBO1             |
+| Color      | 4  | cd 10.2.4 | COLOR    | COLORRGB       | COLORRGB1         |
+| Beam       | 5  | cd 10.2.5 | BEAM     | SHUTTER        | SHUTTER           |
+| Focus      | 6  | cd 10.2.6 | FOCUS    | FOCUS          | FOCUS             |
+| Control    | 7  | cd 10.2.7 | CONTROL  | MSPEED         | INTENSITYMSPEED   |
+| Shapers    | 8  | cd 10.2.8 | —        | fixture-dep    | —                 |
+| Video      | 9  | cd 10.2.9 | —        | fixture-dep    | —                 |
+
+**CD tree depth** (verified with `list` at each level — tree is navigable 4+ levels deep):
+```
+cd 10.2        → 9 PresetTypes
+cd 10.2.5      → Beam features: SHUTTER(20), BEAM1(21), EFFECT(22)
+cd 10.2.5.1    → Attributes under SHUTTER: SHUTTER(22), STROBE_RATIO(0)
+cd 10.2.5.1.1  → SubAttributes of SHUTTER (Shutter, Strobe, Pulse, ...)
+```
+Note: `cd 10.2.N` uses sequential child index (1=first listed), not the internal library ID.
+
+**`Feature Color` and `Feature Zoom` error** on fixtures that use `ColorRGB`/`Shutter` channel names instead.
 
 ---
 

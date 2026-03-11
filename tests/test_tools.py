@@ -2371,6 +2371,56 @@ class TestSelectFeatureTool:
         assert data["command_sent"] == "Feature Color"
 
 
+class TestSelectPresetTypeTool:
+    """Tests for the select_preset_type MCP tool."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_preset_type_by_number(self, mock_get_client):
+        """Test selecting a preset type by number."""
+        from src.server import select_preset_type
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await select_preset_type(preset_type=4)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "PresetType 4"
+        assert data["risk_tier"] == "SAFE_WRITE"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_preset_type_by_name(self, mock_get_client):
+        """Test selecting a preset type by name."""
+        from src.server import select_preset_type
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await select_preset_type(preset_type="Color")
+        data = json.loads(result)
+
+        assert data["command_sent"] == 'PresetType "Color"'
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_preset_type_control(self, mock_get_client):
+        """Test selecting Control preset type (type 7, $FEATURE=MSPEED)."""
+        from src.server import select_preset_type
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await select_preset_type(preset_type="CONTROL")
+        data = json.loads(result)
+
+        assert data["command_sent"] == 'PresetType "CONTROL"'
+
+
 class TestModifySelectionTool:
     """Tests for the modify_selection MCP tool (tool #32)."""
 

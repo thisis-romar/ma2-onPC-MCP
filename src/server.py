@@ -2555,16 +2555,63 @@ async def select_feature(
     $FEATURE is read-only — SetVar has no effect on it.
     Only `Feature [name]` changes the active feature context.
 
-    Common feature names: Dimmer, Position, Color, Gobo, Gobo2, Beam,
-    Focus, Control, Shapers, Video, Zoom, Iris, Frost, Prism
+    Feature names are fixture-dependent — only features present on the selected
+    fixture's channels are valid. Live-verified names (v3.9.60.65):
+      Dimmer, Position, Gobo1, Gobo2, ColorRGB, Shutter, Focus, MSPEED
+    Names that may error if fixture lacks the channel: Color, Zoom, Iris, Frost
 
     Args:
-        feature_name: Feature bank to activate (e.g. "Zoom", "Color", "Dimmer")
+        feature_name: Feature bank to activate (e.g. "Dimmer", "ColorRGB", "MSPEED")
 
     Returns:
         str: JSON with command_sent, raw_response, risk_tier
     """
     cmd = f"Feature {feature_name}"
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
+async def select_preset_type(
+    preset_type: int | str,
+) -> str:
+    """
+    Select the active preset type on the grandMA2 console (SAFE_WRITE).
+
+    Sends `PresetType [id or name]` which jumps the encoder context to the
+    first Feature available in that preset type for the selected fixtures.
+    Updates $PRESET, $FEATURE, and $ATTRIBUTE simultaneously.
+
+    CD tree location (live-verified, v3.9.60.65):
+      cd 10.2        → lists all 9 PresetTypes
+      cd 10.2.N      → lists Features under PresetType N
+      cd 10.2.N.M    → lists Attributes under Feature M of PresetType N
+      cd 10.2.N.M.K  → lists SubAttributes (deepest level)
+
+    Preset types + live-verified $FEATURE on first activation:
+      1=Dimmer  ($FEATURE=DIMMER,   $ATTRIBUTE=DIM)
+      2=Position ($FEATURE=POSITION, $ATTRIBUTE=PAN)
+      3=Gobo    ($FEATURE=GOBO1,    $ATTRIBUTE=GOBO1)
+      4=Color   ($FEATURE=COLORRGB, $ATTRIBUTE=COLORRGB1, fixture-dep)
+      5=Beam    ($FEATURE=SHUTTER,  $ATTRIBUTE=SHUTTER,   fixture-dep)
+      6=Focus   ($FEATURE=FOCUS,    $ATTRIBUTE=FOCUS)
+      7=Control ($FEATURE=MSPEED,   $ATTRIBUTE=INTENSITYMSPEED)
+      8=Shapers (fixture must have Shapers channels)
+      9=Video   (fixture must have Video channels)
+
+    Args:
+        preset_type: Preset type number (1-9) or name (e.g. "Color", "Control")
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier
+    """
+    cmd = f"PresetType {preset_type}" if isinstance(preset_type, int) else f'PresetType "{preset_type}"'
     client = await get_client()
     response = await client.send_command_with_response(cmd)
     return json.dumps({
