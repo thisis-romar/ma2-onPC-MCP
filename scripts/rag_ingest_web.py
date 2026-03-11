@@ -47,7 +47,16 @@ DEFAULT_URLS = [
 ]
 
 DEFAULT_CACHE_PATH = Path("rag/store/web_crawl_cache.json")
-_CACHE_SCHEMA_VERSION = 1
+_CACHE_SCHEMA_VERSION = 2  # bumped: v1 cache missing release notes due to prefix bug
+
+
+def _dedup_pages(pages: list[RepoFile]) -> list[RepoFile]:
+    """Deduplicate pages by path, keeping the version with the most content."""
+    seen: dict[str, RepoFile] = {}
+    for page in pages:
+        if page.path not in seen or len(page.text) > len(seen[page.path].text):
+            seen[page.path] = page
+    return list(seen.values())
 
 
 def _save_cache(path: Path, pages: list[RepoFile], start_urls: list[str]) -> None:
@@ -164,6 +173,7 @@ def main() -> None:
     # --- Crawl or load from cache ---
     cache_path = Path(args.cache_crawl) if args.cache_crawl else None
     pages: list[RepoFile] = []
+    crawled_fresh = False
 
     if cache_path and not args.recrawl:
         pages = _load_cache(cache_path) or []
@@ -179,10 +189,17 @@ def main() -> None:
             print(f"  - {u}")
         pages = crawl_web(urls, delay=args.delay, max_pages=args.max_pages)
         print(f"\nCrawled {len(pages)} pages")
+        crawled_fresh = True
 
-        if cache_path and pages:
-            _save_cache(cache_path, pages, urls)
-            print(f"Crawl cached to {cache_path}")
+    # Deduplicate pages that share the same path (e.g. from different domains)
+    before = len(pages)
+    pages = _dedup_pages(pages)
+    if len(pages) < before:
+        print(f"Deduplicated: {before} -> {len(pages)} unique pages")
+
+    if crawled_fresh and cache_path and pages:
+        _save_cache(cache_path, pages, urls)
+        print(f"Crawl cached to {cache_path}")
 
     if not pages:
         print("No pages to ingest.")
