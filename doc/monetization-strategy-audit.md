@@ -1,9 +1,9 @@
 ---
 title: Monetization Strategy Audit
 description: Comprehensive audit of IP valuation, licensing posture, and monetization pathways for the GMA2 MCP project
-version: 1.0.0
+version: 2.0.0
 created: 2026-03-12T02:10:00Z
-last_updated: 2026-03-12T02:10:00Z
+last_updated: 2026-03-12T18:00:00Z
 ---
 
 # Monetization Strategy Audit
@@ -14,7 +14,7 @@ The **GMA2 MCP** project is an MCP server exposing 90 tools that allow AI assist
 
 **Current posture:** The repository is licensed under **Apache 2.0** with no monetization infrastructure — no paywall, no license keys, no usage tracking. Anyone can legally fork, modify, and commercialize the code today.
 
-**Key finding:** The project's primary value lies in its **domain expertise** (reverse-engineered MA2 telnet protocol, live-verified specifications, 141-keyword vocabulary) rather than raw code volume. This expertise is the defensible moat, but the permissive license currently gives it away for free.
+**Key finding:** The project's primary value lies in its **domain expertise** (reverse-engineered MA2 telnet protocol, live-verified specifications, 152-keyword vocabulary) rather than raw code volume. This expertise is the defensible moat, but the permissive license currently gives it away for free.
 
 **Recommendation:** Make the repository private immediately. Pursue a **hybrid model** — maintain a limited public version for discovery and community goodwill while developing premium features behind a paywall. If acquisition is the goal, establish paying customers first to prove market demand and increase valuation.
 
@@ -27,9 +27,9 @@ The **GMA2 MCP** project is an MCP server exposing 90 tools that allow AI assist
 | Metric | Value |
 |--------|-------|
 | MCP tools | 90 |
-| Command builder functions | 110+ |
-| Keyword vocabulary entries | 141 |
-| Unit tests | 1,365 |
+| Command builder functions | 150 |
+| Keyword vocabulary entries | 152 |
+| Unit tests | 1,498 |
 | Live integration tests | 132 |
 | Python source lines | ~40,000 |
 | Source files | 42 |
@@ -54,18 +54,18 @@ All specifications are **live-verified on MA2 v3.9.60.65** with exact dates (202
 | Component | Lines | Estimated Replication Time | Difficulty |
 |-----------|-------|---------------------------|------------|
 | Telnet protocol knowledge | 1,000+ | 3–4 weeks | Very High |
-| 141-keyword vocabulary | 520 | 2–3 weeks | Very High |
+| 152-keyword vocabulary | 520 | 2–3 weeks | Very High |
 | Command builder library | 7,225 | 1–2 weeks | High |
 | Navigation + state tracking | 300+ | 3–4 days | Medium |
 | RAG semantic search pipeline | 2,000+ | 1–2 weeks | High |
-| Test suite (1,365+ tests) | — | 2–3 weeks | High |
+| Test suite (1,498+ tests) | — | 2–3 weeks | High |
 | ML tool categorization | 500+ | 3–4 days | Medium |
 | **Total** | **~40,000** | **8–12 weeks** | **High** |
 
 ### 1.4 Unique Differentiators
 
 1. **Three-tier safety system** — All commands pass through `SAFE_READ → SAFE_WRITE → DESTRUCTIVE` classification before reaching telnet, preventing accidental console corruption
-2. **Pure command builders** — 110+ stateless functions with zero I/O, fully testable in isolation
+2. **Pure command builders** — 150 stateless functions with zero I/O, fully testable in isolation
 3. **RAG pipeline** — AST-aware Python chunking, heading-based markdown chunking, web crawler for ~1,043 MA2 help pages, SQLite vector store with hash-based deduplication
 4. **Custom K-Means clustering** — Pure numpy implementation (no scikit-learn dependency) for automatic tool categorization
 5. **Command injection prevention** — Line break stripping (`\r`, `\n`) in all telnet commands
@@ -86,9 +86,9 @@ The current license (`LICENSE` file, copyright 2025 thisis-romar) is **fully per
 
 **Impact:** A competitor could legally fork the repository today, rebrand it, and sell it. The existing public version cannot be retroactively relicensed or recalled.
 
-### 2.2 VS Code Extension License Mismatch
+### 2.2 VS Code Extension License Gap
 
-The VS Code extension in `vscode-mcp-provider/` uses a **separate MIT license** (even more permissive than Apache 2.0). This creates a dual-license situation that should be unified before any commercial licensing strategy.
+The VS Code extension in `vscode-mcp-provider/` has **no explicit LICENSE file**. It inherits the root Apache 2.0 license by default, but the absence of an explicit license creates ambiguity. An explicit license file should be added to align with the core project before any commercial licensing strategy.
 
 ### 2.3 AI-Generated Contribution Risk
 
@@ -192,7 +192,7 @@ The git history shows **5 commits attributed to "Claude"** (AI assistant). This 
 | Active paying customers | None | Significantly reduces valuation |
 | Proprietary license | No (Apache 2.0) | Reduces valuation — public forks exist |
 | Domain expertise | Very high | Primary value driver |
-| Test coverage | 1,365 tests | Increases buyer confidence |
+| Test coverage | 1,498 tests | Increases buyer confidence |
 | Documentation | Comprehensive | Positive signal |
 | Bus factor | 1 (single author) | Risk factor for buyers |
 | Market traction | Unknown (stars/forks) | Need to quantify |
@@ -244,6 +244,70 @@ The git history shows **5 commits attributed to "Claude"** (AI assistant). This 
 - Risk of community building a feature-complete fork of the lite version
 - More operational overhead than single-repo approach
 
+### Path D: SKILL.md Marketplace Funnel → Freemium MCP Server
+
+**Model:** Use free SKILL.md agent skills as distribution channels that funnel lighting professionals toward a paid hosted MCP server. This inverts the traditional "make repo private" approach — instead, free knowledge skills maximize reach while execution is gated behind a subscription.
+
+**Three-layer architecture:**
+
+| Layer | What | Revenue | Purpose |
+|-------|------|---------|---------|
+| 1. Knowledge skills | 6 free SKILL.md files on marketplaces | $0 | Distribution, SEO, funnel entry |
+| 2. Freemium MCP server | Credit-gated Telnet bridge | $39/mo Pro, $150/mo Enterprise | Core revenue |
+| 3. Hosted SaaS assistant | Web-based AI lighting programmer | Per-show/project pricing (future) | Enterprise capture |
+
+**Knowledge-execution split:**
+
+The six proposed agent skills (scaffolded in `skills/`) are classified into two tiers:
+
+*Instruction-only skills (standalone value, full free distribution):*
+- **Command Reference** — MA2 syntax, keyword vocabulary, command patterns
+- **Show Architecture** — Show file structure, CD tree navigation, pool organization
+- **Networking** — Art-Net, sACN, MA-Net2 configuration
+
+These function as "smart reference manuals" — a lighting programmer can use them with any AI agent to generate correct grandMA2 syntax without the MCP bridge.
+
+*Hybrid skills with execution gates (generate commands, gate execution):*
+- **Macros** — Macro creation, timing, conditional logic → generates command sequences
+- **Programming** — Cue/sequence programming, effects, MAtricks → generates full cue stacks
+- **Lua Scripting** — Lua plugin development, API calls → generates runnable scripts
+
+Hybrid skills generate complete command sequences but instruct the agent: *"These commands are ready for execution. Connect the grandMA2 MCP bridge to send them to your console. First 20 executions are free."*
+
+**Freemium conversion model:**
+
+Following proven MCP monetization patterns (credit-gated usage accelerators):
+- N free command executions to prove the bridge works
+- Pro tier: $29–49/month for freelance programmers (200–400 users → $94K–187K ARR)
+- Enterprise tier: $99–199/month for production companies (20–50 accounts → $36K–90K ARR)
+- Typical developer tool freemium conversion: 1–3%, well-executed products: 6–8%
+
+**Distribution:**
+
+Publish free skills across all major SKILL.md directories simultaneously:
+- SkillsMP, Skills.sh, LobeHub, GitHub, dedicated product website
+- MCPize for paid MCP server listing (only functional paid marketplace as of March 2026)
+- npm and Docker for self-serve MCP server installation
+
+**Competitive moat:**
+
+The SKILL.md files document grandMA2 command patterns using publicly available syntax — this is not the moat. The moat is the **reliable, queue-managed, error-handled Telnet bridge** that makes AI-to-console communication production-safe. Publishing tool schemas (parameters, return types) is safe; the Telnet communication logic, error handling, reconnection strategies, and command sequencing are the defensible IP.
+
+**Pros:**
+- Maximizes distribution (free skills reach every AI agent user)
+- Natural conversion path (skill generates commands → user needs bridge to execute)
+- No "make repo private" needed for skills — only MCP server implementation is proprietary
+- Aligns with industry culture (free console software, pay for production tools)
+- First-mover advantage in a zero-competition vertical
+
+**Cons:**
+- Requires building hosted MCP server infrastructure (OAuth, credit tracking, billing)
+- Small TAM limits revenue ceiling (5,000–15,000 addressable users)
+- Marketplace policies on promotional content within skills are uncharted
+- Conversion rates in niche professional tools are unproven
+
+> **Note:** Market research supporting this path (marketplace statistics, industry sizing, case studies) is documented separately in `doc/market-research-appendix.md`. All external statistics are labeled as unverified.
+
 ---
 
 ## 4. Risk Analysis
@@ -264,7 +328,7 @@ While the code is replicable in 8–12 weeks, the **domain expertise** is the tr
 
 - The MA2 telnet protocol is undocumented at this level of detail
 - Live-verified specifications require access to a real console
-- The 141-keyword vocabulary with risk classification took significant effort
+- The 152-keyword vocabulary with risk classification took significant effort
 - Edge cases (New Show connectivity, `SelFix` vs `Select`, `Echo` variable expansion failure) are only discoverable through extensive testing
 
 **Risk level:** Medium. A motivated competitor with MA2 access could replicate this, but the head start is significant.
@@ -312,13 +376,13 @@ The project has one primary contributor. For an acquirer, this means:
 | # | Action | Rationale |
 |---|--------|-----------|
 | 5 | **Add CLA** | Protect IP when accepting external contributions |
-| 6 | **Unify licenses** | Bring VS Code extension under same license as core |
+| 6 | **Add explicit VS Code extension license** | Add LICENSE file to vscode-mcp-provider/ to eliminate ambiguity |
 | 7 | **Relicense new code** | Consider BSL (Business Source License) or dual-license (AGPL + commercial) for new features |
 | 8 | **Create TOS, Privacy Policy, EULA** | Legal foundation for commercial operation |
 | 9 | **Implement license key validation** | Gate MCP server startup on a valid license key |
 | 10 | **Set up payment processing** | Lemon Squeezy, Stripe, or Basetools integration |
 
-### Medium-Term (1–3 Months)
+### Medium-Term (1–3 Months) — IP Protection Path (Paths A/B/C)
 
 | # | Action | Rationale |
 |---|--------|-----------|
@@ -327,6 +391,18 @@ The project has one primary contributor. For an acquirer, this means:
 | 13 | **Build acquisition package** | Architecture docs, demo videos, financial summary, customer testimonials |
 | 14 | **List on Acquire.com** | Requires revenue and active customers for best listing placement |
 | 15 | **Direct outreach** | Contact lighting software companies and MCP platform builders |
+
+### Medium-Term (1–3 Months) — Marketplace Funnel Path (Path D)
+
+| # | Action | Rationale |
+|---|--------|-----------|
+| 16 | **Flesh out SKILL.md content** | Complete the 6 scaffolded skills in `skills/` with full domain knowledge |
+| 17 | **Publish skills to marketplaces** | Submit to SkillsMP, Skills.sh, LobeHub, and GitHub simultaneously |
+| 18 | **Implement credit-gating in MCP server** | Add free execution quota (15–25 commands) before requiring subscription |
+| 19 | **Set up MCPize paid listing** | List MCP server with tiered pricing ($39/mo Pro, $150/mo Enterprise) |
+| 20 | **Build OAuth + remote MCP server** | Enable hosted access without local installation; required for SaaS layer |
+| 21 | **Community seeding** | Post on MA Lighting Forum, ControlBooth, and lighting Facebook groups |
+| 22 | **LDI / trade show demo** | Prepare demo for LDI 2026 (Las Vegas) or Prolight+Sound |
 
 ---
 
@@ -337,7 +413,7 @@ What a buyer or investor will examine:
 - [ ] **Code ownership** — Single author with clear copyright chain
 - [ ] **License cleanliness** — No GPL dependencies that could force copyleft
 - [ ] **AI contribution disclosure** — Documented and ownership asserted
-- [ ] **Test coverage** — 1,365 unit tests passing in CI
+- [ ] **Test coverage** — 1,498 unit tests passing in CI
 - [ ] **Security posture** — No hardcoded secrets, injection prevention, safety tiers
 - [ ] **Dependencies** — Review `pyproject.toml` for supply chain risk
 - [ ] **Revenue data** — MRR, customer count, churn rate
@@ -354,8 +430,21 @@ What a buyer or investor will examine:
 
 The GMA2 MCP project has genuine IP value rooted in specialized domain expertise that would take 8–12 weeks to replicate. However, the current Apache 2.0 license and lack of monetization infrastructure leave this value unprotected and uncaptured.
 
-The highest-priority action is **making the repository private** to stop further free distribution. From there, the recommended path depends on the author's goals:
+Two strategic directions are available, and the recommended path depends on the author's goals:
 
-- **If seeking recurring revenue:** Implement license key validation, launch on Basetools or Lemon Squeezy, and build a customer base
+**IP Protection Path (Paths A/B/C):**
+- **If seeking recurring revenue:** Make repo private, implement license key validation, launch on Basetools or Lemon Squeezy, and build a customer base
 - **If seeking acquisition:** Establish even minimal revenue ($500+/month), prepare a due diligence package, and list on Acquire.com or conduct direct outreach to lighting software companies
 - **If uncertain:** Start with the hybrid model — a public lite version for discovery and a private pro version for revenue — which preserves optionality for both paths
+
+**Marketplace Funnel Path (Path D):**
+- Distribute free SKILL.md knowledge skills across agent skill marketplaces for maximum reach
+- Gate command execution behind a freemium MCP server subscription ($39/mo Pro, $150/mo Enterprise)
+- Let free skills serve as the distribution channel — no need to make the repo private for skills, only for the MCP server implementation
+- Leverage first-mover advantage in a vertical with zero AI competition
+
+**The paths are not mutually exclusive.** The strongest position may be combining IP protection for the MCP server implementation (Paths A/C) with marketplace distribution for knowledge skills (Path D). This preserves the competitive moat while maximizing awareness in a small, peer-driven market.
+
+> **Supporting materials:**
+> - Market research: `doc/market-research-appendix.md`
+> - Scaffolded agent skills: `skills/grandma2-*/SKILL.md` (6 files)
