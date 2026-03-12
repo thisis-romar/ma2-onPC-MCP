@@ -34,8 +34,8 @@ dev = [
 gma2-mcp = "src.server:main"
 
 [project.urls]
-Repository = "https://github.com/thisis-romar/gma2-mcp-telnet"
-Issues = "https://github.com/thisis-romar/gma2-mcp-telnet/issues"
+Repository = "https://github.com/thisis-romar/ma2-onPC-MCP"
+Issues = "https://github.com/thisis-romar/ma2-onPC-MCP/issues"
 
 [tool.ruff]
 target-version = "py312"

@@ -31,7 +31,7 @@ Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotoc
 
 ```bash
 # 1. Install
-git clone https://github.com/thisis-romar/ma2-onPC-MCP && cd gma2-mcp-telnet
+git clone https://github.com/thisis-romar/ma2-onPC-MCP && cd ma2-onPC-MCP
 uv sync
 
 # 2. Configure
@@ -388,7 +388,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "gma2": {
       "command": "uv",
-      "args": ["--directory", "/path/to/gma2-mcp-telnet", "run", "python", "-m", "src.server"],
+      "args": ["--directory", "/path/to/ma2-onPC-MCP", "run", "python", "-m", "src.server"],
       "env": {
         "GMA_HOST": "192.168.1.100",
         "GMA_USER": "administrator",
@@ -755,7 +755,7 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ## Project Structure
 
 ```
-gma2-mcp-telnet/
+ma2-onPC-MCP/
 ├── src/
 │   ├── server.py                   # MCP server (FastMCP, 90 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
