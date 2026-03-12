@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.8.0
+version: 3.9.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-12T19:00:00Z
 ---
 
 # Project Rules
@@ -23,9 +23,9 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 110+ pure command-builder functions, grouped by keyword type |
+| `src/commands/` | 150 pure command-builder functions, grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
-| `src/vocab.py` | 141 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
+| `src/vocab.py` | 152 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
 | `rag/retrieve/` | cosine similarity search + rerank |
 | `rag/store/sqlite.py` | SQLite vector store (`rag/store/rag.db`) |
@@ -95,7 +95,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-11): **1365 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-12): **1498 unit tests**, **132 live integration tests**.
 
 ### New Show — connectivity preservation
 

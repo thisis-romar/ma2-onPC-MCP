@@ -10,6 +10,8 @@ tags:
   - lua
   - scripting
   - plugins
+created: 2026-03-12T18:00:00Z
+last_updated: 2026-03-12T18:00:00Z
 metadata:
   category: hybrid-execution-gated
   product_url: https://github.com/thisis-romar/ma2-onPC-MCP

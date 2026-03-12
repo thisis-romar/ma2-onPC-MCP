@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.1.0
+version: 3.2.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-12T19:00:00Z
 ---
 
 <div align="center">
@@ -13,7 +13,7 @@ last_updated: 2026-03-12T00:00:00Z
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
 ![Tools](https://img.shields.io/badge/MCP_tools-90-brightgreen)
-![Tests](https://img.shields.io/badge/tests-1365-brightgreen)
+![Tests](https://img.shields.io/badge/tests-1498-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -56,11 +56,11 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 graph TD
     A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>90 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>110+ pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>150 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
-    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>141 keywords · risk tiers"] -.-> A
+    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>152 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
 
     style A fill:#1a1a2e,stroke:#e94560,color:#fff
@@ -443,12 +443,12 @@ graph LR
 
 ### Keyword Classification
 
-The vocabulary classifies all **141 grandMA2 keywords** into categories:
+The vocabulary classifies all **152 grandMA2 keywords** into categories:
 
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
 | `OBJECT` | 56 | Console objects (nouns) | Channel, Fixture, Group, Preset, Executor |
-| `FUNCTION` | 79 | Actions (verbs) | Store, Delete, Go, At, List, Info |
+| `FUNCTION` | 89 | Actions (verbs) | Store, Delete, Go, At, List, Info |
 | `HELPING` | 7 | Syntax connectors | And, Thru, Fade, Delay, If |
 | `SPECIAL_CHAR` | 6 | Operator symbols | Plus `+`, Minus `-`, Dot `.`, Slash `/` |
 
@@ -652,7 +652,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **110 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **150 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -761,9 +761,9 @@ gma2-mcp-telnet/
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
-│   ├── vocab.py                    # 141 keywords, categories & safety tiers
+│   ├── vocab.py                    # 152 keywords, categories & safety tiers
 │   ├── categorization/             # ML tool categorization (K-Means)
-│   └── commands/                   # 110+ pure command builder functions
+│   └── commands/                   # 150 pure command builder functions
 │       ├── objects/                # Object keywords (9 modules)
 │       └── functions/              # Function keywords (15 modules)
 ├── rag/                            # RAG pipeline
@@ -775,9 +775,16 @@ gma2-mcp-telnet/
 │   ├── scan_tree.py                # Recursive object-tree scanner
 │   ├── rag_ingest.py               # RAG ingestion CLI
 │   └── rag_query.py                # RAG query CLI
-├── tests/                          # 1365 unit tests + 132 live tests
+├── tests/                          # 1498 unit tests + 132 live tests
+├── skills/                         # 6 agent skills (SKILL.md files)
+│   ├── grandma2-command-reference/ # Instruction-only: MA2 command syntax
+│   ├── grandma2-show-architecture/ # Instruction-only: show file structure
+│   ├── grandma2-networking/        # Instruction-only: protocol config
+│   ├── grandma2-macros/            # Hybrid: macro command generation
+│   ├── grandma2-programming/       # Hybrid: cue/sequence programming
+│   └── grandma2-lua-scripting/     # Hybrid: Lua plugin development
 ├── vscode-mcp-provider/            # VS Code MCP extension
-└── doc/                            # MA2 User Manual PDF
+└── doc/                            # Documentation & audits
 ```
 
 ## Dependencies
