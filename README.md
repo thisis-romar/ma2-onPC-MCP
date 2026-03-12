@@ -10,7 +10,7 @@ last_updated: 2026-03-12T00:00:00Z
 
 # GMA2 MCP
 
-[![Tests](https://github.com/thisis-romar/gma2-mcp-telnet/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/gma2-mcp-telnet/actions/workflows/test.yml)
+[![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
 ![Tools](https://img.shields.io/badge/MCP_tools-90-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-1365-brightgreen)
@@ -31,7 +31,7 @@ Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotoc
 
 ```bash
 # 1. Install
-git clone https://github.com/thisis-romar/gma2-mcp-telnet && cd gma2-mcp-telnet
+git clone https://github.com/thisis-romar/ma2-onPC-MCP && cd gma2-mcp-telnet
 uv sync
 
 # 2. Configure
