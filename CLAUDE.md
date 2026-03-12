@@ -1,17 +1,17 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.8.0
+version: 3.9.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-12T12:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **90 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
-All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
+MCP server exposing **90 tools**, **6 resources**, and **5 prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
+All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers. Resources provide read-only console state; prompts encode MA2 domain workflows.
 
 ---
 
@@ -19,7 +19,10 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 90 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 90 tools, safety gate, env config, transport selection |
+| `src/tools.py` | Shared client infrastructure: `get_client()`, `parse_listvar()`, env config |
+| `src/resources.py` | 6 MCP resources — read-only console/show state via `gma2://` URIs |
+| `src/prompts.py` | 5 MCP prompts — guided MA2 workflows (color chase, patching, diagnostics) |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
@@ -69,7 +72,59 @@ source .env && export GITHUB_MODELS_TOKEN && \
 
 # Install git hooks (pre-commit auto-updates RAG index on every commit)
 make install-hooks
+
+# Start MCP server with SSE transport (for remote clients)
+GMA_TRANSPORT=sse GMA_MCP_PORT=8080 uv run python -m src.server
+
+# Start MCP server with streamable-http transport
+GMA_TRANSPORT=streamable-http GMA_MCP_PORT=8080 uv run python -m src.server
 ```
+
+---
+
+## MCP Resources
+
+6 read-only resources exposed via `gma2://` URIs. No safety gate needed — all SAFE_READ.
+
+| URI | Returns |
+|-----|---------|
+| `gma2://console/status` | All 26 system variables as JSON |
+| `gma2://console/location` | Current cd path + prompt text |
+| `gma2://show/fixtures` | Fixture pool listing (navigates to FixtureType, lists, returns to root) |
+| `gma2://show/groups` | Group pool listing |
+| `gma2://show/sequences` | Sequence pool listing |
+| `gma2://show/sequences/{seq_id}/cues` | Cues in a specific sequence (resource template) |
+
+Implementation in `src/resources.py`. Each handler calls `get_client()` → sends telnet commands → parses → returns JSON. Navigation resources `cd /` after reading.
+
+---
+
+## MCP Prompts
+
+5 prompt templates encoding MA2 domain expertise as reusable workflows.
+
+| Prompt ID | Purpose | Parameters |
+|-----------|---------|------------|
+| `program-color-chase` | Guided color chase programming | `fixture_group`, `color_count` |
+| `setup-moving-lights` | Patch + group + focus workflow | `fixture_type`, `start_address`, `count` |
+| `troubleshoot-connectivity` | Telnet/network diagnostic steps | none |
+| `create-cue-sequence` | Step-by-step cue programming | `sequence_id`, `cue_count` |
+| `show-status-report` | Dynamic — fetches live console state | none |
+
+Implementation in `src/prompts.py`. Static prompts return message lists; `show-status-report` is dynamic (calls `get_client()`).
+
+---
+
+## MCP Transport
+
+Default: `stdio`. Configurable via environment variables:
+
+| Env var | Values | Default |
+|---------|--------|---------|
+| `GMA_TRANSPORT` | `stdio`, `sse`, `streamable-http` | `stdio` |
+| `GMA_MCP_PORT` | port number | `8080` |
+
+**Security:** HTTP transports have no built-in auth — use for local network only.
 
 ---
 
@@ -95,7 +150,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-11): **1365 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-12): **1398 unit tests**, **132 live integration tests**.
 
 ### New Show — connectivity preservation
 
