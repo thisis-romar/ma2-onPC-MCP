@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.0.0
+version: 3.1.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-11T00:00:00Z
+last_updated: 2026-03-12T00:00:00Z
 ---
 
 <div align="center">
@@ -12,8 +12,8 @@ last_updated: 2026-03-11T00:00:00Z
 
 [![Tests](https://github.com/thisis-romar/gma2-mcp-telnet/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/gma2-mcp-telnet/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
-![Tools](https://img.shields.io/badge/MCP_tools-87-brightgreen)
-![Tests](https://img.shields.io/badge/tests-1228-brightgreen)
+![Tools](https://img.shields.io/badge/MCP_tools-90-brightgreen)
+![Tests](https://img.shields.io/badge/tests-1365-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -21,7 +21,7 @@ last_updated: 2026-03-11T00:00:00Z
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [87 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [90 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 </div>
 
@@ -54,7 +54,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>87 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>90 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
     C["🔧 Command Builders<br/><code>src/commands/</code><br/>110+ pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
@@ -104,7 +104,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **87 tools** to MCP clients, grouped into 12 categories:
+The server exposes **90 tools** to MCP clients, grouped into 12 categories:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -239,7 +239,7 @@ list            → enumerate objects at current destination
 </details>
 
 <details>
-<summary><strong>🔌 Fixture Setup & Patch</strong> — 13 tools</summary>
+<summary><strong>🔌 Fixture Setup & Patch</strong> — 16 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -254,6 +254,8 @@ list            → enumerate objects at current destination
 | `set_fixture_type_property` | Set a property on a fixture type |
 | `manage_matricks` | Manage MAtricks (fixture matrix) objects |
 | `create_matricks_library` | Generate combinatorial MAtricks pool with 25-color coding |
+| `store_matricks_preset` | Combined set + store + label MAtricks preset workflow |
+| `create_filter_library` | Generate color-coded Filter library with V/VT/E variants |
 | `import_fixture_type` | Import a fixture type from the MA2 library |
 | `import_fixture_layer` | Import a fixture layer XML file into the show patch |
 | `generate_fixture_layer_xml` | Generate a grandMA2 fixture layer XML file for import |
@@ -321,7 +323,7 @@ python -m scripts.create_matricks_library --color-only
 </details>
 
 <details>
-<summary><strong>🔎 Info, Queries & Discovery</strong> — 11 tools</summary>
+<summary><strong>🔎 Info, Queries & Discovery</strong> — 12 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -336,6 +338,7 @@ python -m scripts.create_matricks_library --color-only
 | `highlight_fixtures` | Toggle highlight mode for selected fixtures |
 | `set_node_property` | Set a property on any node via dot-separated tree path |
 | `list_undo_history` | List recent undo history entries |
+| `discover_filter_attributes` | Discover show-specific filter attributes from patched fixtures |
 
 </details>
 
@@ -754,7 +757,7 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ```
 gma2-mcp-telnet/
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 87 tools)
+│   ├── server.py                   # MCP server (FastMCP, 90 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
@@ -772,7 +775,7 @@ gma2-mcp-telnet/
 │   ├── scan_tree.py                # Recursive object-tree scanner
 │   ├── rag_ingest.py               # RAG ingestion CLI
 │   └── rag_query.py                # RAG query CLI
-├── tests/                          # 1228 unit tests + 132 live tests
+├── tests/                          # 1365 unit tests + 132 live tests
 ├── vscode-mcp-provider/            # VS Code MCP extension
 └── doc/                            # MA2 User Manual PDF
 ```

@@ -3,7 +3,7 @@ title: "CD Tree \u2194 MCP Tool Correlation Matrix"
 description: Maps every MCP tool to its grandMA2 console object tree branch for navigation-based verification
 version: 2.3.0
 created: 2026-03-08T22:00:00Z
-last_updated: 2026-03-11T00:00:00Z
+last_updated: 2026-03-12T00:00:00Z
 ---
 
 # CD Tree \u2194 MCP Tool Correlation Matrix
@@ -14,7 +14,7 @@ This document maps every MCP tool to the grandMA2 console object tree branch
 it operates on. Use this to know which `cd` + `list` path to inspect when
 verifying that an MCP tool actually created/modified/deleted the expected object.
 
-## Quick Reference: 87 MCP Tools \u2192 Tree Branches
+## Quick Reference: 90 MCP Tools \u2192 Tree Branches
 
 ### Navigation & Inspection Tools (6)
 

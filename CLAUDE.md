@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.4.0
+version: 3.8.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-11T00:00:00Z
+last_updated: 2026-03-12T00:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **87 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **90 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,7 +19,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 87 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 90 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
@@ -95,7 +95,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-11): **1228 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-11): **1365 unit tests**, **132 live integration tests**.
 
 ### New Show — connectivity preservation
 
@@ -130,6 +130,33 @@ To build a wildcard filter for any object pool:
 The tool navigates to the pool, lists all entries, extracts names, then returns to root (`cd /`).
 Works with any keyword (`"Group"`, `"Sequence"`, `"Macro"`, etc.) or numeric cd index.
 
+### MAtricks command keywords (live-verified 2026-03-11)
+
+MAtricks are controlled via **direct command keywords** — no `cd` navigation needed.
+The `manage_matricks` tool dispatches to these keywords via an `action` parameter (SAFE_WRITE).
+
+| Keyword | Syntax | Example |
+|---------|--------|---------|
+| `MAtricksInterleave` | `[width]`, `[col].[width]`, `+/-`, `Off` | `MAtricksInterleave 4` |
+| `MAtricksBlocks` | `[size]`, `[x].[y]`, `+ N/- N`, `Off` | `MAtricksBlocks 2.3` |
+| `MAtricksGroups` | `[size]`, `[x].[y]`, `+ N/- N`, `Off` | `MAtricksGroups 4` |
+| `MAtricksWings` | `[parts]`, `+/-`, `Off` | `MAtricksWings 2` |
+| `MAtricksFilter` | `[num]`, `"name"`, `+/-`, `Off` | `MAtricksFilter "OddID"` |
+| `MAtricksReset` | (no args) | `MAtricksReset` |
+| `MAtricks` | `[id]`, `On/Off/Toggle` | `MAtricks 5` |
+| `All` | (no args) | resets Single X sub-selection |
+| `AllRows` | (no args) | resets Single Y sub-selection |
+| `Next` | (no args) | steps forward through Single X sub-selection |
+| `Previous` | (no args) | steps backward through Single X sub-selection |
+| `NextRow` | (no args) | steps forward through Single Y (row) sub-selection |
+
+- `Interleave` is a synonym for `MAtricksInterleave`.
+- Y-axis settings (Block Y, Group Y) require Interleave to be active first.
+- **No `PreviousRow`** — asymmetric; only `NextRow` exists for Y-axis stepping.
+- **No telnet command reads current MAtricks state** — state is only visible in the GUI toolbar.
+- Pool path: `cd MAtricks` → `UserProfiles/Default 1/MatrixPool`.
+- **`store_matricks_preset`** tool: combined set + store + label workflow (DESTRUCTIVE).
+
 ### Appearance colors
 
 MA2 appearance commands use **0-100 percentage scale** for RGB and HSB — NOT 0-255.
@@ -143,6 +170,32 @@ MA2 appearance commands use **0-100 percentage scale** for RGB and HSB — NOT 0
 **XML format:** `<Appearance Color="RRGGBB" />` embeds inside any pool object element (e.g. `<Matrix>`, `<Group>`). Colors imported via XML appear instantly — no telnet appearance loop needed.
 
 **MAtricks library color scheme:** 25 colors using HSB — Wings sets hue (5 hues evenly spaced: 0°, 72°, 144°, 216°, 288°), Groups sets brightness (100/80/60/45/30). Embedded in XML via `<Appearance Color="hex" />`.
+
+**Filter library color scheme:** 9 categories, each a distinct hex color. Shared constants in `src/commands/constants.py`:
+
+| Category | Hex | Color |
+|----------|-----|-------|
+| dimmer | `FFCC00` | warm yellow |
+| position | `0088FF` | blue |
+| gobo | `00CC44` | green |
+| color | `FF00CC` | magenta |
+| beam | `FF6600` | orange |
+| focus | `00CCCC` | cyan |
+| control | `999999` | grey |
+| combo | `CC44FF` | purple |
+| exclude | `FF3333` | red |
+
+Filter attribute groups (`FILTER_ATTRIBUTES` in constants) map 36 attributes across 7 PresetTypes. These are **fixture-dependent defaults** (Mac 700 Profile Extended + Generic Dimmer). For shows with different fixtures, call `discover_filter_attributes()` first, then pass the result to `create_filter_library(fixture_attributes=...)`. Import syntax: `Import "filename" At Filter N`.
+
+**Filter V/VT/E (Value/ValueTimes/Effects) layer toggles** are XML attributes on the `<Filter>` element (live-verified 2026-03-11):
+
+| XML attribute | Store option | Default |
+|---|---|---|
+| `value="false"` | `/values=false` | `true` (omitted) |
+| `value_timing="false"` | `/valuetimes=false` | `true` (omitted) |
+| `effect="false"` | `/effects=false` | `true` (omitted) |
+
+MA2 omits attributes that are `true` (default). `FILTER_VTE_COMBOS` in constants defines 7 on/off combinations (excluding all-off). With `include_vte=True`, the `create_filter_library` tool generates 21 base × 7 VTE = 147 variant filters (168 total, slots 3-170).
 
 ### grandMA2 System Variables
 
@@ -226,6 +279,37 @@ cd 10.2.5.1.1  → SubAttributes of SHUTTER (Shutter, Strobe, Pulse, ...)
 Note: `cd 10.2.N` uses sequential child index (1=first listed), not the internal library ID.
 
 **`Feature Color` and `Feature Zoom` error** on fixtures that use `ColorRGB`/`Shutter` channel names instead.
+
+### CD Tree Root Location
+
+The root prompt name is **show-dependent** — do not hardcode `"Fixture"`:
+- Old show (`claude_ma2_ctrl`): root is `[Fixture]>`
+- Different show loaded: root is `[Screen]>`
+
+Navigation code that checks "are we still at root?" must detect the actual root location dynamically (e.g. `cd /` then read the prompt).
+
+### Strategic Scan (`scripts/strategic_scan.py`)
+
+Fast 4-phase re-scan for comparing show files (~24 min vs 138 min full scan):
+
+| Phase | What | Time |
+|-------|------|------|
+| 1 Root | cd+list every index 1-50 | ~38s |
+| 2 Structure | depth 3 all branches, depth 1 UserProfiles | ~15 min |
+| 3 Deep | full recursive on cd 10.3, 30, 38 | ~5 min |
+| 4 Triage | retry failed edges with 2x delay | ~1 min |
+
+```bash
+PYTHONUNBUFFERED=1 python -u scripts/strategic_scan.py [--output scan_output_new.json] [--old-scan scan_output.json]
+```
+
+Output is compatible with `print_cd_tree.py --input scan_output_new.json`.
+
+**Key show-dependent branches** (vary between show files):
+- cd 1 (Showfile history), cd 10.3 (FixtureTypes), cd 18 (Worlds), cd 19 (Filters)
+- cd 22 (Groups), cd 25 (Sequences), cd 30 (ExecutorPages), cd 38 (Layouts), cd 39 (UserProfiles)
+
+**Firmware branches** (stable across shows): cd 2-9, 15-16, 20, 23, 27, 36, 41-42
 
 ---
 
