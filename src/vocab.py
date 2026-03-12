@@ -296,6 +296,10 @@ def build_v39_spec(
         "SetVar", "AddVar", "SetUserVar", "AddUserVar", "Park", "Unpark",
         "SelFix", "DefGoBack", "DefGoForward", "DefGoPause",
         "GoFastBack", "GoFastForward", "Oops", "Call",
+        "All", "AllRows",
+        "MAtricksInterleave", "MAtricksBlocks", "MAtricksGroups",
+        "MAtricksWings", "MAtricksFilter", "MAtricksReset",
+        "Next", "NextRow", "Previous",
     }
     # All Object Keywords are SAFE_WRITE (they change programmer context)
     safe_write |= object_kw_canonicals

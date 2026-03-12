@@ -5304,17 +5304,32 @@ class TestSafetyGateGenerateFixtureLayerXml:
         assert "DESTRUCTIVE" in data["risk_tier"]
 
 
-class TestSafetyGateManageMatricks:
-    """Test that manage_matricks blocks without confirm_destructive."""
+class TestManageMAtricksRefactored:
+    """Test that refactored manage_matricks uses direct command keywords (SAFE_WRITE)."""
 
     @pytest.mark.asyncio
-    async def test_blocked_without_confirm(self):
+    async def test_invalid_action_returns_error(self):
         from src.server import manage_matricks
 
-        result = await manage_matricks("Wings", "2")
+        result = await manage_matricks("nonexistent_action")
         data = json.loads(result)
-        assert data["blocked"] is True
-        assert "DESTRUCTIVE" in data["risk_tier"]
+        assert "error" in data
+        assert "Unknown action" in data["error"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_no_confirm_destructive_needed(self, mock_get_client):
+        """manage_matricks no longer requires confirm_destructive (SAFE_WRITE)."""
+        from src.server import manage_matricks
+
+        mock_client = AsyncMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = mock_client
+        result = await manage_matricks("reset")
+        data = json.loads(result)
+        assert "blocked" not in data
+        assert data["command_sent"] == "MAtricksReset"
+        assert data["risk_tier"] == "SAFE_WRITE"
 
 
 # ============================================================

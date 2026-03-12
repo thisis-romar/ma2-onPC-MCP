@@ -192,6 +192,19 @@ from .functions import (
     unpark,
     update,
     update_cue,
+    # MAtricks Command Keywords
+    all_rows_sub_selection,
+    all_sub_selection,
+    matricks_blocks,
+    matricks_filter,
+    matricks_groups,
+    matricks_interleave,
+    matricks_reset,
+    matricks_wings,
+    next_row_sub_selection,
+    next_sub_selection,
+    previous_sub_selection,
+    recall_matricks,
 )
 
 # Helpers (public API)
@@ -289,6 +302,19 @@ __all__ = [
     # Macro Placeholder (@ Character)
     "macro_with_input_after",
     "macro_with_input_before",
+    # MAtricks Command Keywords
+    "matricks_interleave",
+    "matricks_blocks",
+    "matricks_groups",
+    "matricks_wings",
+    "matricks_filter",
+    "matricks_reset",
+    "recall_matricks",
+    "all_sub_selection",
+    "all_rows_sub_selection",
+    "next_sub_selection",
+    "previous_sub_selection",
+    "next_row_sub_selection",
     # Other Function Keywords
     "store",
     "store_cue",

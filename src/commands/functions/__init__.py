@@ -111,6 +111,22 @@ from .labeling import (
     label_preset,
 )
 
+# MAtricks Command Keywords
+from .matricks import (
+    all_rows_sub_selection,
+    all_sub_selection,
+    matricks_blocks,
+    matricks_filter,
+    matricks_groups,
+    matricks_interleave,
+    matricks_reset,
+    matricks_wings,
+    next_row_sub_selection,
+    next_sub_selection,
+    previous_sub_selection,
+    recall_matricks,
+)
+
 # Macro Placeholder Function Keywords
 from .macro import (
     macro_with_input_after,
@@ -362,6 +378,19 @@ __all__ = [
     "new_show",
     # Navigation Function Keywords
     "changedest",
+    # MAtricks Command Keywords
+    "matricks_interleave",
+    "matricks_blocks",
+    "matricks_groups",
+    "matricks_wings",
+    "matricks_filter",
+    "matricks_reset",
+    "recall_matricks",
+    "all_sub_selection",
+    "all_rows_sub_selection",
+    "next_sub_selection",
+    "previous_sub_selection",
+    "next_row_sub_selection",
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",

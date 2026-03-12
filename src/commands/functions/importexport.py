@@ -30,14 +30,14 @@ Included functions:
 EXPORT_OBJECT_TYPES = {
     "group", "preset", "macro", "effect", "sequence", "view", "page",
     "camera", "layout", "form", "plugin", "matricks", "mask", "image",
-    "executor", "timecode", "userprofile", "channel", "screen",
+    "executor", "timecode", "userprofile", "channel", "screen", "filter",
 }
 
 # Object types that can be imported (Screen excluded — Error #16 RESIZE FORBIDDEN)
 IMPORT_OBJECT_TYPES = {
     "group", "preset", "macro", "effect", "sequence", "view", "page",
     "camera", "layout", "form", "plugin", "matricks", "mask", "image",
-    "executor", "timecode", "userprofile",
+    "executor", "timecode", "userprofile", "filter",
 }
 
 # Type-specific subfolders (informational, used in docstrings/tool descriptions)

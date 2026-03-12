@@ -138,7 +138,18 @@
     "Toggle",
     "Top",
     "Unpark",
-    "Update"
+    "Update",
+    "All",
+    "AllRows",
+    "MAtricksBlocks",
+    "MAtricksFilter",
+    "MAtricksGroups",
+    "MAtricksInterleave",
+    "MAtricksReset",
+    "MAtricksWings",
+    "Next",
+    "NextRow",
+    "Previous"
   ],
   "helping_keywords": [
     "And",
@@ -161,7 +172,8 @@
     "DMX": "Dmx",
     "DMXUniverse": "DmxUniverse",
     "Sound": "SoundChannel",
-    "RDM": "RdmFixtureType"
+    "RDM": "RdmFixtureType",
+    "Interleave": "MAtricksInterleave"
   },
   "removed": {
     "CuePart": "Error #1: UNKNOWN COMMAND on console. Use 'Part' instead.",
