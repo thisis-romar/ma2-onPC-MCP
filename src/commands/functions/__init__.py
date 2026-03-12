@@ -111,6 +111,12 @@ from .labeling import (
     label_preset,
 )
 
+# Macro Placeholder Function Keywords
+from .macro import (
+    macro_with_input_after,
+    macro_with_input_before,
+)
+
 # MAtricks Command Keywords
 from .matricks import (
     all_rows_sub_selection,
@@ -125,12 +131,6 @@ from .matricks import (
     next_sub_selection,
     previous_sub_selection,
     recall_matricks,
-)
-
-# Macro Placeholder Function Keywords
-from .macro import (
-    macro_with_input_after,
-    macro_with_input_before,
 )
 
 # Navigation Function Keywords (ChangeDest / cd)

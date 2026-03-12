@@ -12,7 +12,6 @@ import pytest
 
 from src.commands.constants import FILTER_ATTRIBUTES, FILTER_COLORS, FILTER_VTE_COMBOS
 
-
 # ============================================================
 # Filter Attribute Constants Tests
 # ============================================================
