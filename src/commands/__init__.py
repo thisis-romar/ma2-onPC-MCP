@@ -52,6 +52,9 @@ from .functions import (
     add_to_selection,
     add_user_var,
     add_var,
+    # MAtricks Command Keywords
+    all_rows_sub_selection,
+    all_sub_selection,
     # Appearance Function Keyword
     appearance,
     # Assign Function Keyword
@@ -152,9 +155,17 @@ from .functions import (
     # Macro Placeholder
     macro_with_input_after,
     macro_with_input_before,
+    matricks_blocks,
+    matricks_filter,
+    matricks_groups,
+    matricks_interleave,
+    matricks_reset,
+    matricks_wings,
     # Move Function Keyword
     move,
     new_show,
+    next_row_sub_selection,
+    next_sub_selection,
     off_executor,
     on_executor,
     oops,
@@ -166,6 +177,8 @@ from .functions import (
     paste,
     pause_sequence,
     preset_type_at,
+    previous_sub_selection,
+    recall_matricks,
     release_executor,
     # Remove Function Keyword
     remove,
@@ -192,19 +205,6 @@ from .functions import (
     unpark,
     update,
     update_cue,
-    # MAtricks Command Keywords
-    all_rows_sub_selection,
-    all_sub_selection,
-    matricks_blocks,
-    matricks_filter,
-    matricks_groups,
-    matricks_interleave,
-    matricks_reset,
-    matricks_wings,
-    next_row_sub_selection,
-    next_sub_selection,
-    previous_sub_selection,
-    recall_matricks,
 )
 
 # Helpers (public API)
