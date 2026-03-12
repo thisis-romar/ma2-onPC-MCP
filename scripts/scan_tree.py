@@ -123,7 +123,28 @@ class TreeNode:
 _LOCATION_TYPE_RE = re.compile(r'^([A-Za-z]\w*)(?:\s|/|$)')
 
 # Types known to be leaves (no children worth scanning)
-KNOWN_LEAF_TYPES = {"History", "Gel", "RDM_Universe", "Universe", "UserImage"}
+KNOWN_LEAF_TYPES = {
+    "History", "Gel", "RDM_Universe", "Universe", "UserImage",
+    "Color", "Effect", "Timer", "Timecode", "RDM_Personality", "SubAttribute",
+}
+
+
+def _structure_signature(entries) -> Optional[str]:
+    """Compute a structure-only signature that ignores names and values.
+
+    Hashes (entry_count, tuple_of_object_types) so structurally identical
+    nodes match even when they have different names (e.g. UserProfile copies,
+    gel libraries with different color names).
+
+    Returns None if no entries.
+    """
+    if not entries:
+        return None
+    types = []
+    for e in entries:
+        otype = e.object_type if hasattr(e, 'object_type') else e.get("object_type")
+        types.append(str(otype) if otype else "?")
+    return f"struct:{len(entries)}:{','.join(types)}"
 
 
 def _entries_signature(entries, raw_list_text: str) -> Optional[str]:
@@ -270,6 +291,18 @@ def _entry_type_map(entries) -> dict:
                 type_map[idx] = otype
             except (ValueError, AttributeError):
                 pass
+    # Map child index -> expected location name (for circular pre-check)
+    name_map: dict[int, str] = {}
+    for e in entries:
+        oid = e.object_id if hasattr(e, 'object_id') else e.get("object_id")
+        ename = e.name if hasattr(e, 'name') else e.get("name")
+        if oid is not None and ename:
+            try:
+                idx = int(str(oid).split(".")[0])
+                name_map[idx] = ename
+            except (ValueError, AttributeError):
+                pass
+    type_map["_name_map"] = name_map
     # Attach serialized entries for name lookups
     type_map["_raw_entries"] = _serialize_entries(entries)
     return type_map
