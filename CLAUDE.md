@@ -1,17 +1,17 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.8.0
+version: 4.0.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-12T17:30:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **90 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
-All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
+MCP server exposing **92 tools** so AI assistants can control a grandMA2 lighting console via Telnet, plus an **agent harness** (`src/agent/`) that enables autonomous multi-step execution with planning, verification, policy enforcement, and audit traces.
+All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers. The agent runtime in `src/agent/` layers goal decomposition, step execution, and verification on top.
 
 ---
 
@@ -33,6 +33,15 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `scripts/rag_ingest_web.py` | CLI: crawl MA2 help docs and ingest in daily batches |
 | `src/categorization/` | ML-based tool categorization: K-Means clustering + auto-labeling |
 | `scripts/categorize_tools.py` | CLI: extract features, embed, cluster, write taxonomy JSON |
+| `src/agent/runtime.py` | Agent harness: goal → plan → execute → verify → trace |
+| `src/agent/planner.py` | Rule-based domain planner, goal classification |
+| `src/agent/executor.py` | Step executor with retries, confirmation flow |
+| `src/agent/policy.py` | Plan-level governance (extends vocab.py safety) |
+| `src/agent/verification.py` | Post-mutation state verification |
+| `src/agent/memory.py` | SQLite-backed workflow memory (conventions, recipes, run history) |
+| `src/agent/trace.py` | Structured JSON execution traces |
+| `src/agent/state.py` | Data models: RunContext, PlanStep, Checkpoint |
+| `src/agent/workflows/` | Workflow templates: patch, preset, playback, common |
 
 ---
 
@@ -330,6 +339,55 @@ Three tiers enforced before any command reaches the console:
 - Line breaks (`\r`, `\n`) in command strings are rejected by the safety gate.
 - Classification entry point: `classify_token(token, spec)` in `src/vocab.py`.
 - **`new_show` without `/globalsettings` disables Telnet** — always keep `preserve_connectivity=True` (the default).
+
+---
+
+## Agent Harness (`src/agent/`)
+
+The agent harness turns this from a tool server into a runtime that can execute multi-step goals autonomously. It layers on top of the existing MCP tools — no changes to command builders, telnet client, or navigation.
+
+### Architecture
+
+```
+AgentRuntime (runtime.py)
+  → DomainPlanner (planner.py) — rule-based goal → plan
+  → PolicyEngine (policy.py) — plan-level governance
+  → StepExecutor (executor.py) — tool dispatch + retries
+  → Verifier (verification.py) — post-mutation checks
+  → WorkflowMemory (memory.py) — SQLite operational memory
+  → ExecutionTrace (trace.py) — JSON audit artifacts
+```
+
+### MCP tools
+
+- `run_agent_goal(goal, auto_confirm, dry_run)` — execute a goal end-to-end
+- `plan_agent_goal(goal)` — generate + validate a plan without executing
+
+### Workflow templates (`src/agent/workflows/`)
+
+| Template | Steps |
+|----------|-------|
+| `patch.py` | discover → import fixture type → patch → label → verify |
+| `preset.py` | select fixtures → set values → store preset → label → verify |
+| `playback.py` | discover → store cues → assign executor → label → verify |
+| `common.py` | label, verify, discover helpers |
+
+### Plan-level policy rules (extends `src/vocab.py` safety)
+
+1. **Staging**: reads before writes before destructive
+2. **Verification**: every DESTRUCTIVE step must have a verification step
+3. **Discovery-first**: mutations without prior inspection get discovery prepended
+4. **Confidence gate**: low-confidence goals route to discovery-only mode
+5. **Connection safety**: block `new_show` without `preserve_connectivity`
+6. **Batch limit**: many destructive steps require upfront plan confirmation
+
+### Workflow memory (`agent_data/memory.db`)
+
+Three tables: `conventions`, `recipes`, `run_history`. Stores operational patterns (naming standards, patch templates, reusable workflows) separately from RAG doc search. Git-ignored.
+
+### Execution traces (`agent_traces/`)
+
+JSON files per run: goal, plan, step-by-step tool calls with timing and verification results, final outcome. Git-ignored.
 
 ---
 
