@@ -1,7 +1,7 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.9.0
+version: 4.0.0
 created: 2026-03-01T00:00:00Z
 last_updated: 2026-03-12T12:00:00Z
 ---
@@ -23,6 +23,10 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/tools.py` | Shared client infrastructure: `get_client()`, `parse_listvar()`, env config |
 | `src/resources.py` | 6 MCP resources — read-only console/show state via `gma2://` URIs |
 | `src/prompts.py` | 5 MCP prompts — guided MA2 workflows (color chase, patching, diagnostics) |
+| `src/completions.py` | MCP argument autocompletion for prompts and resource templates |
+| `src/subscriptions.py` | MCP resource subscription tracking (subscribe/unsubscribe handlers) |
+| `src/elicitation.py` | Server-initiated user input — destructive op confirmation schemas |
+| `src/sampling.py` | Server-initiated LLM calls — cue suggestions, troubleshooting, Lua gen |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
@@ -128,6 +132,64 @@ Default: `stdio`. Configurable via environment variables:
 
 ---
 
+## MCP Completions
+
+Argument autocompletion for prompt parameters and resource template URIs.
+
+**Resource templates:** `gma2://show/sequences/{seq_id}/cues` → suggests sequence IDs 1-50.
+
+**Prompt arguments:** Completions for `fixture_group`, `color_count`, `fixture_type`, `start_address`, `count`, `sequence_id`, `cue_count` across all parameterized prompts. Prefix-filtered.
+
+Implementation in `src/completions.py`. Registered via `@mcp.completion()`.
+
+---
+
+## MCP Resource Subscriptions
+
+In-memory subscription tracking for resource URIs. Clients subscribe via `resources/subscribe`; the server tracks active subscriptions and can notify via `notifications/resources/updated`.
+
+Helpers: `has_subscribers(uri)`, `get_subscribed_uris()`, `get_subscription_count(uri)`.
+
+Implementation in `src/subscriptions.py`. Subscriptions are lost on server restart.
+
+---
+
+## MCP Elicitation
+
+Server-initiated user input requests. Schemas use Pydantic models with primitive fields only.
+
+| Schema | Fields | Use case |
+|--------|--------|----------|
+| `DestructiveConfirmation` | `confirmed: bool` | Gate destructive commands interactively |
+| `TargetSelection` | `object_id: str`, `object_name: str` | Ask user to pick a target object |
+| `PageSelection` | `page_number: int` | Ask user to select a page |
+
+Helpers: `elicit_destructive_confirmation(session, command, description)` → `bool`, `check_elicitation_support(session)` → `bool`.
+
+Graceful degradation: returns `False`/`None` if client doesn't support elicitation.
+
+Implementation in `src/elicitation.py`.
+
+---
+
+## MCP Sampling
+
+Server-initiated LLM calls via the client's configured model.
+
+| Function | Purpose | Max tokens |
+|----------|---------|------------|
+| `generate_cue_suggestions()` | Suggest next cues based on console state | 500 |
+| `generate_troubleshooting_advice()` | Diagnose errors from command history | 300 |
+| `generate_lua_script()` | Generate MA2 Lua scripts from description | 1000 |
+
+Default model preference: intelligence > speed > cost, hints `claude-sonnet-4-6`.
+
+Graceful degradation: returns `None` if client doesn't support sampling.
+
+Implementation in `src/sampling.py`.
+
+---
+
 ## Code Conventions
 
 ### Adding a new MCP tool
@@ -150,7 +212,7 @@ Default: `stdio`. Configurable via environment variables:
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-12): **1398 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-12): **1440 unit tests**, **132 live integration tests**.
 
 ### New Show — connectivity preservation
 

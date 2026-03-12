@@ -378,6 +378,16 @@ from src.prompts import register_prompts  # noqa: E402
 
 register_prompts(mcp)
 
+# Register MCP completions (argument autocompletion)
+from src.completions import register_completions  # noqa: E402
+
+register_completions(mcp)
+
+# Register MCP resource subscriptions (live state push)
+from src.subscriptions import register_subscriptions  # noqa: E402
+
+register_subscriptions(mcp)
+
 
 def _handle_errors(func):
     """Decorator that catches exceptions in MCP tools and returns JSON errors."""
