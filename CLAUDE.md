@@ -1,12 +1,33 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.8.0
+version: 3.9.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-13T00:00:00Z
 ---
 
 # Project Rules
+
+## Workspace Router
+
+| Task type | Load workspace | Tools needed |
+|-----------|---------------|--------------|
+| Learn GMA2 syntax | skills/command-reference/ | None (knowledge only) |
+| Understand show structure | skills/show-architecture/ | None (knowledge only) |
+| Network configuration | skills/networking/ | None (knowledge only) |
+| Write macros | skills/macros/ | MCP bridge (if available) |
+| Program cues/effects | skills/programming/ | MCP bridge (if available) |
+| Write Lua scripts | skills/lua-scripting/ | MCP bridge (if available) |
+| Execute commands | src/ | All 90 MCP tools |
+
+**Tier detection:**
+- No MCP tools available → route to skills/ (knowledge only)
+- MCP tools available → route to src/ (full execution)
+- If EMBLEM_ENTERPRISE env set → route to ee/ (enterprise)
+
+**Token budget:** Load ONLY the workspace context for the current task.
+
+---
 
 ## Project Identity
 

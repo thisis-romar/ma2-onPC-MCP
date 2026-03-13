@@ -1,0 +1,28 @@
+{
+  "name": "gma2-lighting-skills",
+  "version": "1.0.0",
+  "description": "AI agent skills for grandMA2 lighting console programming. Six skills covering command syntax, show architecture, networking, macros, cue programming, and Lua scripting.",
+  "author": "Emblem Projects",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/thisis-romar/ma2-onPC-MCP",
+  "skills": [
+    "skills/command-reference/SKILL.md",
+    "skills/show-architecture/SKILL.md",
+    "skills/networking/SKILL.md",
+    "skills/macros/SKILL.md",
+    "skills/programming/SKILL.md",
+    "skills/lua-scripting/SKILL.md"
+  ],
+  "mcp_server": {
+    "command": "uv run python -m src.server",
+    "description": "Connect to grandMA2 console for command execution (requires GMA_HOST, GMA_PORT environment variables)",
+    "env": {
+      "GMA_HOST": "127.0.0.1",
+      "GMA_PORT": "30000"
+    }
+  },
+  "categories": [
+    "AV/Lighting",
+    "Entertainment Production"
+  ]
+}
