@@ -1,7 +1,7 @@
 ---
 title: GMA2 Lua API Reference
-description: grandMA2 Lua API function reference for plugin development
-version: 1.0.0
+description: grandMA2 Lua API function reference for plugin development, including variables, DMX access, file I/O, and sandbox constraints
+version: 1.1.0
 created: 2026-03-13T00:00:00Z
 last_updated: 2026-03-13T00:00:00Z
 ---
@@ -26,6 +26,28 @@ grandMA2 plugins use Lua 5.3 with grandMA2-specific API extensions under the `gm
 | `gma.show.property.get(handle, prop)` | value | Get property value |
 | `gma.show.property.set(handle, prop, val)` | — | Set property value |
 
+## gma.show — Variables
+
+| Function | Returns | Purpose |
+|----------|---------|---------|
+| `gma.show.getvar(name)` | string | Read a user variable (set by `SetVar` in macros) |
+| `gma.show.setvar(name, value)` | — | Write a user variable (readable by macros via `$name`) |
+
+Variables bridge macro ↔ Lua: a macro can `SetVar $myval = 10`, and Lua reads it with `gma.show.getvar("myval")`, and vice versa.
+
+## gma.show — DMX Access
+
+| Function | Returns | Purpose |
+|----------|---------|---------|
+| `gma.show.getdmx(addr)` | number | Read DMX output value at universe.address (0-255) |
+
+## gma.user — User-Scoped Variables
+
+| Function | Returns | Purpose |
+|----------|---------|---------|
+| `gma.user.getvar(name)` | string | Read a user-scoped variable |
+| `gma.user.setvar(name, value)` | — | Write a user-scoped variable |
+
 ## gma.gui — User Interface
 
 | Function | Returns | Purpose |
@@ -36,6 +58,16 @@ grandMA2 plugins use Lua 5.3 with grandMA2-specific API extensions under the `gm
 | `gma.gui.progress.start(title)` | handle | Start progress bar |
 | `gma.gui.progress.set(handle, pct)` | — | Update progress (0-100) |
 | `gma.gui.progress.stop(handle)` | — | Close progress bar |
+
+## gma — Utility Functions
+
+| Function | Returns | Purpose |
+|----------|---------|---------|
+| `gma.textinput(title, default)` | string | Text input dialog (alternative to `gma.gui.textinput`) |
+| `gma.sleep(seconds)` | — | Blocking sleep (use sparingly) |
+| `gma.gettime()` | number | High-resolution time in seconds |
+| `gma.build_date()` | string | Console firmware build date |
+| `gma.git_version()` | string | Console firmware git version |
 
 ## gma.cmd — Command Execution
 
@@ -83,6 +115,35 @@ return function()
     end
 end
 ```
+
+## File I/O
+
+Plugins can export data to files within the plugin directory:
+
+| Function | Purpose |
+|----------|---------|
+| `export_csv(filename, data)` | Write CSV file |
+| `export_json(filename, data)` | Write JSON file |
+| `import(filename)` | Read file contents |
+
+File paths are restricted to the plugin's own directory — no arbitrary filesystem access.
+
+## Lua Runtime Environment
+
+| Property | Value |
+|----------|-------|
+| Lua version | 5.3.5 |
+| Standard libs | `math`, `string`, `table`, `os.clock` (partial `os`) |
+| **Blocked** | `os.execute`, `io.popen`, `require` (external modules) |
+| File access | Plugin directory only |
+| Threading | Single-threaded; use `gma.timer` for async patterns |
+
+### Security sandbox
+
+- No shell command execution (`os.execute`, `io.popen` are removed)
+- No loading external Lua modules (`require` is restricted)
+- No arbitrary file system access — reads/writes confined to plugin directory
+- Network access not available from Lua — use `gma.cmd` to issue telnet-level commands
 
 ## Plugin Registration
 

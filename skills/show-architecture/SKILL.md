@@ -1,10 +1,13 @@
 ---
-name: gma2-show-architecture
+title: grandMA2 Show Architecture
 description: "grandMA2 show file structure, CD tree navigation, data pools, and PresetType correlation reference."
+version: 1.0.0
+created: 2026-03-13T00:00:00Z
+last_updated: 2026-03-13T00:00:00Z
+name: gma2-show-architecture
 license: Apache-2.0
 metadata:
   author: emblem-projects
-  version: "1.0.0"
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free"

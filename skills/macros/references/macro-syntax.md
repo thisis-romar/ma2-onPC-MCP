@@ -1,7 +1,7 @@
 ---
 title: GMA2 Macro Syntax Reference
-description: Detailed macro syntax, multi-line patterns, and timing for grandMA2
-version: 1.0.0
+description: Detailed macro syntax, conditionals, variables, timing, triggers, and patterns for grandMA2
+version: 1.1.0
 created: 2026-03-13T00:00:00Z
 last_updated: 2026-03-13T00:00:00Z
 ---
@@ -102,6 +102,162 @@ Line 2: SelFix Fixture 1 Thru 5
 Line 3: At $intensity
 ```
 
+## Conditional Execution
+
+Macro lines can be conditionally executed using the `[$condition]` prefix. If the condition evaluates to false, the line is skipped.
+
+### Syntax
+
+```
+[$variable == value] Command
+[$variable != value] Command
+[$variable < value] Command
+[$variable > value] Command
+```
+
+### Operators
+
+| Operator | Meaning |
+|----------|---------|
+| `==` | Equal to |
+| `!=` | Not equal to |
+| `<` | Less than |
+| `>` | Greater than |
+
+### Examples
+
+```
+Line 1: [$mymode == 1] Go Executor 1
+Line 2: [$mymode == 2] Go Executor 2
+Line 3: [$mymode == 3] Go Executor 3
+```
+
+```
+Line 1: [$counter < 10] AddVar $counter + 1
+Line 2: [$counter < 10] Go+ Macro 5
+Line 3: [$counter == 10] SetVar $counter = 0
+```
+
+Conditions are evaluated per-line. Each line's condition is independent — there is no `else` or `elseif` construct.
+
+## Variables
+
+User variables persist until explicitly cleared or until the show file changes.
+
+### SetVar — set a variable
+
+```
+SetVar $myvar = 100
+SetVar "scene_name" = "intro"
+```
+
+### AddVar — modify a variable
+
+```
+AddVar $counter + 1          # Increment by 1
+AddVar $counter - 5          # Decrement by 5
+```
+
+### Variable expansion
+
+Variables are expanded inline with `$name` syntax:
+
+```
+Line 1: SetVar $intensity = 75
+Line 2: SelFix Fixture 1 Thru 5
+Line 3: At $intensity
+```
+
+### Scope
+
+- User variables are global within the session
+- Persist across macro calls
+- Reset on show file change
+- Shared with Lua plugins via `gma.show.getvar` / `gma.show.setvar`
+
+## User Prompt Pop-ups
+
+The `(prompt text)` syntax displays a pop-up dialog asking the user for input at runtime.
+
+### Syntax
+
+```
+Command (Prompt text here)
+```
+
+### Examples
+
+```
+Line 1: Store Cue (Please enter cue number) /merge
+Line 2: Goto Cue (Which cue to go to?)
+```
+
+### Difference from @
+
+| Syntax | Behavior |
+|--------|----------|
+| `@` | Generic input prompt, no custom text |
+| `(prompt text)` | Custom pop-up with descriptive text |
+
+Both pause macro execution until the user provides input.
+
+## Triggering Methods
+
+Macros can be triggered from multiple sources:
+
+| Method | Syntax / Setup | Notes |
+|--------|---------------|-------|
+| CLI | `go+ macro N` | Direct command line execution |
+| Executor | `assign macro N executor M` | Button/fader press triggers macro |
+| Cue macro field | Set in cue properties | Fires when cue executes |
+| MIDI | MIDI Show Control setup | External MIDI trigger |
+| MSC | MSC configuration | MIDI Show Control protocol |
+| Timecode | Timecode event list | Time-synced execution |
+| OSC | OSC input mapping | Open Sound Control trigger |
+| Self-calling | `go+ macro N` inside macro N | Loop simulation (see below) |
+
+## Timing
+
+Macro lines execute sequentially with **no inter-line delay** by default.
+
+### Wait command
+
+Insert delays between lines with `Wait`:
+
+```
+Line 1: Go Executor 1
+Line 2: Wait 2                # Wait 2 seconds
+Line 3: Go Executor 2
+Line 4: Wait 0.5              # Wait 500ms
+Line 5: Go Executor 3
+```
+
+## Loop Simulation
+
+grandMA2 macros have no native loop constructs (`for`, `while`). Simulate loops by having a macro call itself.
+
+### Basic loop
+
+```
+# Macro 10 — loops until counter reaches 5
+Line 1: AddVar $counter + 1
+Line 2: SelFix Fixture $counter
+Line 3: At Full
+Line 4: [$counter < 5] Go+ Macro 10
+Line 5: [$counter == 5] SetVar $counter = 0
+```
+
+### Infinite loop with delay
+
+```
+# Macro 11 — toggles blackout every 2 seconds forever
+Line 1: BlackOut
+Line 2: Wait 2
+Line 3: Go+ Macro 11
+```
+
+**Warning:** Infinite self-calling macros with no `Wait` can hang the console. Always include a delay or exit condition.
+
 ## MAtricks in Macros
 
 MAtricks commands can be used inside macros for complex sub-selection:
@@ -127,3 +283,16 @@ Line 9: ClearAll
 | `NewShow` | DESTRUCTIVE | Can sever Telnet connectivity |
 
 Always review macro contents before execution, especially if they contain DESTRUCTIVE commands.
+
+## Limitations
+
+| Limitation | Workaround |
+|-----------|------------|
+| No native loop/for/while | Self-calling macro + conditional `[$var]` |
+| No string manipulation | Use Lua plugins for string operations |
+| No direct DMX value read | Check system variables (`$SELECTEDFIXTURESCOUNT`, etc.) |
+| No arithmetic expressions | Use `AddVar` for increment/decrement only |
+| No subroutine return | Chain macros with `go+ macro N` (fire-and-forget) |
+| Line count limit | Split into multiple macros chained together |
+
+For complex logic beyond macro capabilities, use Lua plugins (see `skills/lua-scripting/`).

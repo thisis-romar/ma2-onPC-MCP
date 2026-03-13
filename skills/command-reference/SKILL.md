@@ -1,10 +1,13 @@
 ---
-name: gma2-command-reference
+title: grandMA2 Command Reference
 description: "grandMA2 command syntax reference. Covers 141 keywords, quote_name rules, wildcard workflow, and 157 command builder patterns."
+version: 1.0.0
+created: 2026-03-13T00:00:00Z
+last_updated: 2026-03-13T00:00:00Z
+name: gma2-command-reference
 license: Apache-2.0
 metadata:
   author: emblem-projects
-  version: "1.0.0"
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free"

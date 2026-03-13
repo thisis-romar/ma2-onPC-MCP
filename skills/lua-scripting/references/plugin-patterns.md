@@ -1,12 +1,59 @@
 ---
 title: GMA2 Lua Plugin Patterns
-description: Common grandMA2 Lua plugin patterns and templates
-version: 1.0.0
+description: Common grandMA2 Lua plugin patterns, XML descriptor structure, variable bridging, and community resources
+version: 1.1.0
 created: 2026-03-13T00:00:00Z
 last_updated: 2026-03-13T00:00:00Z
 ---
 
 # GMA2 Lua Plugin Patterns
+
+## XML Plugin Descriptor
+
+Every grandMA2 plugin requires an XML descriptor file that registers the Lua component(s):
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<GMA2 DataVersion="1.9">
+  <Plugin Name="MyPlugin" Installed="1">
+    <ComponentLua FileName="main.lua" />
+  </Plugin>
+</GMA2>
+```
+
+- `Name` — display name in the Plugin pool
+- `Installed="1"` — marks the plugin as active
+- `ComponentLua` — references the Lua entry point file
+- Multiple `<ComponentLua>` elements can reference additional modules
+
+Place both the XML and Lua files in the grandMA2 plugins directory (see `$PLUGINPATH`).
+
+## Start/Cleanup Return Pattern
+
+For plugins that need initialization and teardown (e.g., timers, state management), return two functions:
+
+```lua
+local function main()
+    -- Setup code runs once on load
+
+    local function start()
+        -- Called when plugin is executed
+        gma.feedback("Plugin started")
+        -- ... plugin logic ...
+    end
+
+    local function cleanup()
+        -- Called when plugin is stopped or show closes
+        gma.feedback("Plugin cleaned up")
+    end
+
+    return start, cleanup
+end
+
+return main
+```
+
+The console calls `start()` on execution and `cleanup()` on shutdown or plugin removal.
 
 ## Pattern 1: Fixture Iterator
 
@@ -161,6 +208,33 @@ return function()
 end
 ```
 
+## Pattern 6: Variable Bridge (Lua ↔ Macro)
+
+Share state between Lua plugins and macros using user variables:
+
+```lua
+return function()
+    -- Read a variable set by a macro (e.g., SetVar $scene = 3)
+    local scene = gma.show.getvar("scene")
+    gma.feedback("Current scene from macro: " .. (scene or "nil"))
+
+    -- Set a variable that macros can read via $lua_result
+    local result = gma.gui.textinput("New value", "0")
+    if result then
+        gma.show.setvar("lua_result", result)
+        gma.feedback("Set $lua_result = " .. result)
+    end
+end
+```
+
+Corresponding macro that reads the Lua-set variable:
+
+```
+Line 1: Go+ Plugin 1
+Line 2: [$lua_result == 1] Go Executor 1
+Line 3: [$lua_result == 2] Go Executor 2
+```
+
 ## Safety Notes
 
 - **Always confirm** before executing destructive commands (Store, Delete, Assign)
@@ -168,3 +242,9 @@ end
 - **Handle nil returns** from `gma.gui.textinput` (user cancelled)
 - **Validate numeric input** with `tonumber()` before using in calculations
 - **Clean up timers** to avoid orphaned callbacks
+
+## Community Resources
+
+- [hossimo/ma2-plugins](https://github.com/hossimo/ma2-plugins) — community plugin collection
+- [jonsag/ma2-custom](https://github.com/jonsag/ma2-custom) — custom plugins and tools
+- [MA Lighting Forums](https://forum.malighting.com/) — official community support and plugin sharing

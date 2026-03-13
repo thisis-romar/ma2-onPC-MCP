@@ -1,10 +1,13 @@
 ---
-name: gma2-networking
+title: grandMA2 Networking
 description: "grandMA2 networking reference: MA-Net2 configuration, Art-Net, sACN, DMX protocols, and connectivity preservation."
+version: 1.0.0
+created: 2026-03-13T00:00:00Z
+last_updated: 2026-03-13T00:00:00Z
+name: gma2-networking
 license: Apache-2.0
 metadata:
   author: emblem-projects
-  version: "1.0.0"
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free"

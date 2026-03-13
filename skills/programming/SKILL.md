@@ -1,10 +1,13 @@
 ---
-name: gma2-programming
+title: grandMA2 Cue & Effect Programming
 description: "grandMA2 cue and effect programming guide. Generates store, sequence, timing, MAtricks, and appearance commands. Execution available via ma2-onPC-MCP server."
+version: 1.0.0
+created: 2026-03-13T00:00:00Z
+last_updated: 2026-03-13T00:00:00Z
+name: gma2-programming
 license: Apache-2.0
 metadata:
   author: emblem-projects
-  version: "1.0.0"
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free-hybrid"
