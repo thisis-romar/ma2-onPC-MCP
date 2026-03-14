@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.9.1
+version: 3.10.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-13T00:00:00Z
+last_updated: 2026-03-14T00:00:00Z
 ---
 
 # Project Rules
@@ -26,6 +26,13 @@ last_updated: 2026-03-13T00:00:00Z
 - If EMBLEM_ENTERPRISE env set → route to ee/ (enterprise)
 
 **Token budget:** Load ONLY the workspace context for the current task.
+
+**Retrieval protocol (3 layers):**
+1. **Router** — Read the relevant `SKILL.md` first (~50 lines). It contains grep patterns for quick answers.
+2. **Grep index** — For cross-skill lookups, grep `skills/INDEX.md` for the topic to find the right file and section.
+3. **Deep dive** — Only read full reference files (`references/*.md`) when grep results are insufficient.
+
+Always try grep before loading a full file. This keeps context usage minimal.
 
 ---
 

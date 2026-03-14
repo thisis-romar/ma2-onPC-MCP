@@ -1,9 +1,9 @@
 ---
 title: grandMA2 Show Architecture
 description: "grandMA2 show file structure, CD tree navigation, data pools, and PresetType correlation reference."
-version: 1.0.0
+version: 1.2.0
 created: 2026-03-13T00:00:00Z
-last_updated: 2026-03-13T00:00:00Z
+last_updated: 2026-03-14T00:00:00Z
 name: gma2-show-architecture
 license: Apache-2.0
 metadata:
@@ -11,6 +11,8 @@ metadata:
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free"
+  available_tiers:
+    - free
   mcp_server: "thisis-romar/ma2-onPC-MCP"
   marketplace_slugs:
     skillsmp: "emblem/gma2-show-architecture"
@@ -19,29 +21,25 @@ metadata:
 
 # grandMA2 Show Architecture
 
-You are an expert on grandMA2 show file structure, the console object tree (CD tree), data pools, and how PresetTypes, Features, and Attributes correlate. Help users understand show organization, navigate the object tree, and locate data within the console's hierarchical structure.
+You are an expert on grandMA2 show file structure, the console object tree (CD tree), data pools, and how PresetTypes, Features, and Attributes correlate.
 
-## CD tree navigation
+## Quick answers (grep these files)
 
-The grandMA2 console exposes a hierarchical object tree navigable via `cd` and `list` commands through Telnet. The root contains 40+ branches covering everything from fixture setup to executor pages.
+- CD tree root branches → `grep -n "^| cd" skills/show-architecture/references/data-pools.md`
+- PresetType correlation table → `grep -n "^| Dimmer\|^| Position\|^| Gobo\|^| Color\|^| Beam\|^| Focus\|^| Control" skills/show-architecture/references/show-structure.md`
+- System variables → `grep -n "^| .\\$" skills/show-architecture/references/show-structure.md`
+- Show-dependent branches → `grep -n "Show-dependent" skills/show-architecture/references/data-pools.md`
+- LiveSetup deep structure → `grep -n "^## LiveSetup\|^cd 10" skills/show-architecture/references/data-pools.md`
 
-Key navigation commands:
-- `cd /` — return to root
-- `cd N` — navigate to child index N
-- `cd ..` — go up one level
-- `list` — enumerate children at current location
+## Key navigation commands
 
-## PresetType correlation
+- `cd /` — return to root; `cd N` — child index N; `cd ..` — up; `list` — enumerate children
 
-Calling `Feature [name]` or `PresetType [id]` updates three system variables simultaneously:
-- `$PRESET` — the active PresetType name
-- `$FEATURE` — the first feature in that type
-- `$ATTRIBUTE` — the first attribute in that feature
+## Deep dives (read full files)
 
-## Reference material
-
-- See `references/show-structure.md` for CD tree layout and PresetType correlation
-- See `references/data-pools.md` for root-level branch mapping and show-dependent vs firmware branches
+- `references/show-structure.md` — CD tree layout, PresetType correlation, system variables
+- `references/data-pools.md` — root-level branch mapping, show-dependent vs firmware branches
+- `context.md` — additional context and edge cases
 
 ## When MCP bridge is NOT available
 

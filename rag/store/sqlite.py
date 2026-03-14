@@ -176,13 +176,69 @@ class RagStore:
         return scored[:top_k]
 
     def search_by_text(self, query: str, top_k: int = 12) -> list[RagHit]:
-        """Text search with occurrence-based ranking.
+        """Text search using FTS5 with LIKE fallback.
 
-        Scoring:
+        Tries FTS5 first for fast ranked full-text search. Falls back to
+        LIKE-based search if FTS5 table is missing or query fails.
+
+        Scoring (FTS5 path):
+        - BM25 rank from FTS5 (negated so higher = better).
+        - Symbol-level match adds 5.0 bonus.
+
+        Scoring (LIKE fallback):
         - Each case-insensitive occurrence of *query* in text adds 1.0.
-        - A symbol-level match (query appears in the symbols JSON) adds 5.0 bonus.
-        - Results are sorted by score descending.
+        - Symbol-level match adds 5.0 bonus.
         """
+        try:
+            return self._search_by_fts5(query, top_k)
+        except sqlite3.OperationalError:
+            logger.debug("FTS5 table not available, falling back to LIKE search")
+            return self._search_by_like(query, top_k)
+
+    def _search_by_fts5(self, query: str, top_k: int = 12) -> list[RagHit]:
+        """FTS5-based full-text search with BM25 ranking."""
+        # FTS5 query: quote terms to handle special characters
+        fts_query = " ".join(
+            f'"{term}"' for term in query.split() if term.strip()
+        )
+        if not fts_query:
+            return []
+
+        rows = self.conn.execute(
+            """
+            SELECT c.chunk_id, c.path, c.kind, c.start_line, c.end_line,
+                   c.text, c.symbols, rank
+            FROM chunks_fts fts
+            JOIN chunks c ON c.chunk_id = fts.chunk_id
+            WHERE chunks_fts MATCH ?
+            ORDER BY rank
+            LIMIT ?
+            """,
+            (fts_query, top_k * 2),
+        ).fetchall()
+
+        query_lower = query.lower()
+        scored: list[RagHit] = []
+        for chunk_id, path, kind, start_line, end_line, text, symbols, rank in rows:
+            # FTS5 rank is negative (lower = better), negate for our scoring
+            score = -rank
+            if query_lower in symbols.lower():
+                score += 5.0
+            scored.append(RagHit(
+                chunk_id=chunk_id,
+                path=path,
+                kind=kind,
+                start_line=start_line,
+                end_line=end_line,
+                score=score,
+                text=text,
+            ))
+
+        scored.sort(key=lambda h: h.score, reverse=True)
+        return scored[:top_k]
+
+    def _search_by_like(self, query: str, top_k: int = 12) -> list[RagHit]:
+        """LIKE-based text search fallback with occurrence counting."""
         pattern = f"%{query}%"
         rows = self.conn.execute(
             """
@@ -195,12 +251,9 @@ class RagStore:
         query_lower = query.lower()
         scored: list[RagHit] = []
         for chunk_id, path, kind, start_line, end_line, text, symbols in rows:
-            # Count occurrences in text
             score = float(text.lower().count(query_lower))
-            # Bonus for symbol-level match
             if query_lower in symbols.lower():
                 score += 5.0
-            # Ensure minimum score of 1.0 for any match
             score = max(score, 1.0)
             scored.append(RagHit(
                 chunk_id=chunk_id,

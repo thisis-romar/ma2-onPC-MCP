@@ -1,9 +1,9 @@
 ---
 title: grandMA2 Command Reference
 description: "grandMA2 command syntax reference. Covers 141 keywords, quote_name rules, wildcard workflow, and 157 command builder patterns."
-version: 1.0.0
+version: 1.2.0
 created: 2026-03-13T00:00:00Z
-last_updated: 2026-03-13T00:00:00Z
+last_updated: 2026-03-14T00:00:00Z
 name: gma2-command-reference
 license: Apache-2.0
 metadata:
@@ -11,6 +11,8 @@ metadata:
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free"
+  available_tiers:
+    - free
   mcp_server: "thisis-romar/ma2-onPC-MCP"
   marketplace_slugs:
     skillsmp: "emblem/gma2-command-reference"
@@ -21,33 +23,26 @@ metadata:
 
 You are an expert on grandMA2 lighting console command syntax. Generate syntactically correct GMA2 commands, explain keyword classification, and help users construct complex command sequences.
 
+## Quick answers (grep these files)
+
+- Store/copy/move/delete syntax → `grep -n "^## Store\|^## Copy\|^## Delete\|^## Assign" skills/command-reference/references/syntax-guide.md`
+- Selection & clear commands → `grep -n "^## Selection" skills/command-reference/references/syntax-guide.md`
+- At (value setting) → `grep -n "^## At" skills/command-reference/references/syntax-guide.md`
+- Playback commands → `grep -n "^## Playback" skills/command-reference/references/syntax-guide.md`
+- Label & appearance → `grep -n "^## Label" skills/command-reference/references/syntax-guide.md`
+- PresetType IDs → `grep -n "^## PresetType" skills/command-reference/references/syntax-guide.md`
+- Keyword risk tiers → `grep -n "^## Risk Tiers\|SAFE_READ\|SAFE_WRITE\|DESTRUCTIVE" skills/command-reference/references/keyword-vocabulary.md`
+- MAtricks keywords → `grep -n "^## MAtricks" skills/command-reference/references/keyword-vocabulary.md`
+
 ## Core syntax
 
-grandMA2 commands follow the pattern `[Function] [Object] [Options]`:
+Commands follow `[Function] [Object] [Options]`. Names with special characters (`* @ $ . / ; [ ] ( ) " space`) require double quotes. For wildcard matching, pass unquoted so `*` acts as operator.
 
-- **Function keywords** (verbs): `Go`, `Store`, `Delete`, `Assign`, `Label`, `Copy`, `Move`, `Select`, `Clear`, `Park`
-- **Object keywords** (nouns): `Fixture`, `Group`, `Cue`, `Sequence`, `Executor`, `Preset`, `Macro`, `Layout`, `Channel`, `DMX`
-- **Helping keywords** (prepositions): `At`, `Thru`, `If`, `And`, `Page`, `Part`
+## Deep dives (read full files)
 
-## Name quoting rules
-
-When a name contains special characters (`* @ $ . / ; [ ] ( ) " space`), wrap it in double quotes:
-- `Label Group 3 "All Studiocolors"` (contains space)
-- `Group MyGroup` (no special chars — no quotes needed)
-
-For wildcard matching, pass the name unquoted so `*` acts as a wildcard operator:
-- `List Group Mac700*` (matches all groups starting with "Mac700")
-
-## Wildcard workflow
-
-1. Discover names: `discover_object_names("Group")` returns all names in the pool
-2. Derive a pattern from the names (e.g., `Mac700*`)
-3. Filter: `List Group Mac700*`
-
-## Reference material
-
-- See `references/syntax-guide.md` for the complete 157-function command builder reference
-- See `references/keyword-vocabulary.md` for all 141 classified keywords
+- `references/syntax-guide.md` — complete 157-function command builder reference with examples
+- `references/keyword-vocabulary.md` — all 141 keywords classified by category and risk tier
+- `context.md` — additional context and edge cases
 
 ## When MCP bridge is NOT available
 
