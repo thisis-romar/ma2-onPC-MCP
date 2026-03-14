@@ -1,9 +1,9 @@
 ---
 title: grandMA2 Networking
 description: "grandMA2 networking reference: MA-Net2 configuration, Art-Net, sACN, DMX protocols, and connectivity preservation."
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-13T00:00:00Z
-last_updated: 2026-03-13T00:00:00Z
+last_updated: 2026-03-14T00:00:00Z
 name: gma2-networking
 license: Apache-2.0
 metadata:
@@ -11,6 +11,8 @@ metadata:
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free"
+  available_tiers:
+    - free
   mcp_server: "thisis-romar/ma2-onPC-MCP"
   marketplace_slugs:
     skillsmp: "emblem/gma2-networking"

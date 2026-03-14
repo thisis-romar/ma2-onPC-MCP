@@ -1,9 +1,9 @@
 ---
 title: grandMA2 Macro Programming
 description: "grandMA2 macro programming guide. Generates macro syntax, validates structure, explains timing/conditions/variables/triggers. Execution available via ma2-onPC-MCP server."
-version: 1.1.0
+version: 1.2.0
 created: 2026-03-13T00:00:00Z
-last_updated: 2026-03-13T00:00:00Z
+last_updated: 2026-03-14T00:00:00Z
 name: gma2-macros
 license: Apache-2.0
 metadata:
@@ -11,10 +11,17 @@ metadata:
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free-hybrid"
+  available_tiers:
+    - free-hybrid
+    - premium
   mcp_server: "thisis-romar/ma2-onPC-MCP"
   marketplace_slugs:
     skillsmp: "emblem/gma2-macros"
     clawhub: "gma2-macros"
+  premium_content:
+    - "Pre-built macro libraries for common show control patterns"
+    - "Conditional logic templates with variable management"
+    - "Multi-executor orchestration macro packs"
 ---
 
 # grandMA2 Macro Programming

@@ -140,3 +140,36 @@ FILTER_VTE_COMBOS: list[tuple[str, bool, bool, bool]] = [
     ("V+VT+E", True,  True,  True),
 ]
 
+
+# ============================================================================
+# CONTENT LICENSING & PROVENANCE
+# ============================================================================
+# Constants for content provenance metadata, marketplace tiers,
+# and licensing headers embedded in generated XML files.
+# See: research on monetizing AI-generated grandMA2 content.
+
+# Supported content licenses for generated/distributed content.
+CONTENT_LICENSES: dict[str, str] = {
+    "apache-2.0": "Apache License 2.0",
+    "cc-by-4.0": "Creative Commons Attribution 4.0",
+    "cc-by-sa-4.0": "Creative Commons Attribution-ShareAlike 4.0",
+    "cc-by-nc-4.0": "Creative Commons Attribution-NonCommercial 4.0",
+    "proprietary": "All Rights Reserved",
+}
+
+# Marketplace tier definitions.
+CONTENT_TIERS: dict[str, str] = {
+    "free": "Free — community content, no restrictions",
+    "free-hybrid": "Free-hybrid — knowledge + MCP execution",
+    "premium": "Premium — curated content libraries for purchase",
+}
+
+# Content source classification for copyright/provenance tracking.
+# Under current U.S. law, only "human" and "ai-assisted" (with
+# substantive human creative contribution) may qualify for copyright.
+CONTENT_SOURCES: dict[str, str] = {
+    "human": "Human-authored",
+    "ai-assisted": "AI-assisted with human curation",
+    "ai-generated": "AI-generated",
+}
+

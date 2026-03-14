@@ -1,6 +1,6 @@
 {
   "name": "gma2-lighting-skills",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AI agent skills for grandMA2 lighting console programming. Six skills covering command syntax, show architecture, networking, macros, cue programming, and Lua scripting.",
   "author": "Emblem Projects",
   "license": "Apache-2.0",
@@ -24,5 +24,39 @@
   "categories": [
     "AV/Lighting",
     "Entertainment Production"
-  ]
+  ],
+  "tiers": {
+    "free": {
+      "description": "Read-only knowledge and reference",
+      "skills": ["command-reference", "show-architecture", "networking"]
+    },
+    "free-hybrid": {
+      "description": "Knowledge + MCP execution capability",
+      "skills": ["macros", "programming", "lua-scripting"],
+      "requires": "mcp_server"
+    },
+    "premium": {
+      "description": "Curated content libraries for purchase",
+      "content_libraries": true,
+      "requires": "mcp_server"
+    }
+  },
+  "premium_content": {
+    "filter_libraries": {
+      "description": "Color-coded filter libraries with VTE variants (21-168 objects)",
+      "price_range_eur": "10-15"
+    },
+    "matricks_libraries": {
+      "description": "Combinatorial MAtricks libraries with HSB color scheme (up to 625 objects)",
+      "price_range_eur": "10-15"
+    },
+    "preset_packs": {
+      "description": "Curated preset collections for common fixture types",
+      "price_range_eur": "15-50"
+    },
+    "macro_packs": {
+      "description": "Show control macro libraries with conditional logic",
+      "price_range_eur": "10-25"
+    }
+  }
 }

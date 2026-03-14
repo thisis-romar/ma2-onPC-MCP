@@ -1,9 +1,9 @@
 ---
 title: grandMA2 Cue & Effect Programming
 description: "grandMA2 cue and effect programming guide. Generates store, sequence, timing, MAtricks, and appearance commands. Execution available via ma2-onPC-MCP server."
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-13T00:00:00Z
-last_updated: 2026-03-13T00:00:00Z
+last_updated: 2026-03-14T00:00:00Z
 name: gma2-programming
 license: Apache-2.0
 metadata:
@@ -11,10 +11,17 @@ metadata:
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free-hybrid"
+  available_tiers:
+    - free-hybrid
+    - premium
   mcp_server: "thisis-romar/ma2-onPC-MCP"
   marketplace_slugs:
     skillsmp: "emblem/gma2-programming"
     clawhub: "gma2-programming"
+  premium_content:
+    - "Color-coded filter libraries (21-168 objects with VTE variants)"
+    - "MAtricks combinatorial libraries (up to 625 objects with HSB color scheme)"
+    - "Curated preset packs with embedded appearance colors"
 ---
 
 # grandMA2 Cue & Effect Programming

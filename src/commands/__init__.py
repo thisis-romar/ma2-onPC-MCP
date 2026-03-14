@@ -40,6 +40,9 @@ Keywords are classified into three types:
 
 # Constants
 from .constants import (
+    CONTENT_LICENSES,
+    CONTENT_SOURCES,
+    CONTENT_TIERS,
     PRESET_TYPES,
     STORE_BOOL_OPTIONS,
     STORE_FLAG_OPTIONS,
@@ -73,6 +76,9 @@ from .functions import (
     # Blackout
     blackout,
     blind,
+    # Content Provenance & Manifest
+    build_content_manifest,
+    build_provenance_comment,
     # Call Function Keywords
     call,
     # Other Function Keywords
@@ -234,6 +240,9 @@ from .objects import (
 
 __all__ = [
     # Constants
+    "CONTENT_LICENSES",
+    "CONTENT_SOURCES",
+    "CONTENT_TIERS",
     "PRESET_TYPES",
     "STORE_FLAG_OPTIONS",
     "STORE_BOOL_OPTIONS",
@@ -261,7 +270,9 @@ __all__ = [
     "timer",
     # Blackout
     "blackout",
-    # Import/Export Function Keywords
+    # Import/Export and Content Provenance
+    "build_content_manifest",
+    "build_provenance_comment",
     "export_object",
     "import_object",
     "import_fixture_type_cmd",

@@ -78,6 +78,8 @@ from .helping import (
 
 # Import/Export Function Keywords
 from .importexport import (
+    build_content_manifest,
+    build_provenance_comment,
     export_object,
     import_fixture_type_cmd,
     import_layer_cmd,
@@ -223,6 +225,8 @@ from .variables import (
 
 __all__ = [
     # Import/Export Function Keywords
+    "build_content_manifest",
+    "build_provenance_comment",
     "export_object",
     "import_object",
     "import_fixture_type_cmd",

@@ -1,9 +1,9 @@
 ---
 title: grandMA2 Lua Plugin Scripting
 description: "grandMA2 Lua plugin scripting reference. Generates Lua code for plugins, explains the GMA2 Lua API, and validates plugin structure. Execution available via ma2-onPC-MCP server."
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-13T00:00:00Z
-last_updated: 2026-03-13T00:00:00Z
+last_updated: 2026-03-14T00:00:00Z
 name: gma2-lua-scripting
 license: Apache-2.0
 metadata:
@@ -11,10 +11,17 @@ metadata:
   category: "AV/Lighting"
   console: "grandMA2"
   tier: "free-hybrid"
+  available_tiers:
+    - free-hybrid
+    - premium
   mcp_server: "thisis-romar/ma2-onPC-MCP"
   marketplace_slugs:
     skillsmp: "emblem/gma2-lua-scripting"
     clawhub: "gma2-lua-scripting"
+  premium_content:
+    - "Production-ready Lua plugin templates with GUI"
+    - "Variable bridge patterns (Lua-to-Macro integration)"
+    - "Show data export plugins (CSV/JSON)"
 ---
 
 # grandMA2 Lua Plugin Scripting

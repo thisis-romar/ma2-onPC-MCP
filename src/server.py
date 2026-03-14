@@ -4068,6 +4068,10 @@ async def generate_fixture_layer_xml(
     showfile: str = "grandma2",
     overwrite: bool = False,
     confirm_destructive: bool = False,
+    creator: str = "emblem-projects",
+    source: str = "ai-assisted",
+    content_license: str = "apache-2.0",
+    human_contribution: str = "",
 ) -> str:
     """
     Generate a grandMA2 fixture layer XML file and save it to the importexport directory (DESTRUCTIVE).
@@ -4168,6 +4172,22 @@ async def generate_fixture_layer_xml(
     # Replace minidom's XML declaration (includes standalone attr) with a clean one
     lines = pretty_bytes.split(b"\n")
     xml_bytes = b'<?xml version="1.0" encoding="utf-8"?>\n' + b"\n".join(lines[1:])
+
+    # Embed content provenance as XML comment (MA2 ignores comments on import)
+    from src.commands.functions.importexport import build_provenance_comment as _build_prov_fx
+    _prov_fx = _build_prov_fx(
+        creator=creator,
+        source=source,
+        license=content_license,
+        tool="ma2-onPC-MCP",
+        human_contribution=human_contribution,
+    )
+    # Insert after XML declaration, before root element
+    xml_bytes = (
+        b'<?xml version="1.0" encoding="utf-8"?>\n'
+        + _prov_fx.encode("utf-8") + b"\n"
+        + b"\n".join(lines[1:])
+    )
 
     os.makedirs(output_dir, exist_ok=True)
     with open(file_path, "wb") as f:
@@ -5210,6 +5230,10 @@ async def create_matricks_library(
     max_value: int = 4,
     start_slot: int = 2,
     confirm_destructive: bool = False,
+    creator: str = "emblem-projects",
+    source: str = "ai-assisted",
+    content_license: str = "apache-2.0",
+    human_contribution: str = "",
 ) -> str:
     """
     Create a full MAtricks combinatorial library (DESTRUCTIVE).
@@ -5266,6 +5290,17 @@ async def create_matricks_library(
         ' major_vers="3" minor_vers="9" stream_vers="60">',
         f'\t<Info datetime="{now}" showfile="" />',
     ]
+
+    # Embed content provenance as XML comment (MA2 ignores comments on import)
+    from src.commands.functions.importexport import build_provenance_comment
+    provenance = build_provenance_comment(
+        creator=creator,
+        source=source,
+        license=content_license,
+        tool="ma2-onPC-MCP",
+        human_contribution=human_contribution,
+    )
+    lines.append(provenance)
 
     total = (max_value + 1) ** 4
     index = 0
@@ -5390,6 +5425,10 @@ async def create_filter_library(
     include_vte: bool = False,
     fixture_attributes: dict[str, list[str]] | None = None,
     confirm_destructive: bool = False,
+    creator: str = "emblem-projects",
+    source: str = "ai-assisted",
+    content_license: str = "apache-2.0",
+    human_contribution: str = "",
 ) -> str:
     """
     Create a comprehensive Filter library with color-coded pool items (DESTRUCTIVE).
@@ -5521,6 +5560,17 @@ async def create_filter_library(
         ' major_vers="3" minor_vers="9" stream_vers="60">\n'
         f'\t<Info datetime="{now}" showfile="" />\n'
     )
+
+    # Embed content provenance as XML comment (MA2 ignores comments on import)
+    from src.commands.functions.importexport import build_provenance_comment as _build_prov
+    _provenance = _build_prov(
+        creator=creator,
+        source=source,
+        license=content_license,
+        tool="ma2-onPC-MCP",
+        human_contribution=human_contribution,
+    )
+    xml_header += _provenance + "\n"
 
     client = await get_client()
     results = []
