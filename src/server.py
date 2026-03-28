@@ -1466,6 +1466,10 @@ async def park_fixture(
     cmd = build_park(target, at=value)
     raw_response = await client.send_command_with_response(cmd)
 
+    # Sync park ledger to snapshot write-tracker (Gap 3)
+    if snap := _orchestrator.last_snapshot:
+        snap.parked_fixtures.add(str(target))
+
     return json.dumps({
         "command_sent": cmd,
         "raw_response": raw_response,
@@ -1516,6 +1520,10 @@ async def unpark_fixture(
 
     cmd = build_unpark(target)
     raw_response = await client.send_command_with_response(cmd)
+
+    # Sync park ledger to snapshot write-tracker (Gap 3)
+    if snap := _orchestrator.last_snapshot:
+        snap.parked_fixtures.discard(str(target))
 
     return json.dumps({
         "command_sent": cmd,
@@ -3183,6 +3191,11 @@ async def toggle_console_mode(mode: str) -> str:
 
     client = await get_client()
     response = await client.send_command_with_response(mode)
+
+    # Sync mode toggle to snapshot write-tracker (Gap 11)
+    if snap := _orchestrator.last_snapshot:
+        snap.console_modes[mode] = not snap.console_modes.get(mode, False)
+
     return json.dumps({
         "command_sent": mode,
         "raw_response": response,
@@ -4053,6 +4066,55 @@ async def assign_executor_property(
         "command_sent": cmd,
         "raw_response": response,
         "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SEQUENCE_EDIT)
+@_handle_errors
+async def set_executor_priority(
+    executor_id: int,
+    priority: str,
+) -> str:
+    """
+    Set the playback priority of an executor (Tool 130).
+
+    Priority determines how this executor interacts with other active executors
+    and the programmer. Uses live-verified syntax: Assign Executor N /priority=X.
+
+    Priority levels (highest → lowest):
+      - "super"  — LTP above ALL playbacks + programmer. Only Freeze overrides.
+      - "swap"   — LTP > HTP; negative override possible. Affects ALL attributes.
+      - "htp"    — Highest intensity value wins. Changes ALL attribute priority.
+      - "high"   — High LTP. Overrides Normal/Low but not HTP intensity.
+      - "normal" — LTP default. Last triggered value wins.
+      - "low"    — Lowest priority. Overridden by everything else.
+
+    Args:
+        executor_id: The executor to modify (e.g. 201).
+        priority: One of "super", "swap", "htp", "high", "normal", "low".
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier.
+    """
+    from src.commands import build_set_executor_priority as _build_prio
+    try:
+        cmd = _build_prio(executor_id, priority)
+    except ValueError as exc:
+        return json.dumps({"error": str(exc), "blocked": True}, indent=2)
+
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+
+    # Sync priority to snapshot write-tracker (Gap 10)
+    if snap := _orchestrator.last_snapshot:
+        if executor_id in snap.executor_state:
+            snap.executor_state[executor_id].priority = priority
+
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw,
+        "risk_tier": "SAFE_WRITE",
     }, indent=2)
 
 
@@ -5501,6 +5563,27 @@ async def manage_matricks(
     client = await get_client()
     raw = await client.send_command_with_response(cmd)
 
+    # Update in-memory write-tracker (Gap 6 — no telnet readback for MAtricks state)
+    if snap := _orchestrator.last_snapshot:
+        mt = snap.matricks
+        if action_lower == "reset":
+            mt.reset()
+        elif action_lower == "interleave":
+            mt.interleave = None if turn_off else (value or 1)
+        elif action_lower == "blocks":
+            mt.blocks_x = None if turn_off else (x or value or 1)
+            mt.blocks_y = None if turn_off else (y or 1)
+        elif action_lower == "groups":
+            mt.groups_x = None if turn_off else (x or value or 1)
+            mt.groups_y = None if turn_off else (y or 1)
+        elif action_lower == "wings":
+            mt.wings = None if turn_off else (value or 1)
+        elif action_lower == "filter":
+            mt.filter_id = None if turn_off else (value or None)
+        elif action_lower == "recall":
+            mt.active = True
+        # all/allrows/next/previous/nextrow are selection steps — no persistent state to track
+
     return json.dumps({
         "command_sent": cmd,
         "raw_response": raw,
@@ -6094,6 +6177,10 @@ async def create_filter_library(
     }
     if availability_warning:
         result_json["availability_warning"] = availability_warning
+
+    # Update filter_vte write-tracker (Gap 1 — VTE layer toggles have no telnet readback)
+    if snap := _orchestrator.last_snapshot:
+        snap.filter_vte.update({"value": True, "value_timing": True, "effect": True})
 
     return json.dumps(result_json, indent=2)
 

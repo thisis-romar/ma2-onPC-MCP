@@ -68,6 +68,7 @@ from .functions import (
     assign_function,
     assign_property,
     assign_to_layout,
+    build_set_executor_priority,
     # At Function Keyword
     at,
     at_full,
@@ -304,6 +305,7 @@ __all__ = [
     "assign_fade",
     "assign_function",
     "assign_to_layout",
+    "build_set_executor_priority",
     "empty",
     "temp_fader",
     # Label Function Keyword

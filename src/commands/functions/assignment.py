@@ -291,6 +291,35 @@ def empty() -> str:
     return "empty"
 
 
+def build_set_executor_priority(executor_id: int, priority: str) -> str:
+    """
+    Build an Assign Executor /priority= command with validated priority level.
+
+    Args:
+        executor_id: The executor ID to modify.
+        priority: One of "super", "swap", "htp", "high", "normal", "low".
+
+    Returns:
+        str: e.g. "Assign Executor 201 /priority=high"
+
+    Raises:
+        ValueError: If priority is not a valid MA2 executor priority level.
+
+    Examples:
+        >>> build_set_executor_priority(201, "high")
+        'Assign Executor 201 /priority=high'
+        >>> build_set_executor_priority(5, "super")
+        'Assign Executor 5 /priority=super'
+    """
+    from src.commands.constants import EXECUTOR_PRIORITY_VALUES
+    if priority not in EXECUTOR_PRIORITY_VALUES:
+        raise ValueError(
+            f"Invalid priority {priority!r}. Must be one of: "
+            + ", ".join(sorted(EXECUTOR_PRIORITY_VALUES))
+        )
+    return f"Assign Executor {executor_id} /priority={priority}"
+
+
 def temp_fader(value: int | None = None) -> str:
     """
     Construct a TempFader command for temporary fader control.

@@ -8,13 +8,15 @@ Covers:
   - Orchestrator.run() — auto_confirm_destructive
   - Orchestrator.recent_sessions() / recall()
   - OrchestrationResult.report()
+  - TestSnapshotWiring — server tools update _orchestrator.last_snapshot
 """
 
+import json
 import pytest
 import tempfile
 import os
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from src.orchestrator import (
     _preflight_guard,
     _default_sub_agent,
@@ -336,3 +338,261 @@ class TestOrchestrationReport:
         assert "test goal" in report
         assert "SUCCESS" in report
         assert "s1" in report
+
+
+# ── TestSnapshotWiring ───────────────────────────────────────────────────────
+
+def _make_snapshot():
+    """Return a fresh ConsoleStateSnapshot with default fields."""
+    from src.console_state import ConsoleStateSnapshot
+    return ConsoleStateSnapshot()
+
+
+def _make_mock_client(response: str = "OK"):
+    mock_client = MagicMock()
+    mock_client.send_command_with_response = AsyncMock(return_value=response)
+    return mock_client
+
+
+def _make_mock_orchestrator(snapshot=None):
+    """Return a MagicMock that acts as _orchestrator with a controllable last_snapshot."""
+    mock_orch = MagicMock()
+    mock_orch.last_snapshot = snapshot
+    return mock_orch
+
+
+class TestSnapshotWiring:
+    """Verify that server tools update _orchestrator.last_snapshot after telnet success."""
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_manage_matricks_interleave_updates_tracker(
+        self, mock_get_client, mock_orch
+    ):
+        from src.server import manage_matricks
+
+        snap = _make_snapshot()
+        mock_orch.last_snapshot = snap
+        mock_get_client.return_value = _make_mock_client()
+
+        await manage_matricks(action="interleave", value=4)
+
+        assert snap.matricks.interleave == 4
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_manage_matricks_reset_clears_tracker(
+        self, mock_get_client, mock_orch
+    ):
+        from src.server import manage_matricks
+
+        snap = _make_snapshot()
+        snap.matricks.interleave = 3
+        snap.matricks.wings = 2
+        mock_orch.last_snapshot = snap
+        mock_get_client.return_value = _make_mock_client()
+
+        await manage_matricks(action="reset")
+
+        assert snap.matricks.interleave is None
+        assert snap.matricks.wings is None
+        assert snap.matricks.active is False
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_manage_matricks_no_snapshot_does_not_raise(
+        self, mock_get_client, mock_orch
+    ):
+        from src.server import manage_matricks
+
+        mock_orch.last_snapshot = None
+        mock_get_client.return_value = _make_mock_client()
+
+        # Should complete without raising
+        result = await manage_matricks(action="interleave", value=2)
+        data = json.loads(result)
+        assert "command_sent" in data
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_manage_matricks_wings_turn_off(
+        self, mock_get_client, mock_orch
+    ):
+        from src.server import manage_matricks
+
+        snap = _make_snapshot()
+        snap.matricks.wings = 2
+        mock_orch.last_snapshot = snap
+        mock_get_client.return_value = _make_mock_client()
+
+        await manage_matricks(action="wings", turn_off=True)
+
+        assert snap.matricks.wings is None
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_manage_matricks_selection_steps_no_state_change(
+        self, mock_get_client, mock_orch
+    ):
+        from src.server import manage_matricks
+
+        snap = _make_snapshot()
+        snap.matricks.interleave = 5
+        mock_orch.last_snapshot = snap
+        mock_get_client.return_value = _make_mock_client()
+
+        await manage_matricks(action="next")
+
+        # Selection steps don't modify persistent tracker fields
+        assert snap.matricks.interleave == 5
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server.get_client")
+    async def test_create_filter_library_updates_vte(
+        self, mock_get_client, mock_check, mock_orch
+    ):
+        from src.server import create_filter_library
+
+        snap = _make_snapshot()
+        mock_orch.last_snapshot = snap
+        mock_get_client.return_value = _make_mock_client()
+        mock_check.return_value = {
+            "occupied_slots": [], "free_ranges": [], "next_free_slots": [],
+            "total_occupied": 0, "total_free_in_range": 0,
+            "largest_contiguous": 0, "can_fit": None, "suggested_start": None,
+        }
+
+        await create_filter_library(confirm_destructive=True)
+
+        assert snap.filter_vte == {"value": True, "value_timing": True, "effect": True}
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server.get_client")
+    async def test_create_filter_library_no_snapshot_ok(
+        self, mock_get_client, mock_check, mock_orch
+    ):
+        from src.server import create_filter_library
+
+        mock_orch.last_snapshot = None
+        mock_get_client.return_value = _make_mock_client()
+        mock_check.return_value = {
+            "occupied_slots": [], "free_ranges": [], "next_free_slots": [],
+            "total_occupied": 0, "total_free_in_range": 0,
+            "largest_contiguous": 0, "can_fit": None, "suggested_start": None,
+        }
+
+        # Should complete without raising
+        result = await create_filter_library(confirm_destructive=True)
+        data = json.loads(result)
+        assert "filters_created" in data
+
+
+# ── TestWriteTrackerCompletion ────────────────────────────────────────────────
+
+class TestWriteTrackerCompletion:
+    """Phase 1 — park/unpark + toggle_console_mode write-tracker wiring."""
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_park_fixture_adds_to_parked_set(self, mock_client, mock_orch):
+        from src.server import park_fixture
+
+        snap = _make_snapshot()
+        mock_orch.last_snapshot = snap
+        mc = _make_mock_client()
+        mc.send_command_with_response = AsyncMock(return_value="OK")
+        mock_client.return_value = mc
+
+        await park_fixture(target="fixture 20")
+
+        assert "fixture 20" in snap.parked_fixtures
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_unpark_fixture_removes_from_parked_set(self, mock_client, mock_orch):
+        from src.server import unpark_fixture
+
+        snap = _make_snapshot()
+        snap.parked_fixtures.add("fixture 20")
+        mock_orch.last_snapshot = snap
+        mc = _make_mock_client()
+        mc.send_command_with_response = AsyncMock(return_value="OK")
+        mock_client.return_value = mc
+
+        await unpark_fixture(target="fixture 20")
+
+        assert "fixture 20" not in snap.parked_fixtures
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_park_unpark_nil_snapshot_no_raise(self, mock_client, mock_orch):
+        from src.server import park_fixture, unpark_fixture
+
+        mock_orch.last_snapshot = None
+        mc = _make_mock_client()
+        mc.send_command_with_response = AsyncMock(return_value="OK")
+        mock_client.return_value = mc
+
+        # Should not raise
+        await park_fixture(target="dmx 101")
+        await unpark_fixture(target="dmx 101")
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_toggle_console_mode_updates_console_modes(self, mock_client, mock_orch):
+        from src.server import toggle_console_mode
+
+        snap = _make_snapshot()
+        mock_orch.last_snapshot = snap
+        mc = _make_mock_client()
+        mc.send_command_with_response = AsyncMock(return_value="OK")
+        mock_client.return_value = mc
+
+        await toggle_console_mode(mode="blind")
+
+        assert snap.console_modes["blind"] is True
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_toggle_console_mode_twice_inverts(self, mock_client, mock_orch):
+        from src.server import toggle_console_mode
+
+        snap = _make_snapshot()
+        mock_orch.last_snapshot = snap
+        mc = _make_mock_client()
+        mc.send_command_with_response = AsyncMock(return_value="OK")
+        mock_client.return_value = mc
+
+        await toggle_console_mode(mode="freeze")
+        assert snap.console_modes["freeze"] is True
+        await toggle_console_mode(mode="freeze")
+        assert snap.console_modes["freeze"] is False
+
+    @pytest.mark.asyncio
+    @patch("src.server._orchestrator")
+    @patch("src.server.get_client")
+    async def test_toggle_console_mode_nil_snapshot_no_raise(self, mock_client, mock_orch):
+        from src.server import toggle_console_mode
+
+        mock_orch.last_snapshot = None
+        mc = _make_mock_client()
+        mc.send_command_with_response = AsyncMock(return_value="OK")
+        mock_client.return_value = mc
+
+        result = await toggle_console_mode(mode="highlight")
+        data = json.loads(result)
+        assert "command_sent" in data

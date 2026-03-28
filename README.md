@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.8.0
+version: 3.10.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-28T22:00:00Z
+last_updated: 2026-03-28T23:00:00Z
 ---
 
 <div align="center">
@@ -12,8 +12,8 @@ last_updated: 2026-03-28T22:00:00Z
 
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
-![Tools](https://img.shields.io/badge/MCP_tools-118-brightgreen)
-![Tests](https://img.shields.io/badge/tests-1825-brightgreen)
+![Tools](https://img.shields.io/badge/MCP_tools-130-brightgreen)
+![Tests](https://img.shields.io/badge/tests-1922-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -21,7 +21,7 @@ last_updated: 2026-03-28T22:00:00Z
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [109 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [130 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 </div>
 
@@ -54,9 +54,9 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>118 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>130 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>178+ pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>179+ pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
@@ -73,6 +73,27 @@ graph TD
 ```
 
 > All network I/O is isolated in `telnet_client.py`. Command builders are pure functions that return strings. The navigation layer orchestrates cd/list workflows with parsed telnet feedback.
+
+### Module Overview
+
+| Module | Role |
+|--------|------|
+| `src/server.py` | FastMCP server, 110 interactive tools, safety gate, env config |
+| `src/server_orchestration_tools.py` | 20 agentic tools (110–129) registered onto FastMCP |
+| `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
+| `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
+| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
+| `src/console_state.py` | ConsoleStateSnapshot: hydrates 19 show-memory gaps |
+| `src/pool_name_index.py` | In-memory pool name/ID registry — zero-cost object resolution |
+| `src/rights.py` | MA2 native rights enforcement + telnet feedback classification |
+| `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
+| `src/credentials.py` | OAuth tier → console user credential resolver |
+| `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
+| `src/navigation.py` | cd + list + scan orchestration |
+| `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
+| `src/vocab.py` | 141 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
+| `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 
 ## Configuration
 
@@ -104,7 +125,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **118 tools** to MCP clients, grouped into 12 categories plus an agentic layer:
+The server exposes **130 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -208,7 +229,7 @@ list            → enumerate objects at current destination
 </details>
 
 <details>
-<summary><strong>🔗 Assignment & Layout</strong> — 6 tools</summary>
+<summary><strong>🔗 Assignment & Layout</strong> — 7 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -218,6 +239,7 @@ list            → enumerate objects at current destination
 | `edit_object` | Edit, cut, or paste objects |
 | `remove_content` | Remove content from objects — fixtures, effects, preset types |
 | `save_recall_view` | Save or recall a screen view configuration |
+| `set_executor_priority` | Set playback priority on an executor (super/high/normal/low/htp/swap) |
 
 </details>
 
@@ -357,6 +379,23 @@ python -m scripts.create_matricks_library --color-only
 </details>
 
 <details>
+<summary><strong>👤 User Management</strong> — 5 tools</summary>
+
+| Tool | Description |
+|------|-------------|
+| `list_users` | List all user profiles configured on the console |
+| `store_user` | Create a new user profile with name and password |
+| `delete_user` | Delete a user profile |
+| `login` | Log in to the console under a specific user profile |
+| `assign_world_to_user` | Assign a world (visibility scope) to a user profile |
+
+> [!NOTE]
+> Requires `GMA_SCOPE=gma2:user:manage` (Admin tier). Bootstrap 5 default user accounts
+> with `python scripts/bootstrap_console_users.py`.
+
+</details>
+
+<details>
 <summary><strong>🤖 ML-Based Tool Discovery</strong> — 4 tools</summary>
 
 | Tool | Description |
@@ -374,6 +413,52 @@ python -m scripts.create_matricks_library --color-only
 | Tool | Description |
 |------|-------------|
 | `search_codebase` | Semantic search over the indexed codebase and MA2 docs |
+
+</details>
+
+<details>
+<summary><strong>🤖 Orchestration & Console State</strong> — 20 tools</summary>
+
+These tools form the **agentic layer** (`src/server_orchestration_tools.py`). They enable
+multi-step task execution with memory, risk-tier isolation, and zero-telnet state queries
+via a `ConsoleStateSnapshot` cache that closes 19 show-memory gaps.
+
+#### Task Orchestration (Tools 110–118)
+
+| Tool | Description |
+|------|-------------|
+| `decompose_task` | Break a lighting goal into an ordered multi-agent plan (review before execute) |
+| `run_task` | Execute a full task with risk-tier isolation, memory, and state hydration |
+| `list_agent_sessions` | List recent task sessions from long-term memory |
+| `recall_agent_session` | Restore WorkingMemory snapshot from a past session |
+| `agent_token_report` | Report token consumption across agent sessions |
+| `register_decomposition_rule` | Register a custom task-decomposition rule at runtime |
+| `resolve_object_ref` | Resolve a pool object name/ID to a quoted MA2 token (zero telnet) |
+| `list_pool_names` | List all names and IDs for a pool type from the in-memory index |
+| `hydrate_console_state` | Trigger a fresh ConsoleStateSnapshot hydration |
+
+#### Console State Queries (Tools 119–129)
+
+Read from the cached snapshot — **no telnet round-trips required**.
+
+| Tool | Description |
+|------|-------------|
+| `get_console_state` | Snapshot summary, age, and staleness warning |
+| `get_park_ledger` | All currently parked fixtures |
+| `get_filter_state` | Active filter ID and V/VT/E flag settings |
+| `get_world_state` | Active world and visibility scope |
+| `get_matricks_state` | Write-tracked MAtricks state (interleave, blocks, wings, etc.) |
+| `get_programmer_selection` | `$SELECTEDFIXTURESCOUNT`, `$SELECTEDEXEC`, `$SELECTEDEXECCUE` |
+| `hydrate_sequences` | Deep-hydrate specific sequence cues and parts |
+| `get_sequence_memory` | Sequence properties and CueRecords from the snapshot |
+| `assert_selection_count` | Validate fixture selection count against an expected value |
+| `assert_preset_exists` | Pre-flight check: verify a preset slot is occupied |
+| `get_executor_detail` | Full ExecutorState for a given executor ID |
+
+> [!NOTE]
+> Call `hydrate_console_state` before using state-query tools. The snapshot caches values
+> that have no direct telnet readback (MAtricks state, park ledger, filter VTE flags, etc.).
+> Check freshness with `get_console_state`.
 
 </details>
 
@@ -652,7 +737,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **178 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **179 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -757,27 +842,50 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ```
 gma2-mcp-telnet/
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 118 tools)
-│   ├── telnet_client.py            # Async Telnet client (telnetlib3)
-│   ├── navigation.py               # Navigation API (cd + list + parsing)
-│   ├── prompt_parser.py            # Telnet prompt & list output parser
-│   ├── vocab.py                    # 141 keywords, categories & safety tiers
-│   ├── categorization/             # ML tool categorization (K-Means)
-│   └── commands/                   # 178+ pure command builder functions
-│       ├── objects/                # Object keywords (9 modules)
-│       └── functions/              # Function keywords (15 modules)
-├── rag/                            # RAG pipeline
-│   ├── ingest/                     # crawl → chunk → embed → store
-│   ├── retrieve/                   # query → rerank
-│   └── store/                      # SQLite vector store
+│   ├── server.py                           # FastMCP server (110 interactive tools)
+│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–129)
+│   │
+│   │   # Orchestration & Memory
+│   ├── orchestrator.py                     # Multi-agent task runner + session memory
+│   ├── task_decomposer.py                  # NL goal → ordered SubTask plan
+│   ├── agent_memory.py                     # WorkingMemory + LongTermMemory (SQLite)
+│   ├── console_state.py                    # ConsoleStateSnapshot (19-gap hydration)
+│   ├── pool_name_index.py                  # Object name/ID registry (zero-cost resolve)
+│   │
+│   │   # Security & Auth
+│   ├── auth.py                             # OAuth 2.1 scope enforcement
+│   ├── credentials.py                      # OAuth tier → console credentials
+│   ├── rights.py                           # MA2 native rights + telnet feedback
+│   ├── session_manager.py                  # Telnet session pool (LRU + keepalive)
+│   │
+│   │   # Core I/O & Parsing
+│   ├── telnet_client.py                    # Async Telnet (telnetlib3, injection prevention)
+│   ├── navigation.py                       # cd + list + scan orchestration
+│   ├── prompt_parser.py                    # Telnet prompt & tabular list parser
+│   ├── vocab.py                            # 141 keywords, risk tiers, functional domains
+│   │
+│   │   # Command Builders & ML
+│   ├── commands/                           # 179+ pure command-builder functions
+│   │   ├── objects/                        # Object keywords (11 modules)
+│   │   └── functions/                      # Function keywords (18 modules)
+│   └── categorization/                     # ML tool categorization (K-Means)
+│
+├── rag/                                    # RAG pipeline
+│   ├── ingest/                             # crawl → chunk → embed → store
+│   ├── retrieve/                           # query → rerank
+│   └── store/                             # SQLite vector store (rag.db)
 ├── scripts/
-│   ├── create_matricks_library.py  # MAtricks combinatorial library generator
-│   ├── scan_tree.py                # Recursive object-tree scanner
-│   ├── rag_ingest.py               # RAG ingestion CLI
-│   └── rag_query.py                # RAG query CLI
-├── tests/                          # 1825 tests (1683 unit + 142 live)
-├── vscode-mcp-provider/            # VS Code MCP extension
-└── doc/                            # MA2 User Manual PDF
+│   ├── rag_ingest.py                       # Ingest repo (zero-vector or real embeddings)
+│   ├── rag_ingest_web.py                   # Crawl MA2 help docs (daily batches)
+│   ├── rag_query.py                        # Query RAG store from CLI
+│   ├── bootstrap_console_users.py          # Create 5 console user accounts
+│   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
+│   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
+│   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
+├── tests/                                  # 1922 tests (1780 unit + 142 live)
+├── doc/                                    # Command builders ref + cd-tree docs
+├── vscode-mcp-provider/                    # VS Code MCP extension
+└── importexport/                           # Filter XMLs, fixture layers, exports
 ```
 
 ## Dependencies
