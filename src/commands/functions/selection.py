@@ -169,3 +169,119 @@ def clear_all() -> str:
         str: MA command to clear all
     """
     return "clearall"
+
+
+# ============================================================================
+# FIX FUNCTION KEYWORD
+# ============================================================================
+# Fix parks fixture values (pins them to current output, overriding playback).
+# ============================================================================
+
+
+def fix_fixture(
+    ids: int | list[int] | None = None,
+    end: int | None = None,
+) -> str:
+    """
+    Fix (park) fixture values, pinning them to current output.
+
+    When called without arguments, fixes all currently selected fixtures.
+    Fix overrides playback and holds the fixture at its current output level.
+
+    Args:
+        ids: Fixture number(s) to fix (optional — fixes selection if omitted)
+        end: End ID for range (thru syntax)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> fix_fixture()
+        'fix'
+        >>> fix_fixture(1)
+        'fix fixture 1'
+        >>> fix_fixture([1, 3, 5])
+        'fix fixture 1 + 3 + 5'
+        >>> fix_fixture(1, end=10)
+        'fix fixture 1 thru 10'
+    """
+    if ids is None:
+        return "fix"
+    if isinstance(ids, list):
+        fixtures_str = " + ".join(str(i) for i in ids)
+        return f"fix fixture {fixtures_str}"
+    if end is not None:
+        return f"fix fixture {ids} thru {end}"
+    return f"fix fixture {ids}"
+
+
+# ============================================================================
+# LOCATE FUNCTION KEYWORD
+# ============================================================================
+# Locate fires fixtures to their locate (default) state.
+# ============================================================================
+
+
+def locate() -> str:
+    """
+    Locate selected fixtures (fire to default/locate state).
+
+    Locate fires the selected fixtures to their default state: full intensity,
+    open colour, centre position, beam fully open.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> locate()
+        'locate'
+    """
+    return "locate"
+
+
+# ============================================================================
+# INVERT FUNCTION KEYWORD
+# ============================================================================
+# Invert reverses the current fixture selection.
+# ============================================================================
+
+
+def invert() -> str:
+    """
+    Invert the current fixture selection.
+
+    Inverts the selection so all unselected fixtures become selected and
+    all previously selected fixtures are deselected.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> invert()
+        'invert'
+    """
+    return "invert"
+
+
+# ============================================================================
+# ALIGN FUNCTION KEYWORD
+# ============================================================================
+# Align distributes programmer values evenly across a selection.
+# ============================================================================
+
+
+def align() -> str:
+    """
+    Align programmer values across the current fixture selection.
+
+    Align distributes the values in the programmer evenly from the first to
+    the last fixture in the selection.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> align()
+        'align'
+    """
+    return "align"

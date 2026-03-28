@@ -353,3 +353,59 @@ class TestDefGoCommands:
 
         result = def_go_pause()
         assert result == "defgopause"
+
+
+class TestSwopTopStomp:
+    """Tests for Swop, Top, and Stomp executor keywords."""
+
+    def test_swop_executor_basic(self):
+        from src.commands import swop_executor
+        assert swop_executor(3) == "swop executor 3"
+
+    def test_swop_executor_with_page(self):
+        from src.commands import swop_executor
+        assert swop_executor(5, page=2) == "swop executor 2.5"
+
+    def test_top_executor_basic(self):
+        from src.commands import top_executor
+        assert top_executor(3) == "top executor 3"
+
+    def test_top_executor_with_page(self):
+        from src.commands import top_executor
+        assert top_executor(5, page=2) == "top executor 2.5"
+
+    def test_stomp_executor_basic(self):
+        from src.commands import stomp_executor
+        assert stomp_executor(3) == "stomp executor 3"
+
+    def test_stomp_executor_with_page(self):
+        from src.commands import stomp_executor
+        assert stomp_executor(5, page=2) == "stomp executor 2.5"
+
+
+class TestLoadNextPrev:
+    """Tests for LoadNext and LoadPrev keywords."""
+
+    def test_load_next_bare(self):
+        from src.commands import load_next
+        assert load_next() == "loadnext"
+
+    def test_load_next_executor(self):
+        from src.commands import load_next
+        assert load_next(executor=3) == "loadnext executor 3"
+
+    def test_load_next_sequence(self):
+        from src.commands import load_next
+        assert load_next(sequence=5) == "loadnext sequence 5"
+
+    def test_load_prev_bare(self):
+        from src.commands import load_prev
+        assert load_prev() == "loadprev"
+
+    def test_load_prev_executor(self):
+        from src.commands import load_prev
+        assert load_prev(executor=3) == "loadprev executor 3"
+
+    def test_load_prev_sequence(self):
+        from src.commands import load_prev
+        assert load_prev(sequence=5) == "loadprev sequence 5"

@@ -726,3 +726,55 @@ class TestRemoveCommands:
 
         result = remove_effect(1, end=5)
         assert result == "remove effect 1 thru 5"
+
+
+class TestCloneCommands:
+    """Tests for Clone keyword (DESTRUCTIVE)."""
+
+    def test_clone_basic(self):
+        from src.commands import clone
+        assert clone("fixture", 1, 2) == "clone fixture 1 at 2"
+
+    def test_clone_range(self):
+        from src.commands import clone
+        assert clone("fixture", 1, 10, end=5) == "clone fixture 1 thru 5 at 10"
+
+    def test_clone_list(self):
+        from src.commands import clone
+        assert clone("fixture", [1, 3], [2, 4]) == "clone fixture 1 + 3 at 2 + 4"
+
+    def test_clone_noconfirm(self):
+        from src.commands import clone
+        assert clone("fixture", 1, 2, noconfirm=True) == "clone fixture 1 at 2 /noconfirm"
+
+    def test_clone_target_range(self):
+        from src.commands import clone
+        assert clone("fixture", 1, 10, target_end=15) == "clone fixture 1 at 10 thru 15"
+
+
+class TestBlockUnblockCommands:
+    """Tests for Block and Unblock keywords (DESTRUCTIVE)."""
+
+    def test_block_basic(self):
+        from src.commands import block
+        assert block(5) == "block cue 5"
+
+    def test_block_range(self):
+        from src.commands import block
+        assert block(1, end=5) == "block cue 1 thru 5"
+
+    def test_block_with_sequence(self):
+        from src.commands import block
+        assert block(3, sequence_id=2) == "block cue 3 sequence 2"
+
+    def test_unblock_basic(self):
+        from src.commands import unblock
+        assert unblock(5) == "unblock cue 5"
+
+    def test_unblock_range(self):
+        from src.commands import unblock
+        assert unblock(1, end=5) == "unblock cue 1 thru 5"
+
+    def test_unblock_with_sequence(self):
+        from src.commands import unblock
+        assert unblock(3, sequence_id=2) == "unblock cue 3 sequence 2"

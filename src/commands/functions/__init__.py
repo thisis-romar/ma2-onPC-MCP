@@ -43,8 +43,10 @@ from .call import (
     call,
 )
 
-# Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove)
+# Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove, Clone, Block, Unblock)
 from .edit import (
+    block,
+    clone,
     copy,
     copy_cue,
     cut,
@@ -63,6 +65,7 @@ from .edit import (
     remove_fixture,
     remove_preset_type,
     remove_selection,
+    unblock,
 )
 
 # Helping Keywords (Plus +, Minus -, And, If)
@@ -144,7 +147,7 @@ from .park import (
     unpark,
 )
 
-# Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo)
+# Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo, Swop, Top, Stomp, Load)
 from .playback import (
     blackout,
     blind,
@@ -164,21 +167,30 @@ from .playback import (
     goto,
     goto_cue,
     goto_timecode,
+    load_next,
+    load_prev,
     off_executor,
     on_executor,
     pause_sequence,
     release_executor,
     solo,
     solo_executor,
+    stomp_executor,
+    swop_executor,
+    top_executor,
 )
 
-# Selection Function Keywords (SelFix, Clear)
+# Selection Function Keywords (SelFix, Clear, Fix, Locate, Invert, Align)
 from .selection import (
+    align,
     clear,
     clear_active,
     clear_all,
     clear_selection,
+    fix_fixture,
     highlight,
+    invert,
+    locate,
     select_fixture,
 )
 from .store import (
@@ -220,6 +232,16 @@ from .variables import (
     set_var,
 )
 
+# User Management Function Keywords (Login, Logout, Store/Delete User)
+from .users import (
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_login,
+    build_logout,
+    build_store_user,
+)
+
 __all__ = [
     # Import/Export Function Keywords
     "export_object",
@@ -244,6 +266,11 @@ __all__ = [
     "clear_selection",
     "clear_active",
     "clear_all",
+    # Fix / Locate / Invert / Align
+    "fix_fixture",
+    "locate",
+    "invert",
+    "align",
     # Label
     "label",
     "label_group",
@@ -281,13 +308,19 @@ __all__ = [
     "def_go_back",
     "def_go_forward",
     "def_go_pause",
-    # Executor on/off/flash/solo/release
+    # Executor on/off/flash/swop/solo/top/stomp/release
     "on_executor",
     "off_executor",
     "flash_executor",
+    "swop_executor",
+    "top_executor",
+    "stomp_executor",
     "solo",
     "solo_executor",
     "release_executor",
+    # Load next/prev cue
+    "load_next",
+    "load_prev",
     # Blackout
     "blackout",
     # Blind / Freeze (universal toggles)
@@ -308,6 +341,11 @@ __all__ = [
     "copy_cue",
     # Move
     "move",
+    # Clone (DESTRUCTIVE)
+    "clone",
+    # Block / Unblock (DESTRUCTIVE)
+    "block",
+    "unblock",
     # Oops (undo)
     "oops",
     # Assign
@@ -394,4 +432,11 @@ __all__ = [
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
+    # User Management
+    "build_login",
+    "build_logout",
+    "build_list_users",
+    "build_store_user",
+    "build_delete_user",
+    "build_assign_world_to_user_profile",
 ]

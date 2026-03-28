@@ -627,6 +627,149 @@ def def_go_pause() -> str:
     return "defgopause"
 
 
+# ============================================================================
+# SWOP FUNCTION KEYWORD
+# ============================================================================
+# Swop activates an executor while muting all others (HTP priority swap).
+# ============================================================================
+
+
+def swop_executor(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Swop an executor (activate while muting all others).
+
+    Args:
+        executor_id: Executor ID
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> swop_executor(3)
+        'swop executor 3'
+        >>> swop_executor(5, page=2)
+        'swop executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"swop executor {ref}"
+
+
+# ============================================================================
+# TOP FUNCTION KEYWORD
+# ============================================================================
+# Top restarts an executor from the first cue.
+# ============================================================================
+
+
+def top_executor(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Restart an executor from the top (first cue).
+
+    Args:
+        executor_id: Executor ID
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> top_executor(3)
+        'top executor 3'
+        >>> top_executor(5, page=2)
+        'top executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"top executor {ref}"
+
+
+# ============================================================================
+# STOMP FUNCTION KEYWORD
+# ============================================================================
+# Stomp stops all running effects for a sequence or executor.
+# ============================================================================
+
+
+def stomp_executor(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Stomp an executor (stop all running effects).
+
+    Args:
+        executor_id: Executor ID
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> stomp_executor(3)
+        'stomp executor 3'
+        >>> stomp_executor(5, page=2)
+        'stomp executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"stomp executor {ref}"
+
+
+# ============================================================================
+# LOADNEXT / LOADPREV FUNCTION KEYWORDS
+# ============================================================================
+# LoadNext / LoadPrev pre-load the next or previous cue without executing it.
+# ============================================================================
+
+
+def load_next(*, executor: int | None = None, sequence: int | None = None) -> str:
+    """
+    Pre-load the next cue of an executor or sequence without executing it.
+
+    Args:
+        executor: Executor ID (optional)
+        sequence: Sequence ID (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> load_next()
+        'loadnext'
+        >>> load_next(executor=3)
+        'loadnext executor 3'
+        >>> load_next(sequence=5)
+        'loadnext sequence 5'
+    """
+    if executor is not None:
+        return f"loadnext executor {executor}"
+    if sequence is not None:
+        return f"loadnext sequence {sequence}"
+    return "loadnext"
+
+
+def load_prev(*, executor: int | None = None, sequence: int | None = None) -> str:
+    """
+    Pre-load the previous cue of an executor or sequence without executing it.
+
+    Args:
+        executor: Executor ID (optional)
+        sequence: Sequence ID (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> load_prev()
+        'loadprev'
+        >>> load_prev(executor=3)
+        'loadprev executor 3'
+        >>> load_prev(sequence=5)
+        'loadprev sequence 5'
+    """
+    if executor is not None:
+        return f"loadprev executor {executor}"
+    if sequence is not None:
+        return f"loadprev sequence {sequence}"
+    return "loadprev"
+
+
 def solo(
     object_type: str | None = None,
     object_id: int | str | None = None,

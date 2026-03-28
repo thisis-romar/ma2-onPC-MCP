@@ -52,6 +52,8 @@ from .functions import (
     add_to_selection,
     add_user_var,
     add_var,
+    # Align / Invert / Fix / Locate
+    align,
     # MAtricks Command Keywords
     all_rows_sub_selection,
     all_sub_selection,
@@ -75,6 +77,9 @@ from .functions import (
     blind,
     # Call Function Keywords
     call,
+    # Block / Unblock
+    block,
+    unblock,
     # Other Function Keywords
     call_preset,
     # Navigation Function Keywords
@@ -84,6 +89,8 @@ from .functions import (
     clear_active,
     clear_all,
     clear_selection,
+    # Clone
+    clone,
     condition_and,
     # Copy Function Keyword
     copy,
@@ -108,6 +115,7 @@ from .functions import (
     # Import/Export Function Keywords
     export_object,
     fixture_at,
+    fix_fixture,
     flash_executor,
     freeze,
     get_user_var,
@@ -133,6 +141,8 @@ from .functions import (
     info_cue,
     info_group,
     info_preset,
+    # Invert
+    invert,
     # Label Function Keyword
     label,
     label_group,
@@ -151,7 +161,10 @@ from .functions import (
     list_shows,
     list_user_var,
     list_var,
+    load_next,
+    load_prev,
     load_show,
+    locate,
     # Macro Placeholder
     macro_with_input_after,
     macro_with_input_before,
@@ -190,11 +203,14 @@ from .functions import (
     save_show,
     select_fixture,
     select_group,
+    swop_executor,
+    top_executor,
     # Variable Function Keywords
     set_user_var,
     set_var,
     solo,
     solo_executor,
+    stomp_executor,
     store,
     store_cue,
     store_cue_timed,
@@ -229,6 +245,15 @@ from .objects import (
     timecode,
     timecode_slot,
     timer,
+)
+
+from .functions import (
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_login,
+    build_logout,
+    build_store_user,
 )
 
 __all__ = [
@@ -299,6 +324,11 @@ __all__ = [
     "copy_cue",
     # Move Function Keyword
     "move",
+    # Clone (DESTRUCTIVE)
+    "clone",
+    # Block / Unblock (DESTRUCTIVE)
+    "block",
+    "unblock",
     # Macro Placeholder (@ Character)
     "macro_with_input_after",
     "macro_with_input_before",
@@ -326,6 +356,11 @@ __all__ = [
     "clear_selection",
     "clear_active",
     "clear_all",
+    # Fix / Locate / Invert / Align
+    "fix_fixture",
+    "locate",
+    "invert",
+    "align",
     "label_group",
     "label_preset",
     # Delete Function Keyword
@@ -379,13 +414,19 @@ __all__ = [
     "def_go_back",
     "def_go_forward",
     "def_go_pause",
-    # Executor on/off/flash/solo/release
+    # Executor on/off/flash/swop/top/stomp/solo/release
     "on_executor",
     "off_executor",
     "flash_executor",
+    "swop_executor",
+    "top_executor",
+    "stomp_executor",
     "solo",
     "solo_executor",
     "release_executor",
+    # Load next/prev cue
+    "load_next",
+    "load_prev",
     # Blind / Freeze
     "blind",
     "freeze",
@@ -430,4 +471,11 @@ __all__ = [
     # Backward Compatibility Aliases
     "select_group",
     "call_preset",
+    # User Management
+    "build_login",
+    "build_logout",
+    "build_list_users",
+    "build_store_user",
+    "build_delete_user",
+    "build_assign_world_to_user_profile",
 ]

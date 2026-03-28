@@ -642,6 +642,160 @@ def delete_messages() -> str:
 
 
 # ============================================================================
+# CLONE FUNCTION KEYWORD
+# ============================================================================
+# Clone duplicates all data from source fixture(s) to target fixture(s).
+# DESTRUCTIVE — modifies stored show data.
+# ============================================================================
+
+
+def clone(
+    object_type: str,
+    object_id: int | list[int],
+    target: int | list[int],
+    *,
+    end: int | None = None,
+    target_end: int | None = None,
+    noconfirm: bool = False,
+) -> str:
+    """
+    Clone data from source object(s) to target object(s).
+
+    Clone copies all stored data (cues, presets, etc.) from the source to the
+    target. Typically used with Fixture to duplicate a full fixture patch and
+    all its associated data.
+
+    Args:
+        object_type: Object type (e.g., "fixture", "group", "sequence")
+        object_id: Source object ID or list of IDs
+        target: Target object ID or list of IDs
+        end: End ID for source range (thru syntax)
+        target_end: End ID for target range
+        noconfirm: Suppress confirmation dialog
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> clone("fixture", 1, 2)
+        'clone fixture 1 at 2'
+        >>> clone("fixture", 1, 10, end=5)
+        'clone fixture 1 thru 5 at 10'
+        >>> clone("fixture", [1, 3], [2, 4])
+        'clone fixture 1 + 3 at 2 + 4'
+        >>> clone("fixture", 1, 2, noconfirm=True)
+        'clone fixture 1 at 2 /noconfirm'
+    """
+    if isinstance(object_id, list):
+        source = " + ".join(str(i) for i in object_id)
+        cmd = f"clone {object_type} {source}"
+    elif end is not None:
+        cmd = f"clone {object_type} {object_id} thru {end}"
+    else:
+        cmd = f"clone {object_type} {object_id}"
+
+    if isinstance(target, list):
+        target_str = " + ".join(str(t) for t in target)
+        cmd += f" at {target_str}"
+    elif target_end is not None:
+        cmd += f" at {target} thru {target_end}"
+    else:
+        cmd += f" at {target}"
+
+    if noconfirm:
+        cmd += " /noconfirm"
+
+    return cmd
+
+
+# ============================================================================
+# BLOCK / UNBLOCK FUNCTION KEYWORDS
+# ============================================================================
+# Block makes a cue "blocking" — it stores all active values and stops tracking.
+# Unblock removes the blocking flag, allowing values to track again.
+# Both are DESTRUCTIVE — they modify cue data in the show file.
+# ============================================================================
+
+
+def block(
+    cue_id: int | float,
+    *,
+    sequence_id: int | None = None,
+    end: int | float | None = None,
+) -> str:
+    """
+    Block a cue (make it blocking — stores all active values, stops tracking).
+
+    A blocking cue stores all active values and prevents them from tracking
+    from previous cues. Changes made before the block cue do not affect it.
+
+    Args:
+        cue_id: Cue number to block
+        sequence_id: Sequence ID to scope the block (optional)
+        end: End cue ID for range (thru syntax)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> block(5)
+        'block cue 5'
+        >>> block(1, end=5)
+        'block cue 1 thru 5'
+        >>> block(3, sequence_id=2)
+        'block cue 3 sequence 2'
+    """
+    if end is not None:
+        id_part = f"{cue_id} thru {end}"
+    else:
+        id_part = str(cue_id)
+
+    cmd = f"block cue {id_part}"
+    if sequence_id is not None:
+        cmd = f"{cmd} sequence {sequence_id}"
+    return cmd
+
+
+def unblock(
+    cue_id: int | float,
+    *,
+    sequence_id: int | None = None,
+    end: int | float | None = None,
+) -> str:
+    """
+    Unblock a cue (remove blocking — allows values to track again).
+
+    Removes the blocking flag from a cue so that values from earlier cues
+    can track forward through it again.
+
+    Args:
+        cue_id: Cue number to unblock
+        sequence_id: Sequence ID to scope the unblock (optional)
+        end: End cue ID for range (thru syntax)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> unblock(5)
+        'unblock cue 5'
+        >>> unblock(1, end=5)
+        'unblock cue 1 thru 5'
+        >>> unblock(3, sequence_id=2)
+        'unblock cue 3 sequence 2'
+    """
+    if end is not None:
+        id_part = f"{cue_id} thru {end}"
+    else:
+        id_part = str(cue_id)
+
+    cmd = f"unblock cue {id_part}"
+    if sequence_id is not None:
+        cmd = f"{cmd} sequence {sequence_id}"
+    return cmd
+
+
+# ============================================================================
 # REMOVE FUNCTION KEYWORD
 # ============================================================================
 

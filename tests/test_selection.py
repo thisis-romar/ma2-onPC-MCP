@@ -117,3 +117,35 @@ class TestFixtureCommands:
 
         result = clear_all()
         assert result == "clearall"
+
+
+class TestFixLocateInvertAlign:
+    """Tests for Fix, Locate, Invert, Align keywords."""
+
+    def test_fix_bare(self):
+        from src.commands import fix_fixture
+        assert fix_fixture() == "fix"
+
+    def test_fix_single(self):
+        from src.commands import fix_fixture
+        assert fix_fixture(1) == "fix fixture 1"
+
+    def test_fix_range(self):
+        from src.commands import fix_fixture
+        assert fix_fixture(1, end=10) == "fix fixture 1 thru 10"
+
+    def test_fix_list(self):
+        from src.commands import fix_fixture
+        assert fix_fixture([1, 3, 5]) == "fix fixture 1 + 3 + 5"
+
+    def test_locate(self):
+        from src.commands import locate
+        assert locate() == "locate"
+
+    def test_invert(self):
+        from src.commands import invert
+        assert invert() == "invert"
+
+    def test_align(self):
+        from src.commands import align
+        assert align() == "align"

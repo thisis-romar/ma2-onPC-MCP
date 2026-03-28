@@ -277,6 +277,28 @@ def build_v39_spec(
     for alias_name, canonical_target in vocab.aliases.items():
         aliases[_norm_token(alias_name)] = canonical_target
 
+    # ---- Keywords verified live but absent from the JSON vocabulary.
+    # Registered here as self-aliases so classify_token resolves them and
+    # the safety tiers below can assign the correct RiskTier.
+    _extra_keywords: dict[str, str] = {
+        # SAFE_WRITE — extended playback
+        "Swop": "Swop",
+        "Stomp": "Stomp",
+        "LoadNext": "LoadNext",
+        "LoadPrev": "LoadPrev",
+        # SAFE_WRITE — selection / programmer
+        "Fix": "Fix",
+        "Locate": "Locate",
+        "Invert": "Invert",
+        "Align": "Align",
+        # DESTRUCTIVE — stored show data
+        "Clone": "Clone",
+        "Block": "Block",
+        "Unblock": "Unblock",
+    }
+    for kw, canon in _extra_keywords.items():
+        aliases[_norm_token(kw)] = canon
+
     # ---- Safety tier defaults
     # NOTE: "Blackout" is classified as SAFE_WRITE because it is a toggle
     # and easily reversible. However, in a live show context, it kills all
@@ -300,6 +322,10 @@ def build_v39_spec(
         "MAtricksInterleave", "MAtricksBlocks", "MAtricksGroups",
         "MAtricksWings", "MAtricksFilter", "MAtricksReset",
         "Next", "NextRow", "Previous",
+        # Playback extended: Swop, Stomp, LoadNext, LoadPrev
+        "Swop", "Stomp", "LoadNext", "LoadPrev",
+        # Selection / programmer: Fix, Locate, Invert, Align
+        "Fix", "Locate", "Invert", "Align",
     }
     # All Object Keywords are SAFE_WRITE (they change programmer context)
     safe_write |= object_kw_canonicals
@@ -310,6 +336,8 @@ def build_v39_spec(
         "Login", "Logout", "Remove", "Cut", "Paste", "Empty",
         "NewShow", "LoadShow", "SaveShow", "DeleteShow",
         "Shutdown", "Reboot", "Restart", "Reset",
+        # Clone, Block, Unblock modify stored show data
+        "Clone", "Block", "Unblock",
     }
 
     return VocabSpec(
@@ -518,3 +546,400 @@ CD_NUMERIC_INDEX: dict[int, str] = {
 
 # Indexes confirmed INVALID (Error #72: COMMAND NOT EXECUTED) on MA2 3.9.60.65
 CD_INVALID_INDEXES: frozenset[int] = frozenset({12, 28, 29, 32, 44, 45, 47, 48, 49, 50})
+
+
+# =============================================================================
+# Functional Domains (from grandMA2_KMeans_Complete.json — keyword_taxonomy)
+# =============================================================================
+# 10 functional domains grouping 288 keywords by operational role.
+# Complements KeywordCategory (OBJECT/FUNCTION/HELPING) with semantic grouping.
+
+class FunctionalDomain(StrEnum):
+    OBJECT_MANIPULATION  = "object_manipulation"
+    PLAYBACK_CONTROL     = "playback_control"
+    SELECTION_FILTERING  = "selection_filtering"
+    TIMING_EFFECTS       = "timing_effects"
+    NETWORK_SESSION      = "network_session"
+    SYSTEM_ADMIN         = "system_admin"
+    DATA_QUERY           = "data_query"
+    VARIABLES_SCRIPTING  = "variables_scripting"
+    MATRICKS             = "matricks"
+    RDM                  = "rdm"
+
+
+# Maps canonical keyword spelling → FunctionalDomain.
+# A keyword may appear in only one domain (primary assignment).
+KEYWORD_DOMAINS: dict[str, FunctionalDomain] = {
+    # object_manipulation (21)
+    "Assign":           FunctionalDomain.OBJECT_MANIPULATION,
+    "Label":            FunctionalDomain.OBJECT_MANIPULATION,
+    "Appearance":       FunctionalDomain.OBJECT_MANIPULATION,
+    "Copy":             FunctionalDomain.OBJECT_MANIPULATION,
+    "Move":             FunctionalDomain.OBJECT_MANIPULATION,
+    "Delete":           FunctionalDomain.OBJECT_MANIPULATION,
+    "Edit":             FunctionalDomain.OBJECT_MANIPULATION,
+    "Store":            FunctionalDomain.OBJECT_MANIPULATION,
+    "Record":           FunctionalDomain.OBJECT_MANIPULATION,
+    "Insert":           FunctionalDomain.OBJECT_MANIPULATION,
+    "Remove":           FunctionalDomain.OBJECT_MANIPULATION,
+    "Replace":          FunctionalDomain.OBJECT_MANIPULATION,
+    "Paste":            FunctionalDomain.OBJECT_MANIPULATION,
+    "Cut":              FunctionalDomain.OBJECT_MANIPULATION,
+    "Clone":            FunctionalDomain.OBJECT_MANIPULATION,
+    "Import":           FunctionalDomain.OBJECT_MANIPULATION,
+    "Export":           FunctionalDomain.OBJECT_MANIPULATION,
+    "Extract":          FunctionalDomain.OBJECT_MANIPULATION,
+    "CircularCopy":     FunctionalDomain.OBJECT_MANIPULATION,
+    "RemoveIndividuals":FunctionalDomain.OBJECT_MANIPULATION,
+    "StoreLook":        FunctionalDomain.OBJECT_MANIPULATION,
+    # playback_control (26)
+    "Go":               FunctionalDomain.PLAYBACK_CONTROL,
+    "GoBack":           FunctionalDomain.PLAYBACK_CONTROL,
+    "Goto":             FunctionalDomain.PLAYBACK_CONTROL,
+    "Pause":            FunctionalDomain.PLAYBACK_CONTROL,
+    "Kill":             FunctionalDomain.PLAYBACK_CONTROL,
+    "Off":              FunctionalDomain.PLAYBACK_CONTROL,
+    "On":               FunctionalDomain.PLAYBACK_CONTROL,
+    "Flash":            FunctionalDomain.PLAYBACK_CONTROL,
+    "FlashGo":          FunctionalDomain.PLAYBACK_CONTROL,
+    "FlashOn":          FunctionalDomain.PLAYBACK_CONTROL,
+    "Swop":             FunctionalDomain.PLAYBACK_CONTROL,
+    "SwopGo":           FunctionalDomain.PLAYBACK_CONTROL,
+    "SwopOn":           FunctionalDomain.PLAYBACK_CONTROL,
+    "Toggle":           FunctionalDomain.PLAYBACK_CONTROL,
+    "Temp":             FunctionalDomain.PLAYBACK_CONTROL,
+    "TempFader":        FunctionalDomain.PLAYBACK_CONTROL,
+    "Solo":             FunctionalDomain.PLAYBACK_CONTROL,
+    "Freeze":           FunctionalDomain.PLAYBACK_CONTROL,
+    "Release":          FunctionalDomain.PLAYBACK_CONTROL,
+    "Stomp":            FunctionalDomain.PLAYBACK_CONTROL,
+    "Load":             FunctionalDomain.PLAYBACK_CONTROL,
+    "LoadNext":         FunctionalDomain.PLAYBACK_CONTROL,
+    "LoadPrev":         FunctionalDomain.PLAYBACK_CONTROL,
+    "DefGoBack":        FunctionalDomain.PLAYBACK_CONTROL,
+    "DefGoForward":     FunctionalDomain.PLAYBACK_CONTROL,
+    "DefGoPause":       FunctionalDomain.PLAYBACK_CONTROL,
+    # selection_filtering (28)
+    "Select":           FunctionalDomain.SELECTION_FILTERING,
+    "Clear":            FunctionalDomain.SELECTION_FILTERING,
+    "ClearAll":         FunctionalDomain.SELECTION_FILTERING,
+    "ClearActive":      FunctionalDomain.SELECTION_FILTERING,
+    "ClearSelection":   FunctionalDomain.SELECTION_FILTERING,
+    "If":               FunctionalDomain.SELECTION_FILTERING,
+    "IfActive":         FunctionalDomain.SELECTION_FILTERING,
+    "IfOutput":         FunctionalDomain.SELECTION_FILTERING,
+    "IfProg":           FunctionalDomain.SELECTION_FILTERING,
+    "EndIf":            FunctionalDomain.SELECTION_FILTERING,
+    "Park":             FunctionalDomain.SELECTION_FILTERING,
+    "Unpark":           FunctionalDomain.SELECTION_FILTERING,
+    "Block":            FunctionalDomain.SELECTION_FILTERING,
+    "Unblock":          FunctionalDomain.SELECTION_FILTERING,
+    "Fix":              FunctionalDomain.SELECTION_FILTERING,
+    "Locate":           FunctionalDomain.SELECTION_FILTERING,
+    "Highlight":        FunctionalDomain.SELECTION_FILTERING,
+    "FullHighlight":    FunctionalDomain.SELECTION_FILTERING,
+    "Blind":            FunctionalDomain.SELECTION_FILTERING,
+    "BlindEdit":        FunctionalDomain.SELECTION_FILTERING,
+    "Preview":          FunctionalDomain.SELECTION_FILTERING,
+    "PreviewEdit":      FunctionalDomain.SELECTION_FILTERING,
+    "PreviewExecutor":  FunctionalDomain.SELECTION_FILTERING,
+    "ShuffleSelection": FunctionalDomain.SELECTION_FILTERING,
+    "ShuffleValues":    FunctionalDomain.SELECTION_FILTERING,
+    "Invert":           FunctionalDomain.SELECTION_FILTERING,
+    "Align":            FunctionalDomain.SELECTION_FILTERING,
+    "SelFix":           FunctionalDomain.SELECTION_FILTERING,
+    # timing_effects (38 — helping keywords + effect keywords)
+    "Fade":             FunctionalDomain.TIMING_EFFECTS,
+    "FadePath":         FunctionalDomain.TIMING_EFFECTS,
+    "Delay":            FunctionalDomain.TIMING_EFFECTS,
+    "OutDelay":         FunctionalDomain.TIMING_EFFECTS,
+    "OutFade":          FunctionalDomain.TIMING_EFFECTS,
+    "Speed":            FunctionalDomain.TIMING_EFFECTS,
+    "Rate":             FunctionalDomain.TIMING_EFFECTS,
+    "Rate1":            FunctionalDomain.TIMING_EFFECTS,
+    "DoubleRate":       FunctionalDomain.TIMING_EFFECTS,
+    "DoubleSpeed":      FunctionalDomain.TIMING_EFFECTS,
+    "HalfRate":         FunctionalDomain.TIMING_EFFECTS,
+    "HalfSpeed":        FunctionalDomain.TIMING_EFFECTS,
+    "Crossfade":        FunctionalDomain.TIMING_EFFECTS,
+    "CrossfadeA":       FunctionalDomain.TIMING_EFFECTS,
+    "CrossfadeB":       FunctionalDomain.TIMING_EFFECTS,
+    "ManualXFade":      FunctionalDomain.TIMING_EFFECTS,
+    "StepFade":         FunctionalDomain.TIMING_EFFECTS,
+    "StepInFade":       FunctionalDomain.TIMING_EFFECTS,
+    "StepOutFade":      FunctionalDomain.TIMING_EFFECTS,
+    "CmdDelay":         FunctionalDomain.TIMING_EFFECTS,
+    "SnapPercent":      FunctionalDomain.TIMING_EFFECTS,
+    "MasterFade":       FunctionalDomain.TIMING_EFFECTS,
+    "SyncEffects":      FunctionalDomain.TIMING_EFFECTS,
+    "EffectAttack":     FunctionalDomain.TIMING_EFFECTS,
+    "EffectDecay":      FunctionalDomain.TIMING_EFFECTS,
+    "EffectDelay":      FunctionalDomain.TIMING_EFFECTS,
+    "EffectFade":       FunctionalDomain.TIMING_EFFECTS,
+    "EffectHigh":       FunctionalDomain.TIMING_EFFECTS,
+    "EffectLow":        FunctionalDomain.TIMING_EFFECTS,
+    "EffectPhase":      FunctionalDomain.TIMING_EFFECTS,
+    "EffectWidth":      FunctionalDomain.TIMING_EFFECTS,
+    "EffectBPM":        FunctionalDomain.TIMING_EFFECTS,
+    "EffectHZ":         FunctionalDomain.TIMING_EFFECTS,
+    "EffectSec":        FunctionalDomain.TIMING_EFFECTS,
+    "EffectSpeedGroup": FunctionalDomain.TIMING_EFFECTS,
+    "EffectForm":       FunctionalDomain.TIMING_EFFECTS,
+    "EffectID":         FunctionalDomain.TIMING_EFFECTS,
+    # network_session (19)
+    "JoinSession":        FunctionalDomain.NETWORK_SESSION,
+    "LeaveSession":       FunctionalDomain.NETWORK_SESSION,
+    "EndSession":         FunctionalDomain.NETWORK_SESSION,
+    "InviteStation":      FunctionalDomain.NETWORK_SESSION,
+    "DisconnectStation":  FunctionalDomain.NETWORK_SESSION,
+    "TakeControl":        FunctionalDomain.NETWORK_SESSION,
+    "DropControl":        FunctionalDomain.NETWORK_SESSION,
+    "SetIP":              FunctionalDomain.NETWORK_SESSION,
+    "SetHostname":        FunctionalDomain.NETWORK_SESSION,
+    "SetNetworkSpeed":    FunctionalDomain.NETWORK_SESSION,
+    "NetworkInfo":        FunctionalDomain.NETWORK_SESSION,
+    "NetworkNodeInfo":    FunctionalDomain.NETWORK_SESSION,
+    "NetworkNodeUpdate":  FunctionalDomain.NETWORK_SESSION,
+    "NetworkSpeedTest":   FunctionalDomain.NETWORK_SESSION,
+    "Telnet":             FunctionalDomain.NETWORK_SESSION,
+    "Remote":             FunctionalDomain.NETWORK_SESSION,
+    "RemoteCommand":      FunctionalDomain.NETWORK_SESSION,
+    "WebRemoteProgOnly":  FunctionalDomain.NETWORK_SESSION,
+    "Chat":               FunctionalDomain.NETWORK_SESSION,
+    "Message":            FunctionalDomain.NETWORK_SESSION,
+    # system_admin (26)
+    "Shutdown":           FunctionalDomain.SYSTEM_ADMIN,
+    "Reboot":             FunctionalDomain.SYSTEM_ADMIN,
+    "Restart":            FunctionalDomain.SYSTEM_ADMIN,
+    "Login":              FunctionalDomain.SYSTEM_ADMIN,
+    "Logout":             FunctionalDomain.SYSTEM_ADMIN,
+    "SaveShow":           FunctionalDomain.SYSTEM_ADMIN,
+    "LoadShow":           FunctionalDomain.SYSTEM_ADMIN,
+    "NewShow":            FunctionalDomain.SYSTEM_ADMIN,
+    "DeleteShow":         FunctionalDomain.SYSTEM_ADMIN,
+    "UpdateFirmware":     FunctionalDomain.SYSTEM_ADMIN,
+    "UpdateSoftware":     FunctionalDomain.SYSTEM_ADMIN,
+    "UpdateThumbnails":   FunctionalDomain.SYSTEM_ADMIN,
+    "CrashLogCopy":       FunctionalDomain.SYSTEM_ADMIN,
+    "CrashLogDelete":     FunctionalDomain.SYSTEM_ADMIN,
+    "CrashLogList":       FunctionalDomain.SYSTEM_ADMIN,
+    "ReloadPlugins":      FunctionalDomain.SYSTEM_ADMIN,
+    "BlackScreen":        FunctionalDomain.SYSTEM_ADMIN,
+    "Blackout":           FunctionalDomain.SYSTEM_ADMIN,
+    "Alert":              FunctionalDomain.SYSTEM_ADMIN,
+    "SelectDrive":        FunctionalDomain.SYSTEM_ADMIN,
+    "ResetGuid":          FunctionalDomain.SYSTEM_ADMIN,
+    "ResetDmxSelection":  FunctionalDomain.SYSTEM_ADMIN,
+    "ListShows":          FunctionalDomain.SYSTEM_ADMIN,
+    "ListUpdate":         FunctionalDomain.SYSTEM_ADMIN,
+    "ListOops":           FunctionalDomain.SYSTEM_ADMIN,
+    # data_query (19)
+    "List":               FunctionalDomain.DATA_QUERY,
+    "ListLibrary":        FunctionalDomain.DATA_QUERY,
+    "ListEffectLibrary":  FunctionalDomain.DATA_QUERY,
+    "ListMacroLibrary":   FunctionalDomain.DATA_QUERY,
+    "ListPluginLibrary":  FunctionalDomain.DATA_QUERY,
+    "ListFaderModules":   FunctionalDomain.DATA_QUERY,
+    "ListOwner":          FunctionalDomain.DATA_QUERY,
+    "ListUserVar":        FunctionalDomain.DATA_QUERY,
+    "ListVar":            FunctionalDomain.DATA_QUERY,
+    "Search":             FunctionalDomain.DATA_QUERY,
+    "SearchResult":       FunctionalDomain.DATA_QUERY,
+    "Info":               FunctionalDomain.DATA_QUERY,
+    "Help":               FunctionalDomain.DATA_QUERY,
+    "CmdHelp":            FunctionalDomain.DATA_QUERY,
+    "PSR":                FunctionalDomain.DATA_QUERY,
+    "PSRList":            FunctionalDomain.DATA_QUERY,
+    "PSRPrepare":         FunctionalDomain.DATA_QUERY,
+    "Oops":               FunctionalDomain.DATA_QUERY,
+    # variables_scripting (10)
+    "SetUserVar":         FunctionalDomain.VARIABLES_SCRIPTING,
+    "SetVar":             FunctionalDomain.VARIABLES_SCRIPTING,
+    "AddUserVar":         FunctionalDomain.VARIABLES_SCRIPTING,
+    "AddVar":             FunctionalDomain.VARIABLES_SCRIPTING,
+    "Call":               FunctionalDomain.VARIABLES_SCRIPTING,
+    "Macro":              FunctionalDomain.VARIABLES_SCRIPTING,
+    "Plugin":             FunctionalDomain.VARIABLES_SCRIPTING,
+    # matricks (8)
+    "MAtricks":           FunctionalDomain.MATRICKS,
+    "MAtricksBlocks":     FunctionalDomain.MATRICKS,
+    "MAtricksFilter":     FunctionalDomain.MATRICKS,
+    "MAtricksGroups":     FunctionalDomain.MATRICKS,
+    "MAtricksInterleave": FunctionalDomain.MATRICKS,
+    "MAtricksReset":      FunctionalDomain.MATRICKS,
+    "MAtricksWings":      FunctionalDomain.MATRICKS,
+    "Interleave":         FunctionalDomain.MATRICKS,
+    # rdm (8)
+    "RdmAutomatch":       FunctionalDomain.RDM,
+    "RdmAutopatch":       FunctionalDomain.RDM,
+    "RdmFixtureType":     FunctionalDomain.RDM,
+    "RdmInfo":            FunctionalDomain.RDM,
+    "RdmList":            FunctionalDomain.RDM,
+    "RdmSetParameter":    FunctionalDomain.RDM,
+    "RdmSetpatch":        FunctionalDomain.RDM,
+    "RdmUnmatch":         FunctionalDomain.RDM,
+}
+
+
+# =============================================================================
+# CD Keyword Destinations (keyword-name navigation)
+# =============================================================================
+# Source: grandMA2_KMeans_Complete.json — command_line_state_model.cd_destinations
+# Complements CD_NUMERIC_INDEX (numeric index map) with keyword-name forms.
+# Usage: cd [keyword] — navigates into that object pool.
+
+CD_KEYWORD_DESTINATIONS: dict[str, str] = {
+    "Effect":        "cd Effect [ID] → macro lines/params",
+    "Sequence":      "cd Sequence [ID] → shows cues",
+    "Executor":      "cd Executor → executor pool",
+    "Macro":         "cd Macro [ID] → macro lines",
+    "Layout":        "cd Layout [ID] → layout elements",
+    "Group":         "cd Group → group pool",
+    "Preset":        "cd Preset → preset pool (all types)",
+    "PresetType":    "cd PresetType [1-9] → specific type pool",
+    "Fixture":       "cd Fixture → fixture pool",
+    "FixtureType":   "cd FixtureType → fixture type library",
+    "Channel":       "cd Channel → channel pool",
+    "World":         "cd World → world pool",
+    "Filter":        "cd Filter → filter pool",
+    "Mask":          "cd Mask → mask pool",
+    "Timer":         "cd Timer → timer pool",
+    "Timecode":      "cd Timecode → timecode pool",
+    "Image":         "cd Image → image pool",
+    "Plugin":        "cd Plugin → plugin pool",
+    "DmxUniverse":   "cd DmxUniverse → DMX universe config",
+    "User":          "cd User → user pool",
+    "UserProfile":   "cd UserProfile → user profile pool",
+    "Setup":         "cd Setup → setup tree",
+    "MAtricks":      "cd MAtricks → MAtricks pool",
+    "Camera":        "cd Camera → 3D camera pool",
+    "Item3D":        "cd Item3D → 3D item pool",
+    "Model":         "cd Model → 3D model pool",
+    "Dmx":           "cd Dmx → DMX address tree",
+    "Agenda":        "cd Agenda → agenda pool",
+    "Page":          "cd Page → page pool",
+    "View":          "cd View → view pool",
+    "Screen":        "cd Screen → screen config",
+    "Surface":       "cd Surface → surface pool",
+    "Protocol":      "cd Protocol → protocol config",
+    "Master":        "cd Master → master pool",
+    "SpecialMaster": "cd SpecialMaster → special master pool",
+    "Profile":       "cd Profile → DMX profile pool",
+}
+
+
+# =============================================================================
+# Default Keyword States (command line prompt → behavior)
+# =============================================================================
+# Source: grandMA2_KMeans_Complete.json — command_line_state_model.default_keyword_states
+# The Default Keyword determines how bare numbers are interpreted on the command line.
+# Prompt format: [Keyword]>
+
+DEFAULT_KEYWORD_STATES: list[dict] = [
+    {
+        "keyword": "Channel",
+        "prompt": "[Channel]>",
+        "bare_number": "Selects Channel N (SelFix)",
+        "default_function": "SelFix",
+        "notes": "FACTORY DEFAULT on new empty show",
+    },
+    {
+        "keyword": "Fixture",
+        "prompt": "[Fixture]>",
+        "bare_number": "Selects Fixture N (SelFix)",
+        "default_function": "SelFix",
+        "notes": "Use when show uses Fixture IDs",
+    },
+    {
+        "keyword": "Group",
+        "prompt": "[Group]>",
+        "bare_number": "Selects fixtures in Group N",
+        "default_function": "SelFix/At (context)",
+        "notes": "Resolves to stored fixture selection",
+    },
+    {
+        "keyword": "Preset",
+        "prompt": "[Preset]>",
+        "bare_number": "Applies Preset N to selection",
+        "default_function": "SelFix/At (context)",
+        "notes": "Preset type = currently selected pool",
+    },
+    {
+        "keyword": "Executor",
+        "prompt": "[Executor]>",
+        "bare_number": "SelFix on Executor N",
+        "default_function": "SelFix",
+        "notes": "Format: [Page].[ID] or just [ID]",
+    },
+    {
+        "keyword": "Sequence",
+        "prompt": "[Sequence]>",
+        "bare_number": "Addresses Sequence N",
+        "default_function": "SelFix",
+        "notes": "",
+    },
+    {
+        "keyword": "Cue",
+        "prompt": "[Cue]>",
+        "bare_number": "Addresses Cue N of selected executor",
+        "default_function": "Context-dependent",
+        "notes": "Format: [ID] or [Seq].[ID]",
+    },
+    {
+        "keyword": "Page",
+        "prompt": "[Page]>",
+        "bare_number": "Addresses Page N",
+        "default_function": "N/A",
+        "notes": "Executor page number",
+    },
+    {
+        "keyword": "Effect",
+        "prompt": "[Effect]>",
+        "bare_number": "Addresses Effect N",
+        "default_function": "SelFix",
+        "notes": "",
+    },
+    {
+        "keyword": "Macro",
+        "prompt": "[Macro]>",
+        "bare_number": "Executes Macro N (Go+)",
+        "default_function": "Go+",
+        "notes": "Bare number RUNS the macro",
+    },
+]
+
+
+# =============================================================================
+# MA2 RIGHTS LEVELS (6-tier console rights model)
+# =============================================================================
+# Maps grandMA2's built-in 6-level rights system to named integer tiers.
+# Used to annotate MCP tools with their minimum required console rights.
+# Reference: grandMA2 Setup → User & Profiles Setup → Rights column.
+#
+# Rights levels are cumulative downward: Admin implies all lower tiers.
+# Comparison via >= works correctly because this is an IntEnum.
+
+from enum import IntEnum as _IntEnum
+
+
+class RightsLevel(_IntEnum):
+    """grandMA2 console user rights levels (6 tiers, 0 = least privileged)."""
+
+    NONE      = 0   # View-only: change views, select fixtures for sorting
+    PLAYBACK  = 1   # Playback operators: Go/Off/On, page navigation, faders
+    PRESETS   = 2   # Preset operators: programmer writes, preset recall/update
+    PROGRAM   = 3   # Programmers: cue/group/sequence/macro/effect editing
+    SETUP     = 4   # Technical directors: patch, fixture import, console setup
+    ADMIN     = 5   # System admins: user management, show load, network config
+
+
+# Mapping from MA2 RightsLevel → corresponding OAuth scope tier (0-5).
+# The OAuth tier is equal to the rights level integer (1-to-1 mapping by design).
+RIGHTS_TO_OAUTH_TIER: dict[int, int] = {
+    RightsLevel.NONE:     0,
+    RightsLevel.PLAYBACK: 1,
+    RightsLevel.PRESETS:  2,
+    RightsLevel.PROGRAM:  3,
+    RightsLevel.SETUP:    4,
+    RightsLevel.ADMIN:    5,
+}
