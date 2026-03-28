@@ -1,16 +1,16 @@
 ---
 title: Command Builder Reference
-description: Pure-function reference for all 178 grandMA2 command builders
-version: 1.4.0
+description: Pure-function reference for all 179 grandMA2 command builders
+version: 1.4.1
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-28T20:00:00Z
+last_updated: 2026-03-28T23:00:00Z
 ---
 
 # Command Builder Reference
 
 > Back to [README](../README.md)
 
-The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **178 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
+The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **179 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
 
 grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -167,6 +167,7 @@ Copy/Move/Clone options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
 | `assign_fade(3, 5)` | `assign fade 3 cue 5` |
 | `assign_to_layout("group", 1, 1, x=5, y=2)` | `assign group 1 at layout 1 /x=5 /y=2` |
 | `assign_property(1, "Telnet", "Login Disabled")` | `assign 1/Telnet="Login Disabled"` |
+| `build_set_executor_priority(201, "high")` | `Assign Executor 201 /priority=high` |
 | `empty("executor", 1)` | `empty executor 1` |
 | `temp_fader("executor", 1)` | `temp_fader executor 1` |
 
@@ -269,4 +270,4 @@ Rights levels: 0=None, 1=Playback, 2=Presets, 3=Program, 4=Setup, 5=Admin
 | `MA2Right.SETUP` | `"setup"` | `gma2:setup:console` | 4 |
 | `MA2Right.ADMIN` | `"admin"` | `gma2:user:manage` | 5 |
 
-Use `@require_ma2_right(MA2Right.X)` in `src/server.py` as a human-readable alternative to `@require_scope(OAuthScope.Y)`. The full 109-tool rights assignment is in `doc/ma2-rights-matrix.json`.
+Use `@require_ma2_right(MA2Right.X)` in `src/server.py` as a human-readable alternative to `@require_scope(OAuthScope.Y)`. The full 130-tool rights assignment is in `doc/ma2-rights-matrix.json`.

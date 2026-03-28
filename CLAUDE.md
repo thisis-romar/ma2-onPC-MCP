@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.21.0
+version: 3.22.1
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-28T22:00:00Z
+last_updated: 2026-03-28T23:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **118 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **130 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,14 +19,14 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 109 tools + 9 agentic, safety gate, env config |
+| `src/server.py` | FastMCP server, 110 tools + 20 agentic, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
 | `src/auth.py` | OAuth 2.1 scope enforcement stub (`@require_scope`, `@require_ma2_right`, `GMA_SCOPE` env var) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 178+ pure command-builder functions, grouped by keyword type |
+| `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
 | `src/vocab.py` | 141 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
@@ -43,7 +43,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
-| `src/server_orchestration_tools.py` | Registers tools 110-118 (agentic layer) onto FastMCP |
+| `src/server_orchestration_tools.py` | Registers tools 110-129 (agentic layer) onto FastMCP |
 
 ---
 
@@ -113,7 +113,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-28): **1683 unit tests**, **142 live integration tests** (1825 total).
+- Current counts (2026-03-28): **1780 unit tests**, **142 live integration tests** (1922 total).
 
 ### New Show — connectivity preservation
 

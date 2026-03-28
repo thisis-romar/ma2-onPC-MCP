@@ -34,6 +34,7 @@ from .assignment import (
     assign_function,
     assign_property,
     assign_to_layout,
+    build_set_executor_priority,
     empty,
     temp_fader,
 )
@@ -358,6 +359,7 @@ __all__ = [
     "assign_function",
     "assign_fade",
     "assign_to_layout",
+    "build_set_executor_priority",
     "empty",
     "temp_fader",
     # Appearance
