@@ -182,6 +182,7 @@ async def _import_filter(
 
     resp = await client.send_command_with_response(
         f'Import "{fname}" At Filter {slot}'
+        " /path=C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/IMPORT~1/filters"
     )
     error = "Error" in resp
     status = "ERROR" if error else "OK"
@@ -208,7 +209,7 @@ async def import_and_label():
 
     importexport_dir = Path(
         "c:/ProgramData/MA Lighting Technologies/grandma/"
-        "gma2_V_3.9.60/importexport"
+        "gma2_V_3.9.60/importexport/filters"
     )
 
     client = GMA2TelnetClient("127.0.0.1", 30000)

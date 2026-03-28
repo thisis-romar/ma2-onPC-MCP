@@ -65,7 +65,7 @@ def generate_labels(
     used_labels: set[str] = set()
 
     for cid in unique_labels:
-        cluster_tools = [t for t, lbl in zip(tools, labels, strict=False) if int(lbl) == cid]
+        cluster_tools = [t for t, lbl in zip(tools, labels, strict=True) if int(lbl) == cid]
         label = _label_for_cluster(cluster_tools)
 
         # Deduplicate

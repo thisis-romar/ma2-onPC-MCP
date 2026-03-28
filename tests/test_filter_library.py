@@ -170,13 +170,17 @@ class TestCreateFilterLibraryTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
+    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server.get_client")
-    async def test_creates_all_filters(self, mock_get_client):
+    async def test_creates_all_filters(self, mock_get_client, mock_check):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
+        mock_check.return_value = {"occupied_slots": [], "free_ranges": [], "next_free_slots": [],
+                                   "total_occupied": 0, "total_free_in_range": 0,
+                                   "largest_contiguous": 0, "can_fit": None, "suggested_start": None}
 
         result = await create_filter_library(confirm_destructive=True)
 

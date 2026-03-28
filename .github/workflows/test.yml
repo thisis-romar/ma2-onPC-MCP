@@ -29,7 +29,6 @@ jobs:
 
       - name: Type check
         run: uv run mypy src/ rag/
-        continue-on-error: true
 
       - name: Run tests
         run: uv run python -m pytest tests/ -v --tb=short -m "not live"

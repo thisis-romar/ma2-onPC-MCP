@@ -381,6 +381,7 @@ class TestLayer1NavigationState:
         """1.12 — Set a node property (idempotent re-set)."""
         result = await set_node_property(
             "3.1", "Telnet", "Login Enabled", verify=True,
+            confirm_destructive=True,
         )
         data = json.loads(result)
         print(f"  Response: {json.dumps(data, indent=2)}")
@@ -407,7 +408,8 @@ class TestLayer2SelectionGroups:
     async def test_create_fixture_group(self, live_client):
         """2.1 — Create a fixture group (ID 99)."""
         # create_fixture_group returns a plain string, not JSON
-        result = await create_fixture_group(101, 104, 99, "Live Test Group")
+        result = await create_fixture_group(101, 104, 99, "Live Test Group",
+                                            confirm_destructive=True)
         print(f"  Response: {result}")
         assert "Group 99" in result
         assert "error" not in result.lower()

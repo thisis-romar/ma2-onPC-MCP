@@ -32,8 +32,13 @@ gma2_full_tree.txt
 test_cd_behavior_output.json
 keyword_combos*.json
 
-# RAG database
+# Telnet output artifacts
+macro_telnet_output.txt
+macro_v2_output.txt
+
+# RAG database and crawl cache
 rag/store/*.db
+rag/store/web_crawl_cache.json
 
 # Tool categorization taxonomy (generated artifact)
 src/categorization/taxonomy.json

@@ -19,6 +19,7 @@ This module is the I/O boundary for navigation operations.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 
 from src.commands import assign_property as _build_assign_property
@@ -418,10 +419,9 @@ async def scan_indexes(
         # Supplement: detect rows the tabular parser misses (PresetType/Feature/
         # Attribute/SubAttribute listings that have only one numeric ID column).
         if not entries and lst.raw_response:
-            import re as _re
-            _TREE_ROW = _re.compile(
+            _TREE_ROW = re.compile(
                 r"^\s*(PresetType|Feature|Attribute|SubAttribute)\s+\d+",
-                _re.IGNORECASE | _re.MULTILINE,
+                re.IGNORECASE | re.MULTILINE,
             )
             if _TREE_ROW.search(lst.raw_response):
                 # Node has children — count them as a synthetic non-empty result
