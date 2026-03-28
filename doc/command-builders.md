@@ -1,16 +1,16 @@
 ---
 title: Command Builder Reference
-description: Pure-function reference for all 157 grandMA2 command builders
-version: 1.0.0
+description: Pure-function reference for all 175 grandMA2 command builders
+version: 1.2.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-27T12:00:00Z
 ---
 
 # Command Builder Reference
 
 > Back to [README](../README.md)
 
-The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are 157 exported functions covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, and more.
+The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **175 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
 
 grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -56,6 +56,12 @@ grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function
 | `clear_selection()` | `clearselection` |
 | `clear_active()` | `clearactive` |
 | `clear_all()` | `clearall` |
+| `fix_fixture(1)` | `fix fixture 1` |
+| `fix_fixture(1, end=5)` | `fix fixture 1 thru 5` |
+| `fix_fixture()` | `fix` |
+| `locate()` | `locate` |
+| `invert()` | `invert` |
+| `align()` | `align` |
 
 ## Store
 
@@ -83,6 +89,13 @@ Store options: `merge`, `overwrite`, `remove`, `noconfirm`, `cueonly`, `tracking
 | `def_go_forward()` | `go+` |
 | `def_go_back()` | `goback-` |
 | `def_go_pause()` | `pause` |
+| `swop_executor(3)` | `swop executor 3` |
+| `swop_executor(3, page=2)` | `swop executor 2.3` |
+| `top_executor(3)` | `top executor 3` |
+| `stomp_executor(3)` | `stomp executor 3` |
+| `load_next()` | `loadnext` |
+| `load_next(executor=1)` | `loadnext executor 1` |
+| `load_prev(sequence=2)` | `loadprev sequence 2` |
 
 ## At (Values)
 
@@ -103,7 +116,7 @@ Store options: `merge`, `overwrite`, `remove`, `noconfirm`, `cueonly`, `tracking
 | `executor_at(3, 50)` | `executor 3 at 50` |
 | `preset_type_at(2, 50, end_type=9)` | `presettype 2 thru 9 at 50` |
 
-## Copy, Move, Cut, Paste
+## Copy, Move, Cut, Paste, Clone
 
 | Function | Output |
 |----------|--------|
@@ -113,8 +126,21 @@ Store options: `merge`, `overwrite`, `remove`, `noconfirm`, `cueonly`, `tracking
 | `move("group", 5, 9)` | `move group 5 at 9` |
 | `cut("preset", "4.1")` | `cut preset 4.1` |
 | `paste("group", 5)` | `paste group 5` |
+| `clone("sequence", 1, 5)` | `clone sequence 1 at 5` |
+| `clone("sequence", 1, 5, noconfirm=True)` | `clone sequence 1 at 5 /noconfirm` |
+| `clone("cue", [1,2], [3,4])` | `clone cue 1 + 2 at 3 + 4` |
 
-Copy/Move options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
+Copy/Move/Clone options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
+
+## Block & Unblock
+
+| Function | Output |
+|----------|--------|
+| `block(3)` | `block cue 3` |
+| `block(1, end=5)` | `block cue 1 thru 5` |
+| `block(3, sequence_id=2)` | `block cue 3 sequence 2` |
+| `unblock(3)` | `unblock cue 3` |
+| `unblock(1, end=5, sequence_id=2)` | `unblock cue 1 thru 5 sequence 2` |
 
 ## Delete & Remove
 
@@ -209,3 +235,20 @@ The `@` character is a placeholder for user input in macros (distinct from the `
 |----------|--------|
 | `macro_with_input_after("Load")` | `Load @` |
 | `macro_with_input_before("Fade 20")` | `@ Fade 20` |
+
+## User Management
+
+Requires Admin (rights=5) Telnet session. Part of the dual-enforcement authorization architecture.
+
+| Function | Output |
+|----------|--------|
+| `build_login("operator", "pw123")` | `Login "operator" "pw123"` |
+| `build_logout()` | `Logout` |
+| `build_list_users()` | `list user` |
+| `build_store_user(2, "operator", "pw", 1)` | `Store User 2 /name="operator" /password="pw" /rights=1` |
+| `build_store_user(5, "guest", "", 0)` | `Store User 5 /name="guest" /password="" /rights=0` |
+| `build_delete_user(3)` | `Delete User 3 /noconfirm` |
+| `build_assign_world_to_user_profile(3, 4)` | `Assign World 4 At UserProfile 3` |
+| `build_assign_world_to_user_profile(3, 0)` | `Assign World 0 At UserProfile 3` |
+
+Rights levels: 0=None, 1=Playback, 2=Presets, 3=Program, 4=Setup, 5=Admin

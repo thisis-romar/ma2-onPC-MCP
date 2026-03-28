@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.8.0
+version: 3.16.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-27T18:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **90 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **101 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,11 +19,14 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 90 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 101 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
+| `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
+| `src/credentials.py` | OAuth tier → console user credential resolver |
+| `src/auth.py` | OAuth 2.1 scope enforcement stub (`@require_scope`, `GMA_SCOPE` env var) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 110+ pure command-builder functions, grouped by keyword type |
+| `src/commands/` | 175+ pure command-builder functions, grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
 | `src/vocab.py` | 141 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
@@ -95,7 +98,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-11): **1365 unit tests**, **132 live integration tests**.
+- Current counts (2026-03-27): **1530 unit tests**, **132 live integration tests** (1662 total).
 
 ### New Show — connectivity preservation
 
@@ -185,7 +188,7 @@ MA2 appearance commands use **0-100 percentage scale** for RGB and HSB — NOT 0
 | combo | `CC44FF` | purple |
 | exclude | `FF3333` | red |
 
-Filter attribute groups (`FILTER_ATTRIBUTES` in constants) map 36 attributes across 7 PresetTypes. These are **fixture-dependent defaults** (Mac 700 Profile Extended + Generic Dimmer). For shows with different fixtures, call `discover_filter_attributes()` first, then pass the result to `create_filter_library(fixture_attributes=...)`. Import syntax: `Import "filename" At Filter N`.
+Filter attribute groups (`FILTER_ATTRIBUTES` in constants) map 36 attributes across 7 PresetTypes. These are **fixture-dependent defaults** (Mac 700 Profile Extended + Generic Dimmer). For shows with different fixtures, call `discover_filter_attributes()` first, then pass the result to `create_filter_library(fixture_attributes=...)`. Filter XMLs are stored in `importexport/filters/` subdirectory. Import syntax: `Import "filename" At Filter N /path=C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/IMPORT~1/filters`.
 
 **Filter V/VT/E (Value/ValueTimes/Effects) layer toggles** are XML attributes on the `<Filter>` element (live-verified 2026-03-11):
 
@@ -196,6 +199,57 @@ Filter attribute groups (`FILTER_ATTRIBUTES` in constants) map 36 attributes acr
 | `effect="false"` | `/effects=false` | `true` (omitted) |
 
 MA2 omits attributes that are `true` (default). `FILTER_VTE_COMBOS` in constants defines 7 on/off combinations (excluding all-off). With `include_vte=True`, the `create_filter_library` tool generates 21 base × 7 VTE = 147 variant filters (168 total, slots 3-170).
+
+### Import `/path=` option (live-verified 2026-03-13)
+
+MA2 Import/Export commands accept `/path=` to specify a custom directory. **Critical constraint**: the path must use **forward slashes** and **no spaces** (use Windows 8.3 short names).
+
+| Syntax | Result |
+|--------|--------|
+| `\` backslashes | `ILLEGAL CHARACTER \` error |
+| Full path with spaces + `/` | MA2 splits on space — parses path as separate command tokens |
+| 8.3 short path + `/` | **SUCCESS** |
+| Relative path (`imports`, `./imports`) | `FILE NOT FOUND` |
+
+**8.3 short paths for this system:**
+
+| Short path | Resolves to |
+|------------|-------------|
+| `C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/IMPORT~1/` | `importexport/` |
+| `C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/IMPORT~1/filters` | `importexport/filters/` |
+| `C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/macros/` | `macros/` (no short name needed) |
+
+### MA2 data directory organization
+
+```
+macros/
+  archive/        — iteration history (v1-v8.2), exports, duplicates
+  utilities/      — Delete Group, Import-Type-Selector, Preset-Type-Selector
+  stock/          — MA2 stock macros (WYG2GMA, DIMMER FX, etc.)
+  *.xml           — active macros (v7, v8.3, v9) + predefined.xml (MA2 system)
+
+importexport/
+  filters/        — 168 filter library XMLs (filter_003..filter_170)
+  imports/        — user import files (presets, fixture layers, old filter library)
+  exports/        — exported objects
+  archive/        — old 2-digit filters, VTE test files, audit artifacts
+  styles/         — MA2 system XSL stylesheets (do not touch)
+```
+
+### Macro Store Group timing (live-verified 2026-03-13)
+
+When building macros that use `FixtureType` selection followed by `Store Group`, the timing between commands is critical:
+
+| Pattern | Result | Why |
+|---------|--------|-----|
+| `FixtureType X.M.1 Thru` (own line) → SetUserVar lines → `Store Group N /o` (later line) | **WORKS** — correct fixtures | Inter-line delay (0.06s) + SetUserVar processing lets MA2 resolve fixtures |
+| `ClearAll ; FixtureType X.M.1 Thru` (one line) + `Store Group` (next line) | **FAILS** — 1 subfixture | ClearAll prefix + immediate Store captures type reference, not fixtures |
+| `SelFix Group N` + `Store Group` | **FAILS** — 1 subfixture | SelFix doesn't populate programmer for Store Group |
+| `Preset 0.$name` recall + `Store Group` | **WRONG** — ALL patched fixtures | Universal preset recall selects every patched fixture, not just source FT |
+
+**Macro modification rule:** When adding features to a working macro, insert new lines around existing logic — do not modify lines that perform critical Store operations. v8.3 succeeded by keeping v7's core untouched and only inserting 6 Appearance lines.
+
+**Jump target convention:** `Go Macro 1."name".N` targets Line N (1-based) = XML index N-1. When inserting lines, use an index shift table to remap all jump targets systematically.
 
 ### grandMA2 System Variables
 
@@ -310,6 +364,97 @@ Output is compatible with `print_cd_tree.py --input scan_output_new.json`.
 - cd 22 (Groups), cd 25 (Sequences), cd 30 (ExecutorPages), cd 38 (Layouts), cd 39 (UserProfiles)
 
 **Firmware branches** (stable across shows): cd 2-9, 15-16, 20, 23, 27, 36, 41-42
+
+---
+
+## Functional Domains (vocab.py)
+
+`src/vocab.py` exposes a `FunctionalDomain` StrEnum (10 values) and `KEYWORD_DOMAINS` dict (198 entries) mapping keyword → domain. Use these for tool routing and AI context.
+
+| Domain | Keywords (count) | Examples |
+|--------|-----------------|---------|
+| `object_manipulation` | 21 | Assign, Label, Appearance, Store, Copy, Delete |
+| `playback_control` | 26 | Go, GoBack, Goto, Flash, Kill, Release, Freeze |
+| `selection_filtering` | 28 | Select, Clear, If, Park, Highlight, Blind, SelFix |
+| `timing_effects` | 38 | Fade, Speed, Rate, Crossfade, EffectBPM, EffectPhase |
+| `network_session` | 20 | JoinSession, TakeControl, SetIP, Telnet, RemoteCommand |
+| `system_admin` | 26 | Shutdown, SaveShow, NewShow, UpdateFirmware, Blackout |
+| `data_query` | 19 | List, Info, Help, Search, ListVar, PSR |
+| `variables_scripting` | 10 | SetVar, AddVar, SetUserVar, Call, Macro, Plugin |
+| `matricks` | 8 | MAtricks, MAtricksInterleave, MAtricksBlocks, Interleave |
+| `rdm` | 8 | RdmAutomatch, RdmAutopatch, RdmSetpatch, RdmUnmatch |
+
+Also: `CD_KEYWORD_DESTINATIONS` (36 entries) — keyword-name cd paths. `DEFAULT_KEYWORD_STATES` (10 entries) — prompt → bare-number behavior.
+
+---
+
+## Hardkey Chains (physical key multi-press behavior)
+
+Defined in `src/commands/constants.py` as `HARDKEY_CHAINS` (12 chains) and `MA_KEY_COMBOS` (29 combos). Source: grandMA2_KMeans_Complete.json, web-validated from help.malighting.com.
+
+### Multi-press key chains
+
+| Physical Key | 1× | 2× | 3× | Hold/Other |
+|---|---|---|---|---|
+| **Assign** | `Assign` | `Label` | `Appearance` | — |
+| **At** | `At` | `Normal` | — | hold → `Filter` |
+| **Help** | `Help` | `CmdHelp` | — | — |
+| **Fixture** | `Fixture` | `Selection` | — | — |
+| **Full** | `Full` | `FullHighlight` | — | — |
+| **Macro** | `Macro` | `Timecode` | `Agenda` | — |
+| **Effect** | `Effect` | `Form` | — | — |
+| **Blind** | `Blind` | — | — | hold 2s → `BlindEdit` |
+| **Backup** | `Backup` | `QuickSave` | — | — |
+| **Group** | `Group` | — | — | hold → GroupMasterView |
+| **If** | `If` (helping) | — | — | 4× → `If` (function) |
+| **Please** | Execute | Activate All | Deactivate All | 4× → Knock In |
+
+### Key MA+key combinations (selected)
+
+| Combo | Keyword | | Combo | Keyword |
+|---|---|---|---|---|
+| MA+Copy | `Export` | | MA+Move | `Import` |
+| MA+Store | `StoreLook` | | MA+Off | `Kill` |
+| MA+Clear | `ClearAll` | | MA+Edit | `BlindEdit` |
+| MA+Fix | `SelFix` | | MA+Next | `NextRow` |
+| MA+Go+ | `DefGoForward` | | MA+Go- | `DefGoBack` |
+| MA+Oops | `ListOops` | | MA+B.O. | `BlackScreen` |
+| MA+Full | `ToFull` | | MA+Down | `ToZero` |
+| MA+Thru | `AllRows` | | MA+Align | `ShuffleSelection` |
+
+---
+
+## Executor Priority System
+
+Defined in `src/commands/constants.py` as `EXECUTOR_PRIORITIES` (6 levels), `EXECUTOR_ASSIGN_OPTIONS` (24 options), `EXECUTOR_BUTTON_FUNCTIONS` (38), `EXECUTOR_FADER_FUNCTIONS` (13).
+
+### Priority levels (highest → lowest)
+
+| Rank | Name | cmd_value | Behavior |
+|---|---|---|---|
+| 1 | Super | `super` | LTP above ALL playbacks + programmer. Only Freeze overrides. |
+| 2 | Swap | `swap` | LTP > HTP; negative override possible. Affects ALL attributes. |
+| 3 | HTP | `htp` | Highest intensity value wins. CAUTION: changes ALL attribute priority. |
+| 4 | High | `high` | High LTP. Overrides Normal/Low. Cannot override HTP intensity. |
+| 5 | Normal | `normal` | LTP default. Last triggered value wins. |
+| 6 | Low | `low` | Lowest priority. Overridden by everything else. |
+
+Syntax: `Assign Executor [ID] /priority=[cmd_value]`
+
+### Executor assign option categories
+
+| Category | Options |
+|---|---|
+| Start | autostomp, autostart, autostop, autofix, restart |
+| Protect | ooo, swopprotect, killprotect |
+| MIB | mibalways, mibnever, prepos |
+| Function | chaser, softltp, wrap, crossfade |
+| Priority | priority |
+| Timing | triggerisgo, cmddisable, effectspeed, autogo |
+| Speed | speed, speedmaster, ratemaster |
+| Layout | width |
+
+Use `EXECUTOR_ASSIGN_OPTION_NAMES` frozenset for validation. Use `EXECUTOR_PRIORITY_VALUES` frozenset for priority validation.
 
 ---
 

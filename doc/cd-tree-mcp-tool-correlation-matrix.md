@@ -1,9 +1,9 @@
 ---
 title: "CD Tree \u2194 MCP Tool Correlation Matrix"
 description: Maps every MCP tool to its grandMA2 console object tree branch for navigation-based verification
-version: 2.3.0
+version: 2.5.0
 created: 2026-03-08T22:00:00Z
-last_updated: 2026-03-12T00:00:00Z
+last_updated: 2026-03-27T18:00:00Z
 ---
 
 # CD Tree \u2194 MCP Tool Correlation Matrix
@@ -14,7 +14,7 @@ This document maps every MCP tool to the grandMA2 console object tree branch
 it operates on. Use this to know which `cd` + `list` path to inspect when
 verifying that an MCP tool actually created/modified/deleted the expected object.
 
-## Quick Reference: 90 MCP Tools \u2192 Tree Branches
+## Quick Reference: 91 MCP Tools \u2192 Tree Branches
 
 ### Navigation & Inspection Tools (6)
 
@@ -260,16 +260,18 @@ delete_object("effect", 99, confirm_destructive=True)
 | Category | Count | Tools |
 |----------|-------|-------|
 | Navigation & Inspection | 6 | `navigate_console`, `get_console_location`, `list_console_destination`, `scan_console_indexes`, `set_node_property`, `get_object_info` |
-| Object Create/Modify | 13 | `create_fixture_group`, `store_current_cue`, `store_new_preset`, `store_object`, `assign_object` (5 modes), `label_or_appearance`, `copy_or_move_object`, `edit_object`, `set_intensity` |
+| Object Create/Modify | 15 | `create_fixture_group`, `store_current_cue`, `store_new_preset`, `store_object`, `assign_object` (5 modes), `label_or_appearance`, `copy_or_move_object`, `edit_object`, `set_intensity`, `clone_object`, `block_unblock_cue` |
 | Object Delete | 2 | `delete_object`, `remove_content` |
-| Playback & Control | 7 | `execute_sequence`, `playback_action`, `run_macro`, `apply_preset`, `set_attribute`, `release_executor`, `blackout_toggle` |
+| Playback & Control | 11 | `execute_sequence`, `playback_action`, `run_macro`, `apply_preset`, `set_attribute`, `release_executor`, `blackout_toggle`, `control_executor`, `load_cue`, `cut_paste_object`, `fix_locate_fixture` |
 | Import/Export | 2 | `export_objects`, `import_objects` |
-| Highlight & Selection | 1 | `highlight_fixtures` |
+| Highlight & Selection | 3 | `highlight_fixtures`, `modify_selection`, `manipulate_selection` |
 | Show Management | 2 | `load_show`, `new_show` |
 | Variable & History | 2 | `get_variable`, `list_undo_history` |
 | List & Library | 2 | `list_shows`, `list_library` |
 | LiveSetup Navigation | 3 | `list_fixture_types`, `list_layers`, `list_universes` |
-| MAtricks | 2 | `manage_matricks`, `create_matricks_library` |
+| MAtricks | 3 | `manage_matricks`, `create_matricks_library`, `store_matricks_preset` |
+| Filter Library | 2 | `create_filter_library`, `discover_filter_attributes` |
 | Fixture Patching | 4 | `browse_patch_schedule`, `patch_fixture`, `unpatch_fixture`, `set_fixture_type_property` |
+| User Management | 4 | `list_console_users`, `create_console_user`, `assign_world_to_user_profile`, `inspect_sessions` |
 | Utility | 5 | `clear_programmer`, `park_fixture`/`unpark_fixture`, `manage_variable`, `send_raw_command`, `search_codebase` |
-| **Total** | **74** | |
+| **Total** | **86** | *(27 additional tools are read-only queries, ML tools, or RAG — not mapped to cd tree branches)* |
