@@ -150,6 +150,7 @@ from .functions import (
     list_attribute,
     list_cue,
     list_effect_library,
+    list_fader_modules,
     list_group,
     list_library,
     list_macro_library,
@@ -157,8 +158,10 @@ from .functions import (
     # List Function Keyword
     list_objects,
     list_oops,
+    list_plugin_library,
     list_preset,
     list_shows,
+    list_update,
     list_user_var,
     list_var,
     load_next,
@@ -389,6 +392,9 @@ __all__ = [
     "list_library",
     "list_effect_library",
     "list_macro_library",
+    "list_plugin_library",
+    "list_fader_modules",
+    "list_update",
     # Info Function Keyword
     "info",
     "info_cue",

@@ -40,8 +40,12 @@ from src.server import (  # noqa: E402
     assign_cue_trigger,
     assign_executor_property,
     assign_object,
+    assign_temp_fader,
     blackout_toggle,
+    browse_effect_library,
+    browse_macro_library,
     browse_patch_schedule,
+    browse_plugin_library,
     clear_programmer,
     control_executor,
     control_timecode,
@@ -49,6 +53,8 @@ from src.server import (  # noqa: E402
     copy_or_move_object,
     create_fixture_group,
     delete_object,
+    delete_show,
+    delete_user,
     discover_object_names,
     edit_object,
     execute_sequence,
@@ -63,6 +69,7 @@ from src.server import (  # noqa: E402
     import_objects,
     label_or_appearance,
     list_console_destination,
+    list_fader_modules,
     list_fixture_types,
     list_fixtures,
     list_layers,
@@ -71,6 +78,7 @@ from src.server import (  # noqa: E402
     list_shows,
     list_undo_history,
     list_universes,
+    list_update_history,
     load_show,
     manage_variable,
     modify_selection,
@@ -299,6 +307,46 @@ class TestLayer0SafeRead:
         if isinstance(data, dict) and data.get("blocked"):
             pytest.skip("RAG index not built")
 
+    async def test_browse_effect_library(self, live_client):
+        """0.16 — Browse grandMA2 effect library."""
+        result = await browse_effect_library()
+        data = validate_response(result, ["command_sent", "raw_response", "risk_tier"])
+        assert data["command_sent"] == "listeffectlibrary"
+        assert data["risk_tier"] == "SAFE_READ"
+        print(f"  raw_response (truncated): {data['raw_response'][:200]}")
+
+    async def test_browse_macro_library(self, live_client):
+        """0.17 — Browse grandMA2 macro library."""
+        result = await browse_macro_library()
+        data = validate_response(result, ["command_sent", "raw_response", "risk_tier"])
+        assert data["command_sent"] == "listmacrolibrary"
+        assert data["risk_tier"] == "SAFE_READ"
+        print(f"  raw_response (truncated): {data['raw_response'][:200]}")
+
+    async def test_browse_plugin_library(self, live_client):
+        """0.18 — Browse grandMA2 plugin library."""
+        result = await browse_plugin_library()
+        data = validate_response(result, ["command_sent", "raw_response", "risk_tier"])
+        assert data["command_sent"] == "listpluginlibrary"
+        assert data["risk_tier"] == "SAFE_READ"
+        print(f"  raw_response (truncated): {data['raw_response'][:200]}")
+
+    async def test_list_fader_modules(self, live_client):
+        """0.19 — List connected fader modules."""
+        result = await list_fader_modules()
+        data = validate_response(result, ["command_sent", "raw_response", "risk_tier"])
+        assert data["command_sent"] == "listfadermodules"
+        assert data["risk_tier"] == "SAFE_READ"
+        print(f"  raw_response: {data['raw_response']}")
+
+    async def test_list_update_history(self, live_client):
+        """0.20 — List programming update history."""
+        result = await list_update_history()
+        data = validate_response(result, ["command_sent", "raw_response", "risk_tier"])
+        assert data["command_sent"] == "listupdate"
+        assert data["risk_tier"] == "SAFE_READ"
+        print(f"  raw_response (truncated): {data['raw_response'][:200]}")
+
 
 # ---------------------------------------------------------------------------
 # Layer 1 — Navigation & State (SAFE_WRITE, Reversible)
@@ -394,6 +442,21 @@ class TestLayer1NavigationState:
         print(f"  Response: {json.dumps(data, indent=2)}")
         assert data["commands_sent"] == ["oops"]
         assert data["count"] == 1
+
+    async def test_assign_temp_fader(self, live_client):
+        """1.14 — Set temp fader level (50%) on selected executor."""
+        result = await assign_temp_fader(value=50)
+        data = validate_response(result, ["command_sent", "raw_response", "risk_tier"])
+        assert data["command_sent"] == "tempfader 50"
+        assert data["risk_tier"] == "SAFE_WRITE"
+        print(f"  raw_response: {data['raw_response']}")
+
+    async def test_assign_temp_fader_zero(self, live_client):
+        """1.15 — Set temp fader to 0 (cue off)."""
+        result = await assign_temp_fader(value=0)
+        data = validate_response(result, ["command_sent", "raw_response"])
+        assert data["command_sent"] == "tempfader 0"
+        print(f"  raw_response: {data['raw_response']}")
 
 
 # ---------------------------------------------------------------------------
@@ -1323,3 +1386,46 @@ class TestLayer10NewShowFlags:
         assert "/protocols" in cmd
         assert "/user" in cmd
         print(f"  command_sent: {cmd}")
+
+
+# ---------------------------------------------------------------------------
+# Layer 11 — New Tool Guard Verification (SAFE_READ / gate-only)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.live
+class TestLayer11NewToolGuards:
+    """Layer 11 — Verify safety gates of the 8 new quick-wins tools.
+
+    SAFE_READ / SAFE_WRITE tools are exercised fully.
+    DESTRUCTIVE tools (delete_user, delete_show) are only tested at their
+    safety gates — no actual deletion occurs.
+    """
+
+    # ── delete_user guards ──────────────────────────────────────────────────
+
+    async def test_delete_user_blocked_without_confirm(self, live_client):
+        """11.1 — delete_user blocked when confirm_destructive=False (default)."""
+        result = await delete_user(slot=3)
+        data = validate_response(result, ["blocked", "risk_tier"])
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+        print(f"  error: {data.get('error')}")
+
+    async def test_delete_user_slot1_always_protected(self, live_client):
+        """11.2 — Slot 1 (Administrator) is always refused, even with confirm."""
+        result = await delete_user(slot=1, confirm_destructive=True)
+        data = validate_response(result, ["blocked", "error"])
+        assert data["blocked"] is True
+        assert "Slot 1" in data["error"]
+        print(f"  error: {data['error']}")
+
+    # ── delete_show guards ──────────────────────────────────────────────────
+
+    async def test_delete_show_blocked_without_confirm(self, live_client):
+        """11.3 — delete_show blocked when confirm_destructive=False (default)."""
+        result = await delete_show(name="nonexistent_test_show_xyz")
+        data = validate_response(result, ["blocked", "risk_tier"])
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+        print(f"  error: {data.get('error')}")

@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.5.0
+version: 3.6.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-27T18:00:00Z
+last_updated: 2026-03-28T12:00:00Z
 ---
 
 <div align="center">
@@ -12,8 +12,8 @@ last_updated: 2026-03-27T18:00:00Z
 
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
-![Tools](https://img.shields.io/badge/MCP_tools-101-brightgreen)
-![Tests](https://img.shields.io/badge/tests-1662-brightgreen)
+![Tools](https://img.shields.io/badge/MCP_tools-109-brightgreen)
+![Tests](https://img.shields.io/badge/tests-1693-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -21,7 +21,7 @@ last_updated: 2026-03-27T18:00:00Z
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [100 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [109 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 </div>
 
@@ -54,9 +54,9 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>101 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>109 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>110+ pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>178+ pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
@@ -104,7 +104,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **101 tools** to MCP clients, grouped into 12 categories:
+The server exposes **109 tools** to MCP clients, grouped into 12 categories:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -652,7 +652,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **110 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **178 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -757,13 +757,13 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ```
 gma2-mcp-telnet/
 ├── src/
-│   ├── server.py                   # MCP server (FastMCP, 101 tools)
+│   ├── server.py                   # MCP server (FastMCP, 109 tools)
 │   ├── telnet_client.py            # Async Telnet client (telnetlib3)
 │   ├── navigation.py               # Navigation API (cd + list + parsing)
 │   ├── prompt_parser.py            # Telnet prompt & list output parser
 │   ├── vocab.py                    # 141 keywords, categories & safety tiers
 │   ├── categorization/             # ML tool categorization (K-Means)
-│   └── commands/                   # 110+ pure command builder functions
+│   └── commands/                   # 178+ pure command builder functions
 │       ├── objects/                # Object keywords (9 modules)
 │       └── functions/              # Function keywords (15 modules)
 ├── rag/                            # RAG pipeline
@@ -775,7 +775,7 @@ gma2-mcp-telnet/
 │   ├── scan_tree.py                # Recursive object-tree scanner
 │   ├── rag_ingest.py               # RAG ingestion CLI
 │   └── rag_query.py                # RAG query CLI
-├── tests/                          # 1662 tests (1530 unit + 132 live)
+├── tests/                          # 1693 tests (1551 unit + 142 live)
 ├── vscode-mcp-provider/            # VS Code MCP extension
 └── doc/                            # MA2 User Manual PDF
 ```

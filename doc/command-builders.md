@@ -1,16 +1,16 @@
 ---
 title: Command Builder Reference
-description: Pure-function reference for all 175 grandMA2 command builders
-version: 1.2.0
+description: Pure-function reference for all 178 grandMA2 command builders
+version: 1.3.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-27T12:00:00Z
+last_updated: 2026-03-28T12:00:00Z
 ---
 
 # Command Builder Reference
 
 > Back to [README](../README.md)
 
-The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **175 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
+The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **178 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
 
 grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -189,6 +189,9 @@ Copy/Move/Clone options: `overwrite`, `merge`, `status`, `cueonly`, `noconfirm`
 | `list_preset("color")` | `list preset 4` |
 | `info("cue", 1)` | `info cue 1` |
 | `info_group(3)` | `info group 3` |
+| `list_plugin_library()` | `listpluginlibrary` |
+| `list_fader_modules()` | `listfadermodules` |
+| `list_update()` | `listupdate` |
 
 ## Park & Unpark
 

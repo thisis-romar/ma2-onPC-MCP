@@ -176,6 +176,21 @@ from src.commands import (
     list_macro_library as build_list_macro_library,
 )
 from src.commands import (
+    list_fader_modules as build_list_fader_modules,
+)
+from src.commands import (
+    list_plugin_library as build_list_plugin_library,
+)
+from src.commands import (
+    list_update as build_list_update,
+)
+from src.commands import (
+    delete_show as build_delete_show,
+)
+from src.commands import (
+    temp_fader as build_temp_fader,
+)
+from src.commands import (
     list_messages as build_list_messages,
 )
 from src.commands import (
@@ -351,7 +366,7 @@ mcp = FastMCP(
     name="grandMA2-MCP",
     instructions="""
     This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following 87 tools to operate grandMA2:
+    You can use the following 109 tools to operate grandMA2:
 
     --- Navigation & Inspection ---
     1. navigate_console - Navigate the console object tree (cd)
@@ -396,6 +411,22 @@ mcp = FastMCP(
         tests, docs, AND the official grandMA2 help documentation (when indexed).
         Use this to discover command builder signatures, safety rules,
         implementation details, or grandMA2 console operation instructions.
+
+    --- User Management (continued) ---
+    102. delete_user - Delete a console user account by slot (DESTRUCTIVE)
+
+    --- Library & Module Browsing ---
+    103. browse_effect_library - Browse effect templates in the grandMA2 effect library
+    104. browse_macro_library - Browse macro templates in the grandMA2 macro library
+    105. browse_plugin_library - Browse plugin templates in the grandMA2 plugin library
+    106. list_fader_modules - List connected fader modules
+    107. list_update_history - List programming update history
+
+    --- Show Management (continued) ---
+    108. delete_show - Delete a show file from disk (DESTRUCTIVE)
+
+    --- Playback (continued) ---
+    109. assign_temp_fader - Set the temp fader level on the selected executor
 
     SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
     """,
@@ -7058,6 +7089,241 @@ async def inspect_sessions() -> str:
         "max_sessions": manager._max_sessions,
         "idle_timeout_seconds": manager._idle_timeout,
         "sessions": manager.session_info(),
+    }, indent=2)
+
+
+# ============================================================
+# Tools 102–109: Quick-wins sprint
+# ============================================================
+
+
+@mcp.tool()
+@require_scope(OAuthScope.USER_MANAGE)
+@_handle_errors
+async def delete_user(
+    slot: int,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Delete a console user account by slot number (DESTRUCTIVE).
+
+    The built-in Administrator in slot 1 cannot be deleted.
+    Requires confirm_destructive=True to proceed.
+
+    Args:
+        slot: User slot number to delete (2–N). Slot 1 is protected.
+        confirm_destructive: Must be True to execute (safety gate).
+
+    Returns:
+        JSON with command_sent, raw_response, or block info.
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "command_sent": None,
+            "blocked": True,
+            "risk_tier": "DESTRUCTIVE",
+            "error": "Delete User is a DESTRUCTIVE operation. Set confirm_destructive=True to proceed.",
+        }, indent=2)
+
+    if slot == 1:
+        return json.dumps({
+            "command_sent": None,
+            "blocked": True,
+            "risk_tier": "DESTRUCTIVE",
+            "error": "Slot 1 (Administrator) is protected and cannot be deleted.",
+        }, indent=2)
+
+    cmd = build_delete_user(slot)
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def browse_effect_library() -> str:
+    """
+    Browse the grandMA2 effect library (SAFE_READ).
+
+    Lists all available effect templates that can be applied to fixtures.
+
+    Returns:
+        JSON with command_sent and raw_response from the console.
+    """
+    cmd = build_list_effect_library()
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def browse_macro_library() -> str:
+    """
+    Browse the grandMA2 macro library (SAFE_READ).
+
+    Lists all available macro templates that can be imported into the show.
+
+    Returns:
+        JSON with command_sent and raw_response from the console.
+    """
+    cmd = build_list_macro_library()
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def browse_plugin_library() -> str:
+    """
+    Browse the grandMA2 plugin library (SAFE_READ).
+
+    Lists all available plugin templates installed on the console.
+
+    Returns:
+        JSON with command_sent and raw_response from the console.
+    """
+    cmd = build_list_plugin_library()
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def list_fader_modules() -> str:
+    """
+    List connected fader modules (SAFE_READ).
+
+    Returns information about all fader wing modules currently connected
+    to the grandMA2 console.
+
+    Returns:
+        JSON with command_sent and raw_response from the console.
+    """
+    cmd = build_list_fader_modules()
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def list_update_history() -> str:
+    """
+    List programming update history (SAFE_READ).
+
+    Shows the recent update log of programmer changes made in the show.
+
+    Returns:
+        JSON with command_sent and raw_response from the console.
+    """
+    cmd = build_list_update()
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SHOW_LOAD)
+@_handle_errors
+async def delete_show(
+    name: str,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Delete a show file from disk (DESTRUCTIVE).
+
+    Permanently removes the named show file. This cannot be undone.
+    Requires confirm_destructive=True to proceed.
+
+    Args:
+        name: Show file name to delete (without extension).
+        confirm_destructive: Must be True to execute (safety gate).
+
+    Returns:
+        JSON with command_sent, raw_response, or block info.
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "command_sent": None,
+            "blocked": True,
+            "risk_tier": "DESTRUCTIVE",
+            "error": "Delete Show is a DESTRUCTIVE operation. Set confirm_destructive=True to proceed.",
+        }, indent=2)
+
+    cmd = build_delete_show(name, noconfirm=True)
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def assign_temp_fader(
+    value: int = 50,
+) -> str:
+    """
+    Set the temp fader level on the currently selected executor (SAFE_WRITE).
+
+    TempFader crossfades the cue on when pulled up and crossfades the cue off
+    when pulled down, relative to the given value. The value range is 0–100.
+
+    Args:
+        value: Fader level 0–100 (default 50). 0 = full off, 100 = full on.
+
+    Returns:
+        JSON with command_sent and raw_response from the console.
+    """
+    if not (0 <= value <= 100):
+        return json.dumps({
+            "command_sent": None,
+            "blocked": True,
+            "error": f"value must be between 0 and 100, got {value}.",
+        }, indent=2)
+
+    cmd = build_temp_fader(value)
+    client = await get_client()
+    raw_response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw_response,
+        "risk_tier": "SAFE_WRITE",
     }, indent=2)
 
 

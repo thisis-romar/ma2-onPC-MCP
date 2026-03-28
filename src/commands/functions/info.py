@@ -381,6 +381,48 @@ def list_macro_library() -> str:
     return "listmacrolibrary"
 
 
+def list_plugin_library() -> str:
+    """
+    Construct a ListPluginLibrary command to browse the grandMA2 plugin library.
+
+    Returns:
+        str: MA command to list plugin library
+
+    Examples:
+        >>> list_plugin_library()
+        'listpluginlibrary'
+    """
+    return "listpluginlibrary"
+
+
+def list_fader_modules() -> str:
+    """
+    Construct a ListFaderModules command to list connected fader modules.
+
+    Returns:
+        str: MA command to list fader modules
+
+    Examples:
+        >>> list_fader_modules()
+        'listfadermodules'
+    """
+    return "listfadermodules"
+
+
+def list_update() -> str:
+    """
+    Construct a ListUpdate command to list programming update history.
+
+    Returns:
+        str: MA command to list update history
+
+    Examples:
+        >>> list_update()
+        'listupdate'
+    """
+    return "listupdate"
+
+
 # ============================================================================
 # INFO FUNCTION KEYWORD
 # ============================================================================

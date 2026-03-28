@@ -96,14 +96,17 @@ from .info import (
     list_attribute,
     list_cue,
     list_effect_library,
+    list_fader_modules,
     list_group,
     list_library,
     list_macro_library,
     list_messages,
     list_objects,
     list_oops,
+    list_plugin_library,
     list_preset,
     list_shows,
+    list_update,
 )
 
 # Labeling Function Keywords (Label, Appearance)
@@ -382,6 +385,9 @@ __all__ = [
     "list_library",
     "list_effect_library",
     "list_macro_library",
+    "list_plugin_library",
+    "list_fader_modules",
+    "list_update",
     # Info
     "info",
     "info_group",

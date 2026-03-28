@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.17.0
+version: 3.19.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-27T20:00:00Z
+last_updated: 2026-03-28T14:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **101 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **109 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,14 +19,14 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 101 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 109 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
 | `src/auth.py` | OAuth 2.1 scope enforcement stub (`@require_scope`, `GMA_SCOPE` env var) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 175+ pure command-builder functions, grouped by keyword type |
+| `src/commands/` | 178+ pure command-builder functions, grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
 | `src/vocab.py` | 141 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
@@ -105,7 +105,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-27): **1530 unit tests**, **132 live integration tests** (1662 total).
+- Current counts (2026-03-28): **1551 unit tests**, **142 live integration tests** (1693 total).
 
 ### New Show — connectivity preservation
 

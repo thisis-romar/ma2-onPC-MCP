@@ -422,3 +422,214 @@ class TestBlockUnblockCueTool:
         result = await block_unblock_cue(action="freeze", cue_id=1)
         data = json.loads(result)
         assert "error" in data
+
+
+# ── Tools 103–109: Quick-wins sprint ──────────────────────────────────────────
+
+
+class TestBrowseEffectLibraryTool:
+    """Tests for browse_effect_library MCP tool (tool 103)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_listeffectlibrary(self, mock_get_client):
+        from src.server import browse_effect_library
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Effect Library:\nFire")
+        mock_get_client.return_value = mock_client
+
+        result = await browse_effect_library()
+        data = json.loads(result)
+
+        assert data["command_sent"] == "listeffectlibrary"
+        assert data["risk_tier"] == "SAFE_READ"
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_scope(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "gma2:unknown:scope")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import browse_effect_library
+
+        result = await browse_effect_library()
+        data = json.loads(result)
+        assert data["blocked"] is True
+
+
+class TestBrowseMacroLibraryTool:
+    """Tests for browse_macro_library MCP tool (tool 104)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_listmacrolibrary(self, mock_get_client):
+        from src.server import browse_macro_library
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Macro Library:\nFoo")
+        mock_get_client.return_value = mock_client
+
+        result = await browse_macro_library()
+        data = json.loads(result)
+
+        assert data["command_sent"] == "listmacrolibrary"
+        assert data["risk_tier"] == "SAFE_READ"
+
+
+class TestBrowsePluginLibraryTool:
+    """Tests for browse_plugin_library MCP tool (tool 105)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_listpluginlibrary(self, mock_get_client):
+        from src.server import browse_plugin_library
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Plugin Library:\nBar")
+        mock_get_client.return_value = mock_client
+
+        result = await browse_plugin_library()
+        data = json.loads(result)
+
+        assert data["command_sent"] == "listpluginlibrary"
+        assert data["risk_tier"] == "SAFE_READ"
+
+
+class TestListFaderModulesTool:
+    """Tests for list_fader_modules MCP tool (tool 106)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_listfadermodules(self, mock_get_client):
+        from src.server import list_fader_modules
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="No fader modules")
+        mock_get_client.return_value = mock_client
+
+        result = await list_fader_modules()
+        data = json.loads(result)
+
+        assert data["command_sent"] == "listfadermodules"
+        assert data["risk_tier"] == "SAFE_READ"
+
+
+class TestListUpdateHistoryTool:
+    """Tests for list_update_history MCP tool (tool 107)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_listupdate(self, mock_get_client):
+        from src.server import list_update_history
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="Update history")
+        mock_get_client.return_value = mock_client
+
+        result = await list_update_history()
+        data = json.loads(result)
+
+        assert data["command_sent"] == "listupdate"
+        assert data["risk_tier"] == "SAFE_READ"
+
+
+class TestDeleteShowTool:
+    """Tests for delete_show MCP tool (tool 108)."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self, monkeypatch):
+        monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
+        from src.server import delete_show
+
+        result = await delete_show(name="old_show")
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_deletes_show_with_noconfirm(self, mock_get_client, monkeypatch):
+        monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
+        from src.server import delete_show
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = mock_client
+
+        result = await delete_show(name="old_show", confirm_destructive=True)
+        data = json.loads(result)
+
+        assert data["command_sent"] == 'deleteshow "old_show" /noconfirm'
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_scope(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:4")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import delete_show
+
+        result = await delete_show(name="old_show", confirm_destructive=True)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["scope_required"] == "gma2:show:load"
+
+
+class TestAssignTempFaderTool:
+    """Tests for assign_temp_fader MCP tool (tool 109)."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_tempfader_default(self, mock_get_client):
+        from src.server import assign_temp_fader
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await assign_temp_fader()
+        data = json.loads(result)
+
+        assert data["command_sent"] == "tempfader 50"
+        assert data["risk_tier"] == "SAFE_WRITE"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_tempfader_value(self, mock_get_client):
+        from src.server import assign_temp_fader
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await assign_temp_fader(value=75)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "tempfader 75"
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_scope(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import assign_temp_fader
+
+        result = await assign_temp_fader(value=50)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["scope_required"] == "gma2:executor:control"
+
+    @pytest.mark.asyncio
+    async def test_out_of_range_high(self):
+        from src.server import assign_temp_fader
+
+        result = await assign_temp_fader(value=101)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "101" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_out_of_range_negative(self):
+        from src.server import assign_temp_fader
+
+        result = await assign_temp_fader(value=-1)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "-1" in data["error"]

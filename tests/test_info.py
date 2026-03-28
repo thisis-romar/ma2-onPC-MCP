@@ -269,3 +269,19 @@ class TestInfoCommands:
 
         result = info_preset(4, 5, text="deep blue")
         assert result == 'info preset 4.5 "deep blue"'
+
+
+class TestListSpecializedBuilders:
+    """Tests for list_plugin_library, list_fader_modules, list_update."""
+
+    def test_list_plugin_library(self):
+        from src.commands import list_plugin_library
+        assert list_plugin_library() == "listpluginlibrary"
+
+    def test_list_fader_modules(self):
+        from src.commands import list_fader_modules
+        assert list_fader_modules() == "listfadermodules"
+
+    def test_list_update(self):
+        from src.commands import list_update
+        assert list_update() == "listupdate"

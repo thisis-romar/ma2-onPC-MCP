@@ -268,3 +268,55 @@ class TestAssignWorldToUserProfileTool:
         )
         data = json.loads(result)
         assert data["blocked"] is True
+
+
+class TestDeleteUserTool:
+    """Tests for delete_user MCP tool (tool 102)."""
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self, monkeypatch):
+        monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
+        from src.server import delete_user
+
+        result = await delete_user(slot=3)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+    @pytest.mark.asyncio
+    async def test_slot1_protected(self, monkeypatch):
+        monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
+        from src.server import delete_user
+
+        result = await delete_user(slot=1, confirm_destructive=True)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["risk_tier"] == "DESTRUCTIVE"
+        assert "Slot 1" in data["error"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_deletes_user_slot3(self, mock_get_client, monkeypatch):
+        monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
+        from src.server import delete_user
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = mock_client
+
+        result = await delete_user(slot=3, confirm_destructive=True)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "Delete User 3 /noconfirm"
+        assert data["risk_tier"] == "DESTRUCTIVE"
+
+    @pytest.mark.asyncio
+    async def test_blocked_without_scope(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:4")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import delete_user
+
+        result = await delete_user(slot=3, confirm_destructive=True)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["scope_required"] == "gma2:user:manage"
