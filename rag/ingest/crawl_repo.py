@@ -25,7 +25,7 @@ def crawl_repo(root_dir: str | Path) -> list[RepoFile]:
     files: list[RepoFile] = []
 
     for item in sorted(root.rglob("*")):
-        relative = str(item.relative_to(root))
+        relative = str(item.relative_to(root)).replace("\\", "/")
 
         if item.is_dir():
             continue

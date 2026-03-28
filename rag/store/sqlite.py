@@ -157,10 +157,13 @@ class RagStore:
                 continue
             stored = _blob_to_floats(emb_blob)
             if len(stored) != query_dim:
-                raise ValueError(
-                    f"Embedding dimension mismatch: query has {query_dim} dims, "
-                    f"stored chunk {chunk_id!r} has {len(stored)} dims"
+                # Dimension mismatch (e.g. old zero-vector-stub chunks) — skip,
+                # don't abort the whole search.
+                logger.debug(
+                    "Skipping chunk %r: embedding dim %d != query dim %d",
+                    chunk_id, len(stored), query_dim,
                 )
+                continue
             score = _cosine_similarity(query_embedding, stored)
             scored.append(RagHit(
                 chunk_id=chunk_id,

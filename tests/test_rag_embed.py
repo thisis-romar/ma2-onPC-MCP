@@ -15,7 +15,7 @@ class TestZeroVectorProvider:
 
     def test_default_dimensions(self):
         p = ZeroVectorProvider()
-        assert p.dimensions == 384
+        assert p.dimensions == 1536  # matches GitHubModelsProvider default
 
     def test_custom_dimensions(self):
         p = ZeroVectorProvider(dimensions=128)

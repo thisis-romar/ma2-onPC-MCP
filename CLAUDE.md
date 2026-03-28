@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.16.0
+version: 3.17.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-27T18:00:00Z
+last_updated: 2026-03-27T20:00:00Z
 ---
 
 # Project Rules
@@ -32,8 +32,9 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
 | `rag/retrieve/` | cosine similarity search + rerank |
 | `rag/store/sqlite.py` | SQLite vector store (`rag/store/rag.db`) |
-| `scripts/rag_ingest.py` | CLI: ingest repo into RAG store |
-| `scripts/rag_ingest_web.py` | CLI: crawl MA2 help docs and ingest in daily batches |
+| `scripts/rag_ingest.py` | CLI: ingest repo into RAG store (`worktree` ref) |
+| `scripts/rag_ingest_web.py` | CLI: crawl MA2 help docs and ingest in daily batches (`ma2-help-docs` ref) |
+| `scripts/rag_ingest_mcp_sdk.py` | CLI: ingest installed MCP SDK source (`mcp-sdk` ref) |
 | `src/categorization/` | ML-based tool categorization: K-Means clustering + auto-labeling |
 | `scripts/categorize_tools.py` | CLI: extract features, embed, cluster, write taxonomy JSON |
 
@@ -69,6 +70,12 @@ source .env && export GITHUB_MODELS_TOKEN && \
 source .env && export GITHUB_MODELS_TOKEN && \
   PYTHONUNBUFFERED=1 uv run python scripts/rag_ingest_web.py \
   --provider github --cache-crawl
+
+# Ingest MCP SDK source (run once after install or after upgrading the mcp package)
+uv run python scripts/rag_ingest_mcp_sdk.py --provider zero   # fast, no API key
+# Or with real embeddings:
+source .env && export GITHUB_MODELS_TOKEN && \
+  uv run python scripts/rag_ingest_mcp_sdk.py --provider github
 
 # Install git hooks (pre-commit auto-updates RAG index on every commit)
 make install-hooks
@@ -487,9 +494,18 @@ crawl → chunk → embed → store (SQLite) → query → rerank
 ```
 
 - Python files: AST-aware chunking. Markdown: heading-based. Everything else: line-based.
-- Embeddings: `GitHubModelsProvider` (requires `GITHUB_MODELS_TOKEN`) or `ZeroVectorProvider` (CI/testing stub).
+- Embeddings: `GitHubModelsProvider` (requires `GITHUB_MODELS_TOKEN`) or `ZeroVectorProvider` (CI/testing stub, 1536-dim zero vectors).
 - The `search_codebase` MCP tool queries the store; auto-detects token and falls back to text search when absent.
 - Embedding API is rate-limited — 4s inter-request delay and batch_size=32 are the defaults to stay within GitHub Models free tier.
+- Dimension mismatch between old zero-vector chunks and new real embeddings is handled gracefully (mismatched chunks are skipped during vector search, not raising an error).
+
+### Three indexed knowledge sources
+
+| `repo_ref` | Script | Content |
+|------------|--------|---------|
+| `worktree` | `rag_ingest.py` | This server's Python source, tests, docs, configs |
+| `ma2-help-docs` | `rag_ingest_web.py` | ~1,043 grandMA2 help pages from help.malighting.com |
+| `mcp-sdk` | `rag_ingest_mcp_sdk.py` | Installed MCP SDK source (~110 files, types, server primitives) |
 
 ### Pre-commit hook
 
@@ -498,6 +514,8 @@ crawl → chunk → embed → store (SQLite) → query → rerank
 ### Web doc batching
 
 ~1,043 grandMA2 help pages, embedded in nightly runs. The `--cache-crawl` flag saves the crawl to `rag/store/web_crawl_cache.json` — subsequent runs skip re-crawling and go straight to embedding. Run the same command each night; hash-based dedup skips already-indexed pages automatically.
+
+**Web cache note:** cache schema version must match `_CACHE_SCHEMA_VERSION` in `scripts/rag_ingest_web.py` (currently v2). If the cache file has an older version (v1), it is invalidated automatically and a fresh crawl runs. Re-run with `--recrawl` to force a fresh crawl regardless.
 
 ---
 

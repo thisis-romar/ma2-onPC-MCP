@@ -43,7 +43,7 @@ class EmbeddingProvider(ABC):
 class ZeroVectorProvider(EmbeddingProvider):
     """Stub provider that returns zero vectors. For testing and development."""
 
-    def __init__(self, dimensions: int = 384) -> None:
+    def __init__(self, dimensions: int = 1536) -> None:
         self._dimensions = dimensions
 
     @property

@@ -2561,28 +2561,32 @@ async def search_codebase(
     top_k: int = 8,
     kind: str | None = None,
 ) -> str:
-    """Search this server's source code and grandMA2 documentation using the RAG index.
+    """Search source code, grandMA2 docs, and MCP SDK source using the RAG index.
 
-    Use this to look up command builders, safety rules, module internals,
-    or any grandMA2 console operation detail. Works without any API key
-    (text search fallback). If a RAG index has been built with embeddings,
-    results are ranked by semantic similarity.
+    Three indexed knowledge sources (repo_refs):
+    - "worktree"     — this server's Python source, tests, and docs
+    - "ma2-help-docs" — ~1,043 grandMA2 help pages from help.malighting.com
+    - "mcp-sdk"      — installed MCP SDK source (~110 files, types, server, tools)
+
+    Works without any API key (text-search fallback). With GITHUB_MODELS_TOKEN
+    set, results are ranked by semantic similarity.
 
     Args:
         query:  Natural language or keyword query (e.g. "navigate console",
-                "store preset", "how to patch fixtures")
+                "store preset", "how to patch fixtures", "mcp tool context")
         top_k:  Number of results to return (default 8, max 20)
         kind:   Optional filter — one of: "source", "test", "doc", "config"
 
     Returns:
-        JSON array of matching code/doc chunks with path, line range, score, and text.
+        JSON array of matching chunks with path, kind, lines, score, and text.
         Returns an error JSON if the RAG index has not been built yet.
 
     Examples:
-        - Find command builders: query="store preset", kind="source"
-        - Find grandMA2 docs: query="how to patch fixtures", kind="doc"
-        - Search everything: query="effects engine"
-        - Find test examples: query="navigate_console", kind="test"
+        - Find command builders:   query="store preset", kind="source"
+        - Find grandMA2 docs:      query="how to patch fixtures", kind="doc"
+        - Find MCP SDK internals:  query="mcp tool decorator context"
+        - Search everything:       query="effects engine"
+        - Find test examples:      query="navigate_console", kind="test"
     """
     from pathlib import Path
 
@@ -2601,10 +2605,14 @@ async def search_codebase(
         from rag.ingest.embed import GitHubModelsProvider
         provider = GitHubModelsProvider(token=token)
 
-    hits = rag_query(query, embedding_provider=provider, top_k=min(top_k, 20), db_path=db)
+    want = min(top_k, 20)
+    # When a kind filter is requested, over-fetch 10× so we have enough candidates
+    # of the right kind after filtering (the DB has 4 kinds; web docs dominate).
+    fetch_k = want * 10 if kind else want
+    hits = rag_query(query, embedding_provider=provider, top_k=fetch_k, db_path=db)
 
     if kind:
-        hits = [h for h in hits if h.kind == kind]
+        hits = [h for h in hits if h.kind == kind][:want]
 
     return json.dumps([
         {
