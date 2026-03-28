@@ -5,11 +5,27 @@ This file is used to define shared fixtures and test configuration.
 """
 
 import asyncio
+import os
 
 import pytest
 
 # Configure pytest-asyncio default mode
 pytest_plugins = ["pytest_asyncio"]
+
+
+# ---------------------------------------------------------------------------
+# OAuth scope bypass — enable for all unit/integration tests
+# ---------------------------------------------------------------------------
+# All non-live unit tests run with GMA_AUTH_BYPASS=1 so that @require_scope
+# decorators are transparent. Auth-specific tests that need to exercise scope
+# checking call ``monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)``
+# explicitly to opt out of bypass mode for that individual test.
+
+
+@pytest.fixture(autouse=True)
+def _auth_bypass(monkeypatch):
+    """Set GMA_AUTH_BYPASS=1 for every test unless it opts out via monkeypatch."""
+    monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
 
 # ---------------------------------------------------------------------------
 # Live-test pacing — prevent overwhelming grandMA2 onPC with rapid commands
@@ -48,21 +64,3 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "destructive" in item.keywords:
                 item.add_marker(skip_destructive)
-
-
-@pytest.fixture
-def mock_gma_host():
-    """Provide test grandMA2 host IP."""
-    return "127.0.0.1"
-
-
-@pytest.fixture
-def mock_gma_port():
-    """Provide test grandMA2 port."""
-    return 30000
-
-
-@pytest.fixture
-def mock_gma_credentials():
-    """Provide test grandMA2 login credentials."""
-    return {"user": "administrator", "password": "admin"}

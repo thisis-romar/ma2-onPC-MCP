@@ -80,9 +80,6 @@ from src.commands import (
     clear_selection as build_clear_selection,
 )
 from src.commands import (
-    clear_selection as build_clear_selection2,
-)
-from src.commands import (
     copy as build_copy,
 )
 from src.commands import (
@@ -278,7 +275,53 @@ from src.commands import (
 from src.commands import (
     update_cue as build_update_cue,
 )
+from src.auth import OAuthScope, require_scope
+from src.commands import (
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_login,
+    build_store_user,
+)
+from src.commands import (
+    align as build_align,
+)
+from src.commands import (
+    block as build_block,
+)
+from src.commands import (
+    clone as build_clone,
+)
+from src.commands import (
+    fix_fixture as build_fix_fixture,
+)
+from src.commands import (
+    invert as build_invert,
+)
+from src.commands import (
+    load_next as build_load_next,
+)
+from src.commands import (
+    load_prev as build_load_prev,
+)
+from src.commands import (
+    locate as build_locate,
+)
+from src.commands import (
+    stomp_executor as build_stomp_executor,
+)
+from src.commands import (
+    swop_executor as build_swop_executor,
+)
+from src.commands import (
+    top_executor as build_top_executor,
+)
+from src.commands import (
+    unblock as build_unblock,
+)
 from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
+from src.session_manager import SessionManager
+from src.credentials import get_operator_identity, resolve_console_credentials
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.vocab import RiskTier, build_v39_spec, classify_token
@@ -358,46 +401,42 @@ mcp = FastMCP(
     """,
 )
 
-# Global telnet client instance
-_client: GMA2TelnetClient | None = None
-_connected: bool = False
-_client_lock = asyncio.Lock()
+# Per-operator session pool
+_session_manager: SessionManager | None = None
+_session_manager_lock = asyncio.Lock()
+
+
+async def _get_session_manager() -> SessionManager:
+    global _session_manager
+    async with _session_manager_lock:
+        if _session_manager is None:
+            _session_manager = SessionManager(host=_GMA_HOST, port=_GMA_PORT)
+            _session_manager.start_keepalive()
+    return _session_manager
 
 
 async def get_client() -> GMA2TelnetClient:
     """
-    Get or create a telnet client instance (async).
+    Return a live Telnet client for the current operator.
 
-    On first call, establishes connection and login. Subsequent calls return
-    the already connected client. If the connection has dropped, reconnects
-    automatically. Uses an asyncio.Lock to prevent concurrent connection attempts.
+    Routes through the SessionManager so each operator identity gets its own
+    Telnet connection authenticated with the console user that matches their
+    OAuth scope tier (dual-enforcement).
+
+    Stub mode  — ``GMA_USER`` set  : single identity, uses GMA_USER/GMA_PASSWORD
+    Tier mode  — ``GMA_USER`` unset: identity = "tier:N", credentials from
+                                     bootstrap user table in src/credentials.py
+    OAuth mode — replace get_operator_identity() with JWT sub-claim extraction
     """
-    global _client, _connected
+    from src.auth import get_granted_scopes
+    scopes = get_granted_scopes()
+    identity = get_operator_identity(scopes)
+    username, password = resolve_console_credentials(scopes)
 
-    async with _client_lock:
-        # Check if existing connection is still healthy
-        if _client is not None and _connected and not _client.is_connected:
-            logger.warning("Connection lost, reconnecting...")
-            _connected = False
-
-        if _client is None or not _connected:
-            _client = GMA2TelnetClient(
-                host=_GMA_HOST,
-                port=_GMA_PORT,
-                user=_GMA_USER,
-                password=_GMA_PASSWORD,
-            )
-            try:
-                await _client.connect()
-                await _client.login()
-                _connected = True
-                set_gma2_client(_client)
-                logger.info(f"Connected to grandMA2: {_GMA_HOST}:{_GMA_PORT}")
-            except Exception:
-                _connected = False
-                raise
-
-        return _client
+    manager = await _get_session_manager()
+    client = await manager.get(identity, username, password)
+    set_gma2_client(client)
+    return client
 
 
 def _handle_errors(func):
@@ -500,6 +539,7 @@ async def _get_sequence_for_executor(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.GROUP_STORE)
 @_handle_errors
 async def create_fixture_group(
     start_fixture: int,
@@ -557,6 +597,7 @@ async def create_fixture_group(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def execute_sequence(
     sequence_id: int,
@@ -602,6 +643,7 @@ async def execute_sequence(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def send_raw_command(
     command: str,
@@ -712,6 +754,7 @@ async def send_raw_command(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def navigate_console(
     destination: str,
@@ -770,6 +813,7 @@ async def navigate_console(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def get_console_location() -> str:
     """
@@ -802,6 +846,7 @@ async def get_console_location() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def list_console_destination(
     object_type: str | None = None,
@@ -850,6 +895,7 @@ async def list_console_destination(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def scan_console_indexes(
     reset_to: str = "/",
@@ -915,6 +961,7 @@ async def scan_console_indexes(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SETUP_CONSOLE)
 @_handle_errors
 async def set_node_property(
     path: str,
@@ -985,6 +1032,7 @@ async def set_node_property(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def set_intensity(
     target_type: str,
@@ -1036,6 +1084,7 @@ async def set_intensity(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def apply_preset(
     preset_type: str,
@@ -1101,6 +1150,7 @@ async def apply_preset(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def store_current_cue(
     cue_number: int,
@@ -1185,6 +1235,7 @@ async def store_current_cue(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def get_object_info(
     object_type: str,
@@ -1223,6 +1274,7 @@ async def get_object_info(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def clear_programmer(
     mode: str = "all",
@@ -1275,6 +1327,7 @@ async def clear_programmer(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def set_attribute(
     attribute_name: str,
@@ -1328,6 +1381,7 @@ async def set_attribute(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PRESET_UPDATE)
 @_handle_errors
 async def park_fixture(
     target: str,
@@ -1385,6 +1439,7 @@ async def park_fixture(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PRESET_UPDATE)
 @_handle_errors
 async def unpark_fixture(
     target: str,
@@ -1435,6 +1490,7 @@ async def unpark_fixture(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def run_macro(
     macro_id: int,
@@ -1466,6 +1522,7 @@ async def run_macro(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def delete_object(
     object_type: str,
@@ -1515,6 +1572,7 @@ async def delete_object(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def copy_or_move_object(
     action: str,
@@ -1585,6 +1643,7 @@ async def copy_or_move_object(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PRESET_UPDATE)
 @_handle_errors
 async def store_new_preset(
     preset_type: str,
@@ -1661,6 +1720,7 @@ async def store_new_preset(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def query_object_list(
     object_type: str | None = None,
@@ -1761,6 +1821,7 @@ def _parse_listvar(raw: str, filter_prefix: str | None = None) -> dict[str, str]
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def list_system_variables(
     filter_prefix: str | None = None,
@@ -1792,6 +1853,7 @@ async def list_system_variables(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def playback_action(
     action: str,
@@ -1929,6 +1991,7 @@ async def playback_action(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def manage_variable(
     action: str,
@@ -2028,6 +2091,7 @@ async def manage_variable(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def label_or_appearance(
     action: str,
@@ -2127,6 +2191,7 @@ async def label_or_appearance(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.GROUP_STORE)
 @_handle_errors
 async def assign_object(
     mode: str,
@@ -2261,6 +2326,7 @@ async def assign_object(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def edit_object(
     action: str,
@@ -2333,6 +2399,7 @@ async def edit_object(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def remove_content(
     object_type: str,
@@ -2422,6 +2489,7 @@ async def remove_content(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def store_object(
     object_type: str,
@@ -2486,6 +2554,7 @@ async def store_object(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def search_codebase(
     query: str,
@@ -2555,6 +2624,7 @@ async def search_codebase(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
 @_handle_errors
 async def set_executor_level(
     executor_id: int,
@@ -2588,6 +2658,7 @@ async def set_executor_level(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def navigate_page(
     action: str,
@@ -2643,6 +2714,7 @@ async def navigate_page(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def select_feature(
     feature_name: str,
@@ -2676,6 +2748,7 @@ async def select_feature(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def select_preset_type(
     preset_type: int | str,
@@ -2762,6 +2835,7 @@ def _parse_preset_tree_list(raw: str) -> list[dict]:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def browse_preset_type(
     preset_type_id: int,
@@ -2834,6 +2908,7 @@ async def browse_preset_type(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def modify_selection(
     action: str,
@@ -2858,7 +2933,7 @@ async def modify_selection(
 
     client = await get_client()
     if action == "clear":
-        cmd = build_clear_selection2()
+        cmd = build_clear_selection()
     elif action == "add":
         if len(fixture_ids) == 1 and end_id is not None:
             cmd = build_add_to_selection(fixture_ids[0], end=end_id)
@@ -2887,6 +2962,7 @@ async def modify_selection(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def adjust_value_relative(
     delta: float,
@@ -2936,6 +3012,7 @@ async def adjust_value_relative(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SEQUENCE_EDIT)
 @_handle_errors
 async def control_timecode(
     action: str,
@@ -2975,6 +3052,7 @@ async def control_timecode(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SEQUENCE_EDIT)
 @_handle_errors
 async def control_timer(
     action: str,
@@ -3012,6 +3090,7 @@ async def control_timer(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def undo_last_action(count: int = 1) -> str:
     """
@@ -3041,6 +3120,7 @@ async def undo_last_action(count: int = 1) -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def toggle_console_mode(mode: str) -> str:
     """
@@ -3069,6 +3149,7 @@ async def toggle_console_mode(mode: str) -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def update_cue_data(
     confirm_destructive: bool = False,
@@ -3111,6 +3192,7 @@ async def update_cue_data(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def set_cue_timing(
     cue_id: int,
@@ -3165,6 +3247,7 @@ async def set_cue_timing(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def select_fixtures_by_group(
     group_id: int,
@@ -3195,6 +3278,7 @@ async def select_fixtures_by_group(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
 @_handle_errors
 async def control_executor(
     action: str,
@@ -3204,10 +3288,12 @@ async def control_executor(
     confirm_destructive: bool = False,
 ) -> str:
     """
-    Control an executor: start, stop, flash, solo, or set speed (set_speed is DESTRUCTIVE).
+    Control an executor: start, stop, flash, swop, solo, top, stomp, or set speed.
+
+    set_speed is DESTRUCTIVE (modifies stored data).
 
     Args:
-        action: "on", "off", "flash", "solo", or "set_speed"
+        action: "on", "off", "flash", "swop", "solo", "top", "stomp", or "set_speed"
         executor_id: Executor ID (1-999)
         page: Page number for page-qualified addressing (optional)
         speed_value: BPM value for set_speed (0.0–999.0; required for set_speed)
@@ -3216,7 +3302,7 @@ async def control_executor(
     Returns:
         str: JSON result with command sent
     """
-    valid_actions = ("on", "off", "flash", "solo", "set_speed")
+    valid_actions = ("on", "off", "flash", "swop", "solo", "top", "stomp", "set_speed")
     if action not in valid_actions:
         return json.dumps({"error": f"action must be one of {valid_actions}", "blocked": True}, indent=2)
     if executor_id < 1:
@@ -3243,6 +3329,15 @@ async def control_executor(
     elif action == "flash":
         cmd = build_flash_executor(executor_id, page=page)
         risk_tier = "SAFE_WRITE"
+    elif action == "swop":
+        cmd = build_swop_executor(executor_id, page=page)
+        risk_tier = "SAFE_WRITE"
+    elif action == "top":
+        cmd = build_top_executor(executor_id, page=page)
+        risk_tier = "SAFE_WRITE"
+    elif action == "stomp":
+        cmd = build_stomp_executor(executor_id, page=page)
+        risk_tier = "SAFE_WRITE"
     else:  # solo
         cmd = build_solo_executor(executor_id, page=page)
         risk_tier = "SAFE_WRITE"
@@ -3257,6 +3352,262 @@ async def control_executor(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
+@_handle_errors
+async def load_cue(
+    direction: str,
+    executor_id: int | None = None,
+    sequence_id: int | None = None,
+) -> str:
+    """
+    Pre-load the next or previous cue without executing it (SAFE_WRITE).
+
+    LoadNext / LoadPrev arm the cue for Go without firing it.
+
+    Args:
+        direction: "next" or "prev"
+        executor_id: Executor ID to load on (optional)
+        sequence_id: Sequence ID to load on (optional)
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if direction not in ("next", "prev"):
+        return json.dumps({"error": "direction must be 'next' or 'prev'", "blocked": True}, indent=2)
+
+    if direction == "next":
+        cmd = build_load_next(executor=executor_id, sequence=sequence_id)
+    else:
+        cmd = build_load_prev(executor=executor_id, sequence=sequence_id)
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def cut_paste_object(
+    action: str,
+    object_type: str | None = None,
+    object_id: int | str | None = None,
+    target_id: int | str | None = None,
+    end: int | str | None = None,
+) -> str:
+    """
+    Cut an object to clipboard, or paste clipboard content at a target (SAFE_WRITE).
+
+    Cut + Paste is a two-step move: Cut prepares the source, Paste places it.
+    Does not work with cue objects — use copy_or_move_object for cues.
+
+    Args:
+        action: "cut" or "paste"
+        object_type: Object type ("group", "preset", "sequence", "macro", etc.)
+        object_id: Source object ID (required for cut; ignored for bare paste)
+        target_id: Destination ID (for paste)
+        end: End ID for range cut (thru syntax)
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if action not in ("cut", "paste"):
+        return json.dumps({"error": "action must be 'cut' or 'paste'", "blocked": True}, indent=2)
+
+    if action == "cut":
+        if object_type is None or object_id is None:
+            return json.dumps({"error": "object_type and object_id required for cut", "blocked": True}, indent=2)
+        cmd = build_cut(object_type, object_id, end=end)
+    else:
+        cmd = build_paste(object_type, target_id)
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def clone_object(
+    object_type: str,
+    object_id: int,
+    target_id: int,
+    end: int | None = None,
+    target_end: int | None = None,
+    noconfirm: bool = False,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Clone (duplicate with data) one or more objects to new IDs (DESTRUCTIVE).
+
+    Clone copies all stored data from the source to the target — unlike Copy
+    it also migrates all associated cue/preset references.
+
+    Args:
+        object_type: Object type ("fixture", "group", "sequence", etc.)
+        object_id: Source object ID
+        target_id: Destination object ID
+        end: End ID for source range (thru syntax)
+        target_end: End ID for target range
+        noconfirm: Suppress confirmation dialog
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "clone_object is DESTRUCTIVE. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    cmd = build_clone(
+        object_type, object_id, target_id,
+        end=end, target_end=target_end, noconfirm=noconfirm,
+    )
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
+@_handle_errors
+async def fix_locate_fixture(
+    action: str,
+    fixture_ids: list[int] | None = None,
+    end: int | None = None,
+) -> str:
+    """
+    Fix (park) or Locate selected/specified fixtures (SAFE_WRITE).
+
+    Fix pins fixture output to current level, overriding playback.
+    Locate fires fixtures to their default state (full, open, centre).
+
+    Args:
+        action: "fix" or "locate"
+        fixture_ids: List of fixture IDs to fix (optional — uses selection if omitted)
+        end: End ID for range when a single start ID is given
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if action not in ("fix", "locate"):
+        return json.dumps({"error": "action must be 'fix' or 'locate'", "blocked": True}, indent=2)
+
+    if action == "locate":
+        cmd = build_locate()
+    else:
+        if fixture_ids is not None and len(fixture_ids) == 1:
+            cmd = build_fix_fixture(fixture_ids[0], end=end)
+        elif fixture_ids:
+            cmd = build_fix_fixture(fixture_ids)
+        else:
+            cmd = build_fix_fixture()
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
+@_handle_errors
+async def manipulate_selection(action: str) -> str:
+    """
+    Invert or Align the current fixture selection / programmer values (SAFE_WRITE).
+
+    Invert: swap selected and unselected fixtures.
+    Align: distribute programmer values evenly from first to last fixture.
+
+    Args:
+        action: "invert" or "align"
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if action not in ("invert", "align"):
+        return json.dumps({"error": "action must be 'invert' or 'align'", "blocked": True}, indent=2)
+
+    cmd = build_invert() if action == "invert" else build_align()
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SEQUENCE_EDIT)
+@_handle_errors
+async def block_unblock_cue(
+    action: str,
+    cue_id: float,
+    sequence_id: int | None = None,
+    end: float | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Block or Unblock a cue (DESTRUCTIVE — modifies cue data in the show file).
+
+    Block makes a cue store all active values and stop tracking from prior cues.
+    Unblock removes the block flag, allowing values to track through again.
+
+    Args:
+        action: "block" or "unblock"
+        cue_id: Cue number to block/unblock
+        sequence_id: Sequence ID to scope the command (optional)
+        end: End cue ID for range (thru syntax)
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if action not in ("block", "unblock"):
+        return json.dumps({"error": "action must be 'block' or 'unblock'", "blocked": True}, indent=2)
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": f"{action}_cue is DESTRUCTIVE. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    if action == "block":
+        cmd = build_block(cue_id, sequence_id=sequence_id, end=end)
+    else:
+        cmd = build_unblock(cue_id, sequence_id=sequence_id, end=end)
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def get_executor_status(
     executor_id: int | None = None,
@@ -3288,6 +3639,7 @@ async def get_executor_status(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SEQUENCE_EDIT)
 @_handle_errors
 async def store_timecode_event(
     timecode_id: int,
@@ -3331,6 +3683,7 @@ async def store_timecode_event(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SEQUENCE_EDIT)
 @_handle_errors
 async def set_sequence_property(
     sequence_id: int,
@@ -3384,6 +3737,7 @@ async def set_sequence_property(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def save_show(
     action: str,
@@ -3415,6 +3769,7 @@ async def save_show(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def store_cue_with_timing(
     cue_id: int,
@@ -3473,6 +3828,7 @@ async def store_cue_with_timing(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
 @_handle_errors
 async def select_executor(
     executor_id: int,
@@ -3500,6 +3856,7 @@ async def select_executor(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def remove_from_programmer(
     object_type: str,
@@ -3537,6 +3894,7 @@ async def remove_from_programmer(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SEQUENCE_EDIT)
 @_handle_errors
 async def assign_cue_trigger(
     cue_id: int,
@@ -3591,6 +3949,7 @@ async def assign_cue_trigger(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SETUP_CONSOLE)
 @_handle_errors
 async def assign_executor_property(
     property_name: str,
@@ -3655,6 +4014,7 @@ async def assign_executor_property(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def if_filter(
     filter_type: str,
@@ -3705,6 +4065,7 @@ async def if_filter(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SETUP_CONSOLE)
 @_handle_errors
 async def save_recall_view(
     action: str,
@@ -3793,6 +4154,7 @@ _IMPORT_EXPORT_DATA_ROOT = (
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SETUP_CONSOLE)
 @_handle_errors
 async def export_objects(
     object_type: str,
@@ -3878,6 +4240,7 @@ async def export_objects(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.FIXTURE_IMPORT)
 @_handle_errors
 async def import_objects(
     filename: str,
@@ -3941,13 +4304,39 @@ async def import_objects(
     )
 
     client = await get_client()
+
+    # Pre-import slot check — informational only
+    slot_status: dict | None = None
+    if destination_id is not None:
+        try:
+            slot_int = int(str(destination_id).split(".")[0])
+            avail = await _check_pool_slots(
+                client, destination_type,
+                start_from=slot_int, scan_up_to=slot_int,
+            )
+            is_occupied = any(
+                s["slot"] == slot_int for s in avail["occupied_slots"]
+            )
+            slot_status = {"occupied": is_occupied}
+            if is_occupied:
+                match = next(
+                    s for s in avail["occupied_slots"] if s["slot"] == slot_int
+                )
+                slot_status["previous_name"] = match["name"]
+        except (ValueError, TypeError):
+            pass  # non-numeric destination_id (e.g. preset "2.5")
+
     raw_response = await client.send_command_with_response(cmd)
 
-    return json.dumps({
+    result: dict = {
         "command_sent": cmd,
         "raw_response": raw_response,
         "risk_tier": "DESTRUCTIVE",
-    }, indent=2)
+    }
+    if slot_status is not None:
+        result["slot_status"] = slot_status
+
+    return json.dumps(result, indent=2)
 
 
 # ============================================================
@@ -3956,6 +4345,7 @@ async def import_objects(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.FIXTURE_IMPORT)
 @_handle_errors
 async def import_fixture_type(
     manufacturer: str,
@@ -4007,6 +4397,7 @@ async def import_fixture_type(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.FIXTURE_IMPORT)
 @_handle_errors
 async def import_fixture_layer(
     filename: str,
@@ -4059,6 +4450,7 @@ async def import_fixture_layer(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.FIXTURE_IMPORT)
 @_handle_errors
 async def generate_fixture_layer_xml(
     filename: str,
@@ -4188,6 +4580,7 @@ async def generate_fixture_layer_xml(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_fixtures(
     fixture_id: int | None = None,
@@ -4232,6 +4625,7 @@ async def list_fixtures(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_sequence_cues(
     sequence_id: int | None = None,
@@ -4328,6 +4722,7 @@ async def list_sequence_cues(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def highlight_fixtures(on: bool = True) -> str:
     """
@@ -4353,6 +4748,7 @@ async def highlight_fixtures(on: bool = True) -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def release_executor(
     executor_id: int,
@@ -4379,6 +4775,7 @@ async def release_executor(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def blackout_toggle() -> str:
     """
@@ -4401,6 +4798,7 @@ async def blackout_toggle() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def list_shows() -> str:
     """
@@ -4420,6 +4818,7 @@ async def list_shows() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SHOW_LOAD)
 @_handle_errors
 async def load_show(
     name: str,
@@ -4454,6 +4853,7 @@ async def load_show(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SHOW_LOAD)
 @_handle_errors
 async def new_show(
     name: str,
@@ -4556,6 +4956,7 @@ async def new_show(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def get_variable(
     action: str,
@@ -4630,6 +5031,7 @@ async def get_variable(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_preset_pool(
     preset_type: str | None = None,
@@ -4715,6 +5117,7 @@ async def list_preset_pool(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_undo_history() -> str:
     """
@@ -4739,6 +5142,7 @@ async def list_undo_history() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_fixture_types() -> str:
     """
@@ -4788,6 +5192,7 @@ async def list_fixture_types() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_layers() -> str:
     """
@@ -4825,6 +5230,7 @@ async def list_layers() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_universes(
     max_universes: int = 16,
@@ -4875,6 +5281,7 @@ async def list_universes(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def list_library(
     library_type: str = "fixture",
@@ -4913,6 +5320,7 @@ async def list_library(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
 @_handle_errors
 async def manage_matricks(
     action: str,
@@ -5058,6 +5466,7 @@ async def manage_matricks(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.GROUP_STORE)
 @_handle_errors
 async def store_matricks_preset(
     pool_slot: int,
@@ -5205,6 +5614,7 @@ async def store_matricks_preset(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.FILTER_MANAGE)
 @_handle_errors
 async def create_matricks_library(
     max_value: int = 4,
@@ -5294,14 +5704,28 @@ async def create_matricks_library(
 
     # Import via telnet — colors are embedded in XML, no telnet loop needed
     client = await get_client()
+
+    # Pre-import availability check
+    last_slot = start_slot + total - 1
+    avail = await _check_pool_slots(
+        client, "MAtricks",
+        start_from=start_slot, scan_up_to=last_slot,
+    )
+    availability_warning = None
+    if avail["occupied_slots"]:
+        availability_warning = {
+            "slots_that_will_be_overwritten": len(avail["occupied_slots"]),
+            "occupied": avail["occupied_slots"][:20],  # cap at 20 for readability
+        }
+
     import_cmd = f'import "{xml_filename}" at matricks {start_slot}'
     response = await client.send_command_with_response(import_cmd)
 
-    return json.dumps({
+    result: dict = {
         "pool_items_created": total,
         "total_slots": total,
         "first_slot": start_slot,
-        "last_slot": start_slot + total - 1,
+        "last_slot": last_slot,
         "naming_scheme": "W{wings}-G{groups}-B{blocks}-I{interleave}",
         "color_scheme": {
             "status": "embedded_in_xml",
@@ -5311,7 +5735,11 @@ async def create_matricks_library(
         "xml_file": str(xml_path),
         "import_response": response[:200],
         "risk_tier": "DESTRUCTIVE",
-    }, indent=2)
+    }
+    if availability_warning:
+        result["availability_warning"] = availability_warning
+
+    return json.dumps(result, indent=2)
 
 
 async def _discover_filter_attributes() -> dict[str, list[str]]:
@@ -5357,6 +5785,7 @@ async def _discover_filter_attributes() -> dict[str, list[str]]:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def discover_filter_attributes() -> str:
     """
@@ -5382,6 +5811,7 @@ async def discover_filter_attributes() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.FILTER_MANAGE)
 @_handle_errors
 async def create_filter_library(
     start_slot: int = 3,
@@ -5441,7 +5871,7 @@ async def create_filter_library(
 
     importexport_dir = Path(
         "C:/ProgramData/MA Lighting Technologies/grandma/"
-        "gma2_V_3.9.60/importexport"
+        "gma2_V_3.9.60/importexport/filters"
     )
 
     # Use provided fixture attributes or fall back to hardcoded defaults
@@ -5523,6 +5953,20 @@ async def create_filter_library(
     )
 
     client = await get_client()
+
+    # Pre-import availability check
+    last_filter_slot = all_filters[-1][0] if all_filters else start_slot
+    avail = await _check_pool_slots(
+        client, "Filter",
+        start_from=start_slot, scan_up_to=last_filter_slot,
+    )
+    availability_warning = None
+    if avail["occupied_slots"]:
+        availability_warning = {
+            "slots_that_will_be_overwritten": len(avail["occupied_slots"]),
+            "occupied": avail["occupied_slots"][:20],
+        }
+
     results = []
 
     for f_slot, f_name, f_attrs, f_cat, f_v, f_vt, f_e in all_filters:
@@ -5553,9 +5997,10 @@ async def create_filter_library(
         fpath = importexport_dir / f"{fname}.xml"
         fpath.write_text(xml_content, encoding="utf-8")
 
-        # Import
+        # Import (use 8.3 short path to avoid spaces in path)
         resp = await client.send_command_with_response(
             f'Import "{fname}" At Filter {f_slot}'
+            " /path=C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/IMPORT~1/filters"
         )
         import_ok = "Error" not in resp
 
@@ -5583,7 +6028,7 @@ async def create_filter_library(
             "import_ok": import_ok,
         })
 
-    return json.dumps({
+    result_json: dict = {
         "filters_created": len(results),
         "base_filters": len(base_filters),
         "vte_variants": len(results) - len(base_filters),
@@ -5603,7 +6048,11 @@ async def create_filter_library(
         },
         "xml_directory": str(importexport_dir),
         "risk_tier": "DESTRUCTIVE",
-    }, indent=2)
+    }
+    if availability_warning:
+        result_json["availability_warning"] = availability_warning
+
+    return json.dumps(result_json, indent=2)
 
 
 # ============================================================
@@ -5612,6 +6061,7 @@ async def create_filter_library(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
 @_handle_errors
 async def browse_patch_schedule(
     fixture_type_id: int | None = None,
@@ -5666,6 +6116,7 @@ async def browse_patch_schedule(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PATCH_WRITE)
 @_handle_errors
 async def patch_fixture(
     fixture_id: int,
@@ -5755,6 +6206,7 @@ async def patch_fixture(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PATCH_WRITE)
 @_handle_errors
 async def unpatch_fixture(
     fixture_id: int,
@@ -5792,6 +6244,7 @@ async def unpatch_fixture(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PATCH_WRITE)
 @_handle_errors
 async def set_fixture_type_property(
     fixture_type_id: int,
@@ -5872,7 +6325,200 @@ _OBJECT_POOL_DESTINATIONS: dict[str, str] = {
 }
 
 
+# ============================================================
+# Pool Availability Checker
+# ============================================================
+
+
+async def _check_pool_slots(
+    client: "GMA2TelnetClient",
+    pool_type: str,
+    start_from: int = 1,
+    scan_up_to: int = 200,
+    needed_slots: int | None = None,
+) -> dict:
+    """Check which slots are occupied/free in a pool.
+
+    Navigates to the pool via cd, lists contents, computes availability,
+    then returns to root.  Pure SAFE_READ — no modifications.
+
+    Args:
+        client: Connected telnet client.
+        pool_type: Pool keyword (e.g. "Macro", "Filter", "Group") or
+            numeric cd index (e.g. "13").  Case-insensitive lookup
+            against ``_OBJECT_POOL_DESTINATIONS``.
+        start_from: First slot to consider (default 1).
+        scan_up_to: Last slot to consider (default 200).
+        needed_slots: If set, checks whether this many contiguous free
+            slots exist and suggests a start position.
+
+    Returns:
+        dict with keys: pool_type, occupied_slots, free_ranges,
+        next_free_slots, total_occupied, total_free_in_range,
+        largest_contiguous, can_fit, suggested_start.
+    """
+    # Resolve pool destination
+    destination: str | None = None
+    pool_key = pool_type.strip()
+
+    # Try keyword lookup (case-insensitive)
+    for key, val in _OBJECT_POOL_DESTINATIONS.items():
+        if key.lower() == pool_key.lower():
+            destination = val
+            pool_key = key  # normalise casing
+            break
+
+    # Accept raw numeric / keyword destinations as-is
+    if destination is None:
+        destination = pool_key
+
+    # Navigate to pool
+    nav = await navigate(client, destination)
+
+    # List contents
+    lst = await list_destination(client)
+    entries = lst.parsed_list.entries
+
+    # Detect sub-pool level (e.g. Macros cd 13 → "MacroPool 1 Global")
+    # If entries look like container objects rather than actual pool items,
+    # navigate one level deeper.
+    if (
+        entries
+        and len(entries) == 1
+        and entries[0].object_type
+        and "Pool" in (entries[0].object_type or "")
+    ):
+        await navigate(client, "1")
+        lst = await list_destination(client)
+        entries = lst.parsed_list.entries
+
+    # Parse occupied slot numbers
+    occupied: list[dict] = []
+    occupied_ids: set[int] = set()
+    for e in entries:
+        if e.object_id is None:
+            continue
+        try:
+            slot = int(e.object_id)
+        except (ValueError, TypeError):
+            continue
+        if start_from <= slot <= scan_up_to:
+            occupied.append({"slot": slot, "name": e.name or ""})
+            occupied_ids.add(slot)
+
+    # Sort occupied by slot number
+    occupied.sort(key=lambda x: x["slot"])
+
+    # Compute free ranges and next free slots
+    free_ranges: list[dict] = []
+    next_free: list[int] = []
+    run_start: int | None = None
+    largest_contiguous = 0
+
+    for slot in range(start_from, scan_up_to + 1):
+        if slot not in occupied_ids:
+            if run_start is None:
+                run_start = slot
+            if len(next_free) < 10:
+                next_free.append(slot)
+        else:
+            if run_start is not None:
+                run_len = slot - run_start
+                free_ranges.append({"start": run_start, "end": slot - 1})
+                if run_len > largest_contiguous:
+                    largest_contiguous = run_len
+                run_start = None
+
+    # Close trailing free range
+    if run_start is not None:
+        run_len = scan_up_to - run_start + 1
+        free_ranges.append({"start": run_start, "end": scan_up_to})
+        if run_len > largest_contiguous:
+            largest_contiguous = run_len
+
+    total_in_range = scan_up_to - start_from + 1
+    total_free = total_in_range - len(occupied)
+
+    # Check if needed_slots can fit contiguously
+    can_fit: bool | None = None
+    suggested_start: int | None = None
+    if needed_slots is not None:
+        can_fit = False
+        for fr in free_ranges:
+            block_size = fr["end"] - fr["start"] + 1
+            if block_size >= needed_slots:
+                can_fit = True
+                suggested_start = fr["start"]
+                break
+
+    # Return to root
+    await navigate(client, "/")
+
+    return {
+        "pool_type": pool_key,
+        "occupied_slots": occupied,
+        "free_ranges": free_ranges,
+        "next_free_slots": next_free,
+        "total_occupied": len(occupied),
+        "total_free_in_range": total_free,
+        "largest_contiguous": largest_contiguous,
+        "can_fit": can_fit,
+        "suggested_start": suggested_start,
+    }
+
+
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def check_pool_availability(
+    pool_type: str,
+    start_from: int = 1,
+    scan_up_to: int = 200,
+    needed_slots: int | None = None,
+) -> str:
+    """
+    Check which slots are occupied and free in an object pool (SAFE_READ).
+
+    Navigates to the pool, lists all entries, and computes a full
+    availability map: occupied slots (with names), free ranges,
+    next 10 free slots, and contiguous-block analysis.
+
+    Use this **before importing XML** to verify target slots are free,
+    or to find the best slot range for bulk imports (filters, MAtricks).
+
+    Valid pool types (case-insensitive):
+      Group, Sequence, Preset, Macro, Effect, Gel, World, Filter,
+      Form, Timer, Layout, Timecode, Agenda, UserProfile, Camera,
+      MAtricks, View, Remote
+
+    Numeric cd indexes also accepted (e.g. "13" for Macros, "19" for Filters).
+
+    Args:
+        pool_type: Pool keyword or numeric cd index.
+        start_from: First slot number to check (default 1).
+        scan_up_to: Last slot number to check (default 200).
+        needed_slots: If set, checks whether N contiguous free slots
+            exist and returns can_fit + suggested_start.
+
+    Returns:
+        str: JSON with occupied_slots, free_ranges, next_free_slots,
+             total_occupied, total_free_in_range, largest_contiguous,
+             can_fit, suggested_start, risk_tier.
+    """
+    client = await get_client()
+    result = await _check_pool_slots(
+        client,
+        pool_type,
+        start_from=start_from,
+        scan_up_to=scan_up_to,
+        needed_slots=needed_slots,
+    )
+    result["risk_tier"] = "SAFE_READ"
+    return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def discover_object_names(destination: str) -> str:
     """
@@ -5997,6 +6643,7 @@ def _load_taxonomy_cached() -> dict:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def list_tool_categories(category: str | None = None) -> str:
     """
@@ -6027,6 +6674,7 @@ async def list_tool_categories(category: str | None = None) -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def recluster_tools(
     provider: str = "zero",
@@ -6080,6 +6728,7 @@ async def recluster_tools(
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def get_similar_tools(tool_name: str, top_n: int = 5) -> str:
     """
@@ -6145,6 +6794,7 @@ async def get_similar_tools(tool_name: str, top_n: int = 5) -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def suggest_tool_for_task(
     task_description: str,
@@ -6236,6 +6886,171 @@ async def suggest_tool_for_task(
         ],
         indent=2,
     )
+
+
+# ============================================================================
+# USER MANAGEMENT TOOLS (Tools 98-100)
+# Require OAuth scope gma2:user:manage (Tier 5 — Admin only)
+# ============================================================================
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def list_console_users() -> str:
+    """
+    List all user accounts in the current show file (SAFE_READ).
+
+    Returns the raw `list user` output from the console, showing all
+    user slots with their names, rights levels, and profile assignments.
+
+    Returns:
+        str: JSON result with raw console response
+    """
+    client = await get_client()
+    cmd = build_list_users()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.USER_MANAGE)
+@_handle_errors
+async def create_console_user(
+    slot: int,
+    name: str,
+    password: str,
+    rights_level: int,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Create or overwrite a user account in the show file (DESTRUCTIVE — Admin only).
+
+    Requires both gma2:user:manage OAuth scope AND confirm_destructive=True.
+
+    grandMA2 rights levels:
+        0 = None     (view/change views only, no programmer)
+        1 = Playback (run show, no store)
+        2 = Presets  (update existing presets only)
+        3 = Program  (full show programming)
+        4 = Setup    (patch, fixture import, console setup)
+        5 = Admin    (full access + user/session/show management)
+
+    Args:
+        slot: User slot number (2-N; slot 1 = Administrator, always exists)
+        name: Username (alphanumeric + underscores, no spaces)
+        password: Console login password (empty string = no password required)
+        rights_level: MA2 rights level 0-5
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "create_console_user is DESTRUCTIVE. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+    if slot < 1:
+        return json.dumps({"error": "slot must be >= 1", "blocked": True}, indent=2)
+    if rights_level not in range(6):
+        return json.dumps({
+            "error": f"rights_level must be 0-5, got {rights_level}",
+            "blocked": True,
+        }, indent=2)
+    if not name or not name.replace("_", "").isalnum():
+        return json.dumps({
+            "error": "name must be alphanumeric (underscores allowed), no spaces",
+            "blocked": True,
+        }, indent=2)
+
+    cmd = build_store_user(slot, name, password, rights_level)
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    _rights_names = {0: "None", 1: "Playback", 2: "Presets",
+                     3: "Program", 4: "Setup", 5: "Admin"}
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "slot": slot,
+        "name": name,
+        "rights_level": rights_level,
+        "rights_name": _rights_names[rights_level],
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.USER_MANAGE)
+@_handle_errors
+async def assign_world_to_user_profile(
+    user_profile_slot: int,
+    world_slot: int,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Assign a World (fixture visibility mask) to a User Profile (DESTRUCTIVE — Admin only).
+
+    Restricts all Users assigned to this profile to only access fixtures and attributes
+    visible in the specified World. Use world_slot=0 to remove the restriction (None).
+
+    Args:
+        user_profile_slot: UserProfile slot number to modify
+        world_slot: World slot number (0 = no restriction / remove World assignment)
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON result with command sent
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "assign_world_to_user_profile is DESTRUCTIVE. Set confirm_destructive=True.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+    if user_profile_slot < 1:
+        return json.dumps({"error": "user_profile_slot must be >= 1", "blocked": True}, indent=2)
+
+    cmd = build_assign_world_to_user_profile(user_profile_slot, world_slot)
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "user_profile_slot": user_profile_slot,
+        "world_slot": world_slot,
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def inspect_sessions() -> str:
+    """
+    Inspect active per-operator Telnet session pool (SAFE_READ).
+
+    Returns a snapshot of the session manager's current state: how many
+    sessions are open, which console users they are authenticated as, and
+    how long each has been idle.  Useful for diagnosing connection issues
+    in multi-operator deployments.
+
+    Returns:
+        JSON with session_count and a sessions list, each entry containing:
+        identity, username, connected, idle_seconds, age_seconds.
+    """
+    manager = await _get_session_manager()
+    return json.dumps({
+        "session_count": manager.session_count(),
+        "max_sessions": manager._max_sessions,
+        "idle_timeout_seconds": manager._idle_timeout,
+        "sessions": manager.session_info(),
+    }, indent=2)
 
 
 # ============================================================

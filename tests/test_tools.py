@@ -5425,15 +5425,19 @@ class TestCreateMAtricksLibraryTool:
         assert "DESTRUCTIVE" in data["risk_tier"]
 
     @pytest.mark.asyncio
+    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server.navigate", new_callable=AsyncMock)
     @patch("src.server.get_client")
-    async def test_creates_with_embedded_colors(self, mock_get_client, mock_navigate):
+    async def test_creates_with_embedded_colors(self, mock_get_client, mock_navigate, mock_check):
         from src.server import create_matricks_library
 
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(return_value="Ok")
         mock_get_client.return_value = mock_client
         mock_navigate.return_value = MagicMock()
+        mock_check.return_value = {"occupied_slots": [], "free_ranges": [], "next_free_slots": [],
+                                   "total_occupied": 0, "total_free_in_range": 0,
+                                   "largest_contiguous": 0, "can_fit": None, "suggested_start": None}
 
         result = await create_matricks_library(
             max_value=1, confirm_destructive=True,
@@ -5460,3 +5464,122 @@ class TestCreateMAtricksLibraryTool:
         # Appearance Color embedded for each entry
         assert '<Appearance Color="' in xml_content
         assert 'wings="1" group_x="1" block_x="1" interleave="1"' in xml_content
+
+
+class TestScopeEnforcement:
+    """Verify that @require_scope blocks tools when GMA_SCOPE is insufficient."""
+
+    @pytest.mark.asyncio
+    async def test_user_manage_blocked_at_tier0(self, monkeypatch):
+        """User management tools (tier:5) are blocked at tier:0."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import create_console_user
+
+        result = await create_console_user(
+            slot=3, name="test", password="pw", rights_level=1, confirm_destructive=True
+        )
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["scope_required"] == "gma2:user:manage"
+
+    @pytest.mark.asyncio
+    async def test_state_read_allowed_at_tier0(self, monkeypatch):
+        """Read-only tools (tier:0) pass scope check at tier:0."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import list_console_users
+
+        with patch("src.server.get_client") as mock_get_client:
+            mock_client = MagicMock()
+            mock_client.send_command_with_response = AsyncMock(return_value="Slot 1 administrator Admin")
+            mock_get_client.return_value = mock_client
+            result = await list_console_users()
+
+        data = json.loads(result)
+        # Scope check passed — no scope_required key in result
+        assert "scope_required" not in data
+
+    @pytest.mark.asyncio
+    async def test_user_manage_blocked_at_tier4(self, monkeypatch):
+        """User management (tier:5) is blocked at tier:4."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:4")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import create_console_user
+
+        result = await create_console_user(
+            slot=3, name="test", password="pw", rights_level=1, confirm_destructive=True
+        )
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert data["scope_required"] == "gma2:user:manage"
+
+    @pytest.mark.asyncio
+    async def test_user_manage_allowed_at_tier5(self, monkeypatch):
+        """User management is accessible at tier:5."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:5")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import create_console_user
+
+        with patch("src.server.get_client") as mock_get_client:
+            mock_client = MagicMock()
+            mock_client.send_command_with_response = AsyncMock(return_value="OK")
+            mock_get_client.return_value = mock_client
+            result = await create_console_user(
+                slot=3, name="testuser", password="pw", rights_level=1, confirm_destructive=True
+            )
+
+        data = json.loads(result)
+        # Scope check passed — the result should NOT have scope_required
+        assert "scope_required" not in data
+
+    @pytest.mark.asyncio
+    async def test_bypass_overrides_scope_check(self, monkeypatch):
+        """GMA_AUTH_BYPASS=1 grants all scopes regardless of GMA_SCOPE."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
+        from src.server import create_console_user
+
+        with patch("src.server.get_client") as mock_get_client:
+            mock_client = MagicMock()
+            mock_client.send_command_with_response = AsyncMock(return_value="OK")
+            mock_get_client.return_value = mock_client
+            result = await create_console_user(
+                slot=3, name="testuser", password="pw", rights_level=1, confirm_destructive=True
+            )
+
+        data = json.loads(result)
+        assert "scope_required" not in data
+
+    @pytest.mark.asyncio
+    async def test_scope_and_destructive_are_independent(self, monkeypatch):
+        """Scope block and destructive block are checked independently — scope runs first."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import create_console_user
+
+        # No confirm_destructive AND no scope — should get scope error (checked first)
+        result = await create_console_user(
+            slot=3, name="test", password="pw", rights_level=1
+        )
+        data = json.loads(result)
+        assert data["blocked"] is True
+        # Scope check fires before destructive check because @require_scope wraps @_handle_errors
+        assert "scope_required" in data
+
+    @pytest.mark.asyncio
+    async def test_list_console_users_scope_is_state_read(self, monkeypatch):
+        """list_console_users requires only gma2:state:read (tier:0)."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        from src.server import list_console_users
+
+        with patch("src.server.get_client") as mock_get_client:
+            mock_client = MagicMock()
+            mock_client.send_command_with_response = AsyncMock(return_value="Slot 1 administrator Admin")
+            mock_get_client.return_value = mock_client
+            result = await list_console_users()
+
+        # Should NOT be scope-blocked — state:read is in tier:0
+        data = json.loads(result)
+        assert "scope_required" not in data
