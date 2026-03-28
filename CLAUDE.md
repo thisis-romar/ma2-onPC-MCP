@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.19.0
+version: 3.20.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-28T14:00:00Z
+last_updated: 2026-03-28T20:00:00Z
 ---
 
 # Project Rules
@@ -23,7 +23,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
-| `src/auth.py` | OAuth 2.1 scope enforcement stub (`@require_scope`, `GMA_SCOPE` env var) |
+| `src/auth.py` | OAuth 2.1 scope enforcement stub (`@require_scope`, `@require_ma2_right`, `GMA_SCOPE` env var) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/commands/` | 178+ pure command-builder functions, grouped by keyword type |
@@ -90,8 +90,9 @@ make install-hooks
 1. Add command builder functions in `src/commands/` — pure, return `str`, no I/O.
 2. Export them from `src/commands/__init__.py`.
 3. Register the tool in `src/server.py` with `@mcp.tool()` and `@_handle_errors`.
-4. If the tool issues a `DESTRUCTIVE` command, accept `confirm_destructive: bool = False` and gate on it.
-5. Add tests in `tests/test_<feature>.py` — call builders directly, no telnet needed.
+4. Apply `@require_scope(OAuthScope.X)` using the MA2 rights ladder. Consult `doc/ma2-rights-matrix.json` for the correct scope. Use `@require_ma2_right(MA2Right.X)` as the preferred alternative (translates natively via `MA2RIGHT_TO_OAUTH_SCOPE`).
+5. If the tool issues a `DESTRUCTIVE` command, accept `confirm_destructive: bool = False` and gate on it.
+6. Add tests in `tests/test_<feature>.py` — call builders directly, no telnet needed.
 
 ### Command builders
 
@@ -105,7 +106,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-28): **1551 unit tests**, **142 live integration tests** (1693 total).
+- Current counts (2026-03-28): **1582 unit tests**, **142 live integration tests** (1724 total).
 
 ### New Show — connectivity preservation
 

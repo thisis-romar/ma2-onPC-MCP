@@ -509,3 +509,32 @@ MA2_BOOTSTRAP_USERS: list[dict] = [
      "description": "Read-only monitoring — no programmer access"},
 ]
 
+
+# ============================================================================
+# MA2 NATIVE RIGHTS ↔ OAUTH SCOPE MAPPING
+# ============================================================================
+# grandMA2 has a 6-tier native rights ladder that maps directly onto the
+# OAuth scope tiers defined above.  Use MA2Right as the single source of
+# truth when annotating tools — derive the required OAuthScope from it.
+
+class MA2Right(_StrEnum):
+    """grandMA2 native rights levels (6-tier ladder, lowest→highest)."""
+    NONE     = "none"      # rights=0  Guest / monitoring — no programming
+    PLAYBACK = "playback"  # rights=1  Operator — Go/Flash/Off only
+    PRESETS  = "presets"   # rights=2  Preset editor — update existing presets
+    PROGRAM  = "program"   # rights=3  Programmer — full cue/group/sequence store
+    SETUP    = "setup"     # rights=4  Technical director — patch + console setup
+    ADMIN    = "admin"     # rights=5  Administrator — user management + show ops
+
+
+# Maps MA2Right to the lowest OAuthScope that satisfies that rights level.
+# Cumulative: PROGRAM rights implies PRESETS, PLAYBACK, and NONE are also granted.
+MA2RIGHT_TO_OAUTH_SCOPE: dict[MA2Right, OAuthScope] = {
+    MA2Right.NONE:     OAuthScope.STATE_READ,
+    MA2Right.PLAYBACK: OAuthScope.PLAYBACK_GO,
+    MA2Right.PRESETS:  OAuthScope.PROGRAMMER_WRITE,
+    MA2Right.PROGRAM:  OAuthScope.CUE_STORE,
+    MA2Right.SETUP:    OAuthScope.SETUP_CONSOLE,
+    MA2Right.ADMIN:    OAuthScope.USER_MANAGE,
+}
+

@@ -40,6 +40,8 @@ Keywords are classified into three types:
 
 # Constants
 from .constants import (
+    MA2Right,
+    MA2RIGHT_TO_OAUTH_SCOPE,
     PRESET_TYPES,
     STORE_BOOL_OPTIONS,
     STORE_FLAG_OPTIONS,
@@ -261,6 +263,8 @@ from .functions import (
 
 __all__ = [
     # Constants
+    "MA2Right",
+    "MA2RIGHT_TO_OAUTH_SCOPE",
     "PRESET_TYPES",
     "STORE_FLAG_OPTIONS",
     "STORE_BOOL_OPTIONS",

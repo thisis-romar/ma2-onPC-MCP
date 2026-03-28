@@ -37,7 +37,7 @@ import json
 import logging
 import os
 
-from src.commands.constants import OAUTH_TIER_SCOPES, OAuthScope
+from src.commands.constants import MA2RIGHT_TO_OAUTH_SCOPE, MA2Right, OAUTH_TIER_SCOPES, OAuthScope
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +124,27 @@ def has_scope(required: OAuthScope | str) -> bool:
 # ============================================================================
 # require_scope decorator
 # ============================================================================
+
+def require_ma2_right(right: MA2Right):
+    """
+    Decorator factory: enforce a grandMA2 native rights level on an MCP tool.
+
+    Translates the MA2Right value to its corresponding OAuthScope via
+    MA2RIGHT_TO_OAUTH_SCOPE and delegates to require_scope.  Use this instead
+    of @require_scope when you want to express authorization in terms of the
+    MA2 native rights ladder rather than raw OAuth scope strings.
+
+    Usage in src/server.py:
+        @mcp.tool()
+        @require_ma2_right(MA2Right.PROGRAM)
+        @_handle_errors
+        async def store_current_cue(...):
+            ...
+
+    Equivalent to: @require_scope(MA2RIGHT_TO_OAUTH_SCOPE[MA2Right.PROGRAM])
+    """
+    return require_scope(MA2RIGHT_TO_OAUTH_SCOPE[right])
+
 
 def require_scope(scope: OAuthScope | str):
     """

@@ -1,9 +1,9 @@
 ---
 title: Command Builder Reference
 description: Pure-function reference for all 178 grandMA2 command builders
-version: 1.3.0
+version: 1.4.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-28T12:00:00Z
+last_updated: 2026-03-28T20:00:00Z
 ---
 
 # Command Builder Reference
@@ -255,3 +255,18 @@ Requires Admin (rights=5) Telnet session. Part of the dual-enforcement authoriza
 | `build_assign_world_to_user_profile(3, 0)` | `Assign World 0 At UserProfile 3` |
 
 Rights levels: 0=None, 1=Playback, 2=Presets, 3=Program, 4=Setup, 5=Admin
+
+## MA2 Native Rights
+
+`MA2Right` and `MA2RIGHT_TO_OAUTH_SCOPE` are exported from `src/commands/constants.py`.
+
+| MA2Right | Value | OAuth Scope | OAuth Tier |
+|----------|-------|-------------|------------|
+| `MA2Right.NONE` | `"none"` | `gma2:state:read` | 0 |
+| `MA2Right.PLAYBACK` | `"playback"` | `gma2:playback:go` | 1 |
+| `MA2Right.PRESETS` | `"presets"` | `gma2:programmer:write` | 2 |
+| `MA2Right.PROGRAM` | `"program"` | `gma2:cue:store` | 3 |
+| `MA2Right.SETUP` | `"setup"` | `gma2:setup:console` | 4 |
+| `MA2Right.ADMIN` | `"admin"` | `gma2:user:manage` | 5 |
+
+Use `@require_ma2_right(MA2Right.X)` in `src/server.py` as a human-readable alternative to `@require_scope(OAuthScope.Y)`. The full 109-tool rights assignment is in `doc/ma2-rights-matrix.json`.

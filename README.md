@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.6.0
+version: 3.7.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-28T12:00:00Z
+last_updated: 2026-03-28T20:00:00Z
 ---
 
 <div align="center">
@@ -13,7 +13,7 @@ last_updated: 2026-03-28T12:00:00Z
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
 ![Tools](https://img.shields.io/badge/MCP_tools-109-brightgreen)
-![Tests](https://img.shields.io/badge/tests-1693-brightgreen)
+![Tests](https://img.shields.io/badge/tests-1724-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -775,7 +775,7 @@ gma2-mcp-telnet/
 │   ├── scan_tree.py                # Recursive object-tree scanner
 │   ├── rag_ingest.py               # RAG ingestion CLI
 │   └── rag_query.py                # RAG query CLI
-├── tests/                          # 1693 tests (1551 unit + 142 live)
+├── tests/                          # 1724 tests (1582 unit + 142 live)
 ├── vscode-mcp-provider/            # VS Code MCP extension
 └── doc/                            # MA2 User Manual PDF
 ```

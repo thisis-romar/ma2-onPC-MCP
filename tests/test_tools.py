@@ -5485,16 +5485,16 @@ class TestScopeEnforcement:
 
     @pytest.mark.asyncio
     async def test_state_read_allowed_at_tier0(self, monkeypatch):
-        """Read-only tools (tier:0) pass scope check at tier:0."""
+        """Read-only tools (tier:0) pass scope check at tier:0 — use get_executor_status."""
         monkeypatch.setenv("GMA_SCOPE", "tier:0")
         monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
-        from src.server import list_console_users
+        from src.server import get_executor_status
 
         with patch("src.server.get_client") as mock_get_client:
             mock_client = MagicMock()
-            mock_client.send_command_with_response = AsyncMock(return_value="Slot 1 administrator Admin")
+            mock_client.send_command_with_response = AsyncMock(return_value="")
             mock_get_client.return_value = mock_client
-            result = await list_console_users()
+            result = await get_executor_status(executor_id=1)
 
         data = json.loads(result)
         # Scope check passed — no scope_required key in result
@@ -5568,18 +5568,15 @@ class TestScopeEnforcement:
         assert "scope_required" in data
 
     @pytest.mark.asyncio
-    async def test_list_console_users_scope_is_state_read(self, monkeypatch):
-        """list_console_users requires only gma2:state:read (tier:0)."""
-        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+    async def test_list_console_users_scope_is_user_manage(self, monkeypatch):
+        """list_console_users now requires gma2:user:manage (tier:5) — user data is sensitive."""
+        monkeypatch.setenv("GMA_SCOPE", "tier:4")
         monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
         from src.server import list_console_users
 
-        with patch("src.server.get_client") as mock_get_client:
-            mock_client = MagicMock()
-            mock_client.send_command_with_response = AsyncMock(return_value="Slot 1 administrator Admin")
-            mock_get_client.return_value = mock_client
-            result = await list_console_users()
+        result = await list_console_users()
 
-        # Should NOT be scope-blocked — state:read is in tier:0
+        # Should be scope-blocked at tier:4 — requires tier:5 (user:manage)
         data = json.loads(result)
-        assert "scope_required" not in data
+        assert data["blocked"] is True
+        assert data["scope_required"] == "gma2:user:manage"

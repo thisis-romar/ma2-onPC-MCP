@@ -674,7 +674,7 @@ async def execute_sequence(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.PROGRAMMER_WRITE)
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def send_raw_command(
     command: str,
@@ -3051,7 +3051,7 @@ async def adjust_value_relative(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.SEQUENCE_EDIT)
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def control_timecode(
     action: str,
@@ -3091,7 +3091,7 @@ async def control_timecode(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.SEQUENCE_EDIT)
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def control_timer(
     action: str,
@@ -3776,7 +3776,7 @@ async def set_sequence_property(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.CUE_STORE)
+@require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def save_show(
     action: str,
@@ -4104,7 +4104,7 @@ async def if_filter(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.SETUP_CONSOLE)
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def save_recall_view(
     action: str,
@@ -4193,7 +4193,7 @@ _IMPORT_EXPORT_DATA_ROOT = (
 
 
 @mcp.tool()
-@require_scope(OAuthScope.SETUP_CONSOLE)
+@require_scope(OAuthScope.CUE_STORE)
 @_handle_errors
 async def export_objects(
     object_type: str,
@@ -4489,7 +4489,7 @@ async def import_fixture_layer(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.FIXTURE_IMPORT)
+@require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def generate_fixture_layer_xml(
     filename: str,
@@ -6934,7 +6934,7 @@ async def suggest_tool_for_task(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.STATE_READ)
+@require_scope(OAuthScope.USER_MANAGE)
 @_handle_errors
 async def list_console_users() -> str:
     """
@@ -7068,7 +7068,7 @@ async def assign_world_to_user_profile(
 
 
 @mcp.tool()
-@require_scope(OAuthScope.STATE_READ)
+@require_scope(OAuthScope.USER_MANAGE)
 @_handle_errors
 async def inspect_sessions() -> str:
     """
