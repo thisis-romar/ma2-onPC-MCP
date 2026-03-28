@@ -43,3 +43,6 @@ rag/store/web_crawl_cache.json
 # Tool categorization taxonomy (generated artifact)
 src/categorization/taxonomy.json
 *.taxonomy.json
+
+# KMeans clustering data artifacts (too large for RAG chunker)
+doc/grandMA2_KMeans_Complete.json

@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import re
+import sys
 from datetime import UTC
 
 from dotenv import load_dotenv
@@ -340,6 +341,9 @@ from src.credentials import get_operator_identity, resolve_console_credentials
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.vocab import RiskTier, build_v39_spec, classify_token
+from src.agent_memory import LongTermMemory
+from src.orchestrator import Orchestrator
+from src.server_orchestration_tools import register_orchestration_tools
 
 # Load environment variables
 load_dotenv()
@@ -366,7 +370,7 @@ mcp = FastMCP(
     name="grandMA2-MCP",
     instructions="""
     This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following 109 tools to operate grandMA2:
+    You can use the following 118 tools to operate grandMA2:
 
     --- Navigation & Inspection ---
     1. navigate_console - Navigate the console object tree (cd)
@@ -7325,6 +7329,41 @@ async def assign_temp_fader(
         "raw_response": raw_response,
         "risk_tier": "SAFE_WRITE",
     }, indent=2)
+
+
+# ============================================================
+# Agentic Layer — Orchestrator wiring
+# ============================================================
+
+_ltm = LongTermMemory()
+
+
+async def _telnet_send_fn(cmd: str) -> str:
+    """Thin wrapper so Orchestrator can send raw telnet without importing get_client."""
+    client = await get_client()
+    return await client.send_command_with_response(cmd)
+
+
+async def _tool_caller(tool_name: str, inputs: dict):
+    """
+    Call any registered MCP tool function by name.
+    Looks up the function from this module's global namespace at call time,
+    so all 109 tool definitions above are available.
+    """
+    fn = sys.modules[__name__].__dict__.get(tool_name)
+    if fn is None:
+        raise ValueError(f"Orchestrator: unknown tool '{tool_name}'")
+    return await fn(**inputs)
+
+
+_orchestrator = Orchestrator(
+    tool_caller=_tool_caller,
+    telnet_send=_telnet_send_fn,
+    ltm=_ltm,
+    parallel=False,
+)
+
+register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, OAuthScope)
 
 
 # ============================================================

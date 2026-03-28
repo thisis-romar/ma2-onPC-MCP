@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.20.0
+version: 3.21.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-28T20:00:00Z
+last_updated: 2026-03-28T22:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **109 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **118 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,7 +19,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 109 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 109 tools + 9 agentic, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
@@ -37,6 +37,13 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `scripts/rag_ingest_mcp_sdk.py` | CLI: ingest installed MCP SDK source (`mcp-sdk` ref) |
 | `src/categorization/` | ML-based tool categorization: K-Means clustering + auto-labeling |
 | `scripts/categorize_tools.py` | CLI: extract features, embed, cluster, write taxonomy JSON |
+| `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
+| `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
+| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
+| `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps |
+| `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
+| `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
+| `src/server_orchestration_tools.py` | Registers tools 110-118 (agentic layer) onto FastMCP |
 
 ---
 
@@ -106,7 +113,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-28): **1582 unit tests**, **142 live integration tests** (1724 total).
+- Current counts (2026-03-28): **1683 unit tests**, **142 live integration tests** (1825 total).
 
 ### New Show — connectivity preservation
 
