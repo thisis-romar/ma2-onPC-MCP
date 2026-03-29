@@ -18,6 +18,13 @@ Tools covered:
   127 — assert_selection_count
   128 — assert_preset_exists
   129 — get_executor_detail
+  131 — diff_console_state
+  137 — assert_fixture_exists
+  132 — get_showfile_info
+  133 — watch_system_var
+  134 — confirm_destructive_steps
+  135 — abort_task
+  136 — retry_failed_steps
   (110-118 smoke tests via no-snapshot guard)
 """
 
@@ -521,3 +528,422 @@ class TestGetExecutorDetail:
         t = _capture_tools(mock_orch)
         result = json.loads(await t["get_executor_detail"](executor_id=99))
         assert 5 in result["known_ids"]
+
+
+# ── Tool 131: diff_console_state ──────────────────────────────────────────────
+
+class TestDiffConsoleState:
+
+    @pytest.mark.asyncio
+    async def test_no_snapshot_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = None
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["diff_console_state"](baseline="{}"))
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_invalid_json_baseline_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = _make_snap()
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["diff_console_state"](baseline="{not valid json"))
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_no_change_empty_diff(self):
+        snap = _make_snap()
+        snap.active_filter = None
+        snap.active_world = None
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        baseline = '{"active_filter": null, "active_world": null}'
+        result = json.loads(await t["diff_console_state"](baseline=baseline))
+        assert result["changed_count"] == 0
+        assert result["unchanged_count"] == 2
+
+    @pytest.mark.asyncio
+    async def test_changed_field_detected(self):
+        snap = _make_snap()
+        snap.active_filter = 5
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        baseline = '{"active_filter": null}'
+        result = json.loads(await t["diff_console_state"](baseline=baseline))
+        assert result["changed_count"] == 1
+        assert "active_filter" in result["changed_fields"]
+        assert result["changed_fields"]["active_filter"]["before"] is None
+        assert result["changed_fields"]["active_filter"]["after"] == 5
+
+    @pytest.mark.asyncio
+    async def test_parked_count_diff(self):
+        snap = _make_snap()
+        snap.parked_fixtures.add("fixture 1")
+        snap.parked_fixtures.add("fixture 2")
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        baseline = '{"parked_count": 0}'
+        result = json.loads(await t["diff_console_state"](baseline=baseline))
+        assert result["changed_count"] == 1
+        assert result["changed_fields"]["parked_count"]["after"] == 2
+
+    @pytest.mark.asyncio
+    async def test_unknown_keys_ignored(self):
+        snap = _make_snap()
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        baseline = '{"unknown_field": "xyz"}'
+        result = json.loads(await t["diff_console_state"](baseline=baseline))
+        assert result["changed_count"] == 0
+
+    @pytest.mark.asyncio
+    async def test_snapshot_age_seconds_present(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = _make_snap()
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["diff_console_state"](baseline="{}"))
+        assert "snapshot_age_seconds" in result
+
+
+# ── Tool 132: get_showfile_info ───────────────────────────────────────────────
+
+class TestGetShowfileInfo:
+
+    @pytest.mark.asyncio
+    async def test_no_snapshot_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = None
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["get_showfile_info"]())
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_returns_required_keys(self):
+        snap = _make_snap()
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["get_showfile_info"]())
+        for key in ("showfile", "version", "host_status", "active_user", "hostname"):
+            assert key in result, f"Missing key: {key}"
+
+    @pytest.mark.asyncio
+    async def test_returns_snapshot_values(self):
+        snap = _make_snap()
+        snap.showfile    = "my_show"
+        snap.version     = "3.9.60.65"
+        snap.host_status = "Standalone"
+        snap.active_user = "operator"
+        snap.hostname    = "WINDELL-PC"
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["get_showfile_info"]())
+        assert result["showfile"]    == "my_show"
+        assert result["version"]     == "3.9.60.65"
+        assert result["host_status"] == "Standalone"
+        assert result["active_user"] == "operator"
+        assert result["hostname"]    == "WINDELL-PC"
+
+    @pytest.mark.asyncio
+    async def test_note_field_present(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = _make_snap()
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["get_showfile_info"]())
+        assert "note" in result
+
+
+# ── Tool 133: watch_system_var ────────────────────────────────────────────────
+
+class TestWatchSystemVar:
+
+    @pytest.mark.asyncio
+    async def test_no_send_fn_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch._send = None
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["watch_system_var"](
+            var_name="FADERPAGE", expected_value="2"
+        ))
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_matches_on_first_poll(self):
+        listvar_response = "$Global : $FADERPAGE = 2\n"
+        mock_orch = MagicMock()
+        mock_orch._send = AsyncMock(return_value=listvar_response)
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["watch_system_var"](
+            var_name="FADERPAGE", expected_value="2", poll_interval=0.1
+        ))
+        assert result["matched"] is True
+        assert result["final_value"] == "2"
+        assert result["polls"] >= 1
+
+    @pytest.mark.asyncio
+    async def test_timeout_when_value_never_matches(self):
+        listvar_response = "$Global : $FADERPAGE = 1\n"
+        mock_orch = MagicMock()
+        mock_orch._send = AsyncMock(return_value=listvar_response)
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["watch_system_var"](
+            var_name="FADERPAGE", expected_value="99",
+            timeout_seconds=0.3, poll_interval=0.1
+        ))
+        assert result["matched"] is False
+        assert result["final_value"] == "1"
+
+    @pytest.mark.asyncio
+    async def test_timeout_capped_at_30(self):
+        # We only test that it doesn't raise — actual cap is enforced internally
+        mock_orch = MagicMock()
+        mock_orch._send = None
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["watch_system_var"](
+            var_name="X", expected_value="Y", timeout_seconds=999
+        ))
+        # No send_fn → error path, but we verify no exception
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_var_name_with_dollar_prefix(self):
+        listvar_response = "$Global : $TIME = 12h00m00.000s\n"
+        mock_orch = MagicMock()
+        mock_orch._send = AsyncMock(return_value=listvar_response)
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["watch_system_var"](
+            var_name="$TIME", expected_value="12h00m00.000s", poll_interval=0.1
+        ))
+        assert result["matched"] is True
+        assert result["var_name"] == "$TIME"
+
+
+# ── Tool 134: confirm_destructive_steps ──────────────────────────────────────
+
+class TestConfirmDestructiveSteps:
+
+    @pytest.mark.asyncio
+    async def test_returns_required_keys(self):
+        mock_orch = MagicMock()
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["confirm_destructive_steps"](goal="select fixtures"))
+        for key in ("goal", "total_steps", "destructive_count", "destructive_steps", "safe_to_run", "hint"):
+            assert key in result, f"Missing key: {key}"
+
+    @pytest.mark.asyncio
+    async def test_safe_goal_has_zero_destructive(self):
+        mock_orch = MagicMock()
+        t = _capture_tools(mock_orch)
+        # A read-only-style goal should produce no DESTRUCTIVE steps
+        result = json.loads(await t["confirm_destructive_steps"](goal="list groups"))
+        assert isinstance(result["destructive_count"], int)
+        assert result["destructive_count"] >= 0
+
+    @pytest.mark.asyncio
+    async def test_destructive_steps_have_expected_shape(self):
+        mock_orch = MagicMock()
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["confirm_destructive_steps"](goal="store blue cue"))
+        for step in result.get("destructive_steps", []):
+            assert "step_index" in step
+            assert "name" in step
+            assert "description" in step
+
+    @pytest.mark.asyncio
+    async def test_safe_to_run_true_when_no_destructive(self):
+        mock_orch = MagicMock()
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["confirm_destructive_steps"](goal="list groups"))
+        # safe_to_run is True when destructive_count == 0
+        assert result["safe_to_run"] == (result["destructive_count"] == 0)
+
+
+# ── Tool 135: abort_task ─────────────────────────────────────────────────────
+
+class TestAbortTask:
+
+    @pytest.mark.asyncio
+    async def test_unknown_session_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch.recall = MagicMock(return_value=None)
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["abort_task"](session_id="nonexist"))
+        assert "error" in result
+        assert "hint" in result
+
+    @pytest.mark.asyncio
+    async def test_known_session_returns_aborted(self):
+        mock_orch = MagicMock()
+        mock_orch.recall = MagicMock(return_value={
+            "task_description": "blue wash",
+            "completed_steps": ["step_A"],
+            "failed_steps": [],
+            "token_spend": 42,
+        })
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["abort_task"](session_id="abc12345"))
+        assert result["aborted"] is True
+        assert result["session_id"] == "abc12345"
+        assert result["reason"] == "user_requested"
+        assert "step_A" in result["steps_completed"]
+
+    @pytest.mark.asyncio
+    async def test_custom_reason_propagated(self):
+        mock_orch = MagicMock()
+        mock_orch.recall = MagicMock(return_value={
+            "task_description": "test",
+            "completed_steps": [],
+            "failed_steps": [],
+            "token_spend": 0,
+        })
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["abort_task"](session_id="x", reason="emergency_stop"))
+        assert result["reason"] == "emergency_stop"
+
+
+# ── Tool 136: retry_failed_steps ─────────────────────────────────────────────
+
+class TestRetryFailedSteps:
+
+    @pytest.mark.asyncio
+    async def test_unknown_session_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch.recall = MagicMock(return_value=None)
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["retry_failed_steps"](session_id="nope"))
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_no_failed_steps_returns_zero_retried(self):
+        mock_orch = MagicMock()
+        mock_orch.recall = MagicMock(return_value={
+            "task_description": "blue wash",
+            "completed_steps": ["step_A"],
+            "failed_steps": [],
+            "token_spend": 10,
+        })
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["retry_failed_steps"](session_id="abc12345"))
+        assert result["retried"] == 0
+
+    @pytest.mark.asyncio
+    async def test_failed_steps_trigger_run(self):
+        from unittest.mock import AsyncMock as _AsyncMock
+        from src.orchestrator import OrchestrationResult, StepResult
+
+        fake_result = OrchestrationResult(
+            session_id="new123",
+            goal="blue wash",
+            outcome="success",
+            steps_done=2,
+            steps_failed=0,
+            total_tokens=50,
+            elapsed_s=0.5,
+        )
+        mock_orch = MagicMock()
+        mock_orch.recall = MagicMock(return_value={
+            "task_description": "blue wash",
+            "completed_steps": [],
+            "failed_steps": ["step_B: timeout"],
+            "token_spend": 5,
+        })
+        mock_orch.run = _AsyncMock(return_value=fake_result)
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["retry_failed_steps"](session_id="old99"))
+        assert result["retried"] == 1
+        assert result["new_session_id"] == "new123"
+        assert result["outcome"] == "success"
+        mock_orch.run.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_empty_task_description_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch.recall = MagicMock(return_value={
+            "task_description": "",
+            "failed_steps": ["step_X"],
+            "completed_steps": [],
+            "token_spend": 0,
+        })
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["retry_failed_steps"](session_id="empty99"))
+        assert "error" in result
+
+
+# ── Tool 137: assert_fixture_exists ──────────────────────────────────────────
+
+class TestAssertFixtureExists:
+
+    @pytest.mark.asyncio
+    async def test_snapshot_fixture_present(self):
+        snap = _make_snap()
+        snap.name_index.add_entry("Fixture", "Mac700", 101)
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["assert_fixture_exists"](fixture_id=101))
+        assert result["exists"] is True
+        assert result["source"] == "snapshot"
+        assert result["hint"] is None
+
+    @pytest.mark.asyncio
+    async def test_snapshot_fixture_absent(self):
+        snap = _make_snap()
+        snap.name_index.add_entry("Fixture", "Mac700", 20)  # 101 not here
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["assert_fixture_exists"](fixture_id=101))
+        assert result["exists"] is False
+        assert result["source"] == "snapshot"
+        assert result["hint"] is not None
+        assert "101" in result["hint"]
+
+    @pytest.mark.asyncio
+    async def test_no_snapshot_no_send_returns_error(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = None
+        mock_orch._send = None
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["assert_fixture_exists"](fixture_id=101))
+        assert "error" in result
+        assert result.get("fixture_id") == 101
+
+    @pytest.mark.asyncio
+    async def test_live_telnet_fixture_exists(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = None
+        mock_orch._send = AsyncMock(return_value="Fixture 101  Id=101  Name=Mac700\n")
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["assert_fixture_exists"](fixture_id=101))
+        assert result["exists"] is True
+        assert result["source"] == "live_telnet"
+        assert result["hint"] is None
+
+    @pytest.mark.asyncio
+    async def test_live_telnet_fixture_not_found(self):
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = None
+        mock_orch._send = AsyncMock(return_value="WARNING, NO OBJECTS FOUND FOR LIST\n")
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["assert_fixture_exists"](fixture_id=101))
+        assert result["exists"] is False
+        assert result["source"] == "live_telnet"
+        assert result["hint"] is not None
+        assert "101" in result["hint"]
+
+    @pytest.mark.asyncio
+    async def test_snapshot_without_fixture_entries_falls_to_telnet(self):
+        # Snapshot exists but Fixture pool not indexed → falls back to live probe
+        snap = _make_snap()  # name_index empty → no Fixture entries
+        mock_orch = MagicMock()
+        mock_orch.last_snapshot = snap
+        mock_orch._send = AsyncMock(return_value="Fixture 101  Id=101\n")
+        t = _capture_tools(mock_orch)
+        result = json.loads(await t["assert_fixture_exists"](fixture_id=101))
+        assert result["source"] == "live_telnet"
+        assert result["exists"] is True

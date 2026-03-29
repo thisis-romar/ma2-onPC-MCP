@@ -53,14 +53,28 @@ def pytest_addoption(parser):
         default=False,
         help="Enable destructive live tests that modify show data",
     )
+    parser.addoption(
+        "--live",
+        action="store_true",
+        default=False,
+        help="Enable live integration tests (requires real MA2 console at GMA_HOST)",
+    )
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip destructive tests unless --destructive is passed."""
-    if not config.getoption("--destructive"):
-        skip_destructive = pytest.mark.skip(
-            reason="Destructive tests require --destructive flag"
-        )
-        for item in items:
-            if "destructive" in item.keywords:
-                item.add_marker(skip_destructive)
+    """Skip live and destructive tests unless the corresponding flag is passed."""
+    run_live = config.getoption("--live")
+    run_destructive = config.getoption("--destructive")
+
+    skip_live = pytest.mark.skip(
+        reason="Live tests require --live flag (real MA2 console at GMA_HOST)"
+    )
+    skip_destructive = pytest.mark.skip(
+        reason="Destructive tests require --destructive flag"
+    )
+
+    for item in items:
+        if "live" in item.keywords and not run_live:
+            item.add_marker(skip_live)
+        elif "destructive" in item.keywords and not run_destructive:
+            item.add_marker(skip_destructive)

@@ -1,5 +1,5 @@
 """
-server_orchestration_tools.py — Register 20 agentic MCP tools (110-129) onto the FastMCP instance.
+server_orchestration_tools.py — Register 27 agentic MCP tools (110-137) onto the FastMCP instance.
 
 Tools 110-118 bring the MA2 MCP server's agentic capability up to the multi-agent
 model: task decomposition, orchestrated execution, memory recall, token tracking,
@@ -9,6 +9,11 @@ Tools 119-129 expose the ConsoleStateSnapshot read surface: cached gap-state que
 with zero telnet cost (get_console_state, get_park_ledger, get_filter_state,
 get_world_state, get_matricks_state, get_programmer_selection, hydrate_sequences,
 get_sequence_memory, assert_selection_count, assert_preset_exists, get_executor_detail).
+
+Tools 130-133 provide state diff, showfile info, and system variable polling.
+
+Tools 134-136 are orchestration safety gates: confirm_destructive_steps, abort_task,
+and retry_failed_steps.
 
 Usage in server.py:
     from src.server_orchestration_tools import register_orchestration_tools
@@ -315,7 +320,16 @@ def register_orchestration_tools(
             match_mode=match_mode,
             preset_type=preset_type or None,
         )
-        return json.dumps(resolved.to_dict(), indent=2)
+        result = resolved.to_dict()
+
+        if match_mode == "wildcard" and (name or ""):
+            all_matches = cs.name_index.resolve_wildcard(
+                object_type, name, preset_type=preset_type or None
+            )
+            result["wildcard_matches"] = [m.to_dict() for m in all_matches]
+            result["wildcard_match_count"] = len(all_matches)
+
+        return json.dumps(result, indent=2)
 
     # ------------------------------------------------------------------ #
     # Tool 117: list_pool_names                                           #
@@ -759,3 +773,418 @@ def register_orchestration_tools(
                 "known_ids": sorted(snap.executor_state.keys()),
             })
         return json.dumps(dataclasses.asdict(exec_state), indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 131: diff_console_state                                        #
+    # ------------------------------------------------------------------ #
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.STATE_READ)
+    @handle_errors_fn
+    async def diff_console_state(baseline: str) -> str:
+        """
+        Compare the current ConsoleStateSnapshot against a caller-supplied baseline.
+
+        Pass a JSON dict with any subset of: active_filter, active_world,
+        selected_fixture_count, fader_page, active_user_profile,
+        has_unsaved_changes, console_modes, filter_vte, parked_count.
+        Unrecognised keys are ignored.
+
+        Args:
+            baseline: JSON string with baseline field values to compare against.
+
+        Returns:
+            str: JSON with changed_fields, unchanged_count, snapshot_age_seconds.
+        """
+        import json
+        snap = orchestrator.last_snapshot
+        if snap is None:
+            return json.dumps({"error": "No snapshot available. Call hydrate_console_state first."})
+
+        try:
+            base = json.loads(baseline)
+        except Exception as exc:
+            return json.dumps({"error": f"Invalid baseline JSON: {exc}"})
+
+        _DIFFABLE = {
+            "active_filter":          lambda s: s.active_filter,
+            "active_world":           lambda s: s.active_world,
+            "selected_fixture_count": lambda s: s.selected_fixture_count,
+            "fader_page":             lambda s: s.fader_page,
+            "active_user_profile":    lambda s: s.active_user_profile,
+            "has_unsaved_changes":    lambda s: s.has_unsaved_changes,
+            "console_modes":          lambda s: s.console_modes,
+            "filter_vte":             lambda s: s.filter_vte,
+            "parked_count":           lambda s: len(s.parked_fixtures),
+        }
+
+        changed: dict = {}
+        unchanged = 0
+        for key, getter in _DIFFABLE.items():
+            if key not in base:
+                continue
+            current_val = getter(snap)
+            baseline_val = base[key]
+            if current_val != baseline_val:
+                changed[key] = {"before": baseline_val, "after": current_val}
+            else:
+                unchanged += 1
+
+        return json.dumps({
+            "changed_fields": changed,
+            "changed_count": len(changed),
+            "unchanged_count": unchanged,
+            "snapshot_age_seconds": snap.age_seconds(),
+        }, indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 132: get_showfile_info                                         #
+    # ------------------------------------------------------------------ #
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.STATE_READ)
+    @handle_errors_fn
+    async def get_showfile_info() -> str:
+        """
+        Return show identity and host info from the cached ConsoleStateSnapshot.
+
+        Zero telnet cost — reads fields hydrated during hydrate_console_state.
+        For live $DATE/$TIME values, use get_variable with var_name=DATE or TIME.
+
+        Returns:
+            str: JSON with showfile, version, host_status, active_user, hostname.
+        """
+        import json
+        snap = orchestrator.last_snapshot
+        if snap is None:
+            return json.dumps({"error": "No snapshot available. Call hydrate_console_state first."})
+
+        return json.dumps({
+            "showfile":    snap.showfile,
+            "version":     snap.version,
+            "host_status": snap.host_status,
+            "active_user": snap.active_user,
+            "hostname":    snap.hostname,
+            "note": "date/time are volatile — use get_variable(var_name='DATE') for live values",
+        }, indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 133: watch_system_var                                          #
+    # ------------------------------------------------------------------ #
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.STATE_READ)
+    @handle_errors_fn
+    async def watch_system_var(
+        var_name: str,
+        expected_value: str,
+        timeout_seconds: float = 10.0,
+        poll_interval: float = 0.5,
+    ) -> str:
+        """
+        Poll a grandMA2 system variable until it matches an expected value or times out.
+
+        Uses ListVar telnet command. Requires an active telnet connection.
+
+        Args:
+            var_name:        Variable name (with or without leading $, case-insensitive).
+                             e.g. "FADERPAGE" or "$FADERPAGE"
+            expected_value:  Value to wait for (string comparison).
+            timeout_seconds: Maximum wait time in seconds (capped at 30.0).
+            poll_interval:   Seconds between polls (minimum 0.1).
+
+        Returns:
+            str: JSON with matched, final_value, elapsed_seconds, polls.
+        """
+        import asyncio
+        import json
+        import time as _time
+
+        send_fn = getattr(orchestrator, "_send", None)
+        if send_fn is None:
+            return json.dumps({
+                "error": "No telnet connection configured on orchestrator.",
+                "hint": "watch_system_var requires a live telnet session.",
+            })
+
+        timeout_seconds = min(float(timeout_seconds), 30.0)
+        poll_interval   = max(float(poll_interval), 0.1)
+        clean_name      = var_name.lstrip("$").upper()
+
+        def _extract(raw: str) -> str | None:
+            for line in raw.splitlines():
+                line = line.strip()
+                if " : " in line:
+                    line = line.split(" : ", 1)[1].strip()
+                if "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                if k.strip().lstrip("$").upper() == clean_name:
+                    return v.strip()
+            return None
+
+        t0 = _time.monotonic()
+        polls = 0
+        final_value = ""
+        matched = False
+
+        while (_time.monotonic() - t0) < timeout_seconds:
+            raw = await send_fn("ListVar")
+            polls += 1
+            val = _extract(raw)
+            if val is not None:
+                final_value = val
+                if val == expected_value:
+                    matched = True
+                    break
+            await asyncio.sleep(poll_interval)
+
+        return json.dumps({
+            "matched":         matched,
+            "final_value":     final_value,
+            "expected_value":  expected_value,
+            "var_name":        f"${clean_name}",
+            "elapsed_seconds": round(_time.monotonic() - t0, 2),
+            "polls":           polls,
+        }, indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 134: confirm_destructive_steps                                 #
+    # ------------------------------------------------------------------ #
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.CUE_STORE)
+    @handle_errors_fn
+    async def confirm_destructive_steps(
+        goal: str,
+        color: str = "",
+        group: str = "",
+        sequence: int = 1,
+        cue: float = 1.0,
+        preset: str = "",
+    ) -> str:
+        """
+        Preview the DESTRUCTIVE steps in a task plan before running it.
+
+        Decomposes the goal and returns only the steps that require explicit
+        human confirmation (risk_tier == DESTRUCTIVE). Show this to the user
+        before calling run_task with auto_confirm_destructive=True.
+
+        Args:
+            goal:     Natural-language task goal (same as run_task)
+            color:    Target color name or hex
+            group:    Fixture group name
+            sequence: Target sequence number
+            cue:      Target cue number
+            preset:   Preset name or ID
+        """
+        import json
+        params = {k: v for k, v in {
+            "color": color, "group": group,
+            "sequence": sequence, "cue": cue, "preset": preset,
+        }.items() if v}
+
+        decomposer = TaskDecomposer()
+        plan = decomposer.decompose(goal, params)
+
+        from .task_decomposer import RiskTier
+        destructive = [
+            {
+                "step_index": i,
+                "name": s.name,
+                "description": s.description,
+                "tool": s.mcp_tools[0] if s.mcp_tools else None,
+                "tools": s.mcp_tools,
+            }
+            for i, s in enumerate(plan.ordered_steps())
+            if s.allowed_risk == RiskTier.DESTRUCTIVE
+        ]
+
+        return json.dumps({
+            "goal": goal,
+            "total_steps": len(plan.steps),
+            "destructive_count": len(destructive),
+            "destructive_steps": destructive,
+            "safe_to_run": len(destructive) == 0,
+            "hint": (
+                "No DESTRUCTIVE steps — safe to call run_task directly."
+                if not destructive
+                else "Review the steps above, then call run_task with auto_confirm_destructive=True."
+            ),
+        }, indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 135: abort_task                                                #
+    # ------------------------------------------------------------------ #
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.CUE_STORE)
+    @handle_errors_fn
+    async def abort_task(
+        session_id: str,
+        reason: str = "user_requested",
+    ) -> str:
+        """
+        Mark a task session as aborted and return its completion status.
+
+        Looks up the session in long-term memory and surfaces its completed/failed
+        step list with an aborted label. Use this when a running task must be halted
+        mid-way or when a completed session needs to be retroactively voided.
+
+        Args:
+            session_id: 8-char session ID from list_agent_sessions or run_task output.
+            reason:     Abort reason string (default "user_requested").
+
+        Returns:
+            str: JSON with aborted, session_id, reason, steps_completed, steps_failed.
+        """
+        import json
+        snapshot = orchestrator.recall(session_id)
+        if snapshot is None:
+            return json.dumps({
+                "error": f"Session '{session_id}' not found in long-term memory.",
+                "hint": "Use list_agent_sessions to browse available session IDs.",
+            })
+
+        return json.dumps({
+            "aborted":         True,
+            "session_id":      session_id,
+            "reason":          reason,
+            "task":            snapshot.get("task_description", ""),
+            "steps_completed": snapshot.get("completed_steps", []),
+            "steps_failed":    snapshot.get("failed_steps", []),
+            "tokens_consumed": snapshot.get("token_spend", 0),
+            "note": "Session marked aborted. No further steps will execute for this session.",
+        }, indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 136: retry_failed_steps                                        #
+    # ------------------------------------------------------------------ #
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.CUE_STORE)
+    @handle_errors_fn
+    async def retry_failed_steps(session_id: str) -> str:
+        """
+        Retry all failed steps from a prior task session.
+
+        Loads the session from long-term memory, retrieves its original goal,
+        and re-executes the task via run_task. Returns the retry outcome.
+
+        This is a full re-run of the original goal, not a selective step replay.
+        For selective step control, use decompose_task + run_task directly.
+
+        Args:
+            session_id: 8-char session ID from list_agent_sessions.
+
+        Returns:
+            str: JSON with retried, session_id, original_goal, new_session_id,
+                 failed_steps_before, outcome.
+        """
+        import json
+        snapshot = orchestrator.recall(session_id)
+        if snapshot is None:
+            return json.dumps({
+                "error": f"Session '{session_id}' not found in long-term memory.",
+                "hint": "Use list_agent_sessions to browse available session IDs.",
+            })
+
+        failed_steps = snapshot.get("failed_steps", [])
+        if not failed_steps:
+            return json.dumps({
+                "retried": 0,
+                "session_id": session_id,
+                "message": "No failed steps in this session — nothing to retry.",
+                "steps_completed": snapshot.get("completed_steps", []),
+            })
+
+        goal = snapshot.get("task_description", "")
+        if not goal:
+            return json.dumps({
+                "error": "Session has no task_description — cannot retry.",
+                "session_id": session_id,
+            })
+
+        result = await orchestrator.run(goal, auto_confirm_destructive=False)
+
+        return json.dumps({
+            "retried":            len(failed_steps),
+            "session_id":         session_id,
+            "new_session_id":     result.session_id,
+            "original_goal":      goal,
+            "failed_steps_before": failed_steps,
+            "outcome":            result.outcome,
+            "steps_done":         result.steps_done,
+            "steps_failed":       result.steps_failed,
+            "report":             result.report(),
+        }, indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 137: assert_fixture_exists                                     #
+    # ------------------------------------------------------------------ #
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.DISCOVER)
+    @handle_errors_fn
+    async def assert_fixture_exists(fixture_id: int) -> str:
+        """
+        Assert that a fixture ID exists in the console patch.
+
+        Two-tier lookup:
+          1. If a ConsoleStateSnapshot is available and the Fixture pool is
+             indexed, performs a zero-telnet check against the in-memory index.
+          2. Otherwise sends `list fixture {id}` via telnet and checks for
+             "NO OBJECTS FOUND" in the response (same mechanism as park_fixture).
+
+        Use this before any selection or programming operation when the fixture
+        ID is not guaranteed to be in the current patch.
+
+        Args:
+            fixture_id: The numeric fixture ID to check (e.g. 101).
+
+        Returns:
+            str: JSON with exists, fixture_id, source ("snapshot" or "live_telnet"),
+                 and a hint if the fixture is not found.
+        """
+        import json
+
+        # ── Tier 1: snapshot index (zero-telnet) ─────────────────────────
+        snap = orchestrator.last_snapshot
+        if snap is not None:
+            fixture_entries = snap.name_index.all_entries("Fixture")
+            if fixture_entries:
+                exists = any(e["id"] == fixture_id for e in fixture_entries)
+                return json.dumps({
+                    "exists":     exists,
+                    "fixture_id": fixture_id,
+                    "source":     "snapshot",
+                    "hint": (
+                        None if exists
+                        else (
+                            f"Fixture {fixture_id} is not in the snapshot index. "
+                            "It may not be patched. Call list_fixtures() to discover "
+                            "valid IDs, or hydrate_console_state() to refresh the index."
+                        )
+                    ),
+                }, indent=2)
+
+        # ── Tier 2: live telnet probe ─────────────────────────────────────
+        send_fn = getattr(orchestrator, "_send", None)
+        if send_fn is None:
+            return json.dumps({
+                "error": (
+                    "No telnet connection configured and no snapshot available. "
+                    "Call hydrate_console_state first, or ensure the server "
+                    "has a live telnet session."
+                ),
+                "fixture_id": fixture_id,
+            })
+
+        raw = await send_fn(f"list fixture {fixture_id}")
+        exists = "NO OBJECTS FOUND" not in raw.upper()
+        return json.dumps({
+            "exists":       exists,
+            "fixture_id":   fixture_id,
+            "source":       "live_telnet",
+            "raw_response": raw,
+            "hint": (
+                None if exists
+                else (
+                    f"Fixture {fixture_id} is not patched on the console. "
+                    "Use list_fixtures() to discover valid fixture IDs."
+                )
+            ),
+        }, indent=2)

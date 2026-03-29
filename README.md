@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.10.0
+version: 3.13.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-28T23:00:00Z
+last_updated: 2026-03-29T04:00:00Z
 ---
 
 <div align="center">
@@ -12,8 +12,8 @@ last_updated: 2026-03-28T23:00:00Z
 
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
-![Tools](https://img.shields.io/badge/MCP_tools-130-brightgreen)
-![Tests](https://img.shields.io/badge/tests-1922-brightgreen)
+![Tools](https://img.shields.io/badge/MCP_tools-137-brightgreen)
+![Tests](https://img.shields.io/badge/tests-1996-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -21,7 +21,7 @@ last_updated: 2026-03-28T23:00:00Z
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [130 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [137 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 </div>
 
@@ -54,7 +54,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>130 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>137 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
     C["🔧 Command Builders<br/><code>src/commands/</code><br/>179+ pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
@@ -79,7 +79,7 @@ graph TD
 | Module | Role |
 |--------|------|
 | `src/server.py` | FastMCP server, 110 interactive tools, safety gate, env config |
-| `src/server_orchestration_tools.py` | 20 agentic tools (110–129) registered onto FastMCP |
+| `src/server_orchestration_tools.py` | 27 agentic tools (110–137) registered onto FastMCP |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
@@ -125,7 +125,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **130 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
+The server exposes **137 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -417,7 +417,7 @@ python -m scripts.create_matricks_library --color-only
 </details>
 
 <details>
-<summary><strong>🤖 Orchestration & Console State</strong> — 20 tools</summary>
+<summary><strong>🤖 Orchestration & Console State</strong> — 27 tools</summary>
 
 These tools form the **agentic layer** (`src/server_orchestration_tools.py`). They enable
 multi-step task execution with memory, risk-tier isolation, and zero-telnet state queries
@@ -454,6 +454,18 @@ Read from the cached snapshot — **no telnet round-trips required**.
 | `assert_selection_count` | Validate fixture selection count against an expected value |
 | `assert_preset_exists` | Pre-flight check: verify a preset slot is occupied |
 | `get_executor_detail` | Full ExecutorState for a given executor ID |
+
+#### Orchestration Safety & Diagnostics (Tools 131–137)
+
+| Tool | Description |
+|------|-------------|
+| `diff_console_state` | Compare current snapshot against a caller-supplied baseline; returns changed fields |
+| `get_showfile_info` | Return showfile name, version, host status, and active user from snapshot (zero telnet) |
+| `watch_system_var` | Poll a grandMA2 system variable until it changes or a timeout is reached |
+| `confirm_destructive_steps` | Decompose a goal and return only the DESTRUCTIVE steps for human review |
+| `abort_task` | Mark a running session as aborted and return completed/failed step summary |
+| `retry_failed_steps` | Reload a past session from LTM and re-run the original goal |
+| `assert_fixture_exists` | Two-tier fixture patch validation (snapshot index → live telnet fallback) |
 
 > [!NOTE]
 > Call `hydrate_console_state` before using state-query tools. The snapshot caches values
@@ -843,7 +855,7 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 gma2-mcp-telnet/
 ├── src/
 │   ├── server.py                           # FastMCP server (110 interactive tools)
-│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–129)
+│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–137)
 │   │
 │   │   # Orchestration & Memory
 │   ├── orchestrator.py                     # Multi-agent task runner + session memory
@@ -882,7 +894,7 @@ gma2-mcp-telnet/
 │   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
 │   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
 │   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
-├── tests/                                  # 1922 tests (1780 unit + 142 live)
+├── tests/                                  # 1996 tests (1854 unit + 142 live)
 ├── doc/                                    # Command builders ref + cd-tree docs
 ├── vscode-mcp-provider/                    # VS Code MCP extension
 └── importexport/                           # Filter XMLs, fixture layers, exports
