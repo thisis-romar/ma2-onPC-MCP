@@ -15,6 +15,7 @@ import logging
 import os
 import re
 import sys
+import time
 from datetime import UTC
 
 from dotenv import load_dotenv
@@ -344,6 +345,7 @@ from src.vocab import RiskTier, build_v39_spec, classify_token
 from src.agent_memory import LongTermMemory
 from src.orchestrator import Orchestrator
 from src.server_orchestration_tools import register_orchestration_tools
+from src.telemetry import ToolTelemetry, infer_risk_tier
 
 # Load environment variables
 load_dotenv()
@@ -440,6 +442,17 @@ mcp = FastMCP(
 _session_manager: SessionManager | None = None
 _session_manager_lock = asyncio.Lock()
 
+# Telemetry singleton — created lazily, shared by all tool wrappers
+_telemetry_singleton: ToolTelemetry | None = None
+
+
+def _get_telemetry() -> ToolTelemetry:
+    """Return the module-level ToolTelemetry singleton (lazy init)."""
+    global _telemetry_singleton
+    if _telemetry_singleton is None:
+        _telemetry_singleton = ToolTelemetry()
+    return _telemetry_singleton
+
 
 async def _get_session_manager() -> SessionManager:
     global _session_manager
@@ -475,21 +488,50 @@ async def get_client() -> GMA2TelnetClient:
 
 
 def _handle_errors(func):
-    """Decorator that catches exceptions in MCP tools and returns JSON errors."""
+    """Decorator that catches exceptions in MCP tools and returns JSON errors.
+
+    Also records every invocation to the ``tool_invocations`` telemetry table
+    (controlled by the ``GMA_TELEMETRY`` env var; default enabled).
+    Risk tier and operator identity are inferred once at decoration time.
+    """
+    _risk_tier = infer_risk_tier(func)
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs) -> str:
+        t0 = time.monotonic()
+        result: str = ""
+        error_class: str | None = None
         try:
-            return await func(*args, **kwargs)
+            result = await func(*args, **kwargs)
         except ConnectionError as e:
             logger.error("Connection error in %s: %s", func.__name__, e)
-            return json.dumps({"error": f"Connection failed: {e}", "blocked": True}, indent=2)
+            error_class = "ConnectionError"
+            result = json.dumps({"error": f"Connection failed: {e}", "blocked": True}, indent=2)
         except RuntimeError as e:
             logger.error("Runtime error in %s: %s", func.__name__, e)
-            return json.dumps({"error": f"Runtime error: {e}", "blocked": True}, indent=2)
+            error_class = "RuntimeError"
+            result = json.dumps({"error": f"Runtime error: {e}", "blocked": True}, indent=2)
         except Exception as e:
             logger.error("Unexpected error in %s: %s", func.__name__, e, exc_info=True)
-            return json.dumps({"error": f"Unexpected error: {e}", "blocked": True}, indent=2)
+            error_class = type(e).__name__
+            result = json.dumps({"error": f"Unexpected error: {e}", "blocked": True}, indent=2)
+        finally:
+            if os.getenv("GMA_TELEMETRY", "1") != "0":
+                try:
+                    _get_telemetry().record_sync(
+                        tool_name=func.__name__,
+                        inputs_json=json.dumps(
+                            {k: str(v)[:200] for k, v in kwargs.items()}, default=str
+                        ),
+                        output_preview=result[:500] if result else "",
+                        error_class=error_class,
+                        latency_ms=(time.monotonic() - t0) * 1000,
+                        risk_tier=_risk_tier,
+                        operator=os.getenv("GMA_USER", "unknown"),
+                    )
+                except Exception:  # noqa: BLE001
+                    pass  # telemetry must never break a tool call
+        return result
 
     return wrapper
 
