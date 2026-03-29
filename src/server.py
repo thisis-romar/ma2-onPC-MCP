@@ -7520,6 +7520,319 @@ register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, 
 
 
 # ============================================================
+# MCP Resources
+# Static and semi-static context exposed as URI-addressable docs
+# ============================================================
+
+
+@mcp.resource("ma2://docs/rights-matrix")
+def resource_rights_matrix() -> str:
+    """
+    MA2 OAuth scope → MA2Right mapping matrix (read-only reference).
+
+    Returns the full JSON rights matrix from doc/ma2-rights-matrix.json.
+    Use this resource to look up which OAuth scope is required for any
+    MA2 operation before attempting to call a tool.
+    """
+    rights_path = Path(__file__).parent.parent / "doc" / "ma2-rights-matrix.json"
+    try:
+        return rights_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return json.dumps({"error": "rights matrix not found at doc/ma2-rights-matrix.json"})
+
+
+@mcp.resource("ma2://docs/vocab-summary")
+def resource_vocab_summary() -> str:
+    """
+    grandMA2 keyword vocabulary summary — all 141 keywords with RiskTier and category.
+
+    Use this resource to look up the safety tier of any MA2 keyword before
+    including it in a command string.  Tier determines whether confirm_destructive
+    is required and which OAuthScope must be active.
+    """
+    from src.vocab import load_vocab, classify_token
+    spec = load_vocab()
+    summary = {}
+    all_keywords = list(spec.function_keywords.keys()) + list(spec.object_keywords.keys())
+    for kw in all_keywords:
+        resolved = classify_token(kw, spec)
+        summary[kw] = {"category": resolved.category, "risk_tier": resolved.risk_tier}
+    return json.dumps(summary, indent=2)
+
+
+@mcp.resource("ma2://docs/tool-taxonomy")
+def resource_tool_taxonomy() -> str:
+    """
+    ML-generated tool taxonomy — 143 tools clustered into 14 categories.
+
+    Each entry includes tool name, category, and docstring summary.
+    Use this resource to understand the tool landscape before calling
+    suggest_tool_for_task, or to verify a tool exists before invoking it.
+    """
+    taxonomy = _load_taxonomy_cached()
+    # Return a compact summary: category → tool names
+    categories = taxonomy.get("categories", {})
+    summary = {
+        cat: [t["name"] for t in data.get("tools", [])]
+        for cat, data in categories.items()
+    }
+    return json.dumps({"categories": summary, "total_tools": sum(len(v) for v in summary.values())}, indent=2)
+
+
+@mcp.resource("ma2://docs/responsibility-map")
+def resource_responsibility_map() -> str:
+    """
+    Module responsibility map — every file's primary role and architectural smells.
+
+    Use this resource when making architectural decisions or when adding new
+    modules, to ensure the new code is placed in the correct layer.
+    """
+    map_path = Path(__file__).parent.parent / "doc" / "responsibility-map.md"
+    try:
+        return map_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return "# Responsibility map not found. Run the architecture audit to regenerate."
+
+
+@mcp.resource("ma2://docs/tool-surface-tiers")
+def resource_tool_surface_tiers() -> str:
+    """
+    Tool surface tier classification — which tools are Tier A (always visible),
+    Tier B (retrievable), or Tier C (internal).
+
+    Use this resource to decide whether to add a new tool to the planner-visible
+    surface or keep it as a worker-only primitive.
+    """
+    tiers_path = Path(__file__).parent.parent / "doc" / "tool-surface-tiers.md"
+    try:
+        return tiers_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return "# Tool surface tiers doc not found."
+
+
+@mcp.resource("ma2://skills/{skill_id}")
+def resource_skill_body(skill_id: str) -> str:
+    """
+    Retrieve a skill's formatted injection payload by ID.
+
+    Returns the skill body formatted as a user message ready for injection,
+    but only if the skill is usable (approved or non-DESTRUCTIVE).
+    Returns an error message if the skill is not found or not yet approved.
+
+    Use SkillRegistry.get_usable() for the same check with Python access.
+    """
+    from src.skill import SkillRegistry
+    reg = SkillRegistry()
+    skill = reg.get_usable(skill_id)
+    if skill is None:
+        sk = reg.get(skill_id)
+        if sk is None:
+            return f"Skill '{skill_id}' not found in registry."
+        return f"Skill '{skill_id}' exists but is not usable (safety_scope=DESTRUCTIVE, approved=False). Requires SYSTEM_ADMIN approval."
+    return skill.as_user_message()
+
+
+# ============================================================
+# MCP Prompts
+# User-initiated workflow templates for console operations
+# ============================================================
+
+
+@mcp.prompt()
+def preflight_destructive_change(operation: str, target: str, reason: str = "") -> str:
+    """
+    Run pre-flight checks before any destructive console operation.
+
+    Use this prompt before calling any DESTRUCTIVE tool to ensure the
+    operation is safe to proceed.
+
+    Args:
+        operation: The destructive operation to perform (e.g. "delete_object", "store_current_cue").
+        target: The object or path being modified (e.g. "Group 5", "Sequence 1 Cue 3").
+        reason: Why this change is needed (optional but recommended for audit trail).
+    """
+    return f"""Perform a safety pre-flight before executing: {operation} on {target}
+
+Reason: {reason or "(not specified)"}
+
+Pre-flight checklist:
+1. Read `ma2://docs/rights-matrix` — confirm the current user has sufficient rights for {operation}.
+2. Call `list_system_variables` — check $USERRIGHTS and $SHOWFILE.
+3. Call `get_object_info` on {target} — confirm the target exists and capture its current state.
+4. Check if Blind mode is active (`$BLINDMODE` or `mode_overrides["blind"]`).
+5. If the operation affects executors, verify no cue is running on the target executor.
+
+Only proceed with {operation} after all five checks pass.
+If any check fails, report the finding and ask the user to confirm before proceeding.
+Use `confirm_destructive=True` when calling the tool."""
+
+
+@mcp.prompt()
+def inspect_console(focus: str = "full") -> str:
+    """
+    Guided console state inspection — Inspect workflow.
+
+    Produces a structured console overview without any mutations.
+
+    Args:
+        focus: What to inspect — "full" (default), "playback", "fixtures", "show", or "rights".
+    """
+    focus_map = {
+        "full": "system variables, active executors, programmer state, and current show info",
+        "playback": "active executors, running cues, fader levels, and executor assignments",
+        "fixtures": "patched fixture types, selected fixtures, programmer content",
+        "show": "show file name, universe count, group count, sequence count, and preset pool sizes",
+        "rights": "current user, rights level, active world, and active filter",
+    }
+    scope = focus_map.get(focus, focus_map["full"])
+    return f"""Inspect the grandMA2 console — {focus} focus.
+
+Read-only inspection only. No mutations permitted.
+
+Steps:
+1. Call `list_system_variables` — capture all 26 system variables.
+2. Inspect: {scope}.
+3. Call `navigate_console` to `cd /` and `list_console_destination` to see the root object tree.
+4. If focus includes executors: call `query_object_list` for active sequences and their cue counts.
+5. Summarize findings in this structure:
+
+{{
+  "console_version": "$VERSION",
+  "show_file": "$SHOWFILE",
+  "active_user": "$USER",
+  "rights": "$USERRIGHTS",
+  "selected_exec": "$SELECTEDEXEC",
+  "active_cue": "$SELECTEDEXECCUE",
+  "fixture_count": <from list>,
+  "findings": ["..."]
+}}"""
+
+
+@mcp.prompt()
+def plan_cue_store(
+    sequence_id: str,
+    cue_number: str,
+    fixture_selection: str,
+    preset_or_values: str,
+) -> str:
+    """
+    Plan a cue store operation with safety and rights checks — Plan workflow.
+
+    Use this prompt to generate a structured cue store plan before executing.
+    The plan includes pre-flight checks, proposed commands, and a verification step.
+
+    Args:
+        sequence_id: Sequence number (e.g. "1", "99").
+        cue_number: Target cue number (e.g. "1", "3.5").
+        fixture_selection: Fixture group or ID range to use (e.g. "Group 1", "Fixture 1 Thru 10").
+        preset_or_values: Preset to apply or manual values (e.g. "Preset 4.5", "Full").
+    """
+    return f"""Plan a cue store operation without executing it yet.
+
+Target: Store Cue {cue_number} in Sequence {sequence_id}
+Fixtures: {fixture_selection}
+Values/Preset: {preset_or_values}
+
+Plan steps:
+1. PRE-FLIGHT: Call `list_system_variables` — confirm $USERRIGHTS has Programmer or higher.
+2. PRE-FLIGHT: Call `query_object_list` for Sequence {sequence_id} — check if Cue {cue_number} already exists.
+   If it exists: plan a /merge store. If not: plan a clean store.
+3. SELECT: Plan `SelFix {fixture_selection}` — verify fixture count > 0.
+4. APPLY: Plan `{preset_or_values}` — identify whether this is a preset recall or direct value.
+5. STORE PLAN: Emit the exact command to be executed:
+   `Store Cue {cue_number} Sequence {sequence_id} /merge`
+6. VERIFY PLAN: After store, plan `query_object_list` on Sequence {sequence_id} to confirm Cue {cue_number} exists.
+
+Return the plan as a JSON object with "pre_flight", "commands", and "verify" arrays.
+Do NOT execute any commands yet. This is a planning step only."""
+
+
+@mcp.prompt()
+def diagnose_playback_failure(executor_id: str, symptom: str) -> str:
+    """
+    Diagnose a playback failure on a specific executor — Inspect + Plan workflows.
+
+    Use this prompt when a cue or executor is not behaving as expected.
+
+    Args:
+        executor_id: The executor identifier (e.g. "1", "201", "1.1.201").
+        symptom: What is observed (e.g. "cue not advancing", "no output", "wrong fixtures responding").
+    """
+    return f"""Diagnose playback failure on Executor {executor_id}.
+
+Observed symptom: {symptom}
+
+Diagnostic steps:
+1. Call `list_system_variables` — check $SELECTEDEXEC, $SELECTEDEXECCUE, $FADERPAGE.
+2. Call `query_object_list` for the sequence assigned to Executor {executor_id} — count cues, check for gaps.
+3. Call `get_object_info` on Executor {executor_id} — check assignment, priority, options.
+4. Call `send_raw_command` with `list Executor {executor_id}` — capture raw executor state.
+5. Load skill `ma2://skills/telnet-feedback-triage` — apply FeedbackClass classification to any UNKNOWN COMMAND or WARNING responses.
+
+Common failure patterns:
+- "no output": check blind mode ($BLINDMODE), check if output is patched, check DMX universe assignment.
+- "cue not advancing": check trigger setting (Time/Go), check MIB settings, check if executor has "Kill" active.
+- "wrong fixtures": check world assignment, check if programmer has conflicting values (call `clear_programmer`).
+
+Return structured findings: {{"fault_class": "...", "root_cause": "...", "recommended_actions": [...]}}"""
+
+
+@mcp.prompt()
+def load_show_safely(show_name: str) -> str:
+    """
+    Safe show loading checklist — prevents accidental Telnet disconnection.
+
+    Use this prompt before any new_show or load_show operation.
+
+    Args:
+        show_name: The show file to load (e.g. "my_show_2026").
+    """
+    return f"""Load show "{show_name}" safely without severing the MCP Telnet connection.
+
+Pre-load checklist:
+1. Call `list_system_variables` — record current $SHOWFILE, $HOSTIP, $VERSION.
+2. Call `save_show` if any unsaved changes should be preserved.
+3. CRITICAL: Verify that the load command will preserve connectivity:
+   - For `new_show`: MUST use preserve_connectivity=True (passes /globalsettings /network /protocols).
+   - For `load_show`: confirm the target show has Telnet enabled in its global settings.
+4. Confirm the operator understands: loading a show with Telnet disabled will disconnect this MCP session.
+
+Only proceed after the checklist is complete.
+If loading a completely blank show, the user MUST manually re-enable Telnet in
+Setup → Console → Global Settings before the next MCP connection."""
+
+
+@mcp.prompt()
+def bootstrap_rights_users() -> str:
+    """
+    Bootstrap the standard six-tier MA2 rights user accounts — guided provisioning workflow.
+
+    Use this prompt when setting up a new show file with the standard
+    operator rights ladder (Admin, LightOperator, Programmer, PlaybackOperator, Guest, Emergency).
+    """
+    return """Bootstrap the standard MA2 rights user accounts.
+
+This is a DESTRUCTIVE workflow — it creates user accounts and modifies user profiles.
+All steps require confirm_destructive=True.
+
+Steps:
+1. INSPECT: Call `list_console_users` — check which accounts already exist.
+   Built-in accounts Administrator and Guest always exist and cannot be deleted.
+2. READ RESOURCE: Load `ma2://docs/rights-matrix` — review the six-tier rights ladder.
+3. PLAN: For each missing account in the standard set:
+   - Admin (rights: Admin)
+   - LightOperator (rights: Light-Operator)
+   - Programmer (rights: Programmer)
+   - PlaybackOp (rights: Playback-Operator)
+   - Guest (rights: Guest)
+4. EXECUTE: For each planned account, call `create_user(username=..., rights=..., confirm_destructive=True)`.
+5. VERIFY: Call `list_console_users` again — confirm all accounts were created.
+6. SAVE: Call `save_show` to persist the new accounts.
+
+Return a summary of: accounts created, accounts skipped (already existed), any errors."""
+
+
+# ============================================================
 # Server Startup
 # ============================================================
 
