@@ -393,3 +393,56 @@ class TestIsUsable:
     def test_destructive_usable_after_approval(self):
         s = _make_skill(safety_scope="DESTRUCTIVE", approved=True)
         assert s.is_usable() is True
+
+
+class TestAsUserMessage:
+    def test_format_contains_name_and_version(self):
+        s = _make_skill(name="blue_wash_look", version=1, body="# Steps\n1. Go")
+        msg = s.as_user_message()
+        assert msg.startswith("[Skill: blue_wash_look v1]")
+
+    def test_format_contains_body(self):
+        s = _make_skill(body="# Steps\n1. Select\n2. Store")
+        msg = s.as_user_message()
+        assert "# Steps" in msg
+        assert "1. Select" in msg
+
+    def test_version_reflected(self):
+        s = _make_skill(version=3)
+        assert "v3" in s.as_user_message()
+
+    def test_newline_between_header_and_body(self):
+        s = _make_skill(name="x", version=1, body="body text")
+        assert s.as_user_message() == "[Skill: x v1]\nbody text"
+
+
+class TestGetUsable:
+    def test_returns_usable_skill(self, reg):
+        s = reg.promote_from_session(
+            session_id="s1", name="Blue Wash", description="desc",
+            body="steps", safety_scope="SAFE_WRITE", applicable_context="wash",
+        )
+        result = reg.get_usable(s.id)
+        assert result is not None
+        assert result.id == s.id
+
+    def test_returns_none_for_missing_id(self, reg):
+        assert reg.get_usable("nonexistent-id") is None
+
+    def test_returns_none_for_unapproved_destructive(self, reg):
+        s = reg.promote_from_session(
+            session_id="s2", name="Dangerous Op", description="desc",
+            body="steps", safety_scope="DESTRUCTIVE", applicable_context="delete",
+        )
+        assert s.approved is False
+        assert reg.get_usable(s.id) is None
+
+    def test_returns_destructive_after_approval(self, reg):
+        s = reg.promote_from_session(
+            session_id="s3", name="Approved Op", description="desc",
+            body="steps", safety_scope="DESTRUCTIVE", applicable_context="delete",
+        )
+        reg.approve(s.id)
+        result = reg.get_usable(s.id)
+        assert result is not None
+        assert result.approved is True

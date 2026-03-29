@@ -311,6 +311,38 @@ class LongTermMemory:
         """)
         self._conn.commit()
 
+    @staticmethod
+    def _compress_session_snapshot(wm: "WorkingMemory") -> dict:
+        """
+        Build a compact decision summary from a WorkingMemory object.
+
+        Stores only the information needed to understand what happened in a
+        session — decisions, outcomes, token spend — without duplicating the
+        full FixtureSnapshot dicts that are already stored in the
+        ``fixture_history`` table.  Reduces the snapshot blob from ~50 KB to
+        ~2 KB per session.
+
+        Format version key ``_v: 2`` allows ``recall_session()`` to detect
+        the new format and handle old v1 blobs gracefully.
+        """
+        cs = wm.console_state
+        fixture_summary = {
+            fid: {"group": s.group, "intensity": s.intensity, "preset": s.preset_applied}
+            for fid, s in wm.fixtures.items()
+        }
+        return {
+            "_v": 2,
+            "session_id": wm.session_id,
+            "task": wm.task_description,
+            "completed_steps": list(wm.completed_steps),
+            "failed_steps": list(wm.failed_steps),
+            "token_spend": wm.token_spend,
+            "park_ledger": sorted(wm.park_ledger),
+            "mode_overrides": dict(wm.mode_overrides),
+            "console_state_summary": cs.summary() if cs else "",
+            "fixture_summary": fixture_summary,
+        }
+
     def save_session(self, wm: WorkingMemory, outcome: str) -> None:
         report = wm.token_report()
         cs = wm.console_state
@@ -329,7 +361,7 @@ class LongTermMemory:
                 cs.active_user  if cs else "",
                 cs.active_world  if cs else None,
                 cs.active_filter if cs else None,
-                json.dumps(wm.to_dict()),
+                json.dumps(self._compress_session_snapshot(wm)),
             ),
         )
         now = time.time()
@@ -364,6 +396,16 @@ class LongTermMemory:
         return [dict(zip(cols, r)) for r in rows]
 
     def recall_session(self, session_id: str) -> dict | None:
+        """
+        Return the stored snapshot for a session.
+
+        Handles both formats:
+        - v1 (legacy): full ``wm.to_dict()`` blob — detected by absence of ``_v`` key
+        - v2 (current): compressed decision summary — detected by ``_v: 2``
+
+        Both formats are returned as-is; callers should check ``snapshot.get("_v", 1)``
+        if they need to distinguish them.
+        """
         row = self._conn.execute(
             "SELECT snapshot FROM sessions WHERE id=?", (session_id,)
         ).fetchone()

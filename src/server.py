@@ -6972,21 +6972,30 @@ async def suggest_tool_for_task(
     task_description: str,
     top_n: int = 3,
     provider: str = "zero",
+    prefer_semantic: bool = True,
 ) -> str:
     """
     Suggest MCP tools for a natural-language task description (SAFE_READ).
 
     Embeds the task description and finds the closest tools by cosine
     similarity against stored docstring embeddings.  Falls back to keyword
-    matching when using the zero-vector provider.
+    matching when using the zero-vector provider or when no embedding token
+    is available.
 
     Args:
         task_description: What you want to accomplish (e.g. "fade out all fixtures").
         top_n: Number of suggestions to return (default 3).
         provider: Embedding provider — "zero" (keyword fallback) or "github".
+            Overridden by ``prefer_semantic`` when a token is available.
+        prefer_semantic: When True (default), automatically use embedding-based
+            search if GITHUB_MODELS_TOKEN is set in the environment.  Falls back
+            to keyword matching with a ``warning`` field when no token is present.
+            Set to False to force keyword matching regardless of token availability.
 
     Returns:
         str: JSON array of suggested tools with scores and descriptions.
+             Includes a top-level ``warning`` key when semantic search was
+             requested but fell back to keyword matching.
     """
     import numpy as np
 
@@ -7004,29 +7013,42 @@ async def suggest_tool_for_task(
 
     docstrings = get_docstring_map(taxonomy)
 
-    if provider == "zero":
-        # Keyword-based fallback: score tools by word overlap
+    # Resolve effective provider: prefer_semantic promotes "zero" → "github"
+    # when a token is available; records a warning when it cannot.
+    semantic_warning: str | None = None
+    effective_provider = provider
+    if prefer_semantic and provider == "zero":
+        if os.environ.get("GITHUB_MODELS_TOKEN", ""):
+            effective_provider = "github"
+        else:
+            semantic_warning = (
+                "prefer_semantic=True but GITHUB_MODELS_TOKEN is not set; "
+                "using keyword matching. Set GITHUB_MODELS_TOKEN for semantic search."
+            )
+
+    def _keyword_scores() -> list[tuple[str, float]]:
         task_words = set(task_description.lower().split())
-        scores: list[tuple[str, float]] = []
+        result: list[tuple[str, float]] = []
         for name, doc in docstrings.items():
             tool_words = set(name.replace("_", " ").lower().split()) | set(doc.lower().split())
             overlap = len(task_words & tool_words)
             if overlap > 0:
-                scores.append((name, float(overlap) / max(len(task_words), 1)))
-        scores.sort(key=lambda x: -x[1])
+                result.append((name, float(overlap) / max(len(task_words), 1)))
+        result.sort(key=lambda x: -x[1])
+        return result
+
+    if effective_provider == "zero":
+        scores: list[tuple[str, float]] = _keyword_scores()
     else:
         # Embed task and compare via cosine similarity
         names, emb_matrix = get_embedding_matrix(taxonomy)
         if emb_matrix.size == 0 or np.allclose(emb_matrix, 0.0):
             # Fall back to keyword matching
-            task_words = set(task_description.lower().split())
-            scores = []
-            for name, doc in docstrings.items():
-                tool_words = set(name.replace("_", " ").lower().split()) | set(doc.lower().split())
-                overlap = len(task_words & tool_words)
-                if overlap > 0:
-                    scores.append((name, float(overlap) / max(len(task_words), 1)))
-            scores.sort(key=lambda x: -x[1])
+            scores = _keyword_scores()
+            semantic_warning = (
+                (semantic_warning or "")
+                + " Embedding matrix is empty (zero-vector store); using keyword matching."
+            ).strip()
         else:
             from rag.ingest.embed import GitHubModelsProvider
 
@@ -7046,8 +7068,8 @@ async def suggest_tool_for_task(
             scores.sort(key=lambda x: -x[1])
 
     top = scores[:top_n]
-    return json.dumps(
-        [
+    result: dict = {
+        "suggestions": [
             {
                 "name": name,
                 "score": round(score, 4),
@@ -7055,9 +7077,11 @@ async def suggest_tool_for_task(
                 "description": docstrings.get(name, ""),
             }
             for name, score in top
-        ],
-        indent=2,
-    )
+        ]
+    }
+    if semantic_warning:
+        result["warning"] = semantic_warning
+    return json.dumps(result, indent=2)
 
 
 # ============================================================================

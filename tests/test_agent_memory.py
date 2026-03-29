@@ -178,7 +178,7 @@ class TestLongTermMemory:
         ltm_tmp.save_session(wm, outcome="success")
         snap = ltm_tmp.recall_session(wm.session_id)
         assert snap is not None
-        assert snap.get("task_description") == "recall test"
+        assert snap.get("task") == "recall test"  # v2 format uses "task" key
 
     def test_recall_nonexistent_returns_none(self, ltm_tmp):
         result = ltm_tmp.recall_session("deadbeef")
@@ -208,3 +208,64 @@ class TestLongTermMemory:
         hist = ltm_tmp.park_history("7")
         assert len(hist) == 1
         assert hist[0]["action"] == "parked"
+
+
+class TestCompressSessionSnapshot:
+    def test_snapshot_has_v2_key(self, ltm_tmp):
+        wm = WorkingMemory(task_description="compression test")
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap is not None
+        assert snap.get("_v") == 2
+
+    def test_snapshot_contains_decision_fields(self, ltm_tmp):
+        wm = WorkingMemory(task_description="decision test")
+        wm.completed_steps.append("step_a")
+        wm.failed_steps.append("step_b")
+        wm.charge_tokens(100)
+        ltm_tmp.save_session(wm, outcome="partial")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert "step_a" in snap["completed_steps"]
+        assert "step_b" in snap["failed_steps"]
+        assert snap["token_spend"] == 100
+
+    def test_snapshot_does_not_contain_full_fixture_snapshots(self, ltm_tmp):
+        wm = WorkingMemory(task_description="fixture compress test")
+        wm.record_fixture(1, group="wash", intensity=75.0)
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        # v2 stores fixture_summary (names+values), not full FixtureSnapshot dicts
+        assert "fixture_summary" in snap
+        assert "fixtures" not in snap  # full FixtureSnapshot key absent
+        summary = snap["fixture_summary"]
+        assert "1" in summary
+        assert "intensity" in summary["1"]
+
+    def test_snapshot_park_ledger_is_sorted_list(self, ltm_tmp):
+        wm = WorkingMemory(task_description="park ledger test")
+        wm.park(5)
+        wm.park(3)
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap["park_ledger"] == sorted(snap["park_ledger"])
+
+    def test_recall_session_v1_compat(self, ltm_tmp):
+        """recall_session must return v1 blobs unchanged (no _v key)."""
+        import json
+        import time
+        # Manually insert a v1-style blob
+        wm = WorkingMemory(task_description="v1 compat")
+        v1_blob = wm.to_dict()  # v1 format: has 'fixtures' key, no '_v'
+        ltm_tmp._conn.execute(
+            "INSERT OR REPLACE INTO sessions "
+            "(id,timestamp,task,outcome,steps_done,steps_failed,"
+            "tokens,elapsed_s,showfile,active_user,active_world,active_filter,snapshot)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (wm.session_id, time.time(), wm.task_description, "ok",
+             0, 0, 0, 0.0, "", "", None, None, json.dumps(v1_blob)),
+        )
+        ltm_tmp._conn.commit()
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap is not None
+        # v1 blobs have 'fixtures' key and no '_v'
+        assert snap.get("_v", 1) == 1
