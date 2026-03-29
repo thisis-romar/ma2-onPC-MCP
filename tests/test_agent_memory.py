@@ -269,3 +269,54 @@ class TestCompressSessionSnapshot:
         assert snap is not None
         # v1 blobs have 'fixtures' key and no '_v'
         assert snap.get("_v", 1) == 1
+
+
+# ── DecisionCheckpoint ───────────────────────────────────────────────────────
+
+class TestDecisionCheckpoint:
+    def test_add_checkpoint_stores_entry(self):
+        wm = WorkingMemory(task_description="cp test")
+        cp = wm.add_checkpoint("rights_denied", "list system variables")
+        assert len(wm.checkpoints) == 1
+        assert cp.fault == "rights_denied"
+        assert cp.query == "list system variables"
+        assert cp.replay == "list system variables"
+        assert cp.confidence == "medium"
+
+    def test_checkpoint_is_fresh_within_window(self):
+        wm = WorkingMemory(task_description="fresh test")
+        cp = wm.add_checkpoint("cue_audit_seq_1", "query_object_list",
+                               fresh_for_seconds=60)
+        assert cp.is_fresh() is True
+
+    def test_checkpoint_is_stale_after_window(self):
+        import time
+        wm = WorkingMemory(task_description="stale test")
+        cp = wm.add_checkpoint("stale_fault", "list", fresh_for_seconds=0)
+        # Give it a tiny sleep so observed_at < now
+        time.sleep(0.01)
+        assert cp.is_fresh() is False
+
+    def test_fresh_checkpoint_returns_latest(self):
+        wm = WorkingMemory(task_description="latest test")
+        wm.add_checkpoint("same_fault", "query v1", fresh_for_seconds=60,
+                          confidence="low")
+        wm.add_checkpoint("same_fault", "query v2", fresh_for_seconds=60,
+                          confidence="high")
+        cp = wm.fresh_checkpoint("same_fault")
+        assert cp is not None
+        assert cp.confidence == "high"
+
+    def test_fresh_checkpoint_returns_none_for_unknown_fault(self):
+        wm = WorkingMemory(task_description="none test")
+        assert wm.fresh_checkpoint("no_such_fault") is None
+
+    def test_compress_snapshot_includes_checkpoint_count(self, ltm_tmp):
+        wm = WorkingMemory(task_description="checkpoint count test")
+        wm.add_checkpoint("rights_denied", "list system variables",
+                          fresh_for_seconds=60, confidence="high")
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap["checkpoint_count"] == 1
+        assert snap["checkpoints"][0]["fault"] == "rights_denied"
+        assert snap["checkpoints"][0]["confidence"] == "high"

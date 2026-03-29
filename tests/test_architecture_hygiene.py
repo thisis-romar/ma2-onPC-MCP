@@ -319,3 +319,23 @@ class TestResourcePurity:
                     f"MCP resource function contains '{forbidden}' — "
                     f"resources must be read-only and must not call telnet"
                 )
+
+
+# ── 11. SubTask has workflow field ───────────────────────────────────────────
+
+class TestSubTaskWorkflowHygiene:
+    def test_subtask_workflow_field_exists(self):
+        """SubTask must have a workflow attribute (Literal inspect/plan/execute)."""
+        from src.task_decomposer import SubTask
+        from src.vocab import RiskTier
+        st = SubTask(
+            name="hygiene_check",
+            agent_role="TestAgent",
+            description="structural check",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=[],
+        )
+        assert hasattr(st, "workflow"), "SubTask must have a 'workflow' attribute"
+        assert st.workflow in ("inspect", "plan", "execute"), (
+            f"workflow must be 'inspect', 'plan', or 'execute', got {st.workflow!r}"
+        )

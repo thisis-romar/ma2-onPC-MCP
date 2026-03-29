@@ -370,72 +370,19 @@ _vocab_spec = build_v39_spec()
 # Create MCP server
 mcp = FastMCP(
     name="grandMA2-MCP",
-    instructions="""
-    This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following 118 tools to operate grandMA2:
+    instructions="""grandMA2 MCP server — 143 tools, 6 resources, 6 prompts.
 
-    --- Navigation & Inspection ---
-    1. navigate_console - Navigate the console object tree (cd)
-    2. get_console_location - Query current console destination
-    3. list_console_destination - List objects at current destination
-    4. scan_console_indexes - Batch scan numeric indexes at any tree level
+Use suggest_tool_for_task(task_description) to find the right tool for any task.
+Use ma2://docs/tool-taxonomy resource to browse all 143 tools by category.
 
-    --- Lighting Control ---
-    5. set_intensity - Set dimmer level on fixtures, groups, or channels
-    6. set_attribute - Set attribute values (Pan, Tilt, Zoom, etc.)
-    7. apply_preset - Apply a stored preset (color, position, gobo, etc.)
-    8. execute_sequence - Legacy sequence playback (go/pause/goto)
-    9. playback_action - Full playback control (go, go_back, goto, fast_forward, etc.)
-    10. clear_programmer - Clear programmer state (all, selection, active)
-    11. park_fixture - Park a fixture/DMX at current or specified output
-    12. unpark_fixture - Release a parked fixture/DMX
+Core workflows:
+  Inspect  → navigate_console, list_console_destination, query_object_list, get_object_info
+  Plan     → inspect + list_system_variables + suggest_tool_for_task
+  Execute  → run_orchestrated_task (handles preflight, execution, verification)
 
-    --- Programming ---
-    13. create_fixture_group - Select fixtures and save as a named group
-    14. store_current_cue - Store programmer into a cue (DESTRUCTIVE)
-    15. store_new_preset - Store programmer as a preset (DESTRUCTIVE)
-    16. store_object - Store generic objects: macros, effects, worlds (DESTRUCTIVE)
-    17. set_node_property - Set a property on a node via tree path
-    18. copy_or_move_object - Copy or move objects between slots
-    19. delete_object - Delete any object (DESTRUCTIVE)
-    20. run_macro - Execute a stored macro by ID
-
-    --- Assignment & Layout ---
-    21. assign_object - Assign objects, functions, fades, or layout positions (DESTRUCTIVE)
-    22. label_or_appearance - Label or style objects (DESTRUCTIVE)
-    23. edit_object - Edit, cut, or paste objects (cut/paste DESTRUCTIVE)
-    24. remove_content - Remove content from objects (DESTRUCTIVE)
-
-    --- Info & Queries ---
-    25. get_object_info - Query info on any object
-    26. query_object_list - List cues, groups, presets, attributes, messages
-    27. manage_variable - Set or add to console variables (global/user)
-    28. send_raw_command - Send any MA command directly (safety-gated)
-
-    --- Codebase & Documentation Search ---
-    29. search_codebase - Semantic/keyword search across this server's own source code,
-        tests, docs, AND the official grandMA2 help documentation (when indexed).
-        Use this to discover command builder signatures, safety rules,
-        implementation details, or grandMA2 console operation instructions.
-
-    --- User Management (continued) ---
-    102. delete_user - Delete a console user account by slot (DESTRUCTIVE)
-
-    --- Library & Module Browsing ---
-    103. browse_effect_library - Browse effect templates in the grandMA2 effect library
-    104. browse_macro_library - Browse macro templates in the grandMA2 macro library
-    105. browse_plugin_library - Browse plugin templates in the grandMA2 plugin library
-    106. list_fader_modules - List connected fader modules
-    107. list_update_history - List programming update history
-
-    --- Show Management (continued) ---
-    108. delete_show - Delete a show file from disk (DESTRUCTIVE)
-
-    --- Playback (continued) ---
-    109. assign_temp_fader - Set the temp fader level on the selected executor
-
-    SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
-    """,
+SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
+Rights: read ma2://docs/rights-matrix before any mutating operation.
+""",
 )
 
 # Per-operator session pool

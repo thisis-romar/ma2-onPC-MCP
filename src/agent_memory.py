@@ -41,6 +41,28 @@ class FixtureSnapshot:
 
 
 @dataclass
+class DecisionCheckpoint:
+    """
+    Distilled decision record replacing raw telnet transcript retention.
+
+    Follows the recompute-over-retain principle: store the fault label and
+    the replay query, not the raw output.  Call ``is_fresh()`` before
+    returning a cached finding to the planner — if stale, re-run ``replay``.
+    """
+
+    fault: str              # e.g. "rights_denied_store", "cue_audit_seq_1"
+    query: str              # the MA2 command / tool call that produced this finding
+    observed_at: float      # Unix timestamp (time.time())
+    fresh_for_seconds: int  # seconds before the checkpoint should be replayed
+    replay: str             # command / tool call to re-run to refresh the finding
+    confidence: str = "medium"  # "high" | "medium" | "low"
+
+    def is_fresh(self) -> bool:
+        """True while the observation is still within its freshness window."""
+        return (time.time() - self.observed_at) < self.fresh_for_seconds
+
+
+@dataclass
 class WorkingMemory:
     """
     Tracks programmer state across sub-agent calls within one task session.
@@ -91,6 +113,9 @@ class WorkingMemory:
     # ── Step tracking ────────────────────────────────────────────────
     completed_steps: list[str] = field(default_factory=list)
     failed_steps: list[str] = field(default_factory=list)
+
+    # ── Decision checkpoints (recompute-over-retain) ─────────────────
+    checkpoints: list["DecisionCheckpoint"] = field(default_factory=list)
 
     # ── Token tracking ───────────────────────────────────────────────
     token_spend: int = 0
@@ -206,6 +231,33 @@ class WorkingMemory:
         self.pending_cues.append(cue)
 
     # ── Token tracking ───────────────────────────────────────────────
+
+    def add_checkpoint(
+        self,
+        fault: str,
+        query: str,
+        fresh_for_seconds: int = 30,
+        replay: str = "",
+        confidence: str = "medium",
+    ) -> "DecisionCheckpoint":
+        """Record a distilled decision checkpoint (recompute-over-retain)."""
+        cp = DecisionCheckpoint(
+            fault=fault,
+            query=query,
+            observed_at=time.time(),
+            fresh_for_seconds=fresh_for_seconds,
+            replay=replay or query,
+            confidence=confidence,
+        )
+        self.checkpoints.append(cp)
+        return cp
+
+    def fresh_checkpoint(self, fault: str) -> "DecisionCheckpoint | None":
+        """Return the most recent fresh checkpoint for a given fault, or None."""
+        for cp in reversed(self.checkpoints):
+            if cp.fault == fault and cp.is_fresh():
+                return cp
+        return None
 
     def charge_tokens(self, n: int) -> None:
         self.token_spend += n
@@ -341,6 +393,11 @@ class LongTermMemory:
             "mode_overrides": dict(wm.mode_overrides),
             "console_state_summary": cs.summary() if cs else "",
             "fixture_summary": fixture_summary,
+            "checkpoint_count": len(wm.checkpoints),
+            "checkpoints": [
+                {"fault": cp.fault, "confidence": cp.confidence}
+                for cp in wm.checkpoints
+            ],
         }
 
     def save_session(self, wm: WorkingMemory, outcome: str) -> None:
