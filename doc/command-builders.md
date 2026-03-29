@@ -1,9 +1,9 @@
 ---
 title: Command Builder Reference
 description: Pure-function reference for all 179 grandMA2 command builders
-version: 1.4.1
+version: 1.4.3
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-28T23:00:00Z
+last_updated: 2026-03-29T03:00:00Z
 ---
 
 # Command Builder Reference
@@ -270,4 +270,4 @@ Rights levels: 0=None, 1=Playback, 2=Presets, 3=Program, 4=Setup, 5=Admin
 | `MA2Right.SETUP` | `"setup"` | `gma2:setup:console` | 4 |
 | `MA2Right.ADMIN` | `"admin"` | `gma2:user:manage` | 5 |
 
-Use `@require_ma2_right(MA2Right.X)` in `src/server.py` as a human-readable alternative to `@require_scope(OAuthScope.Y)`. The full 130-tool rights assignment is in `doc/ma2-rights-matrix.json`.
+Use `@require_ma2_right(MA2Right.X)` in `src/server.py` as a human-readable alternative to `@require_scope(OAuthScope.Y)`. The full 137-tool rights assignment is in `doc/ma2-rights-matrix.json`.

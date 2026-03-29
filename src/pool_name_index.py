@@ -80,6 +80,14 @@ class PoolNameIndex:
     ) -> list[dict[str, Any]]:
         return list(self._store.get((object_type.lower(), preset_type), []))
 
+    def names_for_type(
+        self,
+        object_type: str,
+        preset_type: int | None = None,
+    ) -> list[str]:
+        """Return a list of names for all entries of a given pool type."""
+        return [e["name"] for e in self.all_entries(object_type, preset_type=preset_type)]
+
     def indexed_types(self) -> list[str]:
         """Return unique pool type names that have at least one entry."""
         seen: set[str] = set()
@@ -123,9 +131,17 @@ class PoolNameIndex:
             if match:
                 resolved_name = match["name"]
         elif name:
-            match = next((e for e in entries if e["name"].lower() == name.lower()), None)
-            if match:
-                resolved_id = match["id"]
+            if match_mode == "wildcard":
+                import fnmatch as _fnmatch
+                wm = [e for e in entries if _fnmatch.fnmatch(e["name"], name)]
+                if len(wm) == 1:
+                    resolved_name = wm[0]["name"]
+                    resolved_id   = wm[0]["id"]
+                # 0 or >1 matches → leave id=None, keep name as pattern
+            else:
+                match = next((e for e in entries if e["name"].lower() == name.lower()), None)
+                if match:
+                    resolved_id = match["id"]
 
         token = _build_token(object_type, resolved_name, resolved_id, match_mode, preset_type)
         return ObjectRef(
@@ -136,6 +152,30 @@ class PoolNameIndex:
             match_mode=match_mode,
             preset_type=preset_type,
         )
+
+
+    def resolve_wildcard(
+        self,
+        object_type: str,
+        pattern: str,
+        preset_type: int | None = None,
+    ) -> list[ObjectRef]:
+        """Return an ObjectRef for every pool entry whose name matches a fnmatch pattern."""
+        import fnmatch as _fnmatch
+        entries = self.all_entries(object_type, preset_type)
+        results = []
+        for e in entries:
+            if _fnmatch.fnmatch(e["name"], pattern):
+                token = _build_token(object_type, e["name"], e["id"], "wildcard", preset_type)
+                results.append(ObjectRef(
+                    object_type=object_type,
+                    name=e["name"],
+                    id=e["id"],
+                    token=token,
+                    match_mode="wildcard",
+                    preset_type=preset_type,
+                ))
+        return results
 
 
 def _build_token(
