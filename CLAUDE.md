@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.23.0
+version: 3.24.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-29T03:00:00Z
+last_updated: 2026-03-29T05:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **137 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **143 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,7 +19,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 110 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 110 interactive tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
@@ -43,7 +43,10 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
-| `src/server_orchestration_tools.py` | Registers tools 110-137 (agentic layer) onto FastMCP |
+| `src/server_orchestration_tools.py` | Registers tools 110-143 (agentic layer) onto FastMCP |
+| `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
+| `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
+| `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
 
 ---
 
@@ -113,7 +116,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-29): **1854 unit tests**, **142 live integration tests** (1996 total).
+- Current counts (2026-03-29): **1939 unit tests**, **142 live integration tests** (2081 total).
 
 ### New Show — connectivity preservation
 
