@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.24.0
+version: 3.25.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-29T05:00:00Z
+last_updated: 2026-03-29T06:00:00Z
 ---
 
 # Project Rules
@@ -496,6 +496,99 @@ Three tiers enforced before any command reaches the console:
 
 ---
 
+## OpenSpace Layer
+
+### Telemetry (`src/telemetry.py`)
+
+Every MCP tool call is recorded automatically via the `@_handle_errors` decorator in
+`src/server.py`. No per-tool changes are needed.
+
+| Env var | Default | Effect |
+|---|---|---|
+| `GMA_TELEMETRY=1` | enabled | Records every invocation to `tool_invocations` table in `agent_memory.db` |
+| `GMA_TELEMETRY=0` | — | Disables recording; use in unit tests that do not need a DB write |
+
+**Risk-tier inference** (`infer_risk_tier(func)` in `src/telemetry.py`) runs once at
+decoration time — not per call:
+
+1. `confirm_destructive` in function signature → `DESTRUCTIVE`
+2. Name starts with `list_`, `get_`, `discover_`, `search_`, `info_`, `suggest_`,
+   `assert_`, `recall_` → `SAFE_READ`
+3. Anything else → `SAFE_WRITE`
+
+Do not call `ToolTelemetry.record_sync()` directly from command builders or tool
+implementations — the decorator handles it. Do not add telemetry to `src/commands/`.
+
+---
+
+### Skill lifecycle (`src/skill.py`)
+
+A Skill is a versioned, lineage-tracked Markdown playbook derived from a successful
+agent session.
+
+**Naming** — always use `SkillRegistry.promote_from_session()`, which calls `_slugify()`
+internally. Pass the raw human name; do not pre-slugify:
+
+```python
+# Correct
+registry.promote_from_session(name="Blue Wash Look", ...)
+
+# Wrong — do not slugify before passing
+registry.promote_from_session(name="blue_wash_look", ...)
+```
+
+**Versioning** — use `SkillRegistry.bump_version(skill_id, body=...)` to create a new
+version. The new version gets a fresh UUID, `version` increments, and `parent_id` is set
+to the previous skill's `id`. Never edit a skill's `body` in-place — always bump.
+
+**Lineage** — `SkillRegistry.get_lineage(skill_id)` returns the full ancestor chain
+oldest-first. Inspect lineage before bumping to understand prior iterations.
+
+**Quality score** — 0.0–1.0 from `steps_done / (steps_done + steps_failed)`. Update
+after re-evaluation via `SkillRegistry.update_quality(skill_id, score)`. Clamps
+automatically to [0.0, 1.0].
+
+---
+
+### DESTRUCTIVE skill approval workflow
+
+Treat this as the OpenSpace equivalent of `confirm_destructive=True`. It is the
+primary safety gate preventing agents from autonomously invoking destructive playbooks.
+
+| Step | Who | How |
+|---|---|---|
+| Skill promoted with `safety_scope="DESTRUCTIVE"` | Agent or operator | `approved` is auto-set to `False` — no override |
+| Skill appears in suggestions / registry | Agent | Visible but `is_usable()` returns `False` |
+| Human inspects body and lineage | Operator | `get_skill(skill_id)` via Tool 140 |
+| Human approves | Operator | `approve_skill(skill_id)` — Tool 143, requires `OAuthScope.SYSTEM_ADMIN` |
+| Skill becomes invocable | Agent | `skill.is_usable()` returns `True` |
+
+**Rules:**
+- `promote_from_session(safety_scope="DESTRUCTIVE")` always produces `approved=False`.
+- `bump_version()` on a DESTRUCTIVE skill sets `approved=False` on the new version;
+  re-approval is required for every version bump.
+- Never call `SkillRegistry.approve()` from tool implementations or server code.
+  Only Tool 143 (`approve_skill`, `OAuthScope.SYSTEM_ADMIN`) may set `approved=True`.
+
+---
+
+### SkillImprover (`src/skill_improver.py`)
+
+`SkillImprover` is a **read-only** analysis layer. It never writes to the skill registry.
+
+| Method | Returns | Purpose |
+|---|---|---|
+| `identify_failure_patterns(days, min_failures)` | `list[RepairSuggestion]` | Tools failing ≥ N times in last N days |
+| `identify_promotion_candidates(min_quality)` | `list[PromotionCandidate]` | Successful sessions not yet promoted |
+| `quality_score_for_session(session_id)` | `float` | Compute quality score before promoting |
+
+Exposed as MCP Tool 142 (`get_improvement_suggestions`). Agents call the tool rather
+than using `SkillImprover` directly. Do not add autonomous promotion logic to
+`SkillImprover`; it surfaces suggestions only. Promotion is always operator-initiated
+via Tool 141 (`promote_session_to_skill`).
+
+---
+
 ## RAG Pipeline
 
 ### How it works
@@ -575,3 +668,6 @@ last_updated: YYYY-MM-DDTHH:MM:SSZ
 - Do not duplicate README.md content here — README is for humans, CLAUDE.md is for the agent.
 - Do not call `new_show` with `preserve_connectivity=False` unless the user explicitly accepts that Telnet will be disabled and they will re-enable it manually on the console.
 - Do not pass pre-quoted strings to `quote_name()` — pass raw names only (e.g. `"Mac700 Front"`, not `'"Mac700 Front"'`).
+- Do not call `ToolTelemetry.record_sync()` manually — `@_handle_errors` records every tool call automatically. Never add telemetry to `src/commands/` builders.
+- Do not call `SkillRegistry.approve()` from tool implementations or server code — approval must go through Tool 143 (`approve_skill`, `OAuthScope.SYSTEM_ADMIN`) only.
+- Do not auto-promote Skills from `SkillImprover` output — `identify_*` methods return read-only suggestions. Promotion is always operator-initiated via Tool 141.
