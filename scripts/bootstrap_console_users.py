@@ -16,9 +16,10 @@ Requires .env or environment:
 Created users:
     Slot 1: administrator  (rights=5, Admin)   — existing MA2 built-in, password change only
     Slot 2: operator       (rights=1, Playback) — house lighting operators
-    Slot 3: programmer     (rights=3, Program)  — show programmers
-    Slot 4: tech_director  (rights=4, Setup)    — technical directors
-    Slot 5: guest          (rights=0, None)     — read-only monitoring
+    Slot 3: presets_editor (rights=2, Presets)  — update existing presets, no new cue store
+    Slot 4: programmer     (rights=3, Program)  — show programmers
+    Slot 5: tech_director  (rights=4, Setup)    — technical directors
+    Slot 6: guest          (rights=0, None)     — read-only monitoring
 
 Security notes:
     - Passwords are read from environment variables (see --help for env var names)
