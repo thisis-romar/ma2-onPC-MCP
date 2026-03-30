@@ -13,7 +13,7 @@ last_updated: 2026-03-30T00:00:00Z
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
 ![Tools](https://img.shields.io/badge/MCP_tools-148-brightgreen)
-![Tests](https://img.shields.io/badge/tests-2159-brightgreen)
+![Tests](https://img.shields.io/badge/tests-2166-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -560,7 +560,7 @@ The vocabulary classifies all **156 grandMA2 keywords** into categories:
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
 | `OBJECT` | 56 | Console objects (nouns) | Channel, Fixture, Group, Preset, Executor |
-| `FUNCTION` | 89 | Actions (verbs) | Store, Delete, Go, At, List, Info |
+| `FUNCTION` | 90 | Actions (verbs) | Store, Delete, Go, At, Kill, List, Info |
 | `HELPING` | 5 | Syntax connectors | And, Thru, Fade, Delay, If |
 | `SPECIAL_CHAR` | 6 | Operator symbols | Plus `+`, Minus `-`, Dot `.`, Slash `/` |
 
@@ -937,7 +937,7 @@ ma2-onPC-MCP/
 │   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
 │   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
 │   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
-├── tests/                                  # 2159 tests (2026-03-30)
+├── tests/                                  # 2166 tests (2026-03-30)
 ├── doc/                                    # Command builders ref + cd-tree docs
 ├── vscode-mcp-provider/                    # VS Code MCP extension
 └── importexport/                           # Filter XMLs, fixture layers, exports
