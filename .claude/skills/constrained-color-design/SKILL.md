@@ -1,9 +1,9 @@
 ---
 title: Constrained Color Design
 description: Instruction module for monochromatic palette design in grandMA2 — HSB strategy, preset numbering, color lock technique, and song-to-palette mapping
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-30T00:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+last_updated: 2026-03-30T14:00:00Z
 ---
 
 # Constrained Color Design
@@ -63,7 +63,7 @@ Apply with: `apply_preset(preset_type="color", preset_id=32)`
 Store with:
 ```
 store_new_preset(preset_type=4, preset_id=32, confirm_destructive=True)
-label_or_appearance("Preset", 32, name="Song3_MidWarm", preset_type=4, confirm_destructive=True)
+label_or_appearance("label", "preset", 32, name="Song3_MidWarm", preset_type="color", confirm_destructive=True)
 ```
 
 ## Color Lock Technique

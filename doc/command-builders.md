@@ -1,16 +1,16 @@
 ---
 title: Command Builder Reference
 description: Pure-function reference for all 179 grandMA2 command builders
-version: 1.4.3
+version: 1.4.4
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-29T03:00:00Z
+last_updated: 2026-03-30T14:00:00Z
 ---
 
 # Command Builder Reference
 
 > Back to [README](../README.md)
 
-The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **179 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
+The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **180 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
 
 grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 

@@ -1,9 +1,9 @@
 ---
 title: MA2 Command Rules
 description: Reusable instruction module for grandMA2 console command construction, object resolution, and safety escalation
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-29T08:30:00Z
+last_updated: 2026-03-30T14:00:00Z
 ---
 
 # MA2 Command Rules
@@ -24,7 +24,7 @@ Invoke this skill when constructing grandMA2 console commands, resolving object 
 - Never hardcode preset type IDs inline.
 
 ### Options assembly
-- Use `_build_options()` from `src/commands/helpers.py` for flag assembly.
+- Use `_build_store_options()` from `src/commands/helpers.py` for flag assembly.
 - Never manually string-concatenate `/flag=value` parts.
 
 ### Show safety

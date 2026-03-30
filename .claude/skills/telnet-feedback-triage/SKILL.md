@@ -1,9 +1,9 @@
 ---
 title: Telnet Feedback Triage
 description: Reusable instruction module for classifying and summarizing grandMA2 Telnet feedback
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-29T08:30:00Z
+last_updated: 2026-03-30T14:00:00Z
 ---
 
 # Telnet Feedback Triage
@@ -15,14 +15,15 @@ Invoke this skill when analyzing raw Telnet output from the grandMA2 console, cl
 ## 1. FeedbackClass Classification
 
 Use `parse_telnet_feedback(response)` from `src/rights.py` to classify raw Telnet output.
+Returns a `FeedbackRecord` with a `feedback_class` field of type `FeedbackClass` (enum in `src/rights.py`).
 
 | Class | Indicators | Meaning |
 |-------|-----------|---------|
-| `SUCCESS` | Empty response, `OK`, prompt return | Command executed cleanly |
-| `DENIED` | `UNKNOWN COMMAND`, `not allowed`, `denied`, `rights` | Rights or syntax block |
-| `WARNING` | `WARNING:`, `note:`, partial list output | Executed but degraded |
-| `ERROR` | `ERROR:`, stack trace, timeout | Hard failure |
-| `AMBIGUOUS` | Multiple matching objects, selection prompts | Needs disambiguation |
+| `PASS_ALLOWED` | Empty response, prompt return, clean output | Command permitted and succeeded |
+| `PASS_DENIED` | MCP scope gate fired (`blocked=True`) | Correctly blocked before reaching console |
+| `FAILED_OPEN` | `Error #72`, `not allowed`, `denied`, `rights` | Slipped past gate; console rejected — dangerous |
+| `FAILED_CLOSED` | Blocked by gate when user has sufficient rights | Gate over-blocked; check right assignment |
+| `INCONCLUSIVE` | `UNKNOWN COMMAND`, timeout, ambiguous output | Cannot determine outcome — investigate further |
 
 ---
 
@@ -39,7 +40,7 @@ When returning Telnet feedback to the planner:
 
 ## 3. Rights-Gate Feedback Pattern
 
-When feedback indicates `DENIED` or `UNKNOWN COMMAND`:
+When feedback indicates `FAILED_OPEN`, `FAILED_CLOSED`, or `INCONCLUSIVE`:
 1. Check `$USERRIGHTS` via `list_system_variables()`.
 2. Map to MA2Right level: `Admin > Light-Operator > Programmer > Playback-Operator > Guest`.
 3. Identify the minimum required right for the attempted command from `doc/ma2-rights-matrix.json`.
@@ -59,7 +60,7 @@ When feedback indicates `DENIED` or `UNKNOWN COMMAND`:
 ## 5. Recompute-over-Retain Rule
 
 Do not store raw Telnet transcripts in working memory. Instead:
-- Store the classified `FeedbackClass`.
+- Store the classified `FeedbackClass` (e.g. `PASS_ALLOWED`, `FAILED_OPEN`).
 - Store the compressed finding (≤50 tokens).
 - Store a `replay_query` string if the state needs refreshing.
 

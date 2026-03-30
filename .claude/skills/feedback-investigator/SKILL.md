@@ -1,9 +1,9 @@
 ---
 title: Feedback Investigator
 description: Worker instruction module for classifying and investigating grandMA2 Telnet feedback failures
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-29T10:00:00Z
-last_updated: 2026-03-29T10:00:00Z
+last_updated: 2026-03-30T14:00:00Z
 ---
 
 # Feedback Investigator
@@ -23,7 +23,7 @@ get_object_info, query_object_list, navigate_console
 
 ---
 
-## FeedbackClass Decision Tree
+## Investigation Decision Tree
 
 ```
 Response is empty?
