@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet
-version: 3.18.0
+version: 3.18.1
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-30T03:00:00Z
+last_updated: 2026-03-30T04:00:00Z
 ---
 
 <p align="center">
@@ -28,10 +28,11 @@ last_updated: 2026-03-30T03:00:00Z
 <tr><td><b>Layered safety gate</b></td><td>Three risk tiers enforced before any command reaches the console: <code>SAFE_READ</code> (always allowed), <code>SAFE_WRITE</code> (standard mode), <code>DESTRUCTIVE</code> (blocked until <code>confirm_destructive=True</code>). Line-break injection rejected at the transport layer.</td></tr>
 <tr><td><b>A closed learning loop</b></td><td>Every tool call recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Skills are versioned playbooks with full lineage tracking.</td></tr>
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
-<tr><td><b>Named in memory</b></td><td>A play on "grandMA" — and a tribute to <b>Noel Roy Johnson</b> (June 19, 1944 – February 26, 2026), a hard-working Jamaican who immigrated to Canada 50 years ago. Our gift to him, and his gift back to us.</td></tr>
 </table>
 
 [Quick Start](#quick-start) · [Architecture](#architecture) · [148 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+
+*The name is a play on "grandMA2" — [dedicated to someone special](DEDICATION.md).*
 
 ---
 
