@@ -12,24 +12,25 @@ Covers:
 """
 
 import json
-import pytest
-import tempfile
 import os
+import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
-from src.orchestrator import (
-    _preflight_guard,
-    _default_sub_agent,
-    Orchestrator,
-    OrchestrationResult,
-    StepResult,
-)
-from src.task_decomposer import SubTask, TaskPlan, TaskDecomposer
-from src.agent_memory import WorkingMemory, LongTermMemory
-from src.rights import RightsContext, FeedbackClass
-from src.vocab import RiskTier
-from src.commands.constants import MA2Right
 
+import pytest
+
+from src.agent_memory import LongTermMemory, WorkingMemory
+from src.commands.constants import MA2Right
+from src.orchestrator import (
+    OrchestrationResult,
+    Orchestrator,
+    StepResult,
+    _default_sub_agent,
+    _preflight_guard,
+)
+from src.rights import FeedbackClass, RightsContext
+from src.task_decomposer import SubTask, TaskPlan
+from src.vocab import RiskTier
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

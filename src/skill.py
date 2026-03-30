@@ -17,12 +17,11 @@ the full ancestor chain.
 
 from __future__ import annotations
 
-import json
 import re
 import sqlite3
 import time
 import uuid
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 _DEFAULT_DB = Path(__file__).parent.parent / "rag" / "store" / "agent_memory.db"
@@ -79,7 +78,7 @@ class Skill:
 
 def _ts_iso(ts: float) -> str:
     import datetime
-    return datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc).isoformat()
+    return datetime.datetime.fromtimestamp(ts, tz=datetime.UTC).isoformat()
 
 
 def _slugify(text: str) -> str:
@@ -250,7 +249,7 @@ class SkillRegistry:
         ).fetchone()
         return _row_to_skill(row) if row else None
 
-    def get_usable(self, skill_id: str) -> "Skill | None":
+    def get_usable(self, skill_id: str) -> Skill | None:
         """
         Fetch a skill by id and return it only if ``is_usable()`` is True.
 

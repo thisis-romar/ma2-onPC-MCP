@@ -18,12 +18,10 @@ Risk-tier inference heuristic (applied once at decoration time, not per call):
 from __future__ import annotations
 
 import inspect
-import json
-import os
 import sqlite3
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 # Reuse the same DB as LongTermMemory so all memory tables live together.
 _DEFAULT_DB = Path(__file__).parent.parent / "rag" / "store" / "agent_memory.db"
@@ -179,7 +177,7 @@ class ToolTelemetry:
             "ts", "tool_name", "output_preview", "error_class",
             "latency_ms", "risk_tier", "operator", "session_id",
         ]
-        return [dict(zip(cols, r)) for r in rows]
+        return [dict(zip(cols, r, strict=False)) for r in rows]
 
     def top_failing_tools(self, days: int = 7, min_failures: int = 3) -> list[dict]:
         """Return tools with >= min_failures errors in the last N days."""

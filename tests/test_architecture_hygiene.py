@@ -21,7 +21,6 @@ Invariants enforced:
 from __future__ import annotations
 
 import ast
-import inspect
 import re
 from pathlib import Path
 
@@ -166,8 +165,9 @@ class TestDocFrontMatter:
 
 class TestSkillInjectionFormat:
     def test_as_user_message_header_format(self):
-        from src.skill import Skill
         import time
+
+        from src.skill import Skill
         now = time.time()
         s = Skill(
             id="test-id", version=2, parent_id=None, name="my_skill",
@@ -183,8 +183,9 @@ class TestSkillInjectionFormat:
         assert "Step 1" in msg
 
     def test_as_user_message_newline_separator(self):
-        from src.skill import Skill
         import time
+
+        from src.skill import Skill
         now = time.time()
         s = Skill(
             id="x", version=1, parent_id=None, name="n",

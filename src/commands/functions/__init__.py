@@ -212,6 +212,16 @@ from .store import (
     update_cue,
 )
 
+# User Management Function Keywords (Login, Logout, Store/Delete User)
+from .users import (
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_login,
+    build_logout,
+    build_store_user,
+)
+
 # Values Function Keywords (At)
 from .values import (
     at,
@@ -234,16 +244,6 @@ from .variables import (
     list_var,
     set_user_var,
     set_var,
-)
-
-# User Management Function Keywords (Login, Logout, Store/Delete User)
-from .users import (
-    build_assign_world_to_user_profile,
-    build_delete_user,
-    build_list_users,
-    build_login,
-    build_logout,
-    build_store_user,
 )
 
 __all__ = [

@@ -8,14 +8,14 @@ Covers:
   - LongTermMemory: save/load, recent_sessions, recall
 """
 
-import os
-import pytest
 import tempfile
 from pathlib import Path
-from src.agent_memory import FixtureSnapshot, WorkingMemory, LongTermMemory
-from src.rights import RightsContext
-from src.commands.constants import MA2Right
 
+import pytest
+
+from src.agent_memory import FixtureSnapshot, LongTermMemory, WorkingMemory
+from src.commands.constants import MA2Right
+from src.rights import RightsContext
 
 # ── FixtureSnapshot ──────────────────────────────────────────────────────────
 

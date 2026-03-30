@@ -4,7 +4,6 @@ tests/test_busking.py — Unit tests for src/commands/busking.py
 All tests are pure string-assertion tests — no telnet, no server required.
 """
 
-import pytest
 from src.commands.busking import (
     assign_effect_to_executor,
     executor_page_range,
@@ -13,7 +12,6 @@ from src.commands.busking import (
     set_effect_speed,
     zero_page_faders,
 )
-
 
 # ── assign_effect_to_executor ────────────────────────────────────────────────
 

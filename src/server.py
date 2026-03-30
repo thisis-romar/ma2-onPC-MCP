@@ -17,10 +17,13 @@ import re
 import sys
 import time
 from datetime import UTC
+from pathlib import Path
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from src.agent_memory import LongTermMemory
+from src.auth import OAuthScope, require_scope
 from src.commands import (
     add_to_selection as build_add_to_selection,
 )
@@ -31,6 +34,9 @@ from src.commands import (
     add_var as build_add_var,
 )
 from src.commands import (
+    align as build_align,
+)
+from src.commands import (
     appearance as build_appearance,
 )
 from src.commands import (
@@ -39,6 +45,9 @@ from src.commands import (
 )
 from src.commands import (
     assign_delay as build_assign_delay,
+)
+from src.commands import (
+    assign_effect_to_executor as build_assign_effect_to_executor,
 )
 from src.commands import (
     assign_fade as build_assign_fade,
@@ -54,6 +63,10 @@ from src.commands import (
 )
 from src.commands import (
     attribute_at,
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_store_user,
     call,
     channel_at,
     fixture_at,
@@ -70,6 +83,9 @@ from src.commands import (
     blackout as build_blackout,
 )
 from src.commands import (
+    block as build_block,
+)
+from src.commands import (
     clear as build_clear,
 )
 from src.commands import (
@@ -80,6 +96,9 @@ from src.commands import (
 )
 from src.commands import (
     clear_selection as build_clear_selection,
+)
+from src.commands import (
+    clone as build_clone,
 )
 from src.commands import (
     copy as build_copy,
@@ -106,6 +125,9 @@ from src.commands import (
     delete_fixture as build_delete_fixture,
 )
 from src.commands import (
+    delete_show as build_delete_show,
+)
+from src.commands import (
     # edit_object
     edit as build_edit,
 )
@@ -114,6 +136,9 @@ from src.commands import (
 )
 from src.commands import (
     export_object as build_export_object,
+)
+from src.commands import (
+    fix_fixture as build_fix_fixture,
 )
 from src.commands import (
     flash_executor as build_flash_executor,
@@ -156,6 +181,9 @@ from src.commands import (
     info as build_info,
 )
 from src.commands import (
+    invert as build_invert,
+)
+from src.commands import (
     label as build_label,
 )
 from src.commands import (
@@ -172,6 +200,9 @@ from src.commands import (
     list_effect_library as build_list_effect_library,
 )
 from src.commands import (
+    list_fader_modules as build_list_fader_modules,
+)
+from src.commands import (
     list_group as build_list_group,
 )
 from src.commands import (
@@ -179,28 +210,6 @@ from src.commands import (
 )
 from src.commands import (
     list_macro_library as build_list_macro_library,
-)
-from src.commands import (
-    list_fader_modules as build_list_fader_modules,
-)
-from src.commands import (
-    list_plugin_library as build_list_plugin_library,
-)
-from src.commands import (
-    list_update as build_list_update,
-)
-from src.commands import (
-    delete_show as build_delete_show,
-)
-from src.commands import (
-    temp_fader as build_temp_fader,
-)
-from src.commands import (
-    assign_effect_to_executor as build_assign_effect_to_executor,
-    set_effect_rate as build_set_effect_rate,
-    set_effect_speed as build_set_effect_speed,
-    release_effects_on_page as build_release_effects_on_page,
-    zero_page_faders as build_zero_page_faders,
 )
 from src.commands import (
     list_messages as build_list_messages,
@@ -213,10 +222,16 @@ from src.commands import (
     list_oops as build_list_oops,
 )
 from src.commands import (
+    list_plugin_library as build_list_plugin_library,
+)
+from src.commands import (
     list_preset as build_list_preset,
 )
 from src.commands import (
     list_shows as build_list_shows,
+)
+from src.commands import (
+    list_update as build_list_update,
 )
 from src.commands import (
     list_user_var as build_list_user_var,
@@ -225,7 +240,16 @@ from src.commands import (
     list_var as build_list_var,
 )
 from src.commands import (
+    load_next as build_load_next,
+)
+from src.commands import (
+    load_prev as build_load_prev,
+)
+from src.commands import (
     load_show as build_load_show,
+)
+from src.commands import (
+    locate as build_locate,
 )
 from src.commands import (
     move as build_move,
@@ -252,6 +276,9 @@ from src.commands import (
     paste as build_paste,
 )
 from src.commands import (
+    release_effects_on_page as build_release_effects_on_page,
+)
+from src.commands import (
     release_executor as build_release_executor,
 )
 from src.commands import (
@@ -274,6 +301,12 @@ from src.commands import (
     remove_selection as build_remove_selection,
 )
 from src.commands import (
+    set_effect_rate as build_set_effect_rate,
+)
+from src.commands import (
+    set_effect_speed as build_set_effect_speed,
+)
+from src.commands import (
     set_user_var as build_set_user_var,
 )
 from src.commands import (
@@ -282,6 +315,9 @@ from src.commands import (
 )
 from src.commands import (
     solo_executor as build_solo_executor,
+)
+from src.commands import (
+    stomp_executor as build_stomp_executor,
 )
 from src.commands import (
     # store_object
@@ -297,48 +333,10 @@ from src.commands import (
     store_preset as build_store_preset,
 )
 from src.commands import (
-    unpark as build_unpark,
-)
-from src.commands import (
-    update_cue as build_update_cue,
-)
-from src.auth import OAuthScope, require_scope
-from src.commands import (
-    build_assign_world_to_user_profile,
-    build_delete_user,
-    build_list_users,
-    build_login,
-    build_store_user,
-)
-from src.commands import (
-    align as build_align,
-)
-from src.commands import (
-    block as build_block,
-)
-from src.commands import (
-    clone as build_clone,
-)
-from src.commands import (
-    fix_fixture as build_fix_fixture,
-)
-from src.commands import (
-    invert as build_invert,
-)
-from src.commands import (
-    load_next as build_load_next,
-)
-from src.commands import (
-    load_prev as build_load_prev,
-)
-from src.commands import (
-    locate as build_locate,
-)
-from src.commands import (
-    stomp_executor as build_stomp_executor,
-)
-from src.commands import (
     swop_executor as build_swop_executor,
+)
+from src.commands import (
+    temp_fader as build_temp_fader,
 )
 from src.commands import (
     top_executor as build_top_executor,
@@ -346,16 +344,24 @@ from src.commands import (
 from src.commands import (
     unblock as build_unblock,
 )
-from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
-from src.session_manager import SessionManager
+from src.commands import (
+    unpark as build_unpark,
+)
+from src.commands import (
+    update_cue as build_update_cue,
+)
+from src.commands import (
+    zero_page_faders as build_zero_page_faders,
+)
 from src.credentials import get_operator_identity, resolve_console_credentials
+from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
+from src.orchestrator import Orchestrator
+from src.server_orchestration_tools import register_orchestration_tools
+from src.session_manager import SessionManager
+from src.telemetry import ToolTelemetry, infer_risk_tier
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.vocab import RiskTier, build_v39_spec, classify_token
-from src.agent_memory import LongTermMemory
-from src.orchestrator import Orchestrator
-from src.server_orchestration_tools import register_orchestration_tools
-from src.telemetry import ToolTelemetry, infer_risk_tier
 
 # Load environment variables
 load_dotenv()
@@ -474,7 +480,7 @@ def _handle_errors(func):
             result = json.dumps({"error": f"Unexpected error: {e}", "blocked": True}, indent=2)
         finally:
             if os.getenv("GMA_TELEMETRY", "1") != "0":
-                try:
+                try:  # noqa: SIM105
                     _get_telemetry().record_sync(
                         tool_name=func.__name__,
                         inputs_json=json.dumps(
@@ -486,7 +492,7 @@ def _handle_errors(func):
                         risk_tier=_risk_tier,
                         operator=os.getenv("GMA_USER", "unknown"),
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:  # noqa: BLE001, SIM105
                     pass  # telemetry must never break a tool call
         return result
 
@@ -4191,9 +4197,8 @@ async def set_executor_priority(
     raw = await client.send_command_with_response(cmd)
 
     # Sync priority to snapshot write-tracker (Gap 10)
-    if snap := _orchestrator.last_snapshot:
-        if executor_id in snap.executor_state:
-            snap.executor_state[executor_id].priority = priority
+    if (snap := _orchestrator.last_snapshot) and executor_id in snap.executor_state:
+        snap.executor_state[executor_id].priority = priority
 
     return json.dumps({
         "command_sent": cmd,
@@ -6587,7 +6592,7 @@ async def _check_pool_slots(
         destination = pool_key
 
     # Navigate to pool
-    nav = await navigate(client, destination)
+    await navigate(client, destination)
 
     # List contents
     lst = await list_destination(client)
@@ -7592,7 +7597,7 @@ def resource_vocab_summary() -> str:
     including it in a command string.  Tier determines whether confirm_destructive
     is required and which OAuthScope must be active.
     """
-    from src.vocab import load_vocab, classify_token
+    from src.vocab import classify_token, load_vocab
     spec = load_vocab()
     summary = {}
     all_keywords = list(spec.function_keywords.keys()) + list(spec.object_keywords.keys())
@@ -8177,8 +8182,8 @@ async def classify_show_mode() -> str:
     effect_response = await client.send_command(build_list_effect_library())
     macro_response = await client.send_command(build_list_macro_library())
 
-    effect_lines = [l for l in effect_response.splitlines() if l.strip() and not l.startswith("[")]
-    macro_lines = [l for l in macro_response.splitlines() if l.strip() and not l.startswith("[")]
+    effect_lines = [line for line in effect_response.splitlines() if line.strip() and not line.startswith("[")]
+    macro_lines = [line for line in macro_response.splitlines() if line.strip() and not line.startswith("[")]
 
     effect_count = len(effect_lines)
     macro_count = len(macro_lines)

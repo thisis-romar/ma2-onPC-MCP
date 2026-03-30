@@ -37,7 +37,7 @@ import json
 import logging
 import os
 
-from src.commands.constants import MA2RIGHT_TO_OAUTH_SCOPE, MA2Right, OAUTH_TIER_SCOPES, OAuthScope
+from src.commands.constants import MA2RIGHT_TO_OAUTH_SCOPE, OAUTH_TIER_SCOPES, MA2Right, OAuthScope
 
 logger = logging.getLogger(__name__)
 

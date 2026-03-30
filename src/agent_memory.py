@@ -18,14 +18,14 @@ import json
 import sqlite3
 import time
 import uuid
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .console_state import ConsoleStateSnapshot
+    pass
 
-from .rights import RightsContext, MA2Right
+from .rights import RightsContext
 
 # ---------------------------------------------------------------------------
 # Working Memory  (short-term, in-process)
@@ -115,7 +115,7 @@ class WorkingMemory:
     failed_steps: list[str] = field(default_factory=list)
 
     # ── Decision checkpoints (recompute-over-retain) ─────────────────
-    checkpoints: list["DecisionCheckpoint"] = field(default_factory=list)
+    checkpoints: list[DecisionCheckpoint] = field(default_factory=list)
 
     # ── Token tracking ───────────────────────────────────────────────
     token_spend: int = 0
@@ -239,7 +239,7 @@ class WorkingMemory:
         fresh_for_seconds: int = 30,
         replay: str = "",
         confidence: str = "medium",
-    ) -> "DecisionCheckpoint":
+    ) -> DecisionCheckpoint:
         """Record a distilled decision checkpoint (recompute-over-retain)."""
         cp = DecisionCheckpoint(
             fault=fault,
@@ -252,7 +252,7 @@ class WorkingMemory:
         self.checkpoints.append(cp)
         return cp
 
-    def fresh_checkpoint(self, fault: str) -> "DecisionCheckpoint | None":
+    def fresh_checkpoint(self, fault: str) -> DecisionCheckpoint | None:
         """Return the most recent fresh checkpoint for a given fault, or None."""
         for cp in reversed(self.checkpoints):
             if cp.fault == fault and cp.is_fresh():
@@ -364,7 +364,7 @@ class LongTermMemory:
         self._conn.commit()
 
     @staticmethod
-    def _compress_session_snapshot(wm: "WorkingMemory") -> dict:
+    def _compress_session_snapshot(wm: WorkingMemory) -> dict:
         """
         Build a compact decision summary from a WorkingMemory object.
 
@@ -450,7 +450,7 @@ class LongTermMemory:
         ).fetchall()
         cols = ["id","timestamp","task","outcome","steps_done","steps_failed",
                 "tokens","showfile","active_world","active_filter"]
-        return [dict(zip(cols, r)) for r in rows]
+        return [dict(zip(cols, r, strict=False)) for r in rows]
 
     def recall_session(self, session_id: str) -> dict | None:
         """
@@ -475,7 +475,7 @@ class LongTermMemory:
             (fixture_id, limit),
         ).fetchall()
         cols = ["session_id","group_name","intensity","preset","timestamp"]
-        return [dict(zip(cols, r)) for r in rows]
+        return [dict(zip(cols, r, strict=False)) for r in rows]
 
     def park_history(self, fixture_id: str | None = None) -> list[dict]:
         if fixture_id:
@@ -489,7 +489,7 @@ class LongTermMemory:
                 " FROM park_events ORDER BY timestamp DESC LIMIT 100"
             ).fetchall()
         cols = ["session_id","fixture_id","action","timestamp"]
-        return [dict(zip(cols, r)) for r in rows]
+        return [dict(zip(cols, r, strict=False)) for r in rows]
 
     def close(self) -> None:
         self._conn.close()

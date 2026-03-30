@@ -15,13 +15,12 @@ Design rule: no suggestion returned by this module triggers any console action.
 from __future__ import annotations
 
 import re
-import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
-from .telemetry import ToolTelemetry
-from .skill import SkillRegistry
 from .agent_memory import LongTermMemory
+from .skill import SkillRegistry
+from .telemetry import ToolTelemetry
 
 _DEFAULT_DB = Path(__file__).parent.parent / "rag" / "store" / "agent_memory.db"
 

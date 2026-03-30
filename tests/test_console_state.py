@@ -12,16 +12,15 @@ Covers:
 """
 
 import time
-import pytest
+
 from src.console_state import (
     ConsoleStateSnapshot,
-    MAtricksTracker,
-    ExecutorState,
-    SequenceEntry,
-    CueRecord,
     CuePart,
+    CueRecord,
+    ExecutorState,
+    MAtricksTracker,
+    SequenceEntry,
 )
-
 
 # ── ConsoleStateSnapshot defaults ────────────────────────────────────────────
 

@@ -39,13 +39,22 @@ Keywords are classified into three types:
 """
 
 # Constants
+# Busking / Performance Layer
+from .busking import (
+    assign_effect_to_executor,
+    executor_page_range,
+    release_effects_on_page,
+    set_effect_rate,
+    set_effect_speed,
+    zero_page_faders,
+)
 from .constants import (
-    MA2Right,
     MA2RIGHT_TO_OAUTH_SCOPE,
     PRESET_TYPES,
     STORE_BOOL_OPTIONS,
     STORE_FLAG_OPTIONS,
     STORE_VALUE_OPTIONS,
+    MA2Right,
 )
 
 # Function Keywords
@@ -68,7 +77,6 @@ from .functions import (
     assign_function,
     assign_property,
     assign_to_layout,
-    build_set_executor_priority,
     # At Function Keyword
     at,
     at_full,
@@ -78,11 +86,17 @@ from .functions import (
     # Blackout
     blackout,
     blind,
-    # Call Function Keywords
-    call,
     # Block / Unblock
     block,
-    unblock,
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_login,
+    build_logout,
+    build_set_executor_priority,
+    build_store_user,
+    # Call Function Keywords
+    call,
     # Other Function Keywords
     call_preset,
     # Navigation Function Keywords
@@ -117,8 +131,8 @@ from .functions import (
     executor_at,
     # Import/Export Function Keywords
     export_object,
-    fixture_at,
     fix_fixture,
+    fixture_at,
     flash_executor,
     freeze,
     get_user_var,
@@ -209,8 +223,6 @@ from .functions import (
     save_show,
     select_fixture,
     select_group,
-    swop_executor,
-    top_executor,
     # Variable Function Keywords
     set_user_var,
     set_var,
@@ -223,7 +235,10 @@ from .functions import (
     store_group,
     store_matricks,
     store_preset,
+    swop_executor,
     temp_fader,
+    top_executor,
+    unblock,
     unpark,
     update,
     update_cue,
@@ -231,16 +246,6 @@ from .functions import (
 
 # Helpers (public API)
 from .helpers import MA2_SPECIAL_CHARS, quote_name
-
-# Busking / Performance Layer
-from .busking import (
-    assign_effect_to_executor,
-    executor_page_range,
-    release_effects_on_page,
-    set_effect_rate,
-    set_effect_speed,
-    zero_page_faders,
-)
 
 # Object Keywords
 from .objects import (
@@ -261,15 +266,6 @@ from .objects import (
     timecode,
     timecode_slot,
     timer,
-)
-
-from .functions import (
-    build_assign_world_to_user_profile,
-    build_delete_user,
-    build_list_users,
-    build_login,
-    build_logout,
-    build_store_user,
 )
 
 __all__ = [

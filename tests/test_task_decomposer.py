@@ -9,10 +9,8 @@ Covers:
   - register_rule() custom rules
 """
 
-import pytest
-from src.task_decomposer import SubTask, TaskPlan, TaskDecomposer
+from src.task_decomposer import SubTask, TaskDecomposer, TaskPlan
 from src.vocab import RiskTier
-
 
 # ── SubTask ──────────────────────────────────────────────────────────────────
 
@@ -192,7 +190,8 @@ class TestDecomposeFallback:
 
 class TestCustomRule:
     def test_custom_rule_takes_priority(self):
-        from src.task_decomposer import TaskPlan, SubTask, RiskTier as RT
+        from src.task_decomposer import RiskTier as RT
+        from src.task_decomposer import SubTask, TaskPlan
         d = TaskDecomposer()
 
         def custom_builder(goal, params):
