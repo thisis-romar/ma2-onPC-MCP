@@ -1,7 +1,7 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.15.0
+version: 3.15.1
 created: 2025-02-27T00:00:00Z
 last_updated: 2026-03-30T00:00:00Z
 ---
@@ -176,7 +176,7 @@ list            → enumerate objects at current destination
 | `modify_selection` | Select, deselect, or toggle fixtures in the programmer |
 | `adjust_value_relative` | Adjust programmer values relatively (+ or –) |
 | `select_fixtures_by_group` | Select all fixtures in a named group |
-| `select_executor` | Set the active executor for subsequent operations |
+| `select_executor` | Set the active executor for subsequent operations (single-selection only; use deselect=True to clear) |
 | `select_feature` | Set active Feature context (updates `$PRESET`/`$FEATURE`/`$ATTRIBUTE`) |
 | `select_preset_type` | Activate a PresetType context (PresetType 1–9 or by name) |
 | `if_filter` | Apply an IfOutput / IfActive filter to limit programmer scope |
@@ -189,7 +189,7 @@ list            → enumerate objects at current destination
 | Tool | Description |
 |------|-------------|
 | `execute_sequence` | Legacy sequence playback: go, pause, or goto cue |
-| `playback_action` | Full playback: go, go_back, goto, fast_forward, fast_back, def_go, def_pause |
+| `playback_action` | Full playback: go, go_back, goto, fast_forward, fast_back, def_go, def_go_back, def_pause |
 | `control_executor` | Control an executor (go, pause, stop, flash, etc.) |
 | `get_executor_status` | Query status of an executor (current cue, level, state) |
 | `set_executor_level` | Set the fader level on an executor |
@@ -834,7 +834,9 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 | `pause_sequence(1)` | `pause sequence 1` |
 | `goto_timecode(1, "00:01:30:00")` | `goto timecode 1 "00:01:30:00"` |
 | `go_fast_forward()` | `>>>` |
+| `go_fast_forward(executor=[1, 2, 3])` | `>>> executor 1 + 2 + 3` |
 | `go_fast_back()` | `<<<` |
+| `go_fast_back(executor=[2, 4])` | `<<< executor 2 + 4` |
 | `load_next()` | `loadnext` |
 | `load_prev()` | `loadprev` |
 | `def_go_forward()` | `defgoforward` |
