@@ -2,9 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12",
   "title": "grandMA2 MCP Server — Tool Rights Matrix",
   "description": "Maps all 109 MCP tools to grandMA2 native rights levels and OAuth scopes. Machine-readable reference for the MA2Right implementation sprint.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "created": "2026-03-28T00:00:00Z",
-  "last_updated": "2026-03-28T00:00:00Z",
+  "last_updated": "2026-03-30T06:00:00Z",
 
   "rights_reference": {
     "none": {
@@ -66,7 +66,7 @@
   "tools": [
     { "id": 1,   "name": "create_fixture_group",       "minimum_right": "program",  "current_scope": "gma2:group:store",         "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Create and store a fixture group." },
     { "id": 2,   "name": "execute_sequence",            "minimum_right": "playback", "current_scope": "gma2:playback:go",         "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Go/GoBack/Goto on a sequence or executor." },
-    { "id": 3,   "name": "send_raw_command",            "minimum_right": "program",  "current_scope": "gma2:programmer:write",    "scope_aligned": false, "risk_tier": "DESTRUCTIVE", "description": "Send an arbitrary grandMA2 command string. Scope should raise to gma2:cue:store (program) — raw commands have no ceiling." },
+    { "id": 3,   "name": "send_raw_command",            "minimum_right": "program",  "current_scope": "gma2:cue:store",           "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Send an arbitrary grandMA2 command string. Raised from gma2:programmer:write — raw commands have no ceiling." },
     { "id": 4,   "name": "navigate_console",            "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "CD navigation in the console tree." },
     { "id": 5,   "name": "get_console_location",        "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Return the current prompt/location." },
     { "id": 6,   "name": "list_console_destination",    "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "List objects at a CD destination." },
@@ -101,10 +101,10 @@
     { "id": 35,  "name": "browse_preset_type",          "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Navigate the PresetType/Feature/Attribute tree." },
     { "id": 36,  "name": "modify_selection",            "minimum_right": "presets",  "current_scope": "gma2:programmer:write",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Add or remove fixtures from the current selection." },
     { "id": 37,  "name": "adjust_value_relative",       "minimum_right": "presets",  "current_scope": "gma2:programmer:write",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Apply a relative +/- value in programmer." },
-    { "id": 38,  "name": "control_timecode",            "minimum_right": "playback", "current_scope": "gma2:sequence:edit",       "scope_aligned": false, "risk_tier": "SAFE_WRITE",  "description": "Start/stop/reset a timecode show. Scope should lower to gma2:playback:go — timecode triggering is playback-level in MA2." },
-    { "id": 39,  "name": "control_timer",               "minimum_right": "playback", "current_scope": "gma2:sequence:edit",       "scope_aligned": false, "risk_tier": "SAFE_WRITE",  "description": "Control a console timer (start/stop/reset). Scope should lower to gma2:playback:go." },
+    { "id": 38,  "name": "control_timecode",            "minimum_right": "playback", "current_scope": "gma2:playback:go",         "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Start/stop/reset a timecode show. Lowered from gma2:sequence:edit — timecode triggering is playback-level in MA2." },
+    { "id": 39,  "name": "control_timer",               "minimum_right": "playback", "current_scope": "gma2:playback:go",         "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Control a console timer (start/stop/reset). Lowered from gma2:sequence:edit — timer control is playback-level." },
     { "id": 40,  "name": "undo_last_action",            "minimum_right": "playback", "current_scope": "gma2:playback:go",         "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Undo the last console action (Oops)." },
-    { "id": 41,  "name": "toggle_console_mode",         "minimum_right": "playback", "current_scope": "gma2:playback:go",         "scope_aligned": false, "risk_tier": "SAFE_WRITE",  "description": "Toggle Blind/Highlight/Freeze/Blackout. Compound tool: outer gate is playback; Blind requires gma2:programmer:write inner guard (presets). Needs per-mode has_scope() guards added." },
+    { "id": 41,  "name": "toggle_console_mode",         "minimum_right": "playback", "current_scope": "gma2:playback:go",         "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Toggle Blind/Highlight/Freeze/Blackout. Outer gate: gma2:playback:go. Blind mode adds inner has_scope(gma2:programmer:write) guard — Blind puts console in programming layer." },
     { "id": 42,  "name": "update_cue_data",             "minimum_right": "program",  "current_scope": "gma2:cue:store",           "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Update cue data (Update keyword with options)." },
     { "id": 43,  "name": "set_cue_timing",              "minimum_right": "program",  "current_scope": "gma2:cue:store",           "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Set fade/delay timing on a cue." },
     { "id": 44,  "name": "select_fixtures_by_group",    "minimum_right": "presets",  "current_scope": "gma2:programmer:write",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Select fixtures via group reference." },
@@ -118,19 +118,19 @@
     { "id": 52,  "name": "get_executor_status",         "minimum_right": "none",     "current_scope": "gma2:state:read",          "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Read current state of executors." },
     { "id": 53,  "name": "store_timecode_event",        "minimum_right": "program",  "current_scope": "gma2:sequence:edit",       "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Store a timecode event to a timecode show." },
     { "id": 54,  "name": "set_sequence_property",       "minimum_right": "program",  "current_scope": "gma2:sequence:edit",       "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Assign a property (loop, speed, etc.) to a sequence." },
-    { "id": 55,  "name": "save_show",                   "minimum_right": "playback", "current_scope": "gma2:cue:store",           "scope_aligned": false, "risk_tier": "SAFE_WRITE",  "description": "Save the current show file. Scope should lower to gma2:playback:go — SaveShow is available to rights=1 (Playback) in MA2." },
+    { "id": 55,  "name": "save_show",                   "minimum_right": "playback", "current_scope": "gma2:playback:go",         "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Save the current show file. Lowered from gma2:cue:store — SaveShow is available to rights=1 (Playback) in MA2." },
     { "id": 56,  "name": "store_cue_with_timing",       "minimum_right": "program",  "current_scope": "gma2:cue:store",           "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Store a cue with specific fade/delay timing in one call." },
     { "id": 57,  "name": "select_executor",             "minimum_right": "playback", "current_scope": "gma2:executor:control",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Set the currently selected executor." },
     { "id": 58,  "name": "remove_from_programmer",      "minimum_right": "presets",  "current_scope": "gma2:programmer:write",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Remove fixtures/attributes from programmer." },
     { "id": 59,  "name": "assign_cue_trigger",          "minimum_right": "program",  "current_scope": "gma2:sequence:edit",       "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Assign a trigger type to a cue (Go, Time, Follow, etc.)." },
     { "id": 60,  "name": "assign_executor_property",    "minimum_right": "setup",    "current_scope": "gma2:setup:console",       "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Assign executor options (priority, autostart, etc.)." },
     { "id": 61,  "name": "if_filter",                   "minimum_right": "presets",  "current_scope": "gma2:programmer:write",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Apply an If condition filter in the programmer." },
-    { "id": 62,  "name": "save_recall_view",            "minimum_right": "program",  "current_scope": "gma2:setup:console",       "scope_aligned": false, "risk_tier": "DESTRUCTIVE", "description": "Store or recall a screen view layout. Scope should lower to gma2:cue:store (program) — view management is a programmer operation." },
-    { "id": 63,  "name": "export_objects",              "minimum_right": "program",  "current_scope": "gma2:setup:console",       "scope_aligned": false, "risk_tier": "DESTRUCTIVE", "description": "Export pool objects to a file. Scope should lower to gma2:cue:store (program) — Export is available to Program-level users in MA2." },
+    { "id": 62,  "name": "save_recall_view",            "minimum_right": "program",  "current_scope": "gma2:cue:store",           "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Store or recall a screen view layout. Lowered from gma2:setup:console — view management is a programmer operation." },
+    { "id": 63,  "name": "export_objects",              "minimum_right": "program",  "current_scope": "gma2:cue:store",           "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Export pool objects to a file. Lowered from gma2:setup:console — Export is available to Program-level users in MA2." },
     { "id": 64,  "name": "import_objects",              "minimum_right": "setup",    "current_scope": "gma2:fixture:import",      "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Import a pool object file into the show." },
     { "id": 65,  "name": "import_fixture_type",         "minimum_right": "setup",    "current_scope": "gma2:fixture:import",      "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Import a fixture type XML file into the patch." },
     { "id": 66,  "name": "import_fixture_layer",        "minimum_right": "setup",    "current_scope": "gma2:fixture:import",      "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Import a fixture layer XML to extend a fixture type." },
-    { "id": 67,  "name": "generate_fixture_layer_xml",  "minimum_right": "none",     "current_scope": "gma2:fixture:import",      "scope_aligned": false, "risk_tier": "SAFE_READ",   "description": "Generate a fixture layer XML document (pure Python, no console I/O). Scope should lower to gma2:discover (none)." },
+    { "id": 67,  "name": "generate_fixture_layer_xml",  "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Generate a fixture layer XML document (pure Python, no console I/O). Lowered from gma2:fixture:import — no console I/O occurs." },
     { "id": 68,  "name": "list_fixtures",               "minimum_right": "none",     "current_scope": "gma2:state:read",          "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "List patched fixtures." },
     { "id": 69,  "name": "list_sequence_cues",          "minimum_right": "none",     "current_scope": "gma2:state:read",          "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "List cues in a sequence." },
     { "id": 70,  "name": "highlight_fixtures",          "minimum_right": "presets",  "current_scope": "gma2:programmer:write",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Enable or toggle Highlight mode." },
@@ -161,10 +161,10 @@
     { "id": 95,  "name": "recluster_tools",             "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Re-run K-Means tool clustering." },
     { "id": 96,  "name": "get_similar_tools",           "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Find tools similar to a named tool." },
     { "id": 97,  "name": "suggest_tool_for_task",       "minimum_right": "none",     "current_scope": "gma2:discover",            "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Suggest the best tool for a natural-language task description." },
-    { "id": 98,  "name": "list_console_users",          "minimum_right": "admin",    "current_scope": "gma2:state:read",          "scope_aligned": false, "risk_tier": "SAFE_READ",   "description": "List console user accounts. Scope should raise to gma2:user:manage (admin) — user enumeration is sensitive admin data." },
+    { "id": 98,  "name": "list_console_users",          "minimum_right": "admin",    "current_scope": "gma2:user:manage",         "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "List console user accounts. Raised from gma2:state:read — user enumeration is sensitive admin data." },
     { "id": 99,  "name": "create_console_user",         "minimum_right": "admin",    "current_scope": "gma2:user:manage",         "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Create or overwrite a console user account." },
     { "id": 100, "name": "assign_world_to_user_profile", "minimum_right": "admin",   "current_scope": "gma2:user:manage",         "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Assign a World to a user profile." },
-    { "id": 101, "name": "inspect_sessions",            "minimum_right": "admin",    "current_scope": "gma2:state:read",          "scope_aligned": false, "risk_tier": "SAFE_READ",   "description": "Inspect active Telnet session pool state. Scope should raise to gma2:user:manage (admin) — session data is sensitive." },
+    { "id": 101, "name": "inspect_sessions",            "minimum_right": "admin",    "current_scope": "gma2:user:manage",         "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Inspect active Telnet session pool state. Raised from gma2:state:read — session pool data is sensitive admin data." },
     { "id": 102, "name": "delete_user",                 "minimum_right": "admin",    "current_scope": "gma2:user:manage",         "scope_aligned": true,  "risk_tier": "DESTRUCTIVE", "description": "Delete a console user account (slot 1 protected)." },
     { "id": 103, "name": "browse_effect_library",       "minimum_right": "none",     "current_scope": "gma2:state:read",          "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Browse the MA2 built-in effect library." },
     { "id": 104, "name": "browse_macro_library",        "minimum_right": "none",     "current_scope": "gma2:state:read",          "scope_aligned": true,  "risk_tier": "SAFE_READ",   "description": "Browse the stored macro library." },
@@ -175,105 +175,30 @@
     { "id": 109, "name": "assign_temp_fader",           "minimum_right": "playback", "current_scope": "gma2:executor:control",    "scope_aligned": true,  "risk_tier": "SAFE_WRITE",  "description": "Assign a temporary fader to an executor or sequence." }
   ],
 
-  "pending_corrections": [
-    {
-      "id": 3,
-      "name": "send_raw_command",
-      "action": "raise",
-      "from_scope": "gma2:programmer:write",
-      "to_scope": "gma2:cue:store",
-      "reason": "Raw commands have no ceiling — can execute any grandMA2 keyword including destructive ones. Minimum 'program' rights aligns with the lowest tier that permits store operations."
-    },
-    {
-      "id": 38,
-      "name": "control_timecode",
-      "action": "lower",
-      "from_scope": "gma2:sequence:edit",
-      "to_scope": "gma2:playback:go",
-      "reason": "Timecode start/stop/reset is a playback operation. In MA2, rights=1 (Playback) can trigger timecode shows. No sequence editing required."
-    },
-    {
-      "id": 39,
-      "name": "control_timer",
-      "action": "lower",
-      "from_scope": "gma2:sequence:edit",
-      "to_scope": "gma2:playback:go",
-      "reason": "Timer control (start/stop/reset) is a playback operation available to rights=1 (Playback) in MA2."
-    },
-    {
-      "id": 41,
-      "name": "toggle_console_mode",
-      "action": "compound_split",
-      "from_scope": "gma2:playback:go",
-      "to_scope": "varies_by_mode",
-      "reason": "Outer gate stays gma2:playback:go (Highlight, Blackout, Freeze are playback). Blind mode requires gma2:programmer:write inner has_scope() guard — Blind puts console in programming mode.",
-      "compound_guards": {
-        "Highlight": "gma2:playback:go",
-        "Freeze": "gma2:playback:go",
-        "Blackout": "gma2:playback:go",
-        "Blind": "gma2:programmer:write",
-        "BlindEdit": "gma2:programmer:write"
-      }
-    },
-    {
-      "id": 55,
-      "name": "save_show",
-      "action": "lower",
-      "from_scope": "gma2:cue:store",
-      "to_scope": "gma2:playback:go",
-      "reason": "SaveShow is available to rights=1 (Playback) in grandMA2. The Backup key (QuickSave) is accessible to operators. Overly restrictive at program level."
-    },
-    {
-      "id": 62,
-      "name": "save_recall_view",
-      "action": "lower",
-      "from_scope": "gma2:setup:console",
-      "to_scope": "gma2:cue:store",
-      "reason": "Saving and recalling screen views is a programmer workflow, not a setup/admin task. Available to rights=3 (Program) in MA2."
-    },
-    {
-      "id": 63,
-      "name": "export_objects",
-      "action": "lower",
-      "from_scope": "gma2:setup:console",
-      "to_scope": "gma2:cue:store",
-      "reason": "Export (MA+Copy) is available to rights=3 (Program) in MA2. Not a setup-tier operation."
-    },
-    {
-      "id": 67,
-      "name": "generate_fixture_layer_xml",
-      "action": "lower",
-      "from_scope": "gma2:fixture:import",
-      "to_scope": "gma2:discover",
-      "reason": "This tool generates an XML document in Python — no console I/O occurs. The fixture:import scope is only needed by import_fixture_layer (tool 66) which actually sends the file to the console."
-    },
-    {
-      "id": 98,
-      "name": "list_console_users",
-      "action": "raise",
-      "from_scope": "gma2:state:read",
-      "to_scope": "gma2:user:manage",
-      "reason": "User enumeration exposes account names and rights levels — sensitive admin data. Requires Admin (rights=5) Telnet session to execute on the console anyway."
-    },
-    {
-      "id": 101,
-      "name": "inspect_sessions",
-      "action": "raise",
-      "from_scope": "gma2:state:read",
-      "to_scope": "gma2:user:manage",
-      "reason": "Session pool data (operator names, IP addresses, auth tokens) is sensitive. Should require admin scope consistent with the other user-management tools."
-    }
+  "pending_corrections": [],
+
+  "applied_corrections": [
+    { "id": 3,  "name": "send_raw_command",           "action": "raise",          "from": "gma2:programmer:write", "to": "gma2:cue:store",        "applied": "2026-03-30" },
+    { "id": 38, "name": "control_timecode",           "action": "lower",          "from": "gma2:sequence:edit",    "to": "gma2:playback:go",      "applied": "2026-03-30" },
+    { "id": 39, "name": "control_timer",              "action": "lower",          "from": "gma2:sequence:edit",    "to": "gma2:playback:go",      "applied": "2026-03-30" },
+    { "id": 41, "name": "toggle_console_mode",        "action": "compound_split", "from": "gma2:playback:go",      "to": "gma2:playback:go+blind_inner_guard", "applied": "2026-03-30" },
+    { "id": 55, "name": "save_show",                  "action": "lower",          "from": "gma2:cue:store",        "to": "gma2:playback:go",      "applied": "2026-03-30" },
+    { "id": 62, "name": "save_recall_view",           "action": "lower",          "from": "gma2:setup:console",    "to": "gma2:cue:store",        "applied": "2026-03-30" },
+    { "id": 63, "name": "export_objects",             "action": "lower",          "from": "gma2:setup:console",    "to": "gma2:cue:store",        "applied": "2026-03-30" },
+    { "id": 67, "name": "generate_fixture_layer_xml", "action": "lower",          "from": "gma2:fixture:import",   "to": "gma2:discover",         "applied": "2026-03-30" },
+    { "id": 98, "name": "list_console_users",         "action": "raise",          "from": "gma2:state:read",       "to": "gma2:user:manage",      "applied": "2026-03-30" },
+    { "id": 101,"name": "inspect_sessions",           "action": "raise",          "from": "gma2:state:read",       "to": "gma2:user:manage",      "applied": "2026-03-30" }
   ],
 
   "summary": {
     "total_tools": 109,
-    "scope_aligned": 99,
-    "pending_corrections": 10,
+    "scope_aligned": 109,
+    "pending_corrections": 0,
     "corrections_by_action": {
-      "raise": 3,
-      "lower": 5,
-      "compound_split": 1,
-      "lower_significant": 1
+      "raise": 0,
+      "lower": 0,
+      "compound_split": 0,
+      "lower_significant": 0
     },
     "rights_distribution": {
       "none":     { "count": 36, "tool_ids": [4,5,6,7,12,21,22,30,35,52,68,69,73,76,77,78,79,80,81,82,86,88,92,93,94,95,96,97,103,104,105,106,107] },
