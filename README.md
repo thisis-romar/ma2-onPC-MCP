@@ -815,10 +815,35 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 
 | Function | Output |
 |----------|--------|
-| `go(executor_id=1)` | `go executor 1` |
-| `go_back(executor_id=1)` | `goback executor 1` |
-| `goto(cue_id=5)` | `goto cue 5` |
+| `go("executor", 3)` | `go executor 3` |
+| `go_executor(3)` | `go executor 3` |
+| `go_back("executor", 3)` | `goback executor 3` |
+| `go_back_executor(3)` | `goback executor 3` |
+| `goto(3)` | `goto cue 3` |
 | `go_sequence(1)` | `go+ sequence 1` |
+| `go_macro(2)` | `go macro 2` |
+| `on_executor(3)` | `on executor 3` |
+| `off_executor(3)` | `off executor 3` |
+| `flash_executor(3)` | `flash executor 3` |
+| `swop_executor(3)` | `swop executor 3` |
+| `solo_executor(3)` | `solo executor 3` |
+| `top_executor(3)` | `top executor 3` |
+| `stomp_executor(3)` | `stomp executor 3` |
+| `release_executor(3)` | `release executor 3` |
+| `goto_cue(1, 5)` | `goto cue 5 sequence 1` |
+| `pause_sequence(1)` | `pause sequence 1` |
+| `goto_timecode(1, "00:01:30:00")` | `goto timecode 1 "00:01:30:00"` |
+| `go_fast_forward()` | `>>>` |
+| `go_fast_back()` | `<<<` |
+| `load_next()` | `loadnext` |
+| `load_prev()` | `loadprev` |
+| `def_go_forward()` | `defgoforward` |
+| `def_go_back()` | `defgoback` |
+| `def_go_pause()` | `defgopause` |
+| `solo()` | `solo` |
+| `blind()` | `blind` |
+| `freeze()` | `freeze` |
+| `blackout()` | `blackout` |
 
 ### At (Values)
 
