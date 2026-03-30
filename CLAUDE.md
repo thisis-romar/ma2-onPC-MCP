@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.1.0
+version: 4.2.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+last_updated: 2026-03-30T13:00:00Z
 ---
 
 # Project Rules
@@ -30,8 +30,8 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
-| `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
+| `src/commands/` | 178 pure command-builder functions, grouped by keyword type |
+| `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
 | `src/vocab.py` | 156 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
