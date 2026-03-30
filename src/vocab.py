@@ -921,7 +921,7 @@ DEFAULT_KEYWORD_STATES: list[dict] = [
 # Rights levels are cumulative downward: Admin implies all lower tiers.
 # Comparison via >= works correctly because this is an IntEnum.
 
-from enum import IntEnum as _IntEnum
+from enum import IntEnum as _IntEnum  # noqa: E402
 
 
 class RightsLevel(_IntEnum):

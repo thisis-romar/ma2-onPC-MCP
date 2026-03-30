@@ -13,12 +13,12 @@ Provides:
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any
 
 # Import MA2Right from its authoritative location — never redefine it here.
-from .commands.constants import MA2Right, MA2_RIGHTS_LEVELS
+from .commands.constants import MA2Right
 
 if TYPE_CHECKING:
     pass
@@ -182,7 +182,7 @@ _RIGHTS_DENIAL_RE = re.compile(r"Error\s+#72|insufficient\s+rights|access\s+deni
 # FeedbackClass
 # ---------------------------------------------------------------------------
 
-class FeedbackClass(str, Enum):
+class FeedbackClass(StrEnum):
     """Classification of a tool call's outcome relative to rights enforcement."""
     PASS_ALLOWED  = "PASS_ALLOWED"   # permitted and succeeded
     PASS_DENIED   = "PASS_DENIED"    # correctly blocked by MCP gate
@@ -289,7 +289,7 @@ class RightsContext:
         return f"RightsContext(user={self.username!r}, rights={self.user_right.value})"
 
     @classmethod
-    def from_snapshot(cls, snapshot: "Any") -> "RightsContext":
+    def from_snapshot(cls, snapshot: Any) -> RightsContext:
         """Build a RightsContext from a ConsoleStateSnapshot."""
         return cls(
             user_right=snapshot.user_right,

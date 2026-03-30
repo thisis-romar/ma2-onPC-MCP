@@ -33,7 +33,6 @@ from __future__ import annotations
 
 import os
 
-
 # ── Tier → credential table ───────────────────────────────────────────────────
 #
 # Each entry: (user_env_var, password_env_var, default_username, default_password)

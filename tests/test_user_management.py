@@ -11,7 +11,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # ── Builder function tests ─────────────────────────────────────────────────────
 
 class TestBuildLogin:
@@ -135,7 +134,6 @@ class TestListConsoleUsersTool:
     async def test_blocked_without_scope(self, monkeypatch):
         monkeypatch.setenv("GMA_SCOPE", "tier:0")
         monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
-        from src.server import list_console_users
 
         # list_console_users requires STATE_READ which is in tier:0, so should succeed
         # Actually STATE_READ is tier:0 so tier:0 grants it
@@ -158,7 +156,7 @@ class TestCreateConsoleUserTool:
         mock_client.send_command_with_response = AsyncMock(return_value="OK")
         mock_get_client.return_value = mock_client
 
-        result = await create_console_user(
+        await create_console_user(
             slot=3, name="programmer", password="pw123",
             rights_level=3, confirm_destructive=True
         )
@@ -229,7 +227,7 @@ class TestAssignWorldToUserProfileTool:
         mock_client.send_command_with_response = AsyncMock(return_value="OK")
         mock_get_client.return_value = mock_client
 
-        result = await assign_world_to_user_profile(
+        await assign_world_to_user_profile(
             user_profile_slot=2, world_slot=1, confirm_destructive=True
         )
 

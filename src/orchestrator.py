@@ -16,21 +16,21 @@ import asyncio
 import logging
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Awaitable
+from typing import Any
 
-from .agent_memory import WorkingMemory, LongTermMemory
-from .console_state import ConsoleStateHydrator, ConsoleStateSnapshot, MAtricksTracker
-from .task_decomposer import TaskDecomposer, TaskPlan, SubTask, RiskTier
+from .agent_memory import LongTermMemory, WorkingMemory
+from .console_state import ConsoleStateHydrator, ConsoleStateSnapshot
 from .rights import (
-    RightsContext,
-    MA2Right,
     FeedbackClass,
-    TelnetFeedback,
-    parse_telnet_feedback,
+    MA2Right,
+    RightsContext,
     is_permitted,
     min_right_for_tool,
+    parse_telnet_feedback,
 )
+from .task_decomposer import RiskTier, SubTask, TaskDecomposer, TaskPlan
 
 logger = logging.getLogger(__name__)
 
@@ -94,17 +94,16 @@ def _preflight_guard(step: SubTask, wm: WorkingMemory) -> str | None:
     # This is the new layer from the rights patch.
     # Prevents FAILED_CLOSED: user lacks rights, MCP gate would pass it,
     # console rejects silently with Error #72.
-    if tool and rc.user_right != MA2Right.NONE:
-        # Only enforce when we have a real rights level (not default NONE
-        # which means "not yet hydrated" — don't block on unknown state)
-        if not is_permitted(tool, rc.user_right):
-            min_r = min_right_for_tool(tool)
-            return (
-                f"[FAILED_CLOSED] Rights check failed for step '{step.name}': "
-                f"user '{rc.username}' has rights={rc.user_right.value}, "
-                f"tool '{tool}' requires {min_r.value} or above. "
-                f"Aborting before console would reject with Error #72."
-            )
+    # Only enforce when we have a real rights level (not default NONE
+    # which means "not yet hydrated" — don't block on unknown state)
+    if tool and rc.user_right != MA2Right.NONE and not is_permitted(tool, rc.user_right):
+        min_r = min_right_for_tool(tool)
+        return (
+            f"[FAILED_CLOSED] Rights check failed for step '{step.name}': "
+            f"user '{rc.username}' has rights={rc.user_right.value}, "
+            f"tool '{tool}' requires {min_r.value} or above. "
+            f"Aborting before console would reject with Error #72."
+        )
 
     # ── Check 2: DESTRUCTIVE gate ────────────────────────────────────
     if step.allowed_risk == RiskTier.DESTRUCTIVE and not step.confirmed:
@@ -248,7 +247,7 @@ class OrchestrationResult:
             f"║ Elapsed   : {self.elapsed_s}s",
         ]
         if self.console_state_summary:
-            lines.append(f"╠── Console State at Start ──")
+            lines.append("╠── Console State at Start ──")
             for ln in self.console_state_summary.splitlines():
                 lines.append(f"║ {ln}")
         lines.append("╠── Step Results ──")
@@ -448,7 +447,7 @@ class Orchestrator:
                 *[self._sub_agent(s, wm, self._call) for s in ready],
                 return_exceptions=True,
             )
-            for step, res in zip(ready, batch):
+            for step, res in zip(ready, batch, strict=False):
                 if isinstance(res, Exception):
                     res = StepResult(step_name=step.name, success=False, error=str(res))
                 results.append(res)

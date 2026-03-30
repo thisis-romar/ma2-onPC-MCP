@@ -9,18 +9,16 @@ Tests for:
 """
 
 import json
-import os
 
 import pytest
 
+from src.auth import require_ma2_right
 from src.commands.constants import (
-    MA2Right,
     MA2RIGHT_TO_OAUTH_SCOPE,
     OAUTH_TIER_SCOPES,
+    MA2Right,
     OAuthScope,
 )
-from src.auth import require_ma2_right, require_scope
-
 
 # ── MA2Right enum ──────────────────────────────────────────────────────────────
 
@@ -164,7 +162,6 @@ class TestRequireMa2Right:
 
     def test_equivalent_to_require_scope(self):
         """require_ma2_right(X) must equal require_scope(MA2RIGHT_TO_OAUTH_SCOPE[X])."""
-        import functools
         # Both decorators should wrap the same underlying function correctly.
         # We verify by checking they produce the same scope_required in blocked output.
         # (Functional equivalence confirmed by shared require_scope delegation.)

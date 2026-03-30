@@ -22,16 +22,14 @@ Usage in server.py:
 
 from __future__ import annotations
 
-from typing import Any
 from mcp.server.fastmcp import FastMCP
 
+from .agent_memory import LongTermMemory
 from .orchestrator import Orchestrator
-from .task_decomposer import TaskDecomposer
-from .pool_name_index import ObjectRef, PoolNameIndex
-from .telemetry import ToolTelemetry
 from .skill import SkillRegistry
 from .skill_improver import SkillImprover
-from .agent_memory import LongTermMemory
+from .task_decomposer import TaskDecomposer
+from .telemetry import ToolTelemetry
 
 
 def register_orchestration_tools(
@@ -251,7 +249,8 @@ def register_orchestration_tools(
                         mcp_tools (array), depends_on (array), eval_criteria
         """
         import json
-        from .task_decomposer import SubTask, TaskPlan, RiskTier
+
+        from .task_decomposer import RiskTier, SubTask, TaskPlan
 
         try:
             steps_raw = json.loads(steps_json)

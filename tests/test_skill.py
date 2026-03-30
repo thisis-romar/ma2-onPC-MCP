@@ -8,12 +8,10 @@ from __future__ import annotations
 
 import time
 import uuid
-from pathlib import Path
 
 import pytest
 
 from src.skill import Skill, SkillRegistry, _slugify
-
 
 # ---------------------------------------------------------------------------
 # Fixture

@@ -15,11 +15,11 @@ but not all three things at the same time."
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Literal
+from typing import Literal
 
 from .vocab import RiskTier  # single source of truth — do not redefine
-
 
 # ---------------------------------------------------------------------------
 # Sub-task definition

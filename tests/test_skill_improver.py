@@ -7,16 +7,13 @@ All tests use a temp SQLite DB.  No live console required.
 from __future__ import annotations
 
 import time
-import uuid
-from pathlib import Path
 
 import pytest
 
-from src.telemetry import ToolTelemetry
+from src.agent_memory import LongTermMemory
 from src.skill import SkillRegistry
-from src.agent_memory import LongTermMemory, WorkingMemory
-from src.skill_improver import SkillImprover, RepairSuggestion, PromotionCandidate, _slugify
-
+from src.skill_improver import SkillImprover, _slugify
+from src.telemetry import ToolTelemetry
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -43,9 +40,9 @@ def reg(db_path):
 
 @pytest.fixture
 def ltm(db_path):
-    l = LongTermMemory(db_path=db_path)
-    yield l
-    l.close()
+    mem = LongTermMemory(db_path=db_path)
+    yield mem
+    mem.close()
 
 
 @pytest.fixture

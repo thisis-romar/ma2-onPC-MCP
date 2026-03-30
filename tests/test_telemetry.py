@@ -7,15 +7,11 @@ so the real recording path is exercised).  No live console required.
 
 from __future__ import annotations
 
-import os
-import tempfile
 import time
-from pathlib import Path
 
 import pytest
 
 from src.telemetry import ToolTelemetry, infer_risk_tier
-
 
 # ---------------------------------------------------------------------------
 # Fixture
