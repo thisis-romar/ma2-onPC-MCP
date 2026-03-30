@@ -1,7 +1,7 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.15.1
+version: 3.15.2
 created: 2025-02-27T00:00:00Z
 last_updated: 2026-03-30T00:00:00Z
 ---
@@ -196,6 +196,112 @@ list            → enumerate objects at current destination
 | `navigate_page` | Navigate to a specific page or page +/– |
 | `release_executor` | Release (deactivate) an executor |
 | `blackout_toggle` | Toggle grandmaster blackout on/off |
+
+</details>
+
+<details>
+<summary><strong>playback_action</strong> — parameters &amp; response fields</summary>
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `action` | `str` | One of the actions below |
+| `object_type` | `str \| None` | Object type for `go`/`go_back` (e.g. `"executor"`, `"sequence"`) |
+| `object_id` | `int \| list[int] \| None` | ID or list of IDs — list produces `N + M + …` syntax |
+| `cue_id` | `int \| float \| None` | Required for `"goto"` |
+| `end` | `int \| None` | End of range for `go`/`go_back` (builds `thru N`) |
+| `cue_mode` | `str \| None` | `"normal"`, `"assert"`, `"xassert"`, or `"release"` |
+| `executor` | `int \| list[int] \| None` | Executor ID(s) for `goto`/`fast_forward`/`fast_back` — list produces `N + M + …` |
+| `sequence` | `int \| None` | Sequence ID for `goto`/`fast_forward`/`fast_back` |
+
+#### Actions
+
+| Action | Command sent | Notes |
+|--------|-------------|-------|
+| `"go"` | `go [object_type] [id]` | Fires next cue; `object_id` accepts a list |
+| `"go_back"` | `goback [object_type] [id]` | Fires previous cue; `object_id` accepts a list |
+| `"goto"` | `goto cue N [executor/sequence]` | Pre-flight validates cue exists; returns `blocked=True` on Error #72 |
+| `"fast_forward"` | `>>> [executor N]` | `executor` accepts a list |
+| `"fast_back"` | `<<< [executor N]` | `executor` accepts a list |
+| `"def_go"` | `defgoforward` | Fires on `$SELECTEDEXEC`; reads state before firing |
+| `"def_go_back"` / `"def_goback"` | `defgoback` | Same — `def_goback` is an alias |
+| `"def_pause"` | `defgopause` | Same |
+
+#### Response fields
+
+All actions return `command_sent` and `raw_response`.
+
+`def_go`, `def_go_back`, and `def_pause` additionally return:
+
+| Field | Value |
+|-------|-------|
+| `selected_executor` | Value of `$SELECTEDEXEC` read **before** the command was sent (`null` if unavailable) |
+| `selected_cue_before` | Value of `$SELECTEDEXECCUE` read before the command (`null` if unavailable) |
+
+`goto` additionally returns `cue_exists`, `cue_probe_response`, and optionally `executor_probe_response`.
+
+#### Examples
+
+```python
+# Fire next cue on executors 1, 2, and 3 simultaneously
+playback_action(action="go", object_type="executor", object_id=[1, 2, 3])
+# → go executor 1 + 2 + 3
+
+# Fast-forward executors 2 and 4
+playback_action(action="fast_forward", executor=[2, 4])
+# → >>> executor 2 + 4
+
+# Go back on the selected executor — response tells you which one fired
+playback_action(action="def_go_back")
+# → {"command_sent": "defgoback", "selected_executor": "5", "selected_cue_before": "3"}
+```
+
+</details>
+
+<details>
+<summary><strong>select_executor</strong> — parameters &amp; response fields</summary>
+
+**Single-selection only.** MA2 telnet `select executor N` accepts exactly one executor number. There is no list syntax — pass a single `executor_id` integer.
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `executor_id` | `int` | required | Executor number (1–999) |
+| `page` | `int \| None` | `None` | Page number — produces `select executor page.id` (e.g. `page=2, executor_id=5` → `select executor 2.5`) |
+| `deselect` | `bool` | `False` | If `True`, sends bare `select` to clear the current selection (**unverified on grandMA2 telnet** — inspect `raw_response`) |
+
+#### Response fields
+
+| Field | Always present | Description |
+|-------|---------------|-------------|
+| `command_sent` | ✓ | The exact command sent |
+| `raw_response` | ✓ | Raw telnet reply |
+| `confirmed_selected_exec` | ✓ | Value of `$SELECTEDEXEC` read after the command (`null` if unavailable) |
+| `risk_tier` | ✓ | `"SAFE_WRITE"` |
+| `warning` | if mismatch | Present when `confirmed_selected_exec` doesn't match the requested `executor_id` |
+| `note` | if deselect | Present when `deselect=True` — warns that bare `select` behaviour is unverified |
+
+#### Page-qualified addressing
+
+When `page` is supplied, MA2 stores `$SELECTEDEXEC` as the executor number only (not the page-qualified form). The confirmation check compares against `executor_id` alone — no spurious warning.
+
+#### Examples
+
+```python
+# Select executor 5 and confirm
+select_executor(executor_id=5)
+# → {"command_sent": "select executor 5", "confirmed_selected_exec": "5"}
+
+# Select executor 5 on page 2
+select_executor(executor_id=5, page=2)
+# → {"command_sent": "select executor 2.5", "confirmed_selected_exec": "5"}
+
+# Clear the current selection
+select_executor(executor_id=1, deselect=True)
+# → {"command_sent": "select", "note": "Bare 'select' sent … unverified …"}
+```
 
 </details>
 
