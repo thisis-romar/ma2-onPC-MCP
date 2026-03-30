@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet
-version: 3.18.2
+version: 3.19.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-30T05:00:00Z
+last_updated: 2026-03-30T06:00:00Z
 ---
 
 <p align="center">
@@ -726,29 +726,55 @@ See [`vscode-mcp-provider/README.md`](vscode-mcp-provider/README.md) for full de
 
 ## Safety System
 
-### Risk Tiers
+GrandPA2-Buddy enforces a **3-layer model** where effective permissions are the intersection of all three — no single layer can expand privileges:
 
-```mermaid
-graph LR
-    A["`**SAFE_READ**
-    list · info · cd`"] -->|"standard / admin"| D[Console]
-    B["`**SAFE_WRITE**
-    go · at · clear · park`"] -->|"standard / admin"| D
-    C["`**DESTRUCTIVE**
-    delete · store · copy`"] -->|"admin only
-    or confirm_destructive"| D
-
-    style A fill:#2d6a4f,stroke:#40916c,color:#fff
-    style B fill:#e9c46a,stroke:#f4a261,color:#000
-    style C fill:#e63946,stroke:#d62828,color:#fff
-    style D fill:#264653,stroke:#2a9d8f,color:#fff
 ```
+scope ∩ policy ∩ ma2_rights = FINAL AUTHORITY
+```
+
+### Layer 1 — OAuth Identity (`src/auth.py`)
+
+Six scope tiers map to console users created by `scripts/bootstrap_console_users.py`:
+
+| `GMA_SCOPE` | Console user | MA2 Rights | Can do |
+|-------------|-------------|-----------|--------|
+| `tier:0` | `guest` | None (0) | Read-only — list, info, cd |
+| `tier:1` | `operator` | Playback (1) | Go, Flash, Off, timecode |
+| `tier:2` | `presets_editor` | Presets (2) | Set attributes, apply/store presets |
+| `tier:3` | `programmer` | Program (3) | Store cues, groups, sequences, macros |
+| `tier:4` | `tech_director` | Setup (4) | Patch, fixture import, console setup |
+| `tier:5` | `administrator` | Admin (5) | User management, show load/delete |
+
+### Layer 2 — Policy Gate (`src/rights.py`)
+
+Every tool is annotated with `@require_ma2_right(MA2Right.X)` which enforces the OAuth scope requirement before any Telnet command is sent. The `check_permission()` utility provides a unified gate combining scope and rights checks:
+
+```python
+result = check_permission("store_current_cue", granted_scopes, user_right)
+# scope ∩ MA2Right — both must pass
+if not result.allowed:
+    return result.as_block_response()
+```
+
+All 109 tools are mapped in `doc/ma2-rights-matrix.json`.
+
+### Layer 3 — MA2 Native Rights (console enforcement)
+
+The Telnet session runs as a console user whose native rights are enforced by grandMA2 itself. Commands beyond that user's rights level are rejected with `Error #72` — an irrevocable floor that exists regardless of what Layer 1 or 2 permit.
+
+> Bootstrap required: On a fresh show, run `python scripts/bootstrap_console_users.py` as Administrator to create the 5 intermediate users. Only `Administrator` and `Guest` exist natively.
+
+### Risk Tiers (server-side gate)
+
+In addition to the 3-layer model, every keyword is classified into one of three risk tiers enforced by `_handle_errors`:
 
 | Tier | Description | Examples |
 |------|-------------|----------|
 | `SAFE_READ` | Read-only queries | `Info`, `List`, `CmdHelp`, `ChangeDest` |
-| `SAFE_WRITE` | Reversible state changes | `Go`, `At`, `Clear`, `Park`, `SelFix`, all Object Keywords |
+| `SAFE_WRITE` | Reversible state changes | `Go`, `At`, `Clear`, `Park`, `SelFix` |
 | `DESTRUCTIVE` | Data mutation or loss | `Delete`, `Store`, `Copy`, `Move`, `Shutdown` |
+
+`DESTRUCTIVE` tools require `confirm_destructive=True` in addition to OAuth scope.
 
 > [!IMPORTANT]
 > **Command injection prevention:** Line breaks (`\r`, `\n`) are rejected before any command reaches the console.

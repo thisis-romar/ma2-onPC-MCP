@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from src.agent_memory import LongTermMemory
-from src.auth import OAuthScope, require_scope
+from src.auth import OAuthScope, has_scope, require_scope
 from src.commands import (
     add_to_selection as build_add_to_selection,
 )
@@ -3232,6 +3232,18 @@ async def toggle_console_mode(mode: str) -> str:
     valid = ("blind", "highlight", "solo", "freeze")
     if mode not in valid:
         return json.dumps({"error": f"mode must be one of {valid}", "blocked": True}, indent=2)
+
+    # Blind mode puts the console into the programming layer — requires presets scope.
+    if mode == "blind" and not has_scope(OAuthScope.PROGRAMMER_WRITE):
+        return json.dumps({
+            "blocked": True,
+            "error": (
+                "Blind mode requires OAuth scope 'gma2:programmer:write' "
+                "(tier:2 or higher). Highlight/Solo/Freeze only require tier:1."
+            ),
+            "scope_required": str(OAuthScope.PROGRAMMER_WRITE),
+            "scope_tier": 2,
+        }, indent=2)
 
     client = await get_client()
     response = await client.send_command_with_response(mode)
