@@ -1,16 +1,16 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet
-version: 3.18.1
+version: 3.18.2
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-30T04:00:00Z
+last_updated: 2026-03-30T05:00:00Z
 ---
 
 <p align="center">
   <img src="assets/banner.svg" alt="GrandPA2-Buddy" width="100%">
 </p>
 
-# GrandPA2-Buddy
+# GrandPA2-Buddy 👨‍🎨
 
 <p align="center">
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
