@@ -1,9 +1,9 @@
 ---
 title: Functional Domains, Hardkeys, and Executor Priorities
 description: MA2 keyword domains, multi-press key chains, and executor priority constants
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-29T08:30:00Z
+last_updated: 2026-03-30T13:30:00Z
 ---
 
 # Functional Domains, Hardkeys, and Executor Priorities
@@ -21,11 +21,11 @@ last_updated: 2026-03-29T08:30:00Z
 | `object_manipulation` | 21 | Assign, Label, Appearance, Store, Copy, Delete |
 | `playback_control` | 26 | Go, GoBack, Goto, Flash, Kill, Release, Freeze |
 | `selection_filtering` | 28 | Select, Clear, If, Park, Highlight, Blind, SelFix |
-| `timing_effects` | 38 | Fade, Speed, Rate, Crossfade, EffectBPM, EffectPhase |
+| `timing_effects` | 37 | Fade, Speed, Rate, Crossfade, EffectBPM, EffectPhase |
 | `network_session` | 20 | JoinSession, TakeControl, SetIP, Telnet, RemoteCommand |
-| `system_admin` | 26 | Shutdown, SaveShow, NewShow, UpdateFirmware, Blackout |
-| `data_query` | 19 | List, Info, Help, Search, ListVar, PSR |
-| `variables_scripting` | 10 | SetVar, AddVar, SetUserVar, Call, Macro, Plugin |
+| `system_admin` | 25 | Shutdown, SaveShow, NewShow, UpdateFirmware, Blackout |
+| `data_query` | 18 | List, Info, Help, Search, ListVar, PSR |
+| `variables_scripting` | 7 | SetVar, AddVar, SetUserVar, Call, Macro, Plugin |
 | `matricks` | 8 | MAtricks, MAtricksInterleave, MAtricksBlocks, Interleave |
 | `rdm` | 8 | RdmAutomatch, RdmAutopatch, RdmSetpatch, RdmUnmatch |
 
