@@ -56,7 +56,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 graph TD
     A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>148 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>179+ pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>178 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
@@ -79,7 +79,7 @@ graph TD
 | Module | Role |
 |--------|------|
 | `src/server.py` | FastMCP server, 115 interactive tools, safety gate, env config |
-| `src/server_orchestration_tools.py` | 33 agentic tools (116–148) registered onto FastMCP |
+| `src/server_orchestration_tools.py` | 33 agentic tools (110–143) registered onto FastMCP |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
@@ -92,7 +92,7 @@ graph TD
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/vocab.py` | 152 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
-| `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
+| `src/commands/` | 178 pure command-builder functions, grouped by keyword type |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
@@ -764,7 +764,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **179 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. **178 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -869,7 +869,7 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ```
 gma2-mcp-telnet/
 ├── src/
-│   ├── server.py                           # FastMCP server (110 interactive tools)
+│   ├── server.py                           # FastMCP server (115 interactive tools)
 │   ├── server_orchestration_tools.py       # Agentic layer (tools 110–143)
 │   │
 │   │   # Orchestration & Memory
@@ -895,7 +895,7 @@ gma2-mcp-telnet/
 │   ├── vocab.py                            # 152 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
-│   ├── commands/                           # 179+ pure command-builder functions
+│   ├── commands/                           # 178 pure command-builder functions
 │   │   ├── objects/                        # Object keywords (11 modules)
 │   │   └── functions/                      # Function keywords (18 modules)
 │   └── categorization/                     # ML tool categorization (K-Means)

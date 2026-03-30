@@ -23,7 +23,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | Module | Role |
 |--------|------|
 | `src/server.py` | FastMCP server — 115 tools + MCP resources + MCP prompts, safety gate |
-| `src/server_orchestration_tools.py` | Registers tools 116-148 (agentic layer) onto FastMCP |
+| `src/server_orchestration_tools.py` | Registers tools 110-143 (agentic layer) onto FastMCP |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
