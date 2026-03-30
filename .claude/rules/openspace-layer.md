@@ -1,9 +1,9 @@
 ---
 title: OpenSpace Layer Developer Conventions
 description: Telemetry, skill lifecycle, DESTRUCTIVE approval, SkillImprover, and context management rules
-version: 1.0.0
+version: 1.2.0
 created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-29T08:30:00Z
+last_updated: 2026-03-30T12:00:00Z
 ---
 
 # OpenSpace Layer Developer Conventions
@@ -98,3 +98,27 @@ Do not call `ToolTelemetry.record_sync()` directly. Do not add telemetry to `src
 
 Exposed as MCP Tool 142. Do not add autonomous promotion logic to `SkillImprover`.
 Promotion is always operator-initiated via Tool 141.
+
+---
+
+## DecisionCheckpoint (`src/agent_memory.py`)
+
+`DecisionCheckpoint` is a lightweight cache record for replaying known-good decisions without re-querying the console.
+
+```python
+@dataclass
+class DecisionCheckpoint:
+    fault: str          # what was being decided (e.g. "resolve_fixture_id")
+    query: str          # the specific question asked
+    replay: str         # the answer to replay
+    observed_at: float  # unix timestamp when recorded
+    fresh_for_seconds: int  # TTL (default: 300)
+    confidence: str     # "low" | "medium" | "high" (default: "medium")
+```
+
+**Key method:** `is_fresh()` — returns `True` if `time.time() - observed_at < fresh_for_seconds`.
+
+**Usage pattern:**
+- Store a checkpoint via `WorkingMemory.add_checkpoint(checkpoint)` after a successful console query.
+- Before re-querying, call `WorkingMemory.get_checkpoint(fault, query)` — returns the `DecisionCheckpoint` or `None`.
+- Never cache DESTRUCTIVE decisions — checkpoints are for read/resolve results only.

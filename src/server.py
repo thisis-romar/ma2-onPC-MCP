@@ -377,10 +377,10 @@ _vocab_spec = build_v39_spec()
 # Create MCP server
 mcp = FastMCP(
     name="grandMA2-MCP",
-    instructions="""grandMA2 MCP server — 143 tools, 6 resources, 6 prompts.
+    instructions="""grandMA2 MCP server — 148 tools, 6 resources, 6 prompts.
 
 Use suggest_tool_for_task(task_description) to find the right tool for any task.
-Use ma2://docs/tool-taxonomy resource to browse all 143 tools by category.
+Use ma2://docs/tool-taxonomy resource to browse all 148 tools by category.
 
 Core workflows:
   Inspect  → navigate_console, list_console_destination, query_object_list, get_object_info

@@ -3,6 +3,7 @@ tests/test_agent_memory.py — Unit tests for src/agent_memory.py
 
 Covers:
   - FixtureSnapshot
+  - DecisionCheckpoint: is_fresh() freshness window
   - WorkingMemory: fixture tracking, park ledger, mode overrides, step tracking
   - LongTermMemory: save/load, recent_sessions, recall
 """

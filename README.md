@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.14.0
+version: 3.15.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-29T05:00:00Z
+last_updated: 2026-03-30T00:00:00Z
 ---
 
 <div align="center">
@@ -12,8 +12,8 @@ last_updated: 2026-03-29T05:00:00Z
 
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
-![Tools](https://img.shields.io/badge/MCP_tools-143-brightgreen)
-![Tests](https://img.shields.io/badge/tests-2081-brightgreen)
+![Tools](https://img.shields.io/badge/MCP_tools-148-brightgreen)
+![Tests](https://img.shields.io/badge/tests-2159-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -21,7 +21,7 @@ last_updated: 2026-03-29T05:00:00Z
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [143 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [148 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 </div>
 
@@ -54,13 +54,13 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>143 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>148 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
     C["🔧 Command Builders<br/><code>src/commands/</code><br/>179+ pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
-    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>141 keywords · risk tiers"] -.-> A
+    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>152 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
 
     style A fill:#1a1a2e,stroke:#e94560,color:#fff
@@ -78,8 +78,8 @@ graph TD
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 110 interactive tools, safety gate, env config |
-| `src/server_orchestration_tools.py` | 33 agentic tools (110–143) registered onto FastMCP |
+| `src/server.py` | FastMCP server, 115 interactive tools, safety gate, env config |
+| `src/server_orchestration_tools.py` | 33 agentic tools (116–148) registered onto FastMCP |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
@@ -91,12 +91,13 @@ graph TD
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/vocab.py` | 141 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| `src/vocab.py` | 152 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
 | `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
 | `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
+| `src/tools.py` | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 
 ## Configuration
 
@@ -128,7 +129,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **143 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
+The server exposes **148 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -554,7 +555,7 @@ graph LR
 
 ### Keyword Classification
 
-The vocabulary classifies all **141 grandMA2 keywords** into categories:
+The vocabulary classifies all **152 grandMA2 keywords** into categories:
 
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
@@ -891,7 +892,7 @@ gma2-mcp-telnet/
 │   ├── telnet_client.py                    # Async Telnet (telnetlib3, injection prevention)
 │   ├── navigation.py                       # cd + list + scan orchestration
 │   ├── prompt_parser.py                    # Telnet prompt & tabular list parser
-│   ├── vocab.py                            # 141 keywords, risk tiers, functional domains
+│   ├── vocab.py                            # 152 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
 │   ├── commands/                           # 179+ pure command-builder functions
@@ -911,7 +912,7 @@ gma2-mcp-telnet/
 │   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
 │   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
 │   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
-├── tests/                                  # 2081 tests (1939 unit + 142 live)
+├── tests/                                  # 2159 tests (2026-03-30)
 ├── doc/                                    # Command builders ref + cd-tree docs
 ├── vscode-mcp-provider/                    # VS Code MCP extension
 └── importexport/                           # Filter XMLs, fixture layers, exports

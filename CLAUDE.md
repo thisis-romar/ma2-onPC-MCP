@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.0.0
+version: 4.1.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-29T09:00:00Z
+last_updated: 2026-03-30T00:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **143 tools**, **MCP resources**, and **MCP prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **148 tools**, **MCP resources**, and **MCP prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,8 +22,8 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server — 110 tools + MCP resources + MCP prompts, safety gate |
-| `src/server_orchestration_tools.py` | Registers tools 110-143 (agentic layer) onto FastMCP |
+| `src/server.py` | FastMCP server — 115 tools + MCP resources + MCP prompts, safety gate |
+| `src/server_orchestration_tools.py` | Registers tools 116-148 (agentic layer) onto FastMCP |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
@@ -32,16 +32,17 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
-| `src/vocab.py` | 141 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
+| `src/vocab.py` | 152 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
-| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
+| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache |
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
 | `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
+| `src/tools.py` | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 | `src/categorization/` | ML-based tool categorization: K-Means clustering + auto-labeling |
 | `rag/` | crawl → chunk → embed → store → retrieve pipeline |
 | `.claude/rules/` | Scoped rule files (loaded on demand, not at startup) |
@@ -103,7 +104,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-29): **1939 unit tests**, **142 live integration tests** (2081 total).
+- Current counts (2026-03-30): **2159 tests** (unit + live integration).
 
 ---
 
