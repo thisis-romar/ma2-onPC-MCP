@@ -310,3 +310,90 @@ def is_permitted(tool_name: str, user_right: MA2Right) -> bool:
     """Return True if user_right is >= the minimum required for tool_name."""
     required = _OPERATION_MIN_RIGHT.get(tool_name, MA2Right.NONE)
     return _right_tier(user_right) >= _right_tier(required)
+
+
+@dataclass(frozen=True)
+class PermissionResult:
+    """Result of a unified permission check (scope ∩ MA2Right)."""
+    allowed: bool
+    tool_name: str
+    required_right: MA2Right
+    required_scope: str
+    scope_ok: bool        # OAuth scope gate passed
+    rights_ok: bool       # MA2Right gate passed
+    denial_reason: str = ""
+
+    def as_block_response(self) -> dict:
+        """Return a JSON-serializable block dict matching the _handle_errors format."""
+        return {
+            "blocked": True,
+            "error": self.denial_reason,
+            "tool": self.tool_name,
+            "required_ma2_right": self.required_right.value,
+            "required_scope": self.required_scope,
+            "scope_ok": self.scope_ok,
+            "rights_ok": self.rights_ok,
+        }
+
+
+def check_permission(
+    tool_name: str,
+    granted_scopes: frozenset[str],
+    user_right: MA2Right = MA2Right.NONE,
+) -> PermissionResult:
+    """
+    Unified pre-execution permission gate: scope ∩ MA2Right = FINAL AUTHORITY.
+
+    Enforces that BOTH layers agree before a tool is allowed to proceed:
+      - Layer 1 (OAuth scope): the caller's granted scopes cover the required scope
+      - Layer 3 (MA2 native rights): the console user's rights level is sufficient
+
+    Layer 2 (policy / show-phase) is a future extension point; this function
+    provides the choke point where it would be inserted.
+
+    Args:
+        tool_name:      MCP tool function name (looked up in _OPERATION_MIN_RIGHT)
+        granted_scopes: frozenset of OAuth scope strings for the current session
+        user_right:     MA2Right of the currently logged-in console user
+                        (from ConsoleStateSnapshot.user_right; defaults to NONE
+                        if console state has not been hydrated)
+
+    Returns:
+        PermissionResult — check .allowed before proceeding
+    """
+    from .commands.constants import MA2RIGHT_TO_OAUTH_SCOPE
+
+    required_right = min_right_for_tool(tool_name)
+    required_scope = str(MA2RIGHT_TO_OAUTH_SCOPE[required_right])
+
+    scope_ok = required_scope in granted_scopes
+    rights_ok = _right_tier(user_right) >= _right_tier(required_right)
+    allowed = scope_ok and rights_ok
+
+    if allowed:
+        denial = ""
+    elif not scope_ok and not rights_ok:
+        denial = (
+            f"Tool '{tool_name}' requires scope '{required_scope}' "
+            f"and MA2 rights '{required_right.value}' — both denied."
+        )
+    elif not scope_ok:
+        denial = (
+            f"Tool '{tool_name}' requires OAuth scope '{required_scope}' "
+            f"(MA2Right.{required_right.name})."
+        )
+    else:
+        denial = (
+            f"Tool '{tool_name}' requires MA2 rights '{required_right.value}' "
+            f"(current: '{user_right.value}')."
+        )
+
+    return PermissionResult(
+        allowed=allowed,
+        tool_name=tool_name,
+        required_right=required_right,
+        required_scope=required_scope,
+        scope_ok=scope_ok,
+        rights_ok=rights_ok,
+        denial_reason=denial,
+    )
