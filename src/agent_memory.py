@@ -41,6 +41,28 @@ class FixtureSnapshot:
 
 
 @dataclass
+class DecisionCheckpoint:
+    """
+    Distilled decision record replacing raw telnet transcript retention.
+
+    Follows the recompute-over-retain principle: store the fault label and
+    the replay query, not the raw output.  Call ``is_fresh()`` before
+    returning a cached finding to the planner — if stale, re-run ``replay``.
+    """
+
+    fault: str              # e.g. "rights_denied_store", "cue_audit_seq_1"
+    query: str              # the MA2 command / tool call that produced this finding
+    observed_at: float      # Unix timestamp (time.time())
+    fresh_for_seconds: int  # seconds before the checkpoint should be replayed
+    replay: str             # command / tool call to re-run to refresh the finding
+    confidence: str = "medium"  # "high" | "medium" | "low"
+
+    def is_fresh(self) -> bool:
+        """True while the observation is still within its freshness window."""
+        return (time.time() - self.observed_at) < self.fresh_for_seconds
+
+
+@dataclass
 class WorkingMemory:
     """
     Tracks programmer state across sub-agent calls within one task session.
@@ -91,6 +113,9 @@ class WorkingMemory:
     # ── Step tracking ────────────────────────────────────────────────
     completed_steps: list[str] = field(default_factory=list)
     failed_steps: list[str] = field(default_factory=list)
+
+    # ── Decision checkpoints (recompute-over-retain) ─────────────────
+    checkpoints: list["DecisionCheckpoint"] = field(default_factory=list)
 
     # ── Token tracking ───────────────────────────────────────────────
     token_spend: int = 0
@@ -207,6 +232,33 @@ class WorkingMemory:
 
     # ── Token tracking ───────────────────────────────────────────────
 
+    def add_checkpoint(
+        self,
+        fault: str,
+        query: str,
+        fresh_for_seconds: int = 30,
+        replay: str = "",
+        confidence: str = "medium",
+    ) -> "DecisionCheckpoint":
+        """Record a distilled decision checkpoint (recompute-over-retain)."""
+        cp = DecisionCheckpoint(
+            fault=fault,
+            query=query,
+            observed_at=time.time(),
+            fresh_for_seconds=fresh_for_seconds,
+            replay=replay or query,
+            confidence=confidence,
+        )
+        self.checkpoints.append(cp)
+        return cp
+
+    def fresh_checkpoint(self, fault: str) -> "DecisionCheckpoint | None":
+        """Return the most recent fresh checkpoint for a given fault, or None."""
+        for cp in reversed(self.checkpoints):
+            if cp.fault == fault and cp.is_fresh():
+                return cp
+        return None
+
     def charge_tokens(self, n: int) -> None:
         self.token_spend += n
 
@@ -311,6 +363,43 @@ class LongTermMemory:
         """)
         self._conn.commit()
 
+    @staticmethod
+    def _compress_session_snapshot(wm: "WorkingMemory") -> dict:
+        """
+        Build a compact decision summary from a WorkingMemory object.
+
+        Stores only the information needed to understand what happened in a
+        session — decisions, outcomes, token spend — without duplicating the
+        full FixtureSnapshot dicts that are already stored in the
+        ``fixture_history`` table.  Reduces the snapshot blob from ~50 KB to
+        ~2 KB per session.
+
+        Format version key ``_v: 2`` allows ``recall_session()`` to detect
+        the new format and handle old v1 blobs gracefully.
+        """
+        cs = wm.console_state
+        fixture_summary = {
+            fid: {"group": s.group, "intensity": s.intensity, "preset": s.preset_applied}
+            for fid, s in wm.fixtures.items()
+        }
+        return {
+            "_v": 2,
+            "session_id": wm.session_id,
+            "task": wm.task_description,
+            "completed_steps": list(wm.completed_steps),
+            "failed_steps": list(wm.failed_steps),
+            "token_spend": wm.token_spend,
+            "park_ledger": sorted(wm.park_ledger),
+            "mode_overrides": dict(wm.mode_overrides),
+            "console_state_summary": cs.summary() if cs else "",
+            "fixture_summary": fixture_summary,
+            "checkpoint_count": len(wm.checkpoints),
+            "checkpoints": [
+                {"fault": cp.fault, "confidence": cp.confidence}
+                for cp in wm.checkpoints
+            ],
+        }
+
     def save_session(self, wm: WorkingMemory, outcome: str) -> None:
         report = wm.token_report()
         cs = wm.console_state
@@ -329,7 +418,7 @@ class LongTermMemory:
                 cs.active_user  if cs else "",
                 cs.active_world  if cs else None,
                 cs.active_filter if cs else None,
-                json.dumps(wm.to_dict()),
+                json.dumps(self._compress_session_snapshot(wm)),
             ),
         )
         now = time.time()
@@ -364,6 +453,16 @@ class LongTermMemory:
         return [dict(zip(cols, r)) for r in rows]
 
     def recall_session(self, session_id: str) -> dict | None:
+        """
+        Return the stored snapshot for a session.
+
+        Handles both formats:
+        - v1 (legacy): full ``wm.to_dict()`` blob — detected by absence of ``_v`` key
+        - v2 (current): compressed decision summary — detected by ``_v: 2``
+
+        Both formats are returned as-is; callers should check ``snapshot.get("_v", 1)``
+        if they need to distinguish them.
+        """
         row = self._conn.execute(
             "SELECT snapshot FROM sessions WHERE id=?", (session_id,)
         ).fetchone()

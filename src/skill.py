@@ -62,6 +62,20 @@ class Skill:
         """True when this skill may be invoked by an agent."""
         return self.approved or self.safety_scope != "DESTRUCTIVE"
 
+    def as_user_message(self) -> str:
+        """
+        Return the skill body formatted as a user message ready for injection.
+
+        Format::
+
+            [Skill: {name} v{version}]
+            {body}
+
+        Callers should check ``is_usable()`` before injecting.  Use
+        ``SkillRegistry.get_usable()`` for a safe combined fetch + guard.
+        """
+        return f"[Skill: {self.name} v{self.version}]\n{self.body}"
+
 
 def _ts_iso(ts: float) -> str:
     import datetime
@@ -235,6 +249,19 @@ class SkillRegistry:
             (skill_id,),
         ).fetchone()
         return _row_to_skill(row) if row else None
+
+    def get_usable(self, skill_id: str) -> "Skill | None":
+        """
+        Fetch a skill by id and return it only if ``is_usable()`` is True.
+
+        Returns None when the skill is not found OR when it is a DESTRUCTIVE
+        skill that has not yet been approved by a SYSTEM_ADMIN operator.
+        This prevents callers from accidentally injecting un-approved playbooks.
+        """
+        skill = self.get(skill_id)
+        if skill is None or not skill.is_usable():
+            return None
+        return skill
 
     def search(self, query: str, limit: int = 10) -> list[Skill]:
         """Full-text search across name, description, and applicable_context."""

@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.13.0
+version: 3.16.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-29T04:00:00Z
+last_updated: 2026-03-30T00:00:00Z
 ---
 
 <div align="center">
@@ -12,8 +12,8 @@ last_updated: 2026-03-29T04:00:00Z
 
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
-![Tools](https://img.shields.io/badge/MCP_tools-137-brightgreen)
-![Tests](https://img.shields.io/badge/tests-1996-brightgreen)
+![Tools](https://img.shields.io/badge/MCP_tools-148-brightgreen)
+![Tests](https://img.shields.io/badge/tests-2187-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -21,7 +21,7 @@ last_updated: 2026-03-29T04:00:00Z
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [137 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [148 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 </div>
 
@@ -31,7 +31,7 @@ Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotoc
 
 ```bash
 # 1. Install
-git clone https://github.com/thisis-romar/ma2-onPC-MCP && cd gma2-mcp-telnet
+git clone https://github.com/thisis-romar/ma2-onPC-MCP && cd ma2-onPC-MCP
 uv sync
 
 # 2. Configure
@@ -54,13 +54,13 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>137 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>148 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>179+ pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>178 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
-    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>141 keywords · risk tiers"] -.-> A
+    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>156 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
 
     style A fill:#1a1a2e,stroke:#e94560,color:#fff
@@ -78,8 +78,8 @@ graph TD
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 110 interactive tools, safety gate, env config |
-| `src/server_orchestration_tools.py` | 27 agentic tools (110–137) registered onto FastMCP |
+| `src/server.py` | FastMCP server, 115 interactive tools, safety gate, env config |
+| `src/server_orchestration_tools.py` | 33 agentic tools (110–143) registered onto FastMCP |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
@@ -91,9 +91,14 @@ graph TD
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/vocab.py` | 141 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
-| `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
+| `src/vocab.py` | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| `src/commands/` | 180 exported command-builder functions, grouped by keyword type |
+| `src/commands/busking.py` | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
+| `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
+| `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
+| `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
+| `src/tools.py` | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 
 ## Configuration
 
@@ -125,7 +130,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **137 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
+The server exposes **148 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -172,7 +177,7 @@ list            → enumerate objects at current destination
 | `modify_selection` | Select, deselect, or toggle fixtures in the programmer |
 | `adjust_value_relative` | Adjust programmer values relatively (+ or –) |
 | `select_fixtures_by_group` | Select all fixtures in a named group |
-| `select_executor` | Set the active executor for subsequent operations |
+| `select_executor` | Set the active executor for subsequent operations (single-selection only; use deselect=True to clear) |
 | `select_feature` | Set active Feature context (updates `$PRESET`/`$FEATURE`/`$ATTRIBUTE`) |
 | `select_preset_type` | Activate a PresetType context (PresetType 1–9 or by name) |
 | `if_filter` | Apply an IfOutput / IfActive filter to limit programmer scope |
@@ -185,13 +190,119 @@ list            → enumerate objects at current destination
 | Tool | Description |
 |------|-------------|
 | `execute_sequence` | Legacy sequence playback: go, pause, or goto cue |
-| `playback_action` | Full playback: go, go_back, goto, fast_forward, fast_back, def_go, def_pause |
+| `playback_action` | Full playback: go, go_back, goto, fast_forward, fast_back, def_go, def_go_back, def_pause |
 | `control_executor` | Control an executor (go, pause, stop, flash, etc.) |
 | `get_executor_status` | Query status of an executor (current cue, level, state) |
 | `set_executor_level` | Set the fader level on an executor |
 | `navigate_page` | Navigate to a specific page or page +/– |
 | `release_executor` | Release (deactivate) an executor |
 | `blackout_toggle` | Toggle grandmaster blackout on/off |
+
+</details>
+
+<details>
+<summary><strong>playback_action</strong> — parameters &amp; response fields</summary>
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `action` | `str` | One of the actions below |
+| `object_type` | `str \| None` | Object type for `go`/`go_back` (e.g. `"executor"`, `"sequence"`) |
+| `object_id` | `int \| list[int] \| None` | ID or list of IDs — list produces `N + M + …` syntax |
+| `cue_id` | `int \| float \| None` | Required for `"goto"` |
+| `end` | `int \| None` | End of range for `go`/`go_back` (builds `thru N`) |
+| `cue_mode` | `str \| None` | `"normal"`, `"assert"`, `"xassert"`, or `"release"` |
+| `executor` | `int \| list[int] \| None` | Executor ID(s) for `goto`/`fast_forward`/`fast_back` — list produces `N + M + …` |
+| `sequence` | `int \| None` | Sequence ID for `goto`/`fast_forward`/`fast_back` |
+
+#### Actions
+
+| Action | Command sent | Notes |
+|--------|-------------|-------|
+| `"go"` | `go [object_type] [id]` | Fires next cue; `object_id` accepts a list |
+| `"go_back"` | `goback [object_type] [id]` | Fires previous cue; `object_id` accepts a list |
+| `"goto"` | `goto cue N [executor/sequence]` | Pre-flight validates cue exists; returns `blocked=True` on Error #72 |
+| `"fast_forward"` | `>>> [executor N]` | `executor` accepts a list |
+| `"fast_back"` | `<<< [executor N]` | `executor` accepts a list |
+| `"def_go"` | `defgoforward` | Fires on `$SELECTEDEXEC`; reads state before firing |
+| `"def_go_back"` / `"def_goback"` | `defgoback` | Same — `def_goback` is an alias |
+| `"def_pause"` | `defgopause` | Same |
+
+#### Response fields
+
+All actions return `command_sent` and `raw_response`.
+
+`def_go`, `def_go_back`, and `def_pause` additionally return:
+
+| Field | Value |
+|-------|-------|
+| `selected_executor` | Value of `$SELECTEDEXEC` read **before** the command was sent (`null` if unavailable) |
+| `selected_cue_before` | Value of `$SELECTEDEXECCUE` read before the command (`null` if unavailable) |
+
+`goto` additionally returns `cue_exists`, `cue_probe_response`, and optionally `executor_probe_response`.
+
+#### Examples
+
+```python
+# Fire next cue on executors 1, 2, and 3 simultaneously
+playback_action(action="go", object_type="executor", object_id=[1, 2, 3])
+# → go executor 1 + 2 + 3
+
+# Fast-forward executors 2 and 4
+playback_action(action="fast_forward", executor=[2, 4])
+# → >>> executor 2 + 4
+
+# Go back on the selected executor — response tells you which one fired
+playback_action(action="def_go_back")
+# → {"command_sent": "defgoback", "selected_executor": "5", "selected_cue_before": "3"}
+```
+
+</details>
+
+<details>
+<summary><strong>select_executor</strong> — parameters &amp; response fields</summary>
+
+**Single-selection only.** MA2 telnet `select executor N` accepts exactly one executor number. There is no list syntax — pass a single `executor_id` integer.
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `executor_id` | `int` | required | Executor number (1–999) |
+| `page` | `int \| None` | `None` | Page number — produces `select executor page.id` (e.g. `page=2, executor_id=5` → `select executor 2.5`) |
+| `deselect` | `bool` | `False` | If `True`, sends bare `select` to clear the current selection (**unverified on grandMA2 telnet** — inspect `raw_response`) |
+
+#### Response fields
+
+| Field | Always present | Description |
+|-------|---------------|-------------|
+| `command_sent` | ✓ | The exact command sent |
+| `raw_response` | ✓ | Raw telnet reply |
+| `confirmed_selected_exec` | ✓ | Value of `$SELECTEDEXEC` read after the command (`null` if unavailable) |
+| `risk_tier` | ✓ | `"SAFE_WRITE"` |
+| `warning` | if mismatch | Present when `confirmed_selected_exec` doesn't match the requested `executor_id` |
+| `note` | if deselect | Present when `deselect=True` — warns that bare `select` behaviour is unverified |
+
+#### Page-qualified addressing
+
+When `page` is supplied, MA2 stores `$SELECTEDEXEC` as the executor number only (not the page-qualified form). The confirmation check compares against `executor_id` alone — no spurious warning.
+
+#### Examples
+
+```python
+# Select executor 5 and confirm
+select_executor(executor_id=5)
+# → {"command_sent": "select executor 5", "confirmed_selected_exec": "5"}
+
+# Select executor 5 on page 2
+select_executor(executor_id=5, page=2)
+# → {"command_sent": "select executor 2.5", "confirmed_selected_exec": "5"}
+
+# Clear the current selection
+select_executor(executor_id=1, deselect=True)
+# → {"command_sent": "select", "note": "Bare 'select' sent … unverified …"}
+```
 
 </details>
 
@@ -383,11 +494,11 @@ python -m scripts.create_matricks_library --color-only
 
 | Tool | Description |
 |------|-------------|
-| `list_users` | List all user profiles configured on the console |
-| `store_user` | Create a new user profile with name and password |
+| `list_console_users` | List all user profiles configured on the console |
+| `create_console_user` | Create a new user profile with name and password |
 | `delete_user` | Delete a user profile |
-| `login` | Log in to the console under a specific user profile |
-| `assign_world_to_user` | Assign a world (visibility scope) to a user profile |
+| `inspect_sessions` | Inspect active Telnet sessions and connected operators |
+| `assign_world_to_user_profile` | Assign a world (visibility scope) to a user profile |
 
 > [!NOTE]
 > Requires `GMA_SCOPE=gma2:user:manage` (Admin tier). Bootstrap 5 default user accounts
@@ -417,7 +528,7 @@ python -m scripts.create_matricks_library --color-only
 </details>
 
 <details>
-<summary><strong>🤖 Orchestration & Console State</strong> — 27 tools</summary>
+<summary><strong>🤖 Orchestration & Console State</strong> — 33 tools</summary>
 
 These tools form the **agentic layer** (`src/server_orchestration_tools.py`). They enable
 multi-step task execution with memory, risk-tier isolation, and zero-telnet state queries
@@ -467,12 +578,83 @@ Read from the cached snapshot — **no telnet round-trips required**.
 | `retry_failed_steps` | Reload a past session from LTM and re-run the original goal |
 | `assert_fixture_exists` | Two-tier fixture patch validation (snapshot index → live telnet fallback) |
 
+#### OpenSpace Layer — Telemetry, Skills & Improvement (Tools 138–143)
+
+| Tool | Scope | Description |
+|------|-------|-------------|
+| `get_tool_metrics` | DISCOVER | Latency + error-rate stats for any tool over N days |
+| `list_skills` | DISCOVER | Search the skill registry by name, description, or context |
+| `get_skill` | DISCOVER | Full detail + lineage chain for a single skill |
+| `promote_session_to_skill` | PROGRAMMER_WRITE | Manually promote a completed session to a named, versioned skill |
+| `get_improvement_suggestions` | DISCOVER | Repair suggestions (failing tools) + promotion candidates (successful sessions) |
+| `approve_skill` | SYSTEM_ADMIN | Human-gate: set `approved=True` on a DESTRUCTIVE-scope skill before agents may use it |
+
 > [!NOTE]
 > Call `hydrate_console_state` before using state-query tools. The snapshot caches values
 > that have no direct telnet readback (MAtricks state, park ledger, filter VTE flags, etc.).
 > Check freshness with `get_console_state`.
 
 </details>
+
+<details>
+<summary><strong>🎛️ Busking &amp; Performance</strong> — 5 tools</summary>
+
+| Tool | Description |
+|------|-------------|
+| `assign_effect_to_executor` | Bind an effect template to an executor slot (DESTRUCTIVE — requires `confirm_destructive=True`) |
+| `modulate_effect` | Set rate (`EffectRate`) or speed (`EffectSpeed`) on active effects |
+| `clear_effects_on_page` | Release all effect executors on a page range |
+| `normalize_page_faders` | Set all faders on a page to 0 without releasing |
+| `classify_show_mode` | Inspect executor assignments and classify show as `busking`, `sequence`, `hybrid`, or `empty` |
+
+</details>
+
+## MCP Resources
+
+Nine read-only resources exposable to any MCP client. Use them for zero-telnet context before calling tools.
+
+| URI | Description |
+|-----|-------------|
+| `ma2://docs/rights-matrix` | OAuth scope → MA2Right mapping matrix (JSON) |
+| `ma2://docs/vocab-summary` | All 156 keywords with RiskTier and category (JSON) |
+| `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 148 tools in 14 categories (JSON) |
+| `ma2://docs/responsibility-map` | Module responsibility map for architectural decisions (Markdown) |
+| `ma2://docs/tool-surface-tiers` | Tier A/B/C classification for every tool (Markdown) |
+| `ma2://skills/{skill_id}` | Skill injection payload by ID — returns formatted user message ready for agent injection |
+| `ma2://busking/patterns` | Best-practice busking patterns: fader model, song macro protocol, live recovery |
+| `ma2://busking/effect-design` | Effect-to-executor assignment patterns, rate vs speed, MAtricks layering |
+| `ma2://busking/color-design` | HSB palette strategy, preset numbering, monochromatic constraint, color lock |
+
+All resources are read-only — no console side-effects.
+
+## MCP Prompts
+
+Six workflow prompts that orchestrate tools into guided multi-step procedures.
+
+| Prompt | Args | Description |
+|--------|------|-------------|
+| `preflight_destructive_change` | `operation`, `target`, `reason` | Safety pre-flight checklist before any DESTRUCTIVE tool call — checks rights, target existence, blind mode, and executor state |
+| `inspect_console` | `focus` | Guided read-only console state inspection — `full`, `playback`, `fixtures`, `show`, or `rights` |
+| `plan_cue_store` | `sequence_id`, `cue_number`, `fixture_selection`, `preset_or_values` | Plan a cue store operation with pre-flight and verification steps — does not execute |
+| `diagnose_playback_failure` | `executor_id`, `symptom` | Structured playback failure diagnosis — returns `fault_class`, `root_cause`, `recommended_actions` |
+| `load_show_safely` | `show_name` | Safe show loading checklist — prevents accidental Telnet disconnection via missing `/globalsettings` |
+| `bootstrap_rights_users` | *(none)* | Guided provisioning of the six-tier MA2 rights user accounts |
+
+## Agent Skills
+
+Instruction modules (`.claude/skills/`) that are injected as user messages into agent conversations. They teach agents domain-specific workflows without embedding knowledge in tool docstrings.
+
+| Skill | Description |
+|-------|-------------|
+| `ma2-command-rules` | MA2 command construction, object resolution, quoting rules, and safety escalation |
+| `telnet-feedback-triage` | Classify and summarise grandMA2 Telnet feedback using the `FeedbackClass` enum |
+| `feedback-investigator` | Worker playbook: classify and investigate Telnet feedback failures |
+| `cue-list-auditor` | Worker playbook: audit cue list gaps, labels, timing, and health |
+| `busking-lighting-performance` | Live busking — fader-per-effect model, executor layout, effect layering, live recovery |
+| `song-macro-page-design` | Song macro pages — first-button protocol, executor column layout, jump target safety |
+| `constrained-color-design` | Monochromatic HSB palette design — preset numbering, color lock, song-to-palette mapping |
+
+Skills are loaded on demand via `ma2://skills/{skill_id}` resource or injected by the orchestrator. Use `list_skills` / `get_skill` tools to browse and inspect them at runtime.
 
 ## Client Setup
 
@@ -485,7 +667,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "gma2": {
       "command": "uv",
-      "args": ["--directory", "/path/to/gma2-mcp-telnet", "run", "python", "-m", "src.server"],
+      "args": ["--directory", "/path/to/ma2-onPC-MCP", "run", "python", "-m", "src.server"],
       "env": {
         "GMA_HOST": "192.168.1.100",
         "GMA_USER": "administrator",
@@ -540,13 +722,13 @@ graph LR
 
 ### Keyword Classification
 
-The vocabulary classifies all **141 grandMA2 keywords** into categories:
+The vocabulary classifies all **156 grandMA2 keywords** into categories:
 
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
 | `OBJECT` | 56 | Console objects (nouns) | Channel, Fixture, Group, Preset, Executor |
-| `FUNCTION` | 79 | Actions (verbs) | Store, Delete, Go, At, List, Info |
-| `HELPING` | 7 | Syntax connectors | And, Thru, Fade, Delay, If |
+| `FUNCTION` | 90 | Actions (verbs) | Store, Delete, Go, At, Kill, List, Info |
+| `HELPING` | 5 | Syntax connectors | And, Thru, Fade, Delay, If |
 | `SPECIAL_CHAR` | 6 | Operator symbols | Plus `+`, Minus `-`, Dot `.`, Slash `/` |
 
 <details>
@@ -560,7 +742,7 @@ Object Keywords carry additional metadata from live telnet verification:
 | `canonical` | Console-normalized spelling (e.g., `DMX` → `Dmx`) |
 | `notes` | Behavior notes from live telnet testing |
 
-Of the 56 Object Keywords: 51 change the default prompt context, 2 reset it (`Channel`, `Default`), and 3 don't change it (`Full`, `Normal`, `Zero` — these set dimmer values).
+Of the 56 Object Keywords: 53 change the default prompt context and 3 don't (`Full`, `Normal`, `Zero` — these set dimmer values). `Channel` and `Default` have `context_change=True`; their notes describe resetting the *default keyword*, not the prompt context.
 
 **Console aliases:**
 
@@ -749,7 +931,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. Over **179 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. **178 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -800,10 +982,37 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 
 | Function | Output |
 |----------|--------|
-| `go(executor_id=1)` | `go executor 1` |
-| `go_back(executor_id=1)` | `goback executor 1` |
-| `goto(cue_id=5)` | `goto cue 5` |
+| `go("executor", 3)` | `go executor 3` |
+| `go_executor(3)` | `go executor 3` |
+| `go_back("executor", 3)` | `goback executor 3` |
+| `go_back_executor(3)` | `goback executor 3` |
+| `goto(3)` | `goto cue 3` |
 | `go_sequence(1)` | `go+ sequence 1` |
+| `go_macro(2)` | `go macro 2` |
+| `on_executor(3)` | `on executor 3` |
+| `off_executor(3)` | `off executor 3` |
+| `flash_executor(3)` | `flash executor 3` |
+| `swop_executor(3)` | `swop executor 3` |
+| `solo_executor(3)` | `solo executor 3` |
+| `top_executor(3)` | `top executor 3` |
+| `stomp_executor(3)` | `stomp executor 3` |
+| `release_executor(3)` | `release executor 3` |
+| `goto_cue(1, 5)` | `goto cue 5 sequence 1` |
+| `pause_sequence(1)` | `pause sequence 1` |
+| `goto_timecode(1, "00:01:30:00")` | `goto timecode 1 "00:01:30:00"` |
+| `go_fast_forward()` | `>>>` |
+| `go_fast_forward(executor=[1, 2, 3])` | `>>> executor 1 + 2 + 3` |
+| `go_fast_back()` | `<<<` |
+| `go_fast_back(executor=[2, 4])` | `<<< executor 2 + 4` |
+| `load_next()` | `loadnext` |
+| `load_prev()` | `loadprev` |
+| `def_go_forward()` | `defgoforward` |
+| `def_go_back()` | `defgoback` |
+| `def_go_pause()` | `defgopause` |
+| `solo()` | `solo` |
+| `blind()` | `blind` |
+| `freeze()` | `freeze` |
+| `blackout()` | `blackout` |
 
 ### At (Values)
 
@@ -852,10 +1061,10 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ## Project Structure
 
 ```
-gma2-mcp-telnet/
+ma2-onPC-MCP/
 ├── src/
-│   ├── server.py                           # FastMCP server (110 interactive tools)
-│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–137)
+│   ├── server.py                           # FastMCP server (115 interactive tools)
+│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–143)
 │   │
 │   │   # Orchestration & Memory
 │   ├── orchestrator.py                     # Multi-agent task runner + session memory
@@ -863,6 +1072,9 @@ gma2-mcp-telnet/
 │   ├── agent_memory.py                     # WorkingMemory + LongTermMemory (SQLite)
 │   ├── console_state.py                    # ConsoleStateSnapshot (19-gap hydration)
 │   ├── pool_name_index.py                  # Object name/ID registry (zero-cost resolve)
+│   ├── telemetry.py                        # Per-tool invocation recorder (tool_invocations table)
+│   ├── skill.py                            # Skill dataclass + SkillRegistry (versioned playbooks)
+│   ├── skill_improver.py                   # SkillImprover: repair suggestions + promotion candidates
 │   │
 │   │   # Security & Auth
 │   ├── auth.py                             # OAuth 2.1 scope enforcement
@@ -874,12 +1086,13 @@ gma2-mcp-telnet/
 │   ├── telnet_client.py                    # Async Telnet (telnetlib3, injection prevention)
 │   ├── navigation.py                       # cd + list + scan orchestration
 │   ├── prompt_parser.py                    # Telnet prompt & tabular list parser
-│   ├── vocab.py                            # 141 keywords, risk tiers, functional domains
+│   ├── vocab.py                            # 156 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
-│   ├── commands/                           # 179+ pure command-builder functions
-│   │   ├── objects/                        # Object keywords (11 modules)
-│   │   └── functions/                      # Function keywords (18 modules)
+│   ├── commands/                           # 180 exported command-builder functions
+│   │   ├── busking.py                      # Busking/performance builders (6 functions)
+│   │   ├── objects/                        # Object keywords (9 modules)
+│   │   └── functions/                      # Function keywords (17 modules)
 │   └── categorization/                     # ML tool categorization (K-Means)
 │
 ├── rag/                                    # RAG pipeline
@@ -894,10 +1107,12 @@ gma2-mcp-telnet/
 │   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
 │   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
 │   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
-├── tests/                                  # 1996 tests (1854 unit + 142 live)
+├── tests/                                  # 2187 tests (2026-03-30)
 ├── doc/                                    # Command builders ref + cd-tree docs
 ├── vscode-mcp-provider/                    # VS Code MCP extension
-└── importexport/                           # Filter XMLs, fixture layers, exports
+└── .claude/                                # Skills (playbooks) + scoped rules
+    ├── skills/                             # 7 agent instruction modules
+    └── rules/                              # 5 scoped rule files (loaded on demand)
 ```
 
 ## Dependencies

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, Literal
 
 from .vocab import RiskTier  # single source of truth — do not redefine
 
@@ -45,6 +45,7 @@ class SubTask:
     eval_criteria: str = ""             # Jensen: "definition of good vs bad"
     retryable: bool = True
     confirmed: bool = False             # must be True for DESTRUCTIVE steps
+    workflow: Literal["inspect", "plan", "execute"] = "inspect"  # standard workflow tier
 
 
 @dataclass
@@ -108,6 +109,7 @@ def _build_wash_look(goal: str, params: dict) -> TaskPlan:
             mcp_tools=["select_fixtures_by_group", "modify_selection"],
             inputs={"group": group},
             eval_criteria="Programmer selection is non-empty and matches group",
+            workflow="execute",
         ),
         SubTask(
             name="apply_wash_color",
@@ -118,6 +120,7 @@ def _build_wash_look(goal: str, params: dict) -> TaskPlan:
             inputs={"color": color, "preset": preset},
             depends_on=["select_wash_group"],
             eval_criteria="Color attribute matches target in programmer",
+            workflow="execute",
         ),
         SubTask(
             name="set_wash_intensity",
@@ -128,6 +131,7 @@ def _build_wash_look(goal: str, params: dict) -> TaskPlan:
             inputs={"level": 100},
             depends_on=["select_wash_group"],
             eval_criteria="Intensity channel is at 100% in programmer",
+            workflow="execute",
         ),
         SubTask(
             name="store_wash_cue",
@@ -139,6 +143,7 @@ def _build_wash_look(goal: str, params: dict) -> TaskPlan:
             depends_on=["apply_wash_color", "set_wash_intensity"],
             eval_criteria="Cue exists in sequence with correct label",
             confirmed=False,  # orchestrator must set True after human approval
+            workflow="execute",
         ),
         SubTask(
             name="verify_wash_cue",
@@ -149,6 +154,7 @@ def _build_wash_look(goal: str, params: dict) -> TaskPlan:
             inputs={"sequence": seq, "cue": cue},
             depends_on=["store_wash_cue"],
             eval_criteria="Cue appears in sequence list with matching label",
+            workflow="inspect",
         ),
     ])
 
@@ -164,6 +170,7 @@ def _build_blackout_sequence(goal: str, params: dict) -> TaskPlan:
             mcp_tools=["list_sequence_cues", "navigate_console"],
             inputs={"sequence": seq},
             eval_criteria="Cue list returned without error",
+            workflow="inspect",
         ),
         SubTask(
             name="store_blackout_cue",
@@ -175,6 +182,7 @@ def _build_blackout_sequence(goal: str, params: dict) -> TaskPlan:
             depends_on=["read_current_cues"],
             eval_criteria="Blackout cue appended to sequence",
             confirmed=False,
+            workflow="execute",
         ),
     ])
 
@@ -189,6 +197,7 @@ def _build_group_preset_library(goal: str, params: dict) -> TaskPlan:
             allowed_risk=RiskTier.SAFE_READ,
             mcp_tools=["list_fixtures", "list_fixture_types", "list_universes"],
             eval_criteria="Fixture list non-empty",
+            workflow="inspect",
         ),
         SubTask(
             name="create_groups",
@@ -199,6 +208,7 @@ def _build_group_preset_library(goal: str, params: dict) -> TaskPlan:
             depends_on=["discover_fixtures"],
             eval_criteria="Groups created for each zone",
             confirmed=False,
+            workflow="execute",
         ),
         SubTask(
             name="build_color_presets",
@@ -209,6 +219,7 @@ def _build_group_preset_library(goal: str, params: dict) -> TaskPlan:
             depends_on=["create_groups"],
             eval_criteria="Preset pool contains target colors",
             confirmed=False,
+            workflow="execute",
         ),
         SubTask(
             name="verify_library",
@@ -218,15 +229,96 @@ def _build_group_preset_library(goal: str, params: dict) -> TaskPlan:
             mcp_tools=["list_preset_pool", "query_object_list"],
             depends_on=["build_color_presets"],
             eval_criteria="Groups and presets queryable from pool",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_inspect_only(goal: str, params: dict) -> TaskPlan:
+    """Inspect-only plan: read system state then summarize findings."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="read_system_state",
+            agent_role="InspectionAgent",
+            description="Read system variables and console destination list",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_system_variables", "list_console_destination"],
+            eval_criteria="System state returned without error",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="summarize_findings",
+            agent_role="InspectionAgent",
+            description="Query objects and summarize console state",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["get_object_info", "query_object_list"],
+            depends_on=["read_system_state"],
+            eval_criteria="Findings returned in structured form",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_plan_only(goal: str, params: dict) -> TaskPlan:
+    """Plan-only workflow: inspect + preflight + propose (no mutations)."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="inspect_current_state",
+            agent_role="InspectionAgent",
+            description="Read current console state using SAFE_READ tools",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_console_destination", "get_object_info", "query_object_list"],
+            eval_criteria="Current state captured",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="preflight_rights_check",
+            agent_role="InspectionAgent",
+            description="Verify user rights before proposing any change",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_system_variables"],
+            depends_on=["inspect_current_state"],
+            eval_criteria="$USERRIGHTS read and sufficient for planned operation",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="propose_change_plan",
+            agent_role="PlannerAgent",
+            description="Propose the sequence of commands to achieve the goal (no execution)",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=[],
+            depends_on=["preflight_rights_check"],
+            eval_criteria="Proposed plan lists specific MA2 commands with risk tier",
+            workflow="plan",
         ),
     ])
 
 
 _RULES: list[Rule] = [
-    (r"wash|color look|stage wash",            _build_wash_look),
-    (r"blackout|blk|fade to black",            _build_blackout_sequence),
-    (r"group.*preset|library|rig setup|patch", _build_group_preset_library),
+    (r"wash|color look|stage wash",                                    _build_wash_look),
+    (r"blackout|blk|fade to black",                                    _build_blackout_sequence),
+    (r"group.*preset|library|rig setup|patch",                         _build_group_preset_library),
+    (r"inspect|check|show state|what is|status|list|query|how many",   _build_inspect_only),
+    (r"plan|draft|propose|what would|what should|design",              _build_plan_only),
 ]
+
+
+# ---------------------------------------------------------------------------
+# Worker catalog — maps worker name → allowed tools (used by Orchestrator)
+# ---------------------------------------------------------------------------
+
+WORKER_CATALOG: dict[str, list[str]] = {
+    "show-file-analyzer":       ["list_console_destination", "get_object_info",
+                                 "query_object_list", "scan_console_indexes"],
+    "cue-list-auditor":         ["query_object_list", "get_object_info",
+                                 "list_system_variables"],
+    "feedback-investigator":    ["send_raw_command", "get_variable",
+                                 "list_system_variables"],
+    "console-state-hydrator":   ["hydrate_console_state", "list_system_variables"],
+    "object-resolution-worker": ["discover_object_names", "query_object_list",
+                                 "get_object_info"],
+    "safety-preflight-checker": ["list_system_variables", "get_variable"],
+}
 
 
 # ---------------------------------------------------------------------------

@@ -284,7 +284,7 @@ class TestOrchestratorRun:
         result = await orch.run("recall test")
         snap = orch.recall(result.session_id)
         assert snap is not None
-        assert snap.get("task_description") == "recall test"
+        assert snap.get("task") == "recall test"
 
     @pytest.mark.asyncio
     async def test_recall_unknown_returns_none(self, ltm_and_path):
