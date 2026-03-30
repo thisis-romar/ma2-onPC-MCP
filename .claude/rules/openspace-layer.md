@@ -1,9 +1,9 @@
 ---
 title: OpenSpace Layer Developer Conventions
 description: Telemetry, skill lifecycle, DESTRUCTIVE approval, SkillImprover, and context management rules
-version: 1.2.0
+version: 1.2.1
 created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-30T12:00:00Z
+last_updated: 2026-03-30T12:30:00Z
 ---
 
 # OpenSpace Layer Developer Conventions
@@ -108,17 +108,24 @@ Promotion is always operator-initiated via Tool 141.
 ```python
 @dataclass
 class DecisionCheckpoint:
-    fault: str          # what was being decided (e.g. "resolve_fixture_id")
-    query: str          # the specific question asked
-    replay: str         # the answer to replay
-    observed_at: float  # unix timestamp when recorded
-    fresh_for_seconds: int  # TTL (default: 300)
-    confidence: str     # "low" | "medium" | "high" (default: "medium")
+    fault: str              # fault label (e.g. "rights_denied_store", "cue_audit_seq_1")
+    query: str              # MA2 command / tool call that produced the finding
+    observed_at: float      # Unix timestamp (time.time())
+    fresh_for_seconds: int  # seconds before the checkpoint should be replayed (no default)
+    replay: str             # command / tool call to re-run to refresh the finding
+    confidence: str = "medium"  # "high" | "medium" | "low"
 ```
 
 **Key method:** `is_fresh()` — returns `True` if `time.time() - observed_at < fresh_for_seconds`.
 
+**`WorkingMemory` integration:**
+
+| Method | Signature | Purpose |
+|--------|-----------|---------|
+| `add_checkpoint` | `(fault, query, fresh_for_seconds=30, replay="", confidence="medium")` | Record a new checkpoint; appends to `checkpoints` list |
+| `fresh_checkpoint` | `(fault) -> DecisionCheckpoint \| None` | Return the most recent fresh checkpoint for a fault, or `None` |
+
 **Usage pattern:**
-- Store a checkpoint via `WorkingMemory.add_checkpoint(checkpoint)` after a successful console query.
-- Before re-querying, call `WorkingMemory.get_checkpoint(fault, query)` — returns the `DecisionCheckpoint` or `None`.
+- Call `working_memory.add_checkpoint(fault, query, fresh_for_seconds=60)` after a successful console read.
+- Before re-querying, call `working_memory.fresh_checkpoint(fault)` — returns the `DecisionCheckpoint` or `None` if stale/absent.
 - Never cache DESTRUCTIVE decisions — checkpoints are for read/resolve results only.
