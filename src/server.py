@@ -88,6 +88,9 @@ from src.commands import (
     cut as build_cut,
 )
 from src.commands import (
+    def_go_back as build_def_go_back,
+)
+from src.commands import (
     def_go_forward as build_def_go_forward,
 )
 from src.commands import (
@@ -1891,17 +1894,31 @@ async def list_system_variables(
     }, indent=2)
 
 
+async def _read_selected_exec(client) -> tuple[str | None, str | None]:
+    """Read $SELECTEDEXEC and $SELECTEDEXECCUE from the console.
+
+    Returns (exec_value, cue_value). Both are None if ListVar fails or the
+    variables are absent in the response.
+    """
+    try:
+        raw = await client.send_command_with_response("ListVar")
+        variables = _parse_listvar(raw)
+        return variables.get("$SELECTEDEXEC"), variables.get("$SELECTEDEXECCUE")
+    except Exception:
+        return None, None
+
+
 @mcp.tool()
 @require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def playback_action(
     action: str,
     object_type: str | None = None,
-    object_id: int | None = None,
+    object_id: int | list[int] | None = None,
     cue_id: int | float | None = None,
     end: int | None = None,
     cue_mode: str | None = None,
-    executor: int | None = None,
+    executor: int | list[int] | None = None,
     sequence: int | None = None,
 ) -> str:
     """
@@ -1917,26 +1934,37 @@ async def playback_action(
             "goto" — jump to a specific cue (requires cue_id)
             "fast_forward" — skip forward (>>>)
             "fast_back" — skip backward (<<<)
-            "def_go" — go on the selected executor (go+)
-            "def_pause" — pause the selected executor
+            "def_go" — go on the selected executor (go+); response includes
+                       selected_executor and selected_cue_before
+            "def_go_back" / "def_goback" — go back on the selected executor;
+                       response includes selected_executor and selected_cue_before
+            "def_pause" — pause the selected executor; response includes
+                       selected_executor and selected_cue_before
         object_type: Object type for go/go_back (e.g. "executor", "sequence")
-        object_id: Object ID for go/go_back
+        object_id: Object ID for go/go_back — single int or list of ints.
+                   List produces "N + M + ..." syntax for multi-executor targeting.
         cue_id: Target cue number (required for "goto")
         end: End ID for range (go/go_back)
         cue_mode: Cue execution mode: "normal", "assert", "xassert", "release"
-        executor: Executor ID for goto/fast_forward/fast_back
+        executor: Executor ID for goto/fast_forward/fast_back — single int or list of ints.
+                  List produces "N + M + ..." syntax (e.g. [1,2,3] → ">>> executor 1 + 2 + 3").
         sequence: Sequence ID for goto/fast_forward/fast_back
 
     Returns:
         str: JSON with command_sent and raw_response.
+             def_go/def_go_back/def_pause also include selected_executor and
+             selected_cue_before (read from $SELECTEDEXEC before firing).
 
     Examples:
         - Go on executor 1: action="go", object_type="executor", object_id=1
+        - Go on executors 1+2+3: action="go", object_type="executor", object_id=[1,2,3]
         - Go back: action="go_back"
         - Goto cue 5: action="goto", cue_id=5
         - Goto cue 3 on sequence 2: action="goto", cue_id=3, sequence=2
         - Fast forward: action="fast_forward"
+        - Fast forward executors 1,2,3: action="fast_forward", executor=[1,2,3]
         - Go on selected executor: action="def_go"
+        - Go back on selected executor: action="def_go_back"
     """
     action = action.lower()
 
@@ -2007,15 +2035,29 @@ async def playback_action(
         cmd = build_go_fast_forward(executor=executor, sequence=sequence)
     elif action == "fast_back":
         cmd = build_go_fast_back(executor=executor, sequence=sequence)
-    elif action == "def_go":
-        cmd = build_def_go_forward()
-    elif action == "def_pause":
-        cmd = build_def_go_pause()
+    elif action in ("def_go", "def_go_back", "def_goback", "def_pause"):
+        client = await get_client()
+        sel_exec, sel_cue = await _read_selected_exec(client)
+
+        if action == "def_go":
+            cmd = build_def_go_forward()
+        elif action in ("def_go_back", "def_goback"):
+            cmd = build_def_go_back()
+        else:  # def_pause
+            cmd = build_def_go_pause()
+
+        raw_response = await client.send_command_with_response(cmd)
+        return json.dumps({
+            "command_sent": cmd,
+            "raw_response": raw_response,
+            "selected_executor": sel_exec,
+            "selected_cue_before": sel_cue,
+        }, indent=2)
     else:
         return json.dumps({
             "error": (
                 f"Unknown action: {action}. Use 'go', 'go_back', 'goto', "
-                f"'fast_forward', 'fast_back', 'def_go', or 'def_pause'."
+                f"'fast_forward', 'fast_back', 'def_go', 'def_go_back', or 'def_pause'."
             ),
             "blocked": True,
         }, indent=2)
@@ -3885,26 +3927,72 @@ async def store_cue_with_timing(
 async def select_executor(
     executor_id: int,
     page: int | None = None,
+    deselect: bool = False,
 ) -> str:
     """
     Select an executor on the console.
 
+    IMPORTANT: MA2 telnet 'select executor N' is single-selection only — there
+    is no list syntax. You cannot select multiple executors simultaneously via
+    this command. Pass only a single executor_id integer.
+
+    After sending the command, $SELECTEDEXEC is read back to confirm the
+    selection took effect. A 'warning' field is included in the response if
+    the confirmed value does not match the requested executor_id.
+
+    To clear the current selection, pass deselect=True. This sends a bare
+    'select' command with no argument. NOTE: bare 'select' behaviour is
+    unverified on grandMA2 telnet — it may clear selection, be silently
+    ignored, or produce an error. Inspect 'raw_response' to confirm.
+
     Args:
-        executor_id: Executor number (1-999)
-        page: Page number for page-qualified addressing (optional)
+        executor_id: Executor number (1-999). Single value only.
+        page: Page number for page-qualified addressing (optional).
+              e.g. page=2, executor_id=5 → 'select executor 2.5'.
+              $SELECTEDEXEC returns the executor number only (not page-qualified).
+        deselect: If True, send bare 'select' to clear the current selection
+                  instead of selecting executor_id. Defaults to False.
 
     Returns:
-        str: JSON result with command sent
+        str: JSON with command_sent, raw_response, confirmed_selected_exec,
+             and risk_tier. Includes 'warning' if confirmed value doesn't match.
     """
+    client = await get_client()
+
+    if deselect:
+        cmd = "select"
+        response = await client.send_command_with_response(cmd)
+        listvar_raw = await client.send_command_with_response("ListVar")
+        confirmed = _parse_listvar(listvar_raw).get("$SELECTEDEXEC")
+        return json.dumps({
+            "command_sent": cmd,
+            "raw_response": response,
+            "confirmed_selected_exec": confirmed,
+            "note": "Bare 'select' sent to clear selection. Behaviour unverified on grandMA2 telnet.",
+            "risk_tier": "SAFE_WRITE",
+        }, indent=2)
+
     ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
     cmd = f"select executor {ref}"
-    client = await get_client()
     response = await client.send_command_with_response(cmd)
-    return json.dumps({
+
+    listvar_raw = await client.send_command_with_response("ListVar")
+    variables = _parse_listvar(listvar_raw)
+    confirmed = variables.get("$SELECTEDEXEC")
+
+    result: dict = {
         "command_sent": cmd,
         "raw_response": response,
+        "confirmed_selected_exec": confirmed,
         "risk_tier": "SAFE_WRITE",
-    }, indent=2)
+    }
+    # $SELECTEDEXEC stores executor number only (not page-qualified)
+    if confirmed is None or confirmed.strip() != str(executor_id):
+        result["warning"] = (
+            f"$SELECTEDEXEC is '{confirmed}' after command but expected '{executor_id}'. "
+            "The selection may not have taken effect."
+        )
+    return json.dumps(result, indent=2)
 
 
 @mcp.tool()

@@ -633,3 +633,302 @@ class TestAssignTempFaderTool:
         data = json.loads(result)
         assert data["blocked"] is True
         assert "-1" in data["error"]
+
+
+# ---------------------------------------------------------------------------
+# playback_action — multi-executor list support (Gap 1)
+# ---------------------------------------------------------------------------
+
+class TestPlaybackActionMultiExecutor:
+    """Tests for playback_action MCP tool with list[int] executor/object_id."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_fast_forward_executor_list(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(action="fast_forward", executor=[1, 2, 3])
+        data = json.loads(result)
+        assert data["command_sent"] == ">>> executor 1 + 2 + 3"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_fast_back_executor_list(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(action="fast_back", executor=[2, 4])
+        data = json.loads(result)
+        assert data["command_sent"] == "<<< executor 2 + 4"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_go_object_id_list(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(
+            action="go", object_type="executor", object_id=[1, 2, 3]
+        )
+        data = json.loads(result)
+        assert data["command_sent"] == "go executor 1 + 2 + 3"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_go_back_object_id_list(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(
+            action="go_back", object_type="executor", object_id=[5, 6]
+        )
+        data = json.loads(result)
+        assert data["command_sent"] == "goback executor 5 + 6"
+
+
+# ---------------------------------------------------------------------------
+# playback_action — def_go/def_go_back/def_pause read $SELECTEDEXEC (Gap 2)
+# ---------------------------------------------------------------------------
+
+_LISTVAR_EXEC5 = (
+    "$Global : $SELECTEDEXEC = 5\n"
+    "$Global : $SELECTEDEXECCUE = 3\n"
+    "[channel]>"
+)
+_LISTVAR_EXEC7 = (
+    "$Global : $SELECTEDEXEC = 7\n"
+    "$Global : $SELECTEDEXECCUE = 1\n"
+    "[channel]>"
+)
+
+
+class TestPlaybackActionDefGoReadsSelectedExec:
+    """Tests that def_go / def_go_back / def_pause read $SELECTEDEXEC before firing."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_def_go_includes_selected_exec(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=[_LISTVAR_EXEC5, "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(action="def_go")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "defgoforward"
+        assert data["selected_executor"] == "5"
+        assert data["selected_cue_before"] == "3"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_def_pause_includes_selected_exec(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=[_LISTVAR_EXEC7, "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(action="def_pause")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "defgopause"
+        assert data["selected_executor"] == "7"
+        assert data["selected_cue_before"] == "1"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_def_go_back_fires_defgoback(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=[_LISTVAR_EXEC5, "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(action="def_go_back")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "defgoback"
+        assert data["selected_executor"] == "5"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_def_goback_alias(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=[_LISTVAR_EXEC5, "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(action="def_goback")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "defgoback"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_def_go_selected_exec_none_when_listvar_empty(self, mock_get_client):
+        from src.server import playback_action
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=["[channel]>", "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await playback_action(action="def_go")
+        data = json.loads(result)
+
+        assert data["command_sent"] == "defgoforward"
+        assert data["selected_executor"] is None
+        assert data["selected_cue_before"] is None
+
+
+# ---------------------------------------------------------------------------
+# select_executor — $SELECTEDEXEC readback confirmation (Gap 3)
+# ---------------------------------------------------------------------------
+
+_LISTVAR_SEL5 = "$Global : $SELECTEDEXEC = 5\n[channel]>"
+_LISTVAR_SEL3 = "$Global : $SELECTEDEXEC = 3\n[channel]>"
+
+
+class TestSelectExecutorConfirmation:
+    """Tests that select_executor reads back $SELECTEDEXEC to confirm selection."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_executor_confirmed_match(self, mock_get_client):
+        from src.server import select_executor
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=["[channel]>", _LISTVAR_SEL5]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await select_executor(executor_id=5)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "select executor 5"
+        assert data["confirmed_selected_exec"] == "5"
+        assert "warning" not in data
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_executor_warning_on_mismatch(self, mock_get_client):
+        from src.server import select_executor
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=["[channel]>", _LISTVAR_SEL3]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await select_executor(executor_id=7)
+        data = json.loads(result)
+
+        assert data["confirmed_selected_exec"] == "3"
+        assert "warning" in data
+        assert "7" in data["warning"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_executor_warning_when_listvar_empty(self, mock_get_client):
+        from src.server import select_executor
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=["[channel]>", "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await select_executor(executor_id=2)
+        data = json.loads(result)
+
+        assert data["confirmed_selected_exec"] is None
+        assert "warning" in data
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_select_executor_page_no_warning(self, mock_get_client):
+        """page=2/exec=5 → command 'select executor 2.5'; $SELECTEDEXEC='5' → no warning."""
+        from src.server import select_executor
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=["[channel]>", _LISTVAR_SEL5]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await select_executor(executor_id=5, page=2)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "select executor 2.5"
+        assert data["confirmed_selected_exec"] == "5"
+        assert "warning" not in data
+
+
+# ---------------------------------------------------------------------------
+# select_executor — deselect parameter (Gap 4)
+# ---------------------------------------------------------------------------
+
+class TestSelectExecutorDeselect:
+    """Tests for select_executor deselect=True parameter."""
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_deselect_sends_bare_select(self, mock_get_client):
+        from src.server import select_executor
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=["[channel]>", "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await select_executor(executor_id=1, deselect=True)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "select"
+        assert "note" in data
+        assert "unverified" in data["note"].lower()
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_deselect_ignores_executor_id(self, mock_get_client):
+        """When deselect=True, executor_id must not appear in the command."""
+        from src.server import select_executor
+
+        mock_client = MagicMock()
+        mock_client.send_command_with_response = AsyncMock(
+            side_effect=["[channel]>", "[channel]>"]
+        )
+        mock_get_client.return_value = mock_client
+
+        result = await select_executor(executor_id=99, deselect=True)
+        data = json.loads(result)
+
+        assert data["command_sent"] == "select"
+        assert "99" not in data["command_sent"]
