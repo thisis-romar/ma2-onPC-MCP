@@ -232,6 +232,16 @@ from .functions import (
 # Helpers (public API)
 from .helpers import MA2_SPECIAL_CHARS, quote_name
 
+# Busking / Performance Layer
+from .busking import (
+    assign_effect_to_executor,
+    executor_page_range,
+    release_effects_on_page,
+    set_effect_rate,
+    set_effect_speed,
+    zero_page_faders,
+)
+
 # Object Keywords
 from .objects import (
     attribute,
@@ -490,4 +500,11 @@ __all__ = [
     "build_store_user",
     "build_delete_user",
     "build_assign_world_to_user_profile",
+    # Busking / Performance Layer
+    "assign_effect_to_executor",
+    "set_effect_rate",
+    "set_effect_speed",
+    "release_effects_on_page",
+    "zero_page_faders",
+    "executor_page_range",
 ]

@@ -193,6 +193,13 @@ from src.commands import (
     temp_fader as build_temp_fader,
 )
 from src.commands import (
+    assign_effect_to_executor as build_assign_effect_to_executor,
+    set_effect_rate as build_set_effect_rate,
+    set_effect_speed as build_set_effect_speed,
+    release_effects_on_page as build_release_effects_on_page,
+    zero_page_faders as build_zero_page_faders,
+)
+from src.commands import (
     list_messages as build_list_messages,
 )
 from src.commands import (
@@ -7579,6 +7586,153 @@ def resource_skill_body(skill_id: str) -> str:
     return skill.as_user_message()
 
 
+@mcp.resource("ma2://busking/patterns")
+def resource_busking_patterns() -> str:
+    """
+    Best-practice busking patterns for live performance lighting (read-only).
+
+    Covers: fader-per-effect model, song macro page protocol, live recovery
+    steps, and color lock technique. Use before designing a busking show.
+    """
+    return """\
+# grandMA2 Busking Patterns
+
+## Fader-Per-Effect Model
+Each executor on a fader page runs one effect. The fader controls intensity
+(0 = silent, 100 = full). Effects stay armed — zero fader silences, raise
+fader restores. Never release effects mid-song; use normalize_page_faders.
+
+Layout convention:
+  - Column 1 (Exec 1): Song loader macro (first-button protocol)
+  - Columns 2–8 (Exec 2–8): Effect faders (strobe, chase, color, beam...)
+  - Columns 9–10: Group masters (intensity override for rig sections)
+  - Fixed right page: Global effects that persist across songs
+
+## Song Macro Page Protocol
+Each song gets one page. Page name: `SNG_{n}_{SongName}` (e.g. SNG_3_Villains).
+
+**First button (Exec 1) macro lines:**
+1. `ClearAll` — reset programmer
+2. `Go Preset 4.{palette_id}` — apply song color palette
+3. `Go Macro {song_setup_macro}` — recall rig positions and timing
+4. `SelectDrive {executor_page}` — jump to this song's effect page
+
+**Remaining buttons:** effect executors — no macros, faders only.
+
+## Live Recovery Protocol
+When show state drifts (wrong levels, stuck effects):
+1. `normalize_page_faders(page)` — zero all faders silently
+2. `clear_effects_on_page(page)` — release stuck executors
+3. Re-trigger song loader (Exec 1) to restore clean state
+4. Gradually raise faders to rebuild look
+
+## Color Lock Technique
+Prevents color bleed when multiple effects are active:
+1. Store song color as a Color preset (e.g. Preset 4.30 = deep amber)
+2. Apply preset to all fixtures via Group masters before effects start
+3. Effects modulate intensity/position only — color preset holds the hue
+4. On song change: apply new color preset before raising new effect faders
+"""
+
+
+@mcp.resource("ma2://busking/effect-design")
+def resource_effect_design() -> str:
+    """
+    Effect-to-executor assignment patterns and rate/speed semantics (read-only).
+
+    Covers: assign_effect_to_executor usage, rate vs speed distinction,
+    MAtricks layering for busking, and batch release safety.
+    """
+    return """\
+# grandMA2 Effect Design for Busking
+
+## Effect Assignment
+Use `assign_effect_to_executor(effect_id, executor_id, page=N)` to bind an
+effect from the library to a fader slot. This is DESTRUCTIVE — do during
+pre-show programming, not during live performance.
+
+Command generated: `Assign Effect {id} Executor {id}` or `Assign Effect {id} Page {n}.{exec}`
+
+After assignment, the fader controls the effect's master intensity (0-100).
+The effect runs continuously while the executor is active.
+
+## Rate vs Speed
+| Parameter | Command | Semantics | Range |
+|-----------|---------|-----------|-------|
+| Rate | `EffectRate {n}` | Relative multiplier — 100 = normal | 1–200 |
+| Speed | `EffectSpeed {n}` | Absolute BPM — overrides rate | 20–300 |
+
+Use `modulate_effect(mode="rate", value=150)` to push effects 1.5× faster.
+Use `modulate_effect(mode="speed", value=120)` to lock effects to 120 BPM.
+
+Speed and rate affect the *selected* effects globally. To target a specific
+executor's effect, select it first with `select_executor(executor_id)`.
+
+## MAtricks Layering
+Layer MAtricks patterns over effects for per-fixture phase offsets:
+1. Select group, apply MAtricks Interleave
+2. Run effect — each fixture gets a phase offset proportional to its index
+3. Adjust interleave with `modulate_effect` rate to control chase tightness
+
+## Batch Release Safety
+`clear_effects_on_page(page, start_exec=1, end_exec=20)` sends 20 Off
+commands in a single chained string. On slow consoles this may cause a
+brief flash as effects die in sequence. To avoid: use `normalize_page_faders`
+first (silences without visual glitch), then `clear_effects_on_page`.
+"""
+
+
+@mcp.resource("ma2://busking/color-design")
+def resource_color_design() -> str:
+    """
+    Constrained color palette design for busking shows (read-only).
+
+    Covers: HSB palette strategy, preset numbering, monochromatic constraint,
+    and color lock via group master. Use when designing song color palettes.
+    """
+    return """\
+# grandMA2 Constrained Color Design for Busking
+
+## HSB vs RGB
+Always use HSB for live busking color design. MA2 HSB range: 0-100 (not 0-255).
+
+| Parameter | Flag | Range | Notes |
+|-----------|------|-------|-------|
+| Hue | `/h=` | 0–360 | Degrees |
+| Saturation | `/s=` | 0–100 | 0 = white, 100 = full color |
+| Brightness | `/br=` | 0–100 | 0 = black, 100 = full |
+
+Example: `store_preset 4.30 /h=30 /s=95 /br=100` = deep amber.
+
+## Monochromatic Palette Strategy
+Each song gets one hue with 4 brightness stops:
+- Stop 1: Full intensity (br=100, s=90)
+- Stop 2: Mid punch (br=70, s=85)
+- Stop 3: Moody fill (br=40, s=80)
+- Stop 4: Near-black accent (br=15, s=75)
+
+## Preset Numbering Convention
+`preset_id = song_id * 10 + stop_index`
+
+| Song | Stop | Preset |
+|------|------|--------|
+| Song 1 | 1 (full) | 11 |
+| Song 1 | 2 (mid) | 12 |
+| Song 3 | 4 (accent) | 34 |
+
+Recall with `apply_preset(preset_type="color", preset_id=34)`.
+
+## Color Lock Technique
+1. Before raising effect faders, apply the song's full-intensity color preset
+   to all rig fixtures via group masters: `group_at(group_id=99, value=100)`
+2. Effects that only modulate intensity/position inherit the locked color
+3. Transition between songs: apply new color preset (step 1) BEFORE releasing
+   the previous song's effect faders — avoids white flash on crossover
+4. For fixtures with separate color channels (CMY movers): store color in a
+   Color preset, not in the programmer, so it survives `ClearAll`
+"""
+
+
 # ============================================================
 # MCP Prompts
 # User-initiated workflow templates for console operations
@@ -7777,6 +7931,183 @@ Steps:
 6. SAVE: Call `save_show` to persist the new accounts.
 
 Return a summary of: accounts created, accounts skipped (already existed), any errors."""
+
+
+# ============================================================
+# Busking / Performance Layer Tools
+# Live performance primitives: effect assignment, fader control, show mode
+# ============================================================
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def assign_effect_to_executor(
+    effect_id: int,
+    executor_id: int,
+    page: int | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Assign an effect template to a fader executor slot (DESTRUCTIVE).
+
+    Binds an effect from the effect library to an executor so the fader controls
+    effect intensity in live busking mode. This is the core primitive for the
+    fader-per-effect busking model.
+
+    Args:
+        effect_id: Effect pool ID to assign (1-based).
+        executor_id: Target executor slot number on the page.
+        page: Optional page number. When given, qualifies as 'Page {page}.{exec}'.
+        confirm_destructive: Must be True to execute (DESTRUCTIVE — modifies executor assignment).
+
+    Returns:
+        JSON result with command sent and console response.
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "assign_effect_to_executor is DESTRUCTIVE (modifies executor assignment). Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+            "command_preview": build_assign_effect_to_executor(effect_id, executor_id, page=page),
+        }, indent=2)
+    client = await get_client()
+    cmd = build_assign_effect_to_executor(effect_id, executor_id, page=page)
+    response = await client.send_command(cmd)
+    return json.dumps({"command": cmd, "response": response, "effect_id": effect_id, "executor_id": executor_id}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def modulate_effect(
+    mode: str,
+    value: int,
+) -> str:
+    """
+    Set rate or speed on active effects in real time (SAFE_WRITE).
+
+    Used in busking to live-modulate effect tempo without stopping playback.
+    Rate is a relative multiplier (100 = normal, 200 = double).
+    Speed is an absolute BPM target (overrides rate).
+
+    Args:
+        mode: "rate" (relative 1–200, 100=normal) or "speed" (absolute BPM).
+        value: Numeric value for the chosen mode.
+
+    Returns:
+        JSON result with command sent and console response.
+    """
+    if mode == "rate":
+        cmd = build_set_effect_rate(value)
+    else:
+        cmd = build_set_effect_speed(value)
+    client = await get_client()
+    response = await client.send_command(cmd)
+    return json.dumps({"command": cmd, "mode": mode, "value": value, "response": response}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def clear_effects_on_page(
+    page: int,
+    start_exec: int = 1,
+    end_exec: int = 20,
+) -> str:
+    """
+    Release (kill) all effect executors across a page range (SAFE_WRITE).
+
+    Sends Off commands to every executor in the range, stopping all running
+    effects. Use during song transitions to clean up the previous song's state.
+    Does not change fader positions — use normalize_page_faders for that.
+
+    Args:
+        page: Fader page number.
+        start_exec: First executor slot to release (default 1).
+        end_exec: Last executor slot to release (default 20).
+
+    Returns:
+        JSON result with command count and console response.
+    """
+    client = await get_client()
+    cmd = build_release_effects_on_page(page, start_exec=start_exec, end_exec=end_exec)
+    response = await client.send_command(cmd)
+    count = end_exec - start_exec + 1
+    return json.dumps({"command_count": count, "page": page, "response": response}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def normalize_page_faders(
+    page: int,
+    start_exec: int = 1,
+    end_exec: int = 20,
+) -> str:
+    """
+    Set all faders on a page to 0 without releasing executors (SAFE_WRITE).
+
+    Silences all effects while keeping them armed for instant recall — the
+    standard busking blackout technique. Faders return to zero but executors
+    remain active; pushing the fader up immediately restores the effect.
+
+    Args:
+        page: Fader page number.
+        start_exec: First executor slot (default 1).
+        end_exec: Last executor slot (default 20).
+
+    Returns:
+        JSON result with command count and console response.
+    """
+    client = await get_client()
+    cmd = build_zero_page_faders(page, start_exec=start_exec, end_exec=end_exec)
+    response = await client.send_command(cmd)
+    count = end_exec - start_exec + 1
+    return json.dumps({"command_count": count, "page": page, "zeroed": True, "response": response}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def classify_show_mode() -> str:
+    """
+    Inspect the show and classify its execution mode (SAFE_READ).
+
+    Queries the effect and macro libraries to determine whether the current
+    show is structured for busking (effect-fader model), sequence-driven
+    playback, or a hybrid of both.
+
+    Returns:
+        JSON with mode classification and supporting evidence:
+        - "busking"  — primarily effects assigned to fader executors
+        - "sequence" — primarily cue sequences on executors
+        - "hybrid"   — mix of effects and sequences
+        - "empty"    — no content detected
+    """
+    client = await get_client()
+    effect_response = await client.send_command(build_list_effect_library())
+    macro_response = await client.send_command(build_list_macro_library())
+
+    effect_lines = [l for l in effect_response.splitlines() if l.strip() and not l.startswith("[")]
+    macro_lines = [l for l in macro_response.splitlines() if l.strip() and not l.startswith("[")]
+
+    effect_count = len(effect_lines)
+    macro_count = len(macro_lines)
+
+    if effect_count == 0 and macro_count == 0:
+        mode = "empty"
+    elif effect_count > macro_count * 2:
+        mode = "busking"
+    elif macro_count > effect_count * 2:
+        mode = "sequence"
+    else:
+        mode = "hybrid"
+
+    return json.dumps({
+        "mode": mode,
+        "evidence": {"effects": effect_count, "macros": macro_count},
+    }, indent=2)
 
 
 # ============================================================
