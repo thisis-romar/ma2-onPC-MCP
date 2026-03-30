@@ -1,7 +1,7 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.15.2
+version: 3.16.0
 created: 2025-02-27T00:00:00Z
 last_updated: 2026-03-30T00:00:00Z
 ---
@@ -13,7 +13,7 @@ last_updated: 2026-03-30T00:00:00Z
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
 ![Tools](https://img.shields.io/badge/MCP_tools-148-brightgreen)
-![Tests](https://img.shields.io/badge/tests-2166-brightgreen)
+![Tests](https://img.shields.io/badge/tests-2187-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
 **MCP server for controlling grandMA2 lighting consoles via Telnet.**
@@ -21,7 +21,7 @@ last_updated: 2026-03-30T00:00:00Z
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [148 MCP Tools](#mcp-tools) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [148 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 </div>
 
@@ -92,7 +92,8 @@ graph TD
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/vocab.py` | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
-| `src/commands/` | 178 pure command-builder functions, grouped by keyword type |
+| `src/commands/` | 180 exported command-builder functions, grouped by keyword type |
+| `src/commands/busking.py` | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
@@ -493,11 +494,11 @@ python -m scripts.create_matricks_library --color-only
 
 | Tool | Description |
 |------|-------------|
-| `list_users` | List all user profiles configured on the console |
-| `store_user` | Create a new user profile with name and password |
+| `list_console_users` | List all user profiles configured on the console |
+| `create_console_user` | Create a new user profile with name and password |
 | `delete_user` | Delete a user profile |
-| `login` | Log in to the console under a specific user profile |
-| `assign_world_to_user` | Assign a world (visibility scope) to a user profile |
+| `inspect_sessions` | Inspect active Telnet sessions and connected operators |
+| `assign_world_to_user_profile` | Assign a world (visibility scope) to a user profile |
 
 > [!NOTE]
 > Requires `GMA_SCOPE=gma2:user:manage` (Admin tier). Bootstrap 5 default user accounts
@@ -594,6 +595,66 @@ Read from the cached snapshot — **no telnet round-trips required**.
 > Check freshness with `get_console_state`.
 
 </details>
+
+<details>
+<summary><strong>🎛️ Busking &amp; Performance</strong> — 5 tools</summary>
+
+| Tool | Description |
+|------|-------------|
+| `assign_effect_to_executor` | Bind an effect template to an executor slot (DESTRUCTIVE — requires `confirm_destructive=True`) |
+| `modulate_effect` | Set rate (`EffectRate`) or speed (`EffectSpeed`) on active effects |
+| `clear_effects_on_page` | Release all effect executors on a page range |
+| `normalize_page_faders` | Set all faders on a page to 0 without releasing |
+| `classify_show_mode` | Inspect executor assignments and classify show as `busking`, `sequence`, `hybrid`, or `empty` |
+
+</details>
+
+## MCP Resources
+
+Nine read-only resources exposable to any MCP client. Use them for zero-telnet context before calling tools.
+
+| URI | Description |
+|-----|-------------|
+| `ma2://docs/rights-matrix` | OAuth scope → MA2Right mapping matrix (JSON) |
+| `ma2://docs/vocab-summary` | All 156 keywords with RiskTier and category (JSON) |
+| `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 148 tools in 14 categories (JSON) |
+| `ma2://docs/responsibility-map` | Module responsibility map for architectural decisions (Markdown) |
+| `ma2://docs/tool-surface-tiers` | Tier A/B/C classification for every tool (Markdown) |
+| `ma2://skills/{skill_id}` | Skill injection payload by ID — returns formatted user message ready for agent injection |
+| `ma2://busking/patterns` | Best-practice busking patterns: fader model, song macro protocol, live recovery |
+| `ma2://busking/effect-design` | Effect-to-executor assignment patterns, rate vs speed, MAtricks layering |
+| `ma2://busking/color-design` | HSB palette strategy, preset numbering, monochromatic constraint, color lock |
+
+All resources are read-only — no console side-effects.
+
+## MCP Prompts
+
+Six workflow prompts that orchestrate tools into guided multi-step procedures.
+
+| Prompt | Args | Description |
+|--------|------|-------------|
+| `preflight_destructive_change` | `operation`, `target`, `reason` | Safety pre-flight checklist before any DESTRUCTIVE tool call — checks rights, target existence, blind mode, and executor state |
+| `inspect_console` | `focus` | Guided read-only console state inspection — `full`, `playback`, `fixtures`, `show`, or `rights` |
+| `plan_cue_store` | `sequence_id`, `cue_number`, `fixture_selection`, `preset_or_values` | Plan a cue store operation with pre-flight and verification steps — does not execute |
+| `diagnose_playback_failure` | `executor_id`, `symptom` | Structured playback failure diagnosis — returns `fault_class`, `root_cause`, `recommended_actions` |
+| `load_show_safely` | `show_name` | Safe show loading checklist — prevents accidental Telnet disconnection via missing `/globalsettings` |
+| `bootstrap_rights_users` | *(none)* | Guided provisioning of the six-tier MA2 rights user accounts |
+
+## Agent Skills
+
+Instruction modules (`.claude/skills/`) that are injected as user messages into agent conversations. They teach agents domain-specific workflows without embedding knowledge in tool docstrings.
+
+| Skill | Description |
+|-------|-------------|
+| `ma2-command-rules` | MA2 command construction, object resolution, quoting rules, and safety escalation |
+| `telnet-feedback-triage` | Classify and summarise grandMA2 Telnet feedback using the `FeedbackClass` enum |
+| `feedback-investigator` | Worker playbook: classify and investigate Telnet feedback failures |
+| `cue-list-auditor` | Worker playbook: audit cue list gaps, labels, timing, and health |
+| `busking-lighting-performance` | Live busking — fader-per-effect model, executor layout, effect layering, live recovery |
+| `song-macro-page-design` | Song macro pages — first-button protocol, executor column layout, jump target safety |
+| `constrained-color-design` | Monochromatic HSB palette design — preset numbering, color lock, song-to-palette mapping |
+
+Skills are loaded on demand via `ma2://skills/{skill_id}` resource or injected by the orchestrator. Use `list_skills` / `get_skill` tools to browse and inspect them at runtime.
 
 ## Client Setup
 
@@ -1028,9 +1089,10 @@ ma2-onPC-MCP/
 │   ├── vocab.py                            # 156 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
-│   ├── commands/                           # 178 pure command-builder functions
-│   │   ├── objects/                        # Object keywords (11 modules)
-│   │   └── functions/                      # Function keywords (18 modules)
+│   ├── commands/                           # 180 exported command-builder functions
+│   │   ├── busking.py                      # Busking/performance builders (6 functions)
+│   │   ├── objects/                        # Object keywords (9 modules)
+│   │   └── functions/                      # Function keywords (17 modules)
 │   └── categorization/                     # ML tool categorization (K-Means)
 │
 ├── rag/                                    # RAG pipeline
@@ -1045,10 +1107,12 @@ ma2-onPC-MCP/
 │   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
 │   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
 │   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
-├── tests/                                  # 2166 tests (2026-03-30)
+├── tests/                                  # 2187 tests (2026-03-30)
 ├── doc/                                    # Command builders ref + cd-tree docs
 ├── vscode-mcp-provider/                    # VS Code MCP extension
-└── importexport/                           # Filter XMLs, fixture layers, exports
+└── .claude/                                # Skills (playbooks) + scoped rules
+    ├── skills/                             # 7 agent instruction modules
+    └── rules/                              # 5 scoped rule files (loaded on demand)
 ```
 
 ## Dependencies
