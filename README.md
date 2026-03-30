@@ -31,7 +31,7 @@ Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotoc
 
 ```bash
 # 1. Install
-git clone https://github.com/thisis-romar/ma2-onPC-MCP && cd gma2-mcp-telnet
+git clone https://github.com/thisis-romar/ma2-onPC-MCP && cd ma2-onPC-MCP
 uv sync
 
 # 2. Configure
@@ -60,7 +60,7 @@ graph TD
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
-    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>152 keywords · risk tiers"] -.-> A
+    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>156 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
 
     style A fill:#1a1a2e,stroke:#e94560,color:#fff
@@ -91,7 +91,7 @@ graph TD
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/vocab.py` | 152 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| `src/vocab.py` | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
 | `src/commands/` | 178 pure command-builder functions, grouped by keyword type |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
@@ -500,7 +500,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "gma2": {
       "command": "uv",
-      "args": ["--directory", "/path/to/gma2-mcp-telnet", "run", "python", "-m", "src.server"],
+      "args": ["--directory", "/path/to/ma2-onPC-MCP", "run", "python", "-m", "src.server"],
       "env": {
         "GMA_HOST": "192.168.1.100",
         "GMA_USER": "administrator",
@@ -555,13 +555,13 @@ graph LR
 
 ### Keyword Classification
 
-The vocabulary classifies all **152 grandMA2 keywords** into categories:
+The vocabulary classifies all **156 grandMA2 keywords** into categories:
 
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
 | `OBJECT` | 56 | Console objects (nouns) | Channel, Fixture, Group, Preset, Executor |
-| `FUNCTION` | 79 | Actions (verbs) | Store, Delete, Go, At, List, Info |
-| `HELPING` | 7 | Syntax connectors | And, Thru, Fade, Delay, If |
+| `FUNCTION` | 89 | Actions (verbs) | Store, Delete, Go, At, List, Info |
+| `HELPING` | 5 | Syntax connectors | And, Thru, Fade, Delay, If |
 | `SPECIAL_CHAR` | 6 | Operator symbols | Plus `+`, Minus `-`, Dot `.`, Slash `/` |
 
 <details>
@@ -575,7 +575,7 @@ Object Keywords carry additional metadata from live telnet verification:
 | `canonical` | Console-normalized spelling (e.g., `DMX` → `Dmx`) |
 | `notes` | Behavior notes from live telnet testing |
 
-Of the 56 Object Keywords: 51 change the default prompt context, 2 reset it (`Channel`, `Default`), and 3 don't change it (`Full`, `Normal`, `Zero` — these set dimmer values).
+Of the 56 Object Keywords: 53 change the default prompt context and 3 don't (`Full`, `Normal`, `Zero` — these set dimmer values). `Channel` and `Default` have `context_change=True`; their notes describe resetting the *default keyword*, not the prompt context.
 
 **Console aliases:**
 
@@ -867,7 +867,7 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ## Project Structure
 
 ```
-gma2-mcp-telnet/
+ma2-onPC-MCP/
 ├── src/
 │   ├── server.py                           # FastMCP server (115 interactive tools)
 │   ├── server_orchestration_tools.py       # Agentic layer (tools 110–143)
@@ -892,7 +892,7 @@ gma2-mcp-telnet/
 │   ├── telnet_client.py                    # Async Telnet (telnetlib3, injection prevention)
 │   ├── navigation.py                       # cd + list + scan orchestration
 │   ├── prompt_parser.py                    # Telnet prompt & tabular list parser
-│   ├── vocab.py                            # 152 keywords, risk tiers, functional domains
+│   ├── vocab.py                            # 156 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
 │   ├── commands/                           # 178 pure command-builder functions
