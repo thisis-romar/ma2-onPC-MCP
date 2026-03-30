@@ -1,9 +1,9 @@
 ---
 title: GMA2 MCP
 description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.16.0
+version: 3.16.1
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+last_updated: 2026-03-30T01:00:00Z
 ---
 
 <div align="center">
@@ -130,7 +130,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **148 tools** to MCP clients, grouped into 14 categories plus an agentic orchestration layer:
+The server exposes **148 tools** to MCP clients, grouped into 15 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -156,7 +156,7 @@ list            → enumerate objects at current destination
 </details>
 
 <details>
-<summary><strong>💡 Lighting Control</strong> — 6 tools</summary>
+<summary><strong>💡 Lighting Control</strong> — 7 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -166,16 +166,18 @@ list            → enumerate objects at current destination
 | `clear_programmer` | Clear programmer state (all, selection, active, or sequential) |
 | `park_fixture` | Park a fixture/channel at its current or a specified value |
 | `unpark_fixture` | Release a park lock on a fixture/channel |
+| `fix_locate_fixture` | Fix (park) or Locate selected/specified fixtures at their defaults |
 
 </details>
 
 <details>
-<summary><strong>🎯 Programmer / Selection</strong> — 7 tools</summary>
+<summary><strong>🎯 Programmer / Selection</strong> — 8 tools</summary>
 
 | Tool | Description |
 |------|-------------|
 | `modify_selection` | Select, deselect, or toggle fixtures in the programmer |
 | `adjust_value_relative` | Adjust programmer values relatively (+ or –) |
+| `manipulate_selection` | Invert or Align the current fixture selection / programmer values |
 | `select_fixtures_by_group` | Select all fixtures in a named group |
 | `select_executor` | Set the active executor for subsequent operations (single-selection only; use deselect=True to clear) |
 | `select_feature` | Set active Feature context (updates `$PRESET`/`$FEATURE`/`$ATTRIBUTE`) |
@@ -185,13 +187,14 @@ list            → enumerate objects at current destination
 </details>
 
 <details>
-<summary><strong>▶️ Playback & Executor</strong> — 8 tools</summary>
+<summary><strong>▶️ Playback & Executor</strong> — 9 tools</summary>
 
 | Tool | Description |
 |------|-------------|
 | `execute_sequence` | Legacy sequence playback: go, pause, or goto cue |
 | `playback_action` | Full playback: go, go_back, goto, fast_forward, fast_back, def_go, def_go_back, def_pause |
 | `control_executor` | Control an executor (go, pause, stop, flash, etc.) |
+| `load_cue` | Pre-load the next or previous cue on an executor without firing it |
 | `get_executor_status` | Query status of an executor (current cue, level, state) |
 | `set_executor_level` | Set the fader level on an executor |
 | `navigate_page` | Navigate to a specific page or page +/– |
@@ -307,7 +310,7 @@ select_executor(executor_id=1, deselect=True)
 </details>
 
 <details>
-<summary><strong>💾 Programming / Store</strong> — 11 tools</summary>
+<summary><strong>💾 Programming / Store</strong> — 13 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -320,6 +323,8 @@ select_executor(executor_id=1, deselect=True)
 | `set_cue_timing` | Edit fade, delay, or trigger timing on an existing cue |
 | `set_sequence_property` | Set a property on a sequence (e.g. looping, autoprepare) |
 | `assign_cue_trigger` | Assign a trigger type (Go, Follow, Time) to a cue |
+| `block_unblock_cue` | Block or Unblock a cue to freeze/restore its tracked values |
+| `clone_object` | Clone (duplicate with data) one or more objects to new IDs |
 | `remove_from_programmer` | Remove specific fixtures or channels from the programmer |
 | `run_macro` | Execute a stored macro by ID |
 
@@ -340,22 +345,24 @@ select_executor(executor_id=1, deselect=True)
 </details>
 
 <details>
-<summary><strong>🔗 Assignment & Layout</strong> — 7 tools</summary>
+<summary><strong>🔗 Assignment & Layout</strong> — 9 tools</summary>
 
 | Tool | Description |
 |------|-------------|
 | `assign_object` | Assign objects, functions, fades, or layout positions |
-| `assign_executor_property` | Set a property on an executor (e.g. name, page, size) |
+| `assign_executor_property` | Assign a property on an executor (e.g. width, priority, rate) |
 | `label_or_appearance` | Label or set visual appearance of objects |
 | `edit_object` | Edit, cut, or paste objects |
+| `cut_paste_object` | Cut an object to clipboard, or paste clipboard content at a location |
 | `remove_content` | Remove content from objects — fixtures, effects, preset types |
 | `save_recall_view` | Save or recall a screen view configuration |
 | `set_executor_priority` | Set playback priority on an executor (super/high/normal/low/htp/swap) |
+| `set_node_property` | Set a property on any node via dot-separated tree path (DESTRUCTIVE) |
 
 </details>
 
 <details>
-<summary><strong>📁 Show Management</strong> — 6 tools</summary>
+<summary><strong>📁 Show Management</strong> — 7 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -363,6 +370,7 @@ select_executor(executor_id=1, deselect=True)
 | `list_shows` | List available show files on the console |
 | `load_show` | Load a show file by name |
 | `new_show` | Create a new empty show |
+| `delete_show` | Delete a show file from disk |
 | `export_objects` | Export show objects (groups, presets, macros, etc.) to a file |
 | `import_objects` | Import objects from a file into the show |
 
@@ -456,7 +464,7 @@ python -m scripts.create_matricks_library --color-only
 </details>
 
 <details>
-<summary><strong>🔎 Info, Queries & Discovery</strong> — 12 tools</summary>
+<summary><strong>🔎 Info, Queries & Discovery</strong> — 15 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -466,17 +474,20 @@ python -m scripts.create_matricks_library --color-only
 | `list_system_variables` | List all 26 built-in system variables (`$TIME`, `$SHOWFILE`, etc.) |
 | `list_sequence_cues` | List all cues in a sequence with timing and labels |
 | `discover_object_names` | Discover named objects in a pool via the cd tree |
+| `check_pool_availability` | Check which slots are occupied and free in an object pool |
 | `browse_preset_type` | Browse Feature/Attribute/SubAttribute tree for a PresetType |
 | `list_preset_pool` | List presets in the Global preset pool by type |
+| `browse_effect_library` | Browse the grandMA2 effect library |
+| `browse_macro_library` | Browse the grandMA2 macro library |
+| `browse_plugin_library` | Browse the grandMA2 plugin library |
 | `highlight_fixtures` | Toggle highlight mode for selected fixtures |
-| `set_node_property` | Set a property on any node via dot-separated tree path |
 | `list_undo_history` | List recent undo history entries |
 | `discover_filter_attributes` | Discover show-specific filter attributes from patched fixtures |
 
 </details>
 
 <details>
-<summary><strong>⚙️ Console & Utilities</strong> — 6 tools</summary>
+<summary><strong>⚙️ Console & Utilities</strong> — 8 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -486,6 +497,8 @@ python -m scripts.create_matricks_library --color-only
 | `manage_variable` | Set or add to console variables (global or user-scoped) |
 | `undo_last_action` | Undo the last console action |
 | `toggle_console_mode` | Toggle console modes: blind, highlight, freeze, solo |
+| `list_fader_modules` | List connected fader modules and their configuration |
+| `list_update_history` | List programming update history |
 
 </details>
 
@@ -597,10 +610,11 @@ Read from the cached snapshot — **no telnet round-trips required**.
 </details>
 
 <details>
-<summary><strong>🎛️ Busking &amp; Performance</strong> — 5 tools</summary>
+<summary><strong>🎛️ Busking &amp; Performance</strong> — 6 tools</summary>
 
 | Tool | Description |
 |------|-------------|
+| `assign_temp_fader` | Set the temp fader level on the currently selected executor |
 | `assign_effect_to_executor` | Bind an effect template to an executor slot (DESTRUCTIVE — requires `confirm_destructive=True`) |
 | `modulate_effect` | Set rate (`EffectRate`) or speed (`EffectSpeed`) on active effects |
 | `clear_effects_on_page` | Release all effect executors on a page range |
