@@ -1,7 +1,7 @@
 [project]
-name = "gma2-mcp"
+name = "grandpa2-buddy"
 version = "0.1.0"
-description = "MCP server for controlling grandMA2 lighting consoles via Telnet"
+description = "AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
@@ -31,11 +31,11 @@ dev = [
 ]
 
 [project.scripts]
-gma2-mcp = "src.server:main"
+grandpa2-buddy = "src.server:main"
 
 [project.urls]
-Repository = "https://github.com/thisis-romar/gma2-mcp-telnet"
-Issues = "https://github.com/thisis-romar/gma2-mcp-telnet/issues"
+Repository = "https://github.com/thisis-romar/ma2-onPC-MCP"
+Issues = "https://github.com/thisis-romar/ma2-onPC-MCP/issues"
 
 [tool.ruff]
 target-version = "py312"

@@ -1,14 +1,16 @@
 ---
-title: GMA2 MCP
-description: MCP server for controlling grandMA2 lighting consoles via Telnet
-version: 3.16.1
+title: GrandPA2-Buddy
+description: AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet
+version: 3.17.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-30T01:00:00Z
+last_updated: 2026-03-30T02:00:00Z
 ---
 
 <div align="center">
 
-# GMA2 MCP
+<img src="assets/banner.svg" alt="GrandPA2-Buddy" width="900"/>
+
+# GrandPA2-Buddy
 
 [![Tests](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg)](https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)
@@ -16,12 +18,17 @@ last_updated: 2026-03-30T01:00:00Z
 ![Tests](https://img.shields.io/badge/tests-2187-brightgreen)
 ![License](https://img.shields.io/badge/license-Apache_2.0-orange)
 
-**MCP server for controlling grandMA2 lighting consoles via Telnet.**
+**AI agent for grandMA2 lighting consoles via Telnet.**
 
 Exposes grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants
 (Claude Desktop, VS Code, etc.) can operate a lighting console programmatically.
 
 [Quick Start](#quick-start) · [Architecture](#architecture) · [148 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+
+---
+
+*Dedicated to the memory of **Noel Roy Johnson** (June 19, 1944 – February 26, 2026).*
+*Our gift to him — and his gift back to us.*
 
 </div>
 
