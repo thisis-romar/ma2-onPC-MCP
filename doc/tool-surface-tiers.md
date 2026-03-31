@@ -1,6 +1,6 @@
 ---
 title: Tool Surface Tiers
-description: Classification of all 151 MCP tools into planner-visible tiers A/B/C to manage context budget
+description: Classification of all 172 MCP tools into planner-visible tiers A/B/C to manage context budget
 version: 1.1.0
 created: 2026-03-29T09:00:00Z
 last_updated: 2026-03-31T12:00:00Z
@@ -8,7 +8,7 @@ last_updated: 2026-03-31T12:00:00Z
 
 # Tool Surface Tiers
 
-The transcript's core observation: **151 tools always visible to the parent planner is a context budget risk**. This document classifies all tools into three tiers to guide future dynamic tool loading.
+The transcript's core observation: **172 tools always visible to the parent planner is a context budget risk**. This document classifies all tools into three tiers to guide future dynamic tool loading.
 
 ---
 
@@ -147,7 +147,7 @@ All workers return a **fixed envelope**:
 
 ## MCP Primitive Classification
 
-For the 151 tools, the question "is this really a tool?" has three answers:
+For the 172 tools, the question "is this really a tool?" has three answers:
 
 | If it… | Should be |
 |--------|-----------|
