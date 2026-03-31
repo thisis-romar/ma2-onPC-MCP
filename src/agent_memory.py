@@ -10,6 +10,11 @@ Two memory tiers:
 
 v2: WorkingMemory now carries a ConsoleStateSnapshot that closes all 19
     show-memory gaps identified from the cd-tree analysis.
+
+v3: Added DecisionCheckpoint — distilled decision records using the
+    "recompute-over-retain" pattern. Cached findings expire after a
+    configurable window; stale checkpoints trigger a fresh tool call
+    rather than silently replaying stale data.
 """
 
 from __future__ import annotations
@@ -26,6 +31,34 @@ if TYPE_CHECKING:
     from .console_state import ConsoleStateSnapshot
 
 from .rights import RightsContext, MA2Right
+
+# ---------------------------------------------------------------------------
+# Decision Checkpoint  (recompute-over-retain caching pattern)
+# ---------------------------------------------------------------------------
+
+@dataclass
+class DecisionCheckpoint:
+    """A distilled decision record for the 'recompute-over-retain' caching pattern.
+
+    Stores the fault label and replay query for a specific finding, NOT the raw
+    output. If is_fresh() returns True the cached finding is still valid.
+    If False, re-run the underlying tool call (replay) to refresh the checkpoint.
+
+    Design rule: never store raw fixture dicts or large blobs here.
+    Store only the fault label, what was checked, and how to re-check it.
+    """
+
+    fault: str                  # short label, e.g. "no_position_preset"
+    query: str                  # human-readable description of what was checked
+    observed_at: float          # Unix timestamp of last check
+    fresh_for_seconds: float    # how long this finding is valid (default: 60s)
+    replay: str                 # tool call or recipe string to regenerate this finding
+    confidence: float = 1.0     # 0.0–1.0; lower if check was indirect
+
+    def is_fresh(self) -> bool:
+        """Return True if the checkpoint is still within its freshness window."""
+        return (time.time() - self.observed_at) < self.fresh_for_seconds
+
 
 # ---------------------------------------------------------------------------
 # Working Memory  (short-term, in-process)
@@ -87,6 +120,9 @@ class WorkingMemory:
     active_executor: int | None = None
     active_page: int | None = None
     pending_cues: list[dict] = field(default_factory=list)
+
+    # ── Decision checkpoints (recompute-over-retain cache) ───────────
+    checkpoints: list[DecisionCheckpoint] = field(default_factory=list)
 
     # ── Step tracking ────────────────────────────────────────────────
     completed_steps: list[str] = field(default_factory=list)
@@ -194,6 +230,20 @@ class WorkingMemory:
         """Returns /UPR=N flag for playback commands scoped to this profile."""
         return self.rights_context.upr_flag()
 
+    # ── Decision checkpoint helpers ──────────────────────────────────
+
+    def add_checkpoint(self, checkpoint: DecisionCheckpoint) -> None:
+        """Store a decision checkpoint, replacing any existing one with the same fault."""
+        self.checkpoints = [c for c in self.checkpoints if c.fault != checkpoint.fault]
+        self.checkpoints.append(checkpoint)
+
+    def fresh_checkpoint(self, fault: str) -> DecisionCheckpoint | None:
+        """Return a fresh checkpoint for fault, or None if stale/absent."""
+        for c in self.checkpoints:
+            if c.fault == fault and c.is_fresh():
+                return c
+        return None
+
     # ── Step tracking ────────────────────────────────────────────────
 
     def mark_done(self, step: str) -> None:
@@ -225,6 +275,7 @@ class WorkingMemory:
         d = asdict(self)
         d["fixtures"] = {k: asdict(v) for k, v in self.fixtures.items()}
         d["park_ledger"] = list(self.park_ledger)
+        d["checkpoints"] = [asdict(c) for c in self.checkpoints]
         d["console_state"] = self.console_summary()
         d["rights_context"] = self.rights_context.summary()
         return d

@@ -4,14 +4,16 @@ tests/test_agent_memory.py — Unit tests for src/agent_memory.py
 Covers:
   - FixtureSnapshot
   - WorkingMemory: fixture tracking, park ledger, mode overrides, step tracking
+  - WorkingMemory: DecisionCheckpoint add/lookup/freshness
   - LongTermMemory: save/load, recent_sessions, recall
 """
 
 import os
+import time
 import pytest
 import tempfile
 from pathlib import Path
-from src.agent_memory import FixtureSnapshot, WorkingMemory, LongTermMemory
+from src.agent_memory import DecisionCheckpoint, FixtureSnapshot, WorkingMemory, LongTermMemory
 from src.rights import RightsContext
 from src.commands.constants import MA2Right
 
@@ -208,3 +210,110 @@ class TestLongTermMemory:
         hist = ltm_tmp.park_history("7")
         assert len(hist) == 1
         assert hist[0]["action"] == "parked"
+
+
+# ── DecisionCheckpoint ────────────────────────────────────────────────────────
+
+
+class TestDecisionCheckpoint:
+    def _make(self, fault="test_fault", fresh_for=60.0, age=0.0) -> DecisionCheckpoint:
+        return DecisionCheckpoint(
+            fault=fault,
+            query="Was position preset applied?",
+            observed_at=time.time() - age,
+            fresh_for_seconds=fresh_for,
+            replay="browse_preset_type(2, depth=1)",
+            confidence=0.9,
+        )
+
+    def test_is_fresh_within_window(self):
+        cp = self._make(fresh_for=60.0, age=5.0)
+        assert cp.is_fresh() is True
+
+    def test_is_stale_past_window(self):
+        cp = self._make(fresh_for=10.0, age=30.0)
+        assert cp.is_fresh() is False
+
+    def test_is_fresh_exactly_at_boundary(self):
+        # age == fresh_for → stale (strict less-than)
+        cp = self._make(fresh_for=10.0, age=10.0)
+        assert cp.is_fresh() is False
+
+    def test_default_confidence(self):
+        cp = self._make()
+        assert cp.confidence == 0.9
+
+
+class TestWorkingMemoryCheckpoints:
+    def test_add_checkpoint(self):
+        wm = WorkingMemory()
+        cp = DecisionCheckpoint(
+            fault="no_position_preset",
+            query="check position presets",
+            observed_at=time.time(),
+            fresh_for_seconds=60.0,
+            replay="browse_preset_type(2)",
+        )
+        wm.add_checkpoint(cp)
+        assert len(wm.checkpoints) == 1
+
+    def test_add_checkpoint_replaces_same_fault(self):
+        wm = WorkingMemory()
+        cp1 = DecisionCheckpoint(
+            fault="no_position_preset", query="v1",
+            observed_at=time.time(), fresh_for_seconds=60.0, replay="v1",
+        )
+        cp2 = DecisionCheckpoint(
+            fault="no_position_preset", query="v2",
+            observed_at=time.time(), fresh_for_seconds=60.0, replay="v2",
+        )
+        wm.add_checkpoint(cp1)
+        wm.add_checkpoint(cp2)
+        assert len(wm.checkpoints) == 1
+        assert wm.checkpoints[0].query == "v2"
+
+    def test_add_different_faults_accumulate(self):
+        wm = WorkingMemory()
+        for fault in ("fault_a", "fault_b", "fault_c"):
+            wm.add_checkpoint(DecisionCheckpoint(
+                fault=fault, query="q",
+                observed_at=time.time(), fresh_for_seconds=60.0, replay="r",
+            ))
+        assert len(wm.checkpoints) == 3
+
+    def test_fresh_checkpoint_returns_fresh(self):
+        wm = WorkingMemory()
+        cp = DecisionCheckpoint(
+            fault="my_fault", query="q",
+            observed_at=time.time(), fresh_for_seconds=60.0, replay="r",
+        )
+        wm.add_checkpoint(cp)
+        result = wm.fresh_checkpoint("my_fault")
+        assert result is not None
+        assert result.fault == "my_fault"
+
+    def test_fresh_checkpoint_returns_none_when_stale(self):
+        wm = WorkingMemory()
+        cp = DecisionCheckpoint(
+            fault="stale_fault", query="q",
+            observed_at=time.time() - 120,   # 120s ago
+            fresh_for_seconds=60.0,
+            replay="r",
+        )
+        wm.add_checkpoint(cp)
+        assert wm.fresh_checkpoint("stale_fault") is None
+
+    def test_fresh_checkpoint_returns_none_when_absent(self):
+        wm = WorkingMemory()
+        assert wm.fresh_checkpoint("nonexistent") is None
+
+    def test_to_dict_includes_checkpoints(self):
+        wm = WorkingMemory()
+        wm.add_checkpoint(DecisionCheckpoint(
+            fault="dict_test", query="q",
+            observed_at=time.time(), fresh_for_seconds=60.0, replay="r",
+        ))
+        d = wm.to_dict()
+        assert "checkpoints" in d
+        assert len(d["checkpoints"]) == 1
+        assert d["checkpoints"][0]["fault"] == "dict_test"

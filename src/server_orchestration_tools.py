@@ -1,5 +1,5 @@
 """
-server_orchestration_tools.py — Register 27 agentic MCP tools (110-137) onto the FastMCP instance.
+server_orchestration_tools.py — Register 33 agentic MCP tools (110-143) onto the FastMCP instance.
 
 Tools 110-118 bring the MA2 MCP server's agentic capability up to the multi-agent
 model: task decomposition, orchestrated execution, memory recall, token tracking,
@@ -10,10 +10,12 @@ with zero telnet cost (get_console_state, get_park_ledger, get_filter_state,
 get_world_state, get_matricks_state, get_programmer_selection, hydrate_sequences,
 get_sequence_memory, assert_selection_count, assert_preset_exists, get_executor_detail).
 
-Tools 130-133 provide state diff, showfile info, and system variable polling.
+Tools 131-137 provide state diff, showfile info, system variable polling,
+orchestration safety gates (confirm_destructive_steps, abort_task, retry_failed_steps),
+and assert_fixture_exists.
 
-Tools 134-136 are orchestration safety gates: confirm_destructive_steps, abort_task,
-and retry_failed_steps.
+Tools 138-143 form the OpenSpace observability layer: telemetry, skill registry,
+improvement suggestions, and DESTRUCTIVE approval gating.
 
 Usage in server.py:
     from src.server_orchestration_tools import register_orchestration_tools
@@ -28,6 +30,10 @@ from mcp.server.fastmcp import FastMCP
 from .orchestrator import Orchestrator
 from .task_decomposer import TaskDecomposer
 from .pool_name_index import ObjectRef, PoolNameIndex
+from .telemetry import ToolTelemetry
+from .skill import SkillRegistry
+from .skill_improver import SkillImprover
+from .agent_memory import LongTermMemory
 
 
 def register_orchestration_tools(
@@ -1188,3 +1194,266 @@ def register_orchestration_tools(
                 )
             ),
         }, indent=2)
+
+    # ================================================================== #
+    # OpenSpace layer — Tools 138–143                                     #
+    # Telemetry + Skill registry + Improvement loop                       #
+    # ================================================================== #
+
+    # Singletons created once at registration time; all 6 tools share them.
+    import json as _json
+    _tel = ToolTelemetry()
+    _reg = SkillRegistry()
+    _ltm_skill = LongTermMemory()
+    _imp = SkillImprover(_tel, _reg, _ltm_skill)
+
+    # ------------------------------------------------------------------ #
+    # Tool 138: get_tool_metrics                                          #
+    # ------------------------------------------------------------------ #
+
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.DISCOVER)
+    @handle_errors_fn
+    async def get_tool_metrics(
+        tool_name: str,
+        days: int = 7,
+    ) -> str:
+        """
+        Return latency and error-rate statistics for a single MCP tool.
+
+        Queries the ``tool_invocations`` telemetry table for all recorded
+        calls to ``tool_name`` in the last ``days`` days.
+
+        Returns call count, error rate, p50/p95 latency in milliseconds,
+        and the distinct error classes seen.  Returns ``{"calls": 0}`` if
+        no invocations have been recorded yet.
+
+        Args:
+            tool_name: Exact name of the MCP tool (e.g. "list_objects").
+            days: Look-back window in days (default 7).
+        """
+        return _json.dumps(_tel.metrics(tool_name, days=days), indent=2)
+
+    # ------------------------------------------------------------------ #
+    # Tool 139: list_skills                                               #
+    # ------------------------------------------------------------------ #
+
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.DISCOVER)
+    @handle_errors_fn
+    async def list_skills(
+        query: str = "",
+        limit: int = 20,
+    ) -> str:
+        """
+        Search the skill registry for stored playbooks.
+
+        If ``query`` is provided, performs a case-insensitive substring
+        search across skill name, description, and applicable_context.
+        If ``query`` is empty, returns the most recently updated skills.
+
+        DESTRUCTIVE-scope skills are included in results regardless of
+        their ``approved`` status so operators can review them.
+
+        Args:
+            query: Optional search term (e.g. "wash look", "color preset").
+            limit: Maximum number of results to return (default 20).
+        """
+        skills = _reg.search(query, limit=limit) if query else _reg.list_all(limit=limit)
+        return _json.dumps(
+            {
+                "query": query,
+                "count": len(skills),
+                "skills": [s.to_dict() for s in skills],
+            },
+            indent=2,
+        )
+
+    # ------------------------------------------------------------------ #
+    # Tool 140: get_skill                                                  #
+    # ------------------------------------------------------------------ #
+
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.DISCOVER)
+    @handle_errors_fn
+    async def get_skill(skill_id: str) -> str:
+        """
+        Return full detail for a single skill including its lineage chain.
+
+        Walks the ``parent_id`` chain to return all ancestor versions
+        oldest-first, so you can see how the skill evolved over time.
+
+        Args:
+            skill_id: UUID of the skill to retrieve.
+        """
+        skill = _reg.get(skill_id)
+        if skill is None:
+            return _json.dumps({"error": f"Skill '{skill_id}' not found."}, indent=2)
+        lineage = _reg.get_lineage(skill_id)
+        return _json.dumps(
+            {
+                "skill": skill.to_dict(),
+                "lineage": [s.to_dict() for s in lineage],
+                "is_usable": skill.is_usable(),
+            },
+            indent=2,
+        )
+
+    # ------------------------------------------------------------------ #
+    # Tool 141: promote_session_to_skill                                  #
+    # ------------------------------------------------------------------ #
+
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.PROGRAMMER_WRITE)
+    @handle_errors_fn
+    async def promote_session_to_skill(
+        session_id: str,
+        name: str,
+        description: str,
+        body: str,
+        safety_scope: str = "SAFE_WRITE",
+        applicable_context: str = "",
+    ) -> str:
+        """
+        Promote a completed agent session to a named, versioned Skill.
+
+        The skill is stored in the registry with a quality score derived
+        from the session's step success ratio.
+
+        Safety rule: if ``safety_scope`` is ``DESTRUCTIVE``, the skill is
+        created with ``approved=False`` and cannot be used until an operator
+        calls ``approve_skill`` (requires SYSTEM_ADMIN scope).
+
+        Args:
+            session_id:        ID of the session to promote (8-char prefix or full UUID).
+            name:              Short human name for the skill (e.g. "blue_wash_look").
+            description:       One-line purpose statement.
+            body:              Markdown playbook — steps, caveats, example inputs.
+            safety_scope:      "SAFE_READ" | "SAFE_WRITE" | "DESTRUCTIVE"  (default SAFE_WRITE).
+            applicable_context: Free-text retrieval hint (e.g. "color wash cue storage").
+        """
+        quality = _imp.quality_score_for_session(session_id)
+        skill = _reg.promote_from_session(
+            session_id=session_id,
+            name=name,
+            description=description,
+            body=body,
+            safety_scope=safety_scope,
+            applicable_context=applicable_context,
+            quality_score=quality,
+        )
+        return _json.dumps(
+            {
+                "promoted": True,
+                "skill_id": skill.id,
+                "name": skill.name,
+                "version": skill.version,
+                "safety_scope": skill.safety_scope,
+                "approved": skill.approved,
+                "quality_score": skill.quality_score,
+                "note": (
+                    "Skill is DESTRUCTIVE-scope and requires approve_skill() "
+                    "before agents can use it."
+                    if not skill.approved
+                    else None
+                ),
+            },
+            indent=2,
+        )
+
+    # ------------------------------------------------------------------ #
+    # Tool 142: get_improvement_suggestions                               #
+    # ------------------------------------------------------------------ #
+
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.DISCOVER)
+    @handle_errors_fn
+    async def get_improvement_suggestions(
+        days: int = 7,
+        min_failures: int = 3,
+        min_quality: float = 0.8,
+    ) -> str:
+        """
+        Return repair suggestions and promotion candidates from the analyser.
+
+        Repair suggestions: tools failing >= ``min_failures`` times in the
+        last ``days`` days, with a human-readable hint for each.
+
+        Promotion candidates: successful sessions not yet promoted to Skills,
+        with quality score >= ``min_quality``.
+
+        This tool is read-only — it never writes to the skill registry.
+
+        Args:
+            days:          Look-back window for failure detection (default 7).
+            min_failures:  Minimum error count to flag a tool (default 3).
+            min_quality:   Minimum session quality to suggest promotion (default 0.8).
+        """
+        repairs = _imp.identify_failure_patterns(days=days, min_failures=min_failures)
+        candidates = _imp.identify_promotion_candidates(min_quality=min_quality)
+        return _json.dumps(
+            {
+                "repair_suggestions": [
+                    {
+                        "tool_name": r.tool_name,
+                        "failure_count": r.failure_count,
+                        "error_classes": r.error_classes,
+                        "hint": r.hint,
+                    }
+                    for r in repairs
+                ],
+                "promotion_candidates": [
+                    {
+                        "session_id": c.session_id,
+                        "task": c.task,
+                        "outcome": c.outcome,
+                        "steps_done": c.steps_done,
+                        "steps_failed": c.steps_failed,
+                        "tokens": c.tokens,
+                        "quality_score": c.quality_score,
+                        "suggested_name": c.suggested_name,
+                    }
+                    for c in candidates
+                ],
+            },
+            indent=2,
+        )
+
+    # ------------------------------------------------------------------ #
+    # Tool 143: approve_skill                                             #
+    # ------------------------------------------------------------------ #
+
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.SYSTEM_ADMIN)
+    @handle_errors_fn
+    async def approve_skill(skill_id: str) -> str:
+        """
+        Approve a DESTRUCTIVE-scope skill for agent use.
+
+        Sets ``approved=True`` on the named skill.  Once approved, agents
+        with sufficient OAuth scope may invoke the skill's playbook.
+
+        This tool requires ``OAuthScope.SYSTEM_ADMIN`` (tier 5 / ``GMA_SCOPE=tier:5``).
+        It is the human gate that prevents autonomous DESTRUCTIVE skill promotion.
+
+        Args:
+            skill_id: UUID of the skill to approve.
+        """
+        skill = _reg.get(skill_id)
+        if skill is None:
+            return _json.dumps({"error": f"Skill '{skill_id}' not found."}, indent=2)
+        ok = _reg.approve(skill_id)
+        return _json.dumps(
+            {
+                "approved": ok,
+                "skill_id": skill_id,
+                "skill_name": skill.name,
+                "safety_scope": skill.safety_scope,
+                "note": (
+                    "Skill approved — agents may now invoke its playbook."
+                    if ok
+                    else "Skill not found."
+                ),
+            },
+            indent=2,
+        )
