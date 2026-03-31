@@ -7,12 +7,11 @@ All Telnet calls are mocked — no live console required.
 
 import asyncio
 import time
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
 
-from src.session_manager import SessionManager, OperatorSession, _safe_disconnect
-
+from src.session_manager import OperatorSession, SessionManager, _safe_disconnect
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

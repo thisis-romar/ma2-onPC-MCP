@@ -159,13 +159,15 @@ def _chunk_lines(
     # Approximate lines per chunk
     avg_line_len = max(1, len(file.text) // max(1, len(lines)))
     lines_per_chunk = max(10, max_chars // avg_line_len)
+    # Cap overlap so pos always advances by ≥ 1 (avoids infinite loop on long-line files)
+    safe_overlap = min(overlap_lines, lines_per_chunk - 1)
 
     ranges: list[tuple[int, int, list[str]]] = []
     start = 0
     while start < len(lines):
         end = min(start + lines_per_chunk, len(lines))
         ranges.append((start + 1, end, []))  # 1-indexed
-        start = end - overlap_lines if end < len(lines) else end
+        start = end - safe_overlap if end < len(lines) else end
 
     symbols = extract_symbols(file.language, file.text)
     if symbols:
@@ -247,12 +249,14 @@ def _split_range(
     total_lines = end_line - start_line + 1
     avg_line_len = max(1, sum(len(lines[i]) for i in range(start_line - 1, end_line)) // total_lines)
     lines_per_sub = max(10, max_chars // avg_line_len)
+    # Cap overlap so pos always advances by ≥ 1 (avoids infinite loop on long-line files)
+    safe_overlap = min(overlap_lines, lines_per_sub - 1)
 
     sub_ranges: list[tuple[int, int]] = []
     pos = start_line
     while pos <= end_line:
         sub_end = min(pos + lines_per_sub - 1, end_line)
         sub_ranges.append((pos, sub_end))
-        pos = sub_end + 1 - overlap_lines if sub_end < end_line else sub_end + 1
+        pos = sub_end + 1 - safe_overlap if sub_end < end_line else sub_end + 1
 
     return sub_ranges

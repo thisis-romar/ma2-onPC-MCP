@@ -282,6 +282,7 @@ def build_v39_spec(
     # the safety tiers below can assign the correct RiskTier.
     _extra_keywords: dict[str, str] = {
         # SAFE_WRITE — extended playback
+        "Kill": "Kill",
         "Swop": "Swop",
         "Stomp": "Stomp",
         "LoadNext": "LoadNext",
@@ -298,6 +299,7 @@ def build_v39_spec(
     }
     for kw, canon in _extra_keywords.items():
         aliases[_norm_token(kw)] = canon
+    keyword_categories["Kill"] = KeywordCategory.FUNCTION
 
     # ---- Safety tier defaults
     # NOTE: "Blackout" is classified as SAFE_WRITE because it is a toggle
@@ -322,8 +324,8 @@ def build_v39_spec(
         "MAtricksInterleave", "MAtricksBlocks", "MAtricksGroups",
         "MAtricksWings", "MAtricksFilter", "MAtricksReset",
         "Next", "NextRow", "Previous",
-        # Playback extended: Swop, Stomp, LoadNext, LoadPrev
-        "Swop", "Stomp", "LoadNext", "LoadPrev",
+        # Playback extended: Kill, Swop, Stomp, LoadNext, LoadPrev
+        "Kill", "Swop", "Stomp", "LoadNext", "LoadPrev",
         # Selection / programmer: Fix, Locate, Invert, Align
         "Fix", "Locate", "Invert", "Align",
     }
@@ -919,7 +921,7 @@ DEFAULT_KEYWORD_STATES: list[dict] = [
 # Rights levels are cumulative downward: Admin implies all lower tiers.
 # Comparison via >= works correctly because this is an IntEnum.
 
-from enum import IntEnum as _IntEnum
+from enum import IntEnum as _IntEnum  # noqa: E402
 
 
 class RightsLevel(_IntEnum):

@@ -31,8 +31,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Awaitable
+from typing import Any
 
 from .commands.constants import MA2Right
 from .pool_name_index import ObjectRef, PoolNameIndex
@@ -379,7 +380,7 @@ class ConsoleStateHydrator:
             for pool_type in _POOL_TYPES_TO_INDEX
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        for pool_type, result in zip(_POOL_TYPES_TO_INDEX, results):
+        for pool_type, result in zip(_POOL_TYPES_TO_INDEX, results, strict=False):
             if isinstance(result, Exception):
                 snap.partial = True
                 snap.hydration_errors.append(f"Pool index {pool_type} failed: {result}")

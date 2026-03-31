@@ -8,11 +8,10 @@ object to a ready-to-use command token without extra telnet round-trips.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .commands.helpers import quote_name
-
 
 # Pool types that support a preset_type sub-key (Preset pools 1-9)
 _PRESET_POOL_TYPES = frozenset({"Preset", "preset"})

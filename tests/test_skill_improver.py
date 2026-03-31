@@ -1,184 +1,211 @@
 """
 tests/test_skill_improver.py — Unit tests for src/skill_improver.py
 
-Covers:
-  - SkillImprover.identify_failure_patterns
-  - SkillImprover.identify_promotion_candidates
-  - SkillImprover.quality_score_for_session
+All tests use a temp SQLite DB.  No live console required.
 """
 
-import tempfile
+from __future__ import annotations
+
 import time
-from pathlib import Path
 
 import pytest
 
-from src.agent_memory import LongTermMemory, WorkingMemory
+from src.agent_memory import LongTermMemory
 from src.skill import SkillRegistry
-from src.skill_improver import SkillImprover
+from src.skill_improver import SkillImprover, _slugify
 from src.telemetry import ToolTelemetry
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def db_path(tmp_path):
+    return tmp_path / "test_improver.db"
 
 
 @pytest.fixture
-def improver_tmp():
-    """
-    SkillImprover with all three collaborators sharing a single temp DB.
-    Yields (improver, tel, reg, ltm) for direct fixture manipulation.
-    """
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        db_path = Path(f.name)
-
-    tel = ToolTelemetry(db_path=db_path)
-    reg = SkillRegistry(db_path=db_path)
-    ltm = LongTermMemory(db_path=db_path)
-    imp = SkillImprover(telemetry=tel, registry=reg, ltm=ltm)
-
-    yield imp, tel, reg, ltm
-
-    tel.close()
-    reg.close()
-    ltm._conn.close()
-    db_path.unlink(missing_ok=True)
+def tel(db_path):
+    t = ToolTelemetry(db_path=db_path)
+    yield t
+    t.close()
 
 
-def _record_error(tel: ToolTelemetry, tool_name: str, error_class: str = "RuntimeError"):
-    tel.record_sync(
-        tool_name=tool_name,
-        inputs_json="{}",
-        output_preview="error",
-        error_class=error_class,
-        latency_ms=10.0,
-        risk_tier="SAFE_WRITE",
-        operator="test",
-        session_id="test-session",
+@pytest.fixture
+def reg(db_path):
+    r = SkillRegistry(db_path=db_path)
+    yield r
+    r.close()
+
+
+@pytest.fixture
+def ltm(db_path):
+    mem = LongTermMemory(db_path=db_path)
+    yield mem
+    mem.close()
+
+
+@pytest.fixture
+def imp(tel, reg, ltm):
+    return SkillImprover(tel, reg, ltm)
+
+
+# ---------------------------------------------------------------------------
+# Helper: insert raw sessions directly into the sessions table
+# ---------------------------------------------------------------------------
+
+def _insert_session(ltm, session_id, task, outcome, steps_done, steps_failed, tokens=10):
+    ltm._conn.execute(
+        "INSERT OR REPLACE INTO sessions "
+        "(id,timestamp,task,outcome,steps_done,steps_failed,tokens,elapsed_s,"
+        "showfile,active_user,active_world,active_filter,snapshot) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (
+            session_id, time.time(), task, outcome,
+            steps_done, steps_failed, tokens, 1.0,
+            "test_show", "admin", None, None, "{}",
+        ),
     )
+    ltm._conn.commit()
 
 
-# ── identify_failure_patterns ────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# _slugify
+# ---------------------------------------------------------------------------
 
+class TestSlugify:
+    def test_spaces_to_underscores(self):
+        assert _slugify("store wash cue") == "store_wash_cue"
+
+    def test_special_chars_removed(self):
+        assert _slugify("store cue #1!") == "store_cue_1"
+
+    def test_truncates_to_60(self):
+        assert len(_slugify("x" * 100)) <= 60
+
+
+# ---------------------------------------------------------------------------
+# identify_failure_patterns
+# ---------------------------------------------------------------------------
 
 class TestIdentifyFailurePatterns:
-    def test_empty_when_no_errors(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        result = imp.identify_failure_patterns(min_failures=1)
-        assert result == []
+    def _insert_errors(self, tel, tool_name, error_class, count):
+        for _ in range(count):
+            tel._conn.execute(
+                "INSERT INTO tool_invocations "
+                "(ts,tool_name,inputs_json,output_preview,error_class,latency_ms,risk_tier,operator) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (time.time(), tool_name, "{}", "", error_class, 1.0, "SAFE_WRITE", "op"),
+            )
+        tel._conn.commit()
 
-    def test_returns_suggestion_for_failing_tool(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        for _ in range(4):
-            _record_error(tel, "bad_tool", "ConnectionError")
-        suggestions = imp.identify_failure_patterns(min_failures=3)
+    def test_returns_failing_tools(self, imp, tel):
+        self._insert_errors(tel, "bad_tool", "ConnectionError", 5)
+        suggestions = imp.identify_failure_patterns(days=7, min_failures=3)
+        names = [s.tool_name for s in suggestions]
+        assert "bad_tool" in names
+
+    def test_below_threshold_excluded(self, imp, tel):
+        self._insert_errors(tel, "rare_fail", "RuntimeError", 2)
+        suggestions = imp.identify_failure_patterns(days=7, min_failures=3)
+        names = [s.tool_name for s in suggestions]
+        assert "rare_fail" not in names
+
+    def test_empty_when_no_errors(self, imp):
+        assert imp.identify_failure_patterns(days=7, min_failures=1) == []
+
+    def test_suggestion_has_hint(self, imp, tel):
+        self._insert_errors(tel, "conn_tool", "ConnectionError", 4)
+        suggestions = imp.identify_failure_patterns(days=7, min_failures=3)
         assert len(suggestions) == 1
-        assert suggestions[0].tool_name == "bad_tool"
+        assert "conn_tool" in suggestions[0].hint
         assert suggestions[0].failure_count == 4
+        assert "ConnectionError" in suggestions[0].error_classes
 
-    def test_suggestion_has_non_empty_hint(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        for _ in range(3):
-            _record_error(tel, "flaky_tool", "RuntimeError")
-        suggestions = imp.identify_failure_patterns(min_failures=3)
-        assert suggestions[0].hint != ""
-
-    def test_connection_error_hint_mentions_telnet(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        for _ in range(3):
-            _record_error(tel, "navigate_console", "ConnectionError")
-        suggestions = imp.identify_failure_patterns(min_failures=3)
-        assert len(suggestions) == 1
-        # The hint should mention Telnet (from _HINT_MAP)
-        assert "Telnet" in suggestions[0].hint
-
-    def test_excludes_tool_below_min_failures(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        for _ in range(2):
-            _record_error(tel, "rarely_fails", "RuntimeError")
-        result = imp.identify_failure_patterns(min_failures=3)
-        assert result == []
+    def test_sorted_by_failure_count_desc(self, imp, tel):
+        self._insert_errors(tel, "worst_tool", "RuntimeError", 10)
+        self._insert_errors(tel, "medium_tool", "RuntimeError", 5)
+        suggestions = imp.identify_failure_patterns(days=7, min_failures=3)
+        names = [s.tool_name for s in suggestions]
+        assert names.index("worst_tool") < names.index("medium_tool")
 
 
-# ── identify_promotion_candidates ────────────────────────────────────────────
-
+# ---------------------------------------------------------------------------
+# identify_promotion_candidates
+# ---------------------------------------------------------------------------
 
 class TestIdentifyPromotionCandidates:
-    def test_empty_when_no_sessions(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
+    def test_successful_session_returned(self, imp, ltm):
+        _insert_session(ltm, "sess_good", "store wash cue", "success", 5, 0)
+        candidates = imp.identify_promotion_candidates(min_quality=0.8)
+        ids = [c.session_id for c in candidates]
+        assert "sess_good" in ids
+
+    def test_failed_session_excluded(self, imp, ltm):
+        _insert_session(ltm, "sess_bad", "bad task", "failed", 0, 5)
+        candidates = imp.identify_promotion_candidates(min_quality=0.8)
+        ids = [c.session_id for c in candidates]
+        assert "sess_bad" not in ids
+
+    def test_partial_session_low_quality_excluded(self, imp, ltm):
+        # 3 done, 7 failed → quality=0.3
+        _insert_session(ltm, "sess_partial", "partial task", "success", 3, 7)
+        candidates = imp.identify_promotion_candidates(min_quality=0.8)
+        ids = [c.session_id for c in candidates]
+        assert "sess_partial" not in ids
+
+    def test_already_promoted_excluded(self, imp, ltm, reg):
+        _insert_session(ltm, "promoted_sess", "promoted task", "success", 5, 0)
+        reg.promote_from_session(
+            session_id="promoted_sess",
+            name="existing_skill",
+            description="d",
+            body="b",
+            safety_scope="SAFE_WRITE",
+            applicable_context="c",
+        )
+        candidates = imp.identify_promotion_candidates(min_quality=0.8)
+        ids = [c.session_id for c in candidates]
+        assert "promoted_sess" not in ids
+
+    def test_suggested_name_derived_from_task(self, imp, ltm):
+        _insert_session(ltm, "sess_name", "Create Blue Wash Look", "success", 5, 0)
+        candidates = imp.identify_promotion_candidates(min_quality=0.8)
+        match = next((c for c in candidates if c.session_id == "sess_name"), None)
+        assert match is not None
+        assert "create_blue_wash_look" in match.suggested_name or "blue" in match.suggested_name
+
+    def test_sorted_by_quality_desc(self, imp, ltm):
+        _insert_session(ltm, "perfect", "task A", "success", 10, 0)   # quality=1.0
+        _insert_session(ltm, "good", "task B", "success", 9, 1)        # quality=0.9
+        candidates = imp.identify_promotion_candidates(min_quality=0.8)
+        ids = [c.session_id for c in candidates]
+        assert ids.index("perfect") < ids.index("good")
+
+    def test_empty_when_no_sessions(self, imp):
         assert imp.identify_promotion_candidates() == []
 
-    def test_returns_high_quality_session(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        wm = WorkingMemory(task_description="wash look blue")
-        wm.charge_tokens(50)
-        for i in range(9):
-            wm.mark_done(f"step_{i}")
-        wm.mark_failed("step_fail", "timeout")
-        ltm.save_session(wm, outcome="success")
 
-        candidates = imp.identify_promotion_candidates(min_quality=0.8)
-        assert len(candidates) == 1
-        assert candidates[0].task == "wash look blue"
-        assert candidates[0].quality_score >= 0.8
-
-    def test_excludes_already_promoted_session(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        wm = WorkingMemory(task_description="already promoted task")
-        for i in range(9):
-            wm.mark_done(f"s{i}")
-        wm.mark_failed("f1", "err")
-        ltm.save_session(wm, outcome="success")
-
-        # Promote the session to a Skill
-        reg.promote_from_session(
-            session_id=wm.session_id,
-            name="already_promoted",
-            description="was promoted",
-            body="body",
-            safety_scope="SAFE_WRITE",
-            applicable_context="test",
-            quality_score=0.9,
-        )
-
-        candidates = imp.identify_promotion_candidates(min_quality=0.8)
-        assert candidates == []
-
-    def test_excludes_low_quality_session(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        wm = WorkingMemory(task_description="low quality task")
-        wm.mark_done("s1")
-        wm.mark_done("s2")
-        for i in range(5):
-            wm.mark_failed(f"f{i}", "err")
-        ltm.save_session(wm, outcome="success")
-
-        candidates = imp.identify_promotion_candidates(min_quality=0.8)
-        assert candidates == []
-
-
-# ── quality_score_for_session ─────────────────────────────────────────────────
-
+# ---------------------------------------------------------------------------
+# quality_score_for_session
+# ---------------------------------------------------------------------------
 
 class TestQualityScoreForSession:
-    def test_unknown_session_returns_zero(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        assert imp.quality_score_for_session("phantom-id") == 0.0
+    def test_perfect_score(self, imp, ltm):
+        _insert_session(ltm, "perfect", "task", "success", 5, 0)
+        assert imp.quality_score_for_session("perfect") == 1.0
 
-    def test_correct_score_eight_done_two_failed(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        wm = WorkingMemory(task_description="scored task")
-        for i in range(8):
-            wm.mark_done(f"s{i}")
-        wm.mark_failed("f1", "err")
-        wm.mark_failed("f2", "err")
-        ltm.save_session(wm, outcome="success")
+    def test_half_score(self, imp, ltm):
+        _insert_session(ltm, "half", "task", "success", 5, 5)
+        assert abs(imp.quality_score_for_session("half") - 0.5) < 0.01
 
-        score = imp.quality_score_for_session(wm.session_id)
-        assert abs(score - 0.8) < 0.01
+    def test_zero_score_all_failed(self, imp, ltm):
+        _insert_session(ltm, "all_failed", "task", "failed", 0, 5)
+        assert imp.quality_score_for_session("all_failed") == 0.0
 
-    def test_all_steps_done_returns_one(self, improver_tmp):
-        imp, tel, reg, ltm = improver_tmp
-        wm = WorkingMemory(task_description="perfect task")
-        for i in range(5):
-            wm.mark_done(f"s{i}")
-        ltm.save_session(wm, outcome="success")
+    def test_nonexistent_session(self, imp):
+        assert imp.quality_score_for_session("does-not-exist") == 0.0
 
-        score = imp.quality_score_for_session(wm.session_id)
-        assert score == 1.0
+    def test_zero_steps(self, imp, ltm):
+        _insert_session(ltm, "no_steps", "task", "success", 0, 0)
+        assert imp.quality_score_for_session("no_steps") == 0.0

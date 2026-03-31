@@ -5,7 +5,6 @@ This file is used to define shared fixtures and test configuration.
 """
 
 import asyncio
-import os
 
 import pytest
 

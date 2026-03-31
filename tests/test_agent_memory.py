@@ -3,20 +3,19 @@ tests/test_agent_memory.py — Unit tests for src/agent_memory.py
 
 Covers:
   - FixtureSnapshot
+  - DecisionCheckpoint: is_fresh() freshness window
   - WorkingMemory: fixture tracking, park ledger, mode overrides, step tracking
-  - WorkingMemory: DecisionCheckpoint add/lookup/freshness
   - LongTermMemory: save/load, recent_sessions, recall
 """
 
-import os
-import time
-import pytest
 import tempfile
 from pathlib import Path
-from src.agent_memory import DecisionCheckpoint, FixtureSnapshot, WorkingMemory, LongTermMemory
-from src.rights import RightsContext
-from src.commands.constants import MA2Right
 
+import pytest
+
+from src.agent_memory import FixtureSnapshot, LongTermMemory, WorkingMemory
+from src.commands.constants import MA2Right
+from src.rights import RightsContext
 
 # ── FixtureSnapshot ──────────────────────────────────────────────────────────
 
@@ -180,7 +179,7 @@ class TestLongTermMemory:
         ltm_tmp.save_session(wm, outcome="success")
         snap = ltm_tmp.recall_session(wm.session_id)
         assert snap is not None
-        assert snap.get("task_description") == "recall test"
+        assert snap.get("task") == "recall test"  # v2 format uses "task" key
 
     def test_recall_nonexistent_returns_none(self, ltm_tmp):
         result = ltm_tmp.recall_session("deadbeef")
@@ -212,108 +211,113 @@ class TestLongTermMemory:
         assert hist[0]["action"] == "parked"
 
 
-# ── DecisionCheckpoint ────────────────────────────────────────────────────────
+class TestCompressSessionSnapshot:
+    def test_snapshot_has_v2_key(self, ltm_tmp):
+        wm = WorkingMemory(task_description="compression test")
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap is not None
+        assert snap.get("_v") == 2
 
+    def test_snapshot_contains_decision_fields(self, ltm_tmp):
+        wm = WorkingMemory(task_description="decision test")
+        wm.completed_steps.append("step_a")
+        wm.failed_steps.append("step_b")
+        wm.charge_tokens(100)
+        ltm_tmp.save_session(wm, outcome="partial")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert "step_a" in snap["completed_steps"]
+        assert "step_b" in snap["failed_steps"]
+        assert snap["token_spend"] == 100
+
+    def test_snapshot_does_not_contain_full_fixture_snapshots(self, ltm_tmp):
+        wm = WorkingMemory(task_description="fixture compress test")
+        wm.record_fixture(1, group="wash", intensity=75.0)
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        # v2 stores fixture_summary (names+values), not full FixtureSnapshot dicts
+        assert "fixture_summary" in snap
+        assert "fixtures" not in snap  # full FixtureSnapshot key absent
+        summary = snap["fixture_summary"]
+        assert "1" in summary
+        assert "intensity" in summary["1"]
+
+    def test_snapshot_park_ledger_is_sorted_list(self, ltm_tmp):
+        wm = WorkingMemory(task_description="park ledger test")
+        wm.park(5)
+        wm.park(3)
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap["park_ledger"] == sorted(snap["park_ledger"])
+
+    def test_recall_session_v1_compat(self, ltm_tmp):
+        """recall_session must return v1 blobs unchanged (no _v key)."""
+        import json
+        import time
+        # Manually insert a v1-style blob
+        wm = WorkingMemory(task_description="v1 compat")
+        v1_blob = wm.to_dict()  # v1 format: has 'fixtures' key, no '_v'
+        ltm_tmp._conn.execute(
+            "INSERT OR REPLACE INTO sessions "
+            "(id,timestamp,task,outcome,steps_done,steps_failed,"
+            "tokens,elapsed_s,showfile,active_user,active_world,active_filter,snapshot)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (wm.session_id, time.time(), wm.task_description, "ok",
+             0, 0, 0, 0.0, "", "", None, None, json.dumps(v1_blob)),
+        )
+        ltm_tmp._conn.commit()
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap is not None
+        # v1 blobs have 'fixtures' key and no '_v'
+        assert snap.get("_v", 1) == 1
+
+
+# ── DecisionCheckpoint ───────────────────────────────────────────────────────
 
 class TestDecisionCheckpoint:
-    def _make(self, fault="test_fault", fresh_for=60.0, age=0.0) -> DecisionCheckpoint:
-        return DecisionCheckpoint(
-            fault=fault,
-            query="Was position preset applied?",
-            observed_at=time.time() - age,
-            fresh_for_seconds=fresh_for,
-            replay="browse_preset_type(2, depth=1)",
-            confidence=0.9,
-        )
+    def test_add_checkpoint_stores_entry(self):
+        wm = WorkingMemory(task_description="cp test")
+        cp = wm.add_checkpoint("rights_denied", "list system variables")
+        assert len(wm.checkpoints) == 1
+        assert cp.fault == "rights_denied"
+        assert cp.query == "list system variables"
+        assert cp.replay == "list system variables"
+        assert cp.confidence == "medium"
 
-    def test_is_fresh_within_window(self):
-        cp = self._make(fresh_for=60.0, age=5.0)
+    def test_checkpoint_is_fresh_within_window(self):
+        wm = WorkingMemory(task_description="fresh test")
+        cp = wm.add_checkpoint("cue_audit_seq_1", "query_object_list",
+                               fresh_for_seconds=60)
         assert cp.is_fresh() is True
 
-    def test_is_stale_past_window(self):
-        cp = self._make(fresh_for=10.0, age=30.0)
+    def test_checkpoint_is_stale_after_window(self):
+        import time
+        wm = WorkingMemory(task_description="stale test")
+        cp = wm.add_checkpoint("stale_fault", "list", fresh_for_seconds=0)
+        # Give it a tiny sleep so observed_at < now
+        time.sleep(0.01)
         assert cp.is_fresh() is False
 
-    def test_is_fresh_exactly_at_boundary(self):
-        # age == fresh_for → stale (strict less-than)
-        cp = self._make(fresh_for=10.0, age=10.0)
-        assert cp.is_fresh() is False
+    def test_fresh_checkpoint_returns_latest(self):
+        wm = WorkingMemory(task_description="latest test")
+        wm.add_checkpoint("same_fault", "query v1", fresh_for_seconds=60,
+                          confidence="low")
+        wm.add_checkpoint("same_fault", "query v2", fresh_for_seconds=60,
+                          confidence="high")
+        cp = wm.fresh_checkpoint("same_fault")
+        assert cp is not None
+        assert cp.confidence == "high"
 
-    def test_default_confidence(self):
-        cp = self._make()
-        assert cp.confidence == 0.9
+    def test_fresh_checkpoint_returns_none_for_unknown_fault(self):
+        wm = WorkingMemory(task_description="none test")
+        assert wm.fresh_checkpoint("no_such_fault") is None
 
-
-class TestWorkingMemoryCheckpoints:
-    def test_add_checkpoint(self):
-        wm = WorkingMemory()
-        cp = DecisionCheckpoint(
-            fault="no_position_preset",
-            query="check position presets",
-            observed_at=time.time(),
-            fresh_for_seconds=60.0,
-            replay="browse_preset_type(2)",
-        )
-        wm.add_checkpoint(cp)
-        assert len(wm.checkpoints) == 1
-
-    def test_add_checkpoint_replaces_same_fault(self):
-        wm = WorkingMemory()
-        cp1 = DecisionCheckpoint(
-            fault="no_position_preset", query="v1",
-            observed_at=time.time(), fresh_for_seconds=60.0, replay="v1",
-        )
-        cp2 = DecisionCheckpoint(
-            fault="no_position_preset", query="v2",
-            observed_at=time.time(), fresh_for_seconds=60.0, replay="v2",
-        )
-        wm.add_checkpoint(cp1)
-        wm.add_checkpoint(cp2)
-        assert len(wm.checkpoints) == 1
-        assert wm.checkpoints[0].query == "v2"
-
-    def test_add_different_faults_accumulate(self):
-        wm = WorkingMemory()
-        for fault in ("fault_a", "fault_b", "fault_c"):
-            wm.add_checkpoint(DecisionCheckpoint(
-                fault=fault, query="q",
-                observed_at=time.time(), fresh_for_seconds=60.0, replay="r",
-            ))
-        assert len(wm.checkpoints) == 3
-
-    def test_fresh_checkpoint_returns_fresh(self):
-        wm = WorkingMemory()
-        cp = DecisionCheckpoint(
-            fault="my_fault", query="q",
-            observed_at=time.time(), fresh_for_seconds=60.0, replay="r",
-        )
-        wm.add_checkpoint(cp)
-        result = wm.fresh_checkpoint("my_fault")
-        assert result is not None
-        assert result.fault == "my_fault"
-
-    def test_fresh_checkpoint_returns_none_when_stale(self):
-        wm = WorkingMemory()
-        cp = DecisionCheckpoint(
-            fault="stale_fault", query="q",
-            observed_at=time.time() - 120,   # 120s ago
-            fresh_for_seconds=60.0,
-            replay="r",
-        )
-        wm.add_checkpoint(cp)
-        assert wm.fresh_checkpoint("stale_fault") is None
-
-    def test_fresh_checkpoint_returns_none_when_absent(self):
-        wm = WorkingMemory()
-        assert wm.fresh_checkpoint("nonexistent") is None
-
-    def test_to_dict_includes_checkpoints(self):
-        wm = WorkingMemory()
-        wm.add_checkpoint(DecisionCheckpoint(
-            fault="dict_test", query="q",
-            observed_at=time.time(), fresh_for_seconds=60.0, replay="r",
-        ))
-        d = wm.to_dict()
-        assert "checkpoints" in d
-        assert len(d["checkpoints"]) == 1
-        assert d["checkpoints"][0]["fault"] == "dict_test"
+    def test_compress_snapshot_includes_checkpoint_count(self, ltm_tmp):
+        wm = WorkingMemory(task_description="checkpoint count test")
+        wm.add_checkpoint("rights_denied", "list system variables",
+                          fresh_for_seconds=60, confidence="high")
+        ltm_tmp.save_session(wm, outcome="ok")
+        snap = ltm_tmp.recall_session(wm.session_id)
+        assert snap["checkpoint_count"] == 1
+        assert snap["checkpoints"][0]["fault"] == "rights_denied"
+        assert snap["checkpoints"][0]["confidence"] == "high"

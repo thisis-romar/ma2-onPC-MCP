@@ -428,7 +428,7 @@ MA_KEY_COMBOS: list[dict] = [
 # Used by src/auth.py to enforce per-tool authorization.
 # Reference: MCP Authorization spec (2025-06), OAuth 2.1 RFC 9700
 
-from enum import StrEnum as _StrEnum
+from enum import StrEnum as _StrEnum  # noqa: E402
 
 
 class OAuthScope(_StrEnum):

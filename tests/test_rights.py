@@ -8,17 +8,14 @@ Covers:
   - min_right_for_tool() / is_permitted()
 """
 
-import pytest
+from src.commands.constants import MA2Right
 from src.rights import (
     FeedbackClass,
-    TelnetFeedback,
     RightsContext,
-    parse_telnet_feedback,
-    min_right_for_tool,
     is_permitted,
+    min_right_for_tool,
+    parse_telnet_feedback,
 )
-from src.commands.constants import MA2Right
-
 
 # ── FeedbackClass ────────────────────────────────────────────────────────────
 

@@ -1,19 +1,23 @@
 ---
-title: Functional Domains and Hardkey Reference
-description: FunctionalDomain enum values, hardkey chains, MA+key combos, and executor priority levels
+title: Functional Domains, Hardkeys, and Executor Priorities
+description: MA2 keyword domains, multi-press key chains, and executor priority constants
 version: 1.1.0
-created: 2026-03-30T00:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+created: 2026-03-29T08:30:00Z
+last_updated: 2026-03-30T13:30:00Z
 ---
 
-# Functional Domains and Hardkey Reference
+# Functional Domains, Hardkeys, and Executor Priorities
 
-## Functional Domains (`src/vocab.py`)
+> Loaded on-demand when working on vocabulary routing, key constants, or executor assignment.
 
-`FunctionalDomain` StrEnum (10 values) + `KEYWORD_DOMAINS` dict (198 entries).
+---
 
-| Domain | Count | Examples |
-|--------|-------|---------|
+## Functional Domains (vocab.py)
+
+`src/vocab.py` exposes `FunctionalDomain` StrEnum (10 values) and `KEYWORD_DOMAINS` dict (198 entries).
+
+| Domain | Keywords (count) | Examples |
+|--------|-----------------|---------|
 | `object_manipulation` | 21 | Assign, Label, Appearance, Store, Copy, Delete |
 | `playback_control` | 26 | Go, GoBack, Goto, Flash, Kill, Release, Freeze |
 | `selection_filtering` | 28 | Select, Clear, If, Park, Highlight, Blind, SelFix |
@@ -27,9 +31,13 @@ last_updated: 2026-03-30T00:00:00Z
 
 Also: `CD_KEYWORD_DESTINATIONS` (36 entries), `DEFAULT_KEYWORD_STATES` (10 entries).
 
-## Hardkey Chains (physical key multi-press behaviour)
+---
 
-Defined in `src/commands/constants.py` as `HARDKEY_CHAINS` (12 chains).
+## Hardkey Chains (physical key multi-press behavior)
+
+Defined in `src/commands/constants.py` as `HARDKEY_CHAINS` (12 chains) and `MA_KEY_COMBOS` (29 combos).
+
+### Multi-press key chains
 
 | Physical Key | 1× | 2× | 3× | Hold/Other |
 |---|---|---|---|---|
@@ -46,7 +54,7 @@ Defined in `src/commands/constants.py` as `HARDKEY_CHAINS` (12 chains).
 | **If** | `If` (helping) | — | — | 4× → `If` (function) |
 | **Please** | Execute | Activate All | Deactivate All | 4× → Knock In |
 
-## Key MA+key Combinations (selected, 29 total)
+### Key MA+key combinations (selected)
 
 | Combo | Keyword | | Combo | Keyword |
 |---|---|---|---|---|
@@ -59,22 +67,26 @@ Defined in `src/commands/constants.py` as `HARDKEY_CHAINS` (12 chains).
 | MA+Full | `ToFull` | | MA+Down | `ToZero` |
 | MA+Thru | `AllRows` | | MA+Align | `ShuffleSelection` |
 
+---
+
 ## Executor Priority System
 
-Defined in `src/commands/constants.py` as `EXECUTOR_PRIORITIES` (6 levels).
+Defined in `src/commands/constants.py`.
 
-| Rank | Name | cmd_value | Behaviour |
+### Priority levels (highest → lowest)
+
+| Rank | Name | cmd_value | Behavior |
 |---|---|---|---|
-| 1 | Super | `super` | LTP above ALL playbacks + programmer |
-| 2 | Swap | `swap` | LTP > HTP; negative override possible |
-| 3 | HTP | `htp` | Highest intensity value wins |
-| 4 | High | `high` | High LTP; overrides Normal/Low |
-| 5 | Normal | `normal` | LTP default; last triggered wins |
-| 6 | Low | `low` | Lowest priority; overridden by everything |
+| 1 | Super | `super` | LTP above ALL playbacks + programmer. Only Freeze overrides. |
+| 2 | Swap | `swap` | LTP > HTP; negative override possible. |
+| 3 | HTP | `htp` | Highest intensity value wins. CAUTION: changes ALL attribute priority. |
+| 4 | High | `high` | High LTP. Overrides Normal/Low. |
+| 5 | Normal | `normal` | LTP default. Last triggered value wins. |
+| 6 | Low | `low` | Lowest priority. Overridden by everything else. |
 
 Syntax: `Assign Executor [ID] /priority=[cmd_value]`
 
-### Executor Assign Option Categories
+### Executor assign option categories
 
 | Category | Options |
 |---|---|
@@ -84,4 +96,5 @@ Syntax: `Assign Executor [ID] /priority=[cmd_value]`
 | Function | chaser, softltp, wrap, crossfade |
 | Timing | triggerisgo, cmddisable, effectspeed, autogo |
 | Speed | speed, speedmaster, ratemaster |
-| Layout | width |
+
+Use `EXECUTOR_ASSIGN_OPTION_NAMES` frozenset for validation. Use `EXECUTOR_PRIORITY_VALUES` frozenset for priority validation.

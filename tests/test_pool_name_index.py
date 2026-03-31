@@ -12,9 +12,7 @@ Covers:
   - Quote rule A (special chars) and Rule B (wildcard)
 """
 
-import pytest
 from src.pool_name_index import ObjectRef, PoolNameIndex
-
 
 # ── ObjectRef ─────────────────────────────────────────────────────────────────
 
