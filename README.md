@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet
-version: 3.19.0
+version: 3.20.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-30T06:00:00Z
+last_updated: 2026-03-31T00:00:00Z
 ---
 
 <p align="center">
@@ -17,7 +17,7 @@ last_updated: 2026-03-30T06:00:00Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP_Tools-148-brightgreen?style=for-the-badge" alt="148 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-2187-brightgreen?style=for-the-badge" alt="2187 Tests">
+  <img src="https://img.shields.io/badge/Tests-2053-brightgreen?style=for-the-badge" alt="2053 Tests">
 </p>
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 148 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
@@ -63,15 +63,19 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>148 tools · safety gate"] --> B
+    H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>33 tools (110–142) · orchestrator · skills"] --> A
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>115 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>178 pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>180 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
     F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>156 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
+    I["🧠 Memory & Planning<br/><code>src/agent_memory.py · src/orchestrator.py</code><br/>WorkingMemory · LTM · TaskDecomposer"] -.-> H
+    J["📊 OpenSpace<br/><code>src/telemetry.py · src/skill.py · src/skill_improver.py</code><br/>invocation recorder · skill registry · improvement loop"] -.-> H
 
+    style H fill:#1a1a2e,stroke:#e94560,color:#fff
     style A fill:#1a1a2e,stroke:#e94560,color:#fff
     style B fill:#1a1a2e,stroke:#0f3460,color:#fff
     style C fill:#1a1a2e,stroke:#16213e,color:#fff
@@ -79,6 +83,8 @@ graph TD
     style E fill:#0f3460,stroke:#0f3460,color:#fff
     style F fill:#0f3460,stroke:#0f3460,color:#fff
     style G fill:#0f3460,stroke:#0f3460,color:#fff
+    style I fill:#0f3460,stroke:#0f3460,color:#fff
+    style J fill:#0f3460,stroke:#0f3460,color:#fff
 ```
 
 > All network I/O is isolated in `telnet_client.py`. Command builders are pure functions that return strings. The navigation layer orchestrates cd/list workflows with parsed telnet feedback.
@@ -99,7 +105,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | Module | Role |
 |--------|------|
 | `src/server.py` | FastMCP server, 115 interactive tools, safety gate, env config |
-| `src/server_orchestration_tools.py` | 33 agentic tools (110–143) registered onto FastMCP |
+| `src/server_orchestration_tools.py` | 33 agentic tools (110–142) registered onto FastMCP |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
