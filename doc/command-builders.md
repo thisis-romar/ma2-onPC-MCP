@@ -1,16 +1,16 @@
 ---
 title: Command Builder Reference
-description: Pure-function reference for all 182 grandMA2 command builders
-version: 1.5.0
+description: Pure-function reference for all 198 grandMA2 command builders
+version: 1.6.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-31T12:00:00Z
+last_updated: 2026-03-31T23:00:00Z
 ---
 
 # Command Builder Reference
 
 > Back to [README](../README.md)
 
-The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **182 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
+The command builder (`src/commands/`) generates grandMA2 command strings without any network I/O. All functions are pure and return `str`. There are **198 exported functions** (206 exports including 8 constants) covering navigation, selection, playback, values, store, delete, assign, label, info, park, call, variables, user management, and more.
 
 grandMA2 syntax: `[Function] [Object]` — keywords are classified as **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -270,4 +270,4 @@ Rights levels: 0=None, 1=Playback, 2=Presets, 3=Program, 4=Setup, 5=Admin
 | `MA2Right.SETUP` | `"setup"` | `gma2:setup:console` | 4 |
 | `MA2Right.ADMIN` | `"admin"` | `gma2:user:manage` | 5 |
 
-Use `@require_ma2_right(MA2Right.X)` in `src/server.py` as a human-readable alternative to `@require_scope(OAuthScope.Y)`. The full 137-tool rights assignment is in `doc/ma2-rights-matrix.json`.
+Use `@require_ma2_right(MA2Right.X)` in `src/server.py` as a human-readable alternative to `@require_scope(OAuthScope.Y)`. The full 176-tool rights assignment is in `doc/ma2-rights-matrix.json`.
