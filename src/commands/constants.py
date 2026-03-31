@@ -224,7 +224,8 @@ EXECUTOR_ASSIGN_OPTIONS: list[dict] = [
     {"category": "Function", "option": "chaser",     "syntax": "/chaser=on|off"},
     {"category": "Function", "option": "softltp",    "syntax": "/softltp=on|off"},
     {"category": "Function", "option": "wrap",       "syntax": "/wrap=on|off"},
-    {"category": "Function", "option": "crossfade",  "syntax": "/crossfade=off|a|b|ab"},
+    {"category": "Function", "option": "crossfade",  "syntax": "/crossfade=off|a|b|ab",
+     "note": "Silently ignored when executor Width=1. Requires Width>=2 (multi-fader)."},
     # Priority
     {"category": "Priority", "option": "priority",   "syntax": "/priority=low|normal|high|htp|swap|super"},
     # Timing

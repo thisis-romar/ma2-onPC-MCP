@@ -291,25 +291,30 @@ def empty() -> str:
     return "empty"
 
 
-def build_set_executor_priority(executor_id: int, priority: str) -> str:
+def build_set_executor_priority(executor_id: int, priority: str, page: int = 1) -> str:
     """
     Build an Assign Executor /priority= command with validated priority level.
+
+    MA2 requires a page-qualified address (page.id) for executor commands.
+    Bare executor IDs cause Error #66 CANNOT ASSIGN when the console is on a
+    different page. The page parameter defaults to 1 for backward compatibility.
 
     Args:
         executor_id: The executor ID to modify.
         priority: One of "super", "swap", "htp", "high", "normal", "low".
+        page: Page number (default 1). Always included in the command address.
 
     Returns:
-        str: e.g. "Assign Executor 201 /priority=high"
+        str: e.g. "Assign Executor 1.201 /priority=high"
 
     Raises:
         ValueError: If priority is not a valid MA2 executor priority level.
 
     Examples:
         >>> build_set_executor_priority(201, "high")
-        'Assign Executor 201 /priority=high'
-        >>> build_set_executor_priority(5, "super")
-        'Assign Executor 5 /priority=super'
+        'Assign Executor 1.201 /priority=high'
+        >>> build_set_executor_priority(5, "super", page=2)
+        'Assign Executor 2.5 /priority=super'
     """
     from src.commands.constants import EXECUTOR_PRIORITY_VALUES
     if priority not in EXECUTOR_PRIORITY_VALUES:
@@ -317,7 +322,57 @@ def build_set_executor_priority(executor_id: int, priority: str) -> str:
             f"Invalid priority {priority!r}. Must be one of: "
             + ", ".join(sorted(EXECUTOR_PRIORITY_VALUES))
         )
-    return f"Assign Executor {executor_id} /priority={priority}"
+    return f"Assign Executor {page}.{executor_id} /priority={priority}"
+
+
+def build_assign_executor_option(
+    exec_id: int,
+    option: str,
+    value: str | int,
+    page: int = 1,
+) -> str:
+    """
+    Build an Assign Executor page.id /option=value command with validation.
+
+    Supports all 24 options in EXECUTOR_ASSIGN_OPTIONS. Always uses
+    page-qualified addressing — bare executor IDs cause Error #66.
+
+    Args:
+        exec_id: Executor ID (e.g. 203).
+        option: Option name from EXECUTOR_ASSIGN_OPTION_NAMES, e.g. "width",
+            "autostart", "crossfade", "priority", "speedmaster".
+        value: Option value (e.g. 2, "on", "high", "speed1").
+        page: Page number (default 1).
+
+    Returns:
+        str: e.g. "Assign Executor 1.203 /width=2"
+
+    Raises:
+        ValueError: If option is not a recognised executor assign option.
+
+    Notes:
+        crossfade (off|a|b|ab): Silently ignored by MA2 when executor Width=1.
+            Requires Width>=2 (multi-fader). Query List Executor page.id and
+            check Width before assigning crossfade a/b/ab.
+
+        speed (0-65535): Sets the BPM value. The Speed= field in List Executor
+            output shows state (on/off/Normal), not the BPM numeric value.
+
+    Examples:
+        >>> build_assign_executor_option(203, "width", 3)
+        'Assign Executor 1.203 /width=3'
+        >>> build_assign_executor_option(203, "priority", "high", page=2)
+        'Assign Executor 2.203 /priority=high'
+        >>> build_assign_executor_option(203, "crossfade", "a")
+        'Assign Executor 1.203 /crossfade=a'
+    """
+    from src.commands.constants import EXECUTOR_ASSIGN_OPTION_NAMES
+    if option not in EXECUTOR_ASSIGN_OPTION_NAMES:
+        raise ValueError(
+            f"Unknown executor option {option!r}. Valid options: "
+            + ", ".join(sorted(EXECUTOR_ASSIGN_OPTION_NAMES))
+        )
+    return f"Assign Executor {page}.{exec_id} /{option}={value}"
 
 
 def temp_fader(value: int | None = None) -> str:

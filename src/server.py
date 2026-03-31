@@ -4110,24 +4110,36 @@ async def assign_cue_trigger(
 @require_scope(OAuthScope.SETUP_CONSOLE)
 @_handle_errors
 async def assign_executor_property(
-    property_name: str,
+    executor_id: int,
+    option: str,
+    value: str | int,
     confirm_destructive: bool = False,
-    executor_id: int | None = None,
-    sequence_id: int | None = None,
-    value: str | int | float | None = None,
+    page: int = 1,
 ) -> str:
     """
-    Assign a property (width, priority, rate) to an executor or sequence (DESTRUCTIVE).
+    Assign any of the 22 settable options to an executor (DESTRUCTIVE).
+
+    Always uses page-qualified addressing (page.executor_id) to avoid Error #66.
+
+    Valid options (case-sensitive):
+      Layout:   width (1-5)
+      Priority: priority (low|normal|high|htp|swap|super)
+      Start:    autostart, autostop, autofix, autostomp, restart
+      Protect:  ooo, swopprotect, killprotect
+      Playback: softltp, wrap, crossfade (off|a|b|ab — requires width>=2), chaser
+      Timing:   triggerisgo, cmddisable, effectspeed, autogo
+      Speed:    speed (0-65535 BPM), speedmaster (speed_individual|speed1-16),
+                ratemaster (rate_individual|rate1-16)
 
     Args:
-        property_name: "width", "priority", or "rate"
-        confirm_destructive: Must be True to execute
-        executor_id: Executor ID (required for "width" and "rate")
-        sequence_id: Sequence ID (required for "priority")
-        value: Property value (e.g. 2 for width, "high" for priority)
+        executor_id: Executor ID (e.g. 203).
+        option: Option name from the list above.
+        value: Value to assign (e.g. 2, "on", "high", "speed1").
+        confirm_destructive: Must be True to execute.
+        page: Page number (default 1). Always included in the address.
 
     Returns:
-        str: JSON result with command sent
+        str: JSON with command_sent, raw_response, risk_tier.
     """
     if not confirm_destructive:
         return json.dumps({
@@ -4136,31 +4148,11 @@ async def assign_executor_property(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
-    valid = ("width", "priority", "rate")
-    if property_name not in valid:
-        return json.dumps({"error": f"property_name must be one of {valid}", "blocked": True}, indent=2)
-
-    if property_name == "width":
-        if executor_id is None or value is None:
-            return json.dumps(
-                {"error": "executor_id and value are required for property_name='width'", "blocked": True},
-                indent=2,
-            )
-        cmd = f"assign executor {executor_id} /width={value}"
-    elif property_name == "priority":
-        if sequence_id is None or value is None:
-            return json.dumps(
-                {"error": "sequence_id and value are required for property_name='priority'", "blocked": True},
-                indent=2,
-            )
-        cmd = f"assign priority {value} sequence {sequence_id}"
-    else:  # rate
-        if executor_id is None:
-            return json.dumps(
-                {"error": "executor_id is required for property_name='rate'", "blocked": True},
-                indent=2,
-            )
-        cmd = f"assign rate executor {executor_id}"
+    from src.commands import build_assign_executor_option as _build_opt
+    try:
+        cmd = _build_opt(executor_id, option, value, page=page)
+    except ValueError as exc:
+        return json.dumps({"error": str(exc), "blocked": True}, indent=2)
 
     client = await get_client()
     response = await client.send_command_with_response(cmd)
@@ -4177,12 +4169,14 @@ async def assign_executor_property(
 async def set_executor_priority(
     executor_id: int,
     priority: str,
+    page: int = 1,
 ) -> str:
     """
     Set the playback priority of an executor (Tool 130).
 
     Priority determines how this executor interacts with other active executors
-    and the programmer. Uses live-verified syntax: Assign Executor N /priority=X.
+    and the programmer. Uses page-qualified addressing (page.executor_id) to
+    avoid Error #66 CANNOT ASSIGN.
 
     Priority levels (highest → lowest):
       - "super"  — LTP above ALL playbacks + programmer. Only Freeze overrides.
@@ -4195,13 +4189,14 @@ async def set_executor_priority(
     Args:
         executor_id: The executor to modify (e.g. 201).
         priority: One of "super", "swap", "htp", "high", "normal", "low".
+        page: Page number (default 1). Always included in the address.
 
     Returns:
         str: JSON with command_sent, raw_response, risk_tier.
     """
     from src.commands import build_set_executor_priority as _build_prio
     try:
-        cmd = _build_prio(executor_id, priority)
+        cmd = _build_prio(executor_id, priority, page=page)
     except ValueError as exc:
         return json.dumps({"error": str(exc), "blocked": True}, indent=2)
 
@@ -4216,6 +4211,161 @@ async def set_executor_priority(
         "command_sent": cmd,
         "raw_response": raw,
         "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def get_executor_state(
+    executor_id: int,
+    page: int = 1,
+) -> str:
+    """
+    Read all 32 fields of a single executor via 'List Executor page.id' (SAFE_READ).
+
+    Returns all KEY=VALUE fields including Width, Priority, AutoStart, AutoStop,
+    Crossfade, SpeedMaster, RateMaster, Filter, PlaybackMaster, etc.
+
+    Must use page-qualified addressing — bare executor IDs return wrong data.
+
+    Args:
+        executor_id: Executor ID (e.g. 203).
+        page: Page number (default 1).
+
+    Returns:
+        str: JSON with fields dict, command_sent, raw_response.
+    """
+    from src.prompt_parser import parse_executor_list
+    cmd = f"List Executor {page}.{executor_id}"
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+    fields = parse_executor_list(raw)
+    return json.dumps({
+        "command_sent": cmd,
+        "fields": fields,
+        "raw_response": raw,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def discover_fixture_type_attributes(
+    fixture_type_id: int,
+) -> str:
+    """
+    Discover attribute names for a fixture type via EditSetup tree navigation (SAFE_READ).
+
+    Navigates cd EditSetup → FixtureTypes → type N → first mode → first subfixture → list,
+    returning ChannelType rows with attribute library names (e.g. PAN, TILT, COLORRGB1).
+
+    Use this to confirm which attributes a fixture type exposes before building presets.
+    Note: Info FixtureType N does NOT return attribute names — this navigation method is
+    the correct approach (live-verified 2026-03-31).
+
+    Args:
+        fixture_type_id: Fixture type number (e.g. 4 for Mac Viper Profile 16-bit).
+
+    Returns:
+        str: JSON with raw_response containing ChannelType rows.
+    """
+    client = await get_client()
+
+    async def send(cmd: str) -> str:
+        return await client.send_command_with_response(cmd)
+
+    await send("cd /")
+    await send("cd EditSetup")
+    await send("cd FixtureTypes")
+    await send(f"cd {fixture_type_id}")
+    await send("cd 1")  # first mode
+    await send("cd 1")  # first subfixture
+    raw = await send("list")
+    await send("cd /")  # return to root
+
+    return json.dumps({
+        "fixture_type_id": fixture_type_id,
+        "navigation": f"EditSetup → FixtureTypes → {fixture_type_id} → 1 → 1 → list",
+        "raw_response": raw,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def scan_page_executor_layout(
+    page: int = 1,
+    executor_id_start: int = 201,
+    executor_id_end: int = 240,
+) -> str:
+    """
+    Scan a range of executors on a page and return their slot occupancy map (SAFE_READ).
+
+    Queries each executor in the range via 'List Executor page.id' (KEY=VALUE format),
+    extracts Name, Sequence, and Width. Builds an occupancy map showing which consecutive
+    slots are blocked by wide executors, and lists free slots.
+
+    Use this BEFORE setting width on an executor to confirm the adjacent slot is free.
+    A width=2 executor at slot N blocks slot N+1; the console will silently fail or wrap
+    if N+1 is already occupied.
+
+    Args:
+        page: Page number to scan (default 1).
+        executor_id_start: First executor ID to check (default 201).
+        executor_id_end: Last executor ID to check (default 240).
+
+    Returns:
+        str: JSON with:
+          - executors: list of {id, name, sequence, width, slots_occupied}
+          - blocked_slots: set of slot IDs consumed by multi-wide executors
+          - free_slots: slot IDs in range with no assignment
+    """
+    import asyncio
+    from src.prompt_parser import parse_executor_list
+
+    client = await get_client()
+    executor_data: list[dict] = []
+    occupied_slots: set[int] = set()
+
+    for exec_id in range(executor_id_start, executor_id_end + 1):
+        cmd = f"List Executor {page}.{exec_id}"
+        raw = await client.send_command_with_response(cmd)
+        fields = parse_executor_list(raw)
+
+        # Skip unassigned slots — no Name and no Sequence
+        if not fields.get("Name") and not fields.get("Sequence"):
+            continue
+
+        width = int(fields.get("Width", 1))
+        name = fields.get("Name", "")
+        sequence = fields.get("Sequence", "")
+        slots = list(range(exec_id, exec_id + width))
+
+        executor_data.append({
+            "id": exec_id,
+            "name": name,
+            "sequence": sequence,
+            "width": width,
+            "slots_occupied": slots,
+        })
+        for s in slots:
+            occupied_slots.add(s)
+
+        await asyncio.sleep(0.1)  # avoid flooding telnet
+
+    all_slots = set(range(executor_id_start, executor_id_end + 1))
+    free_slots = sorted(all_slots - occupied_slots)
+
+    return json.dumps({
+        "page": page,
+        "scanned_range": [executor_id_start, executor_id_end],
+        "executors": executor_data,
+        "occupied_slots": sorted(occupied_slots),
+        "free_slots": free_slots,
+        "risk_tier": "SAFE_READ",
     }, indent=2)
 
 
