@@ -428,10 +428,10 @@ _vocab_spec = build_v39_spec()
 # Create MCP server
 mcp = FastMCP(
     name="grandMA2-MCP",
-    instructions="""grandMA2 MCP server — 148 tools, 9 resources, 6 prompts.
+    instructions="""grandMA2 MCP server — 173 tools, 9 resources, 6 prompts.
 
 Use suggest_tool_for_task(task_description) to find the right tool for any task.
-Use ma2://docs/tool-taxonomy resource to browse all 148 tools by category.
+Use ma2://docs/tool-taxonomy resource to browse all 173 tools by category.
 
 Core workflows:
   Inspect  → navigate_console, list_console_destination, query_object_list, get_object_info
@@ -8643,6 +8643,26 @@ async def list_timecode_events() -> str:
     """
     client = await get_client()
     cmd = build_list_objects("Timecode")
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({"command_sent": cmd, "raw_response": raw}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def list_agenda_events() -> str:
+    """
+    List all Agenda pool objects on the grandMA2 console.
+
+    Agendas are time-triggered events (sunrise/sunset/specific time) that can
+    fire macros or cues automatically. Returns the raw console output of the
+    List Agenda command, showing all agenda slots and their IDs.
+
+    Returns:
+        str: JSON with command_sent and raw_response.
+    """
+    client = await get_client()
+    cmd = build_list_objects("Agenda")
     raw = await client.send_command_with_response(cmd)
     return json.dumps({"command_sent": cmd, "raw_response": raw}, indent=2)
 

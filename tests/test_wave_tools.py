@@ -113,6 +113,7 @@ class TestUnlockConsoleUI:
     ("list_images", "list Image"),
     ("list_forms", "list Form"),
     ("list_timecode_events", "list Timecode"),
+    ("list_agenda_events", "list Agenda"),
 ])
 class TestWave2ListTools:
     @pytest.mark.asyncio
@@ -435,3 +436,101 @@ class TestRdmPatch:
         result_str = await rdm_patch(101, "magic")
         result = json.loads(result_str)
         assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_setpatch_missing_address_returns_error(self):
+        from src.server import rdm_patch
+
+        result_str = await rdm_patch(101, "setpatch", universe=1)
+        result = json.loads(result_str)
+        assert "error" in result
+
+
+# ============================================================
+# Additional branch-coverage for control_chaser
+# ============================================================
+
+
+class TestControlChaserBranchCoverage:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_xfade_a(self, mock_get_client):
+        from src.server import control_chaser
+
+        client = _mock_client()
+        mock_get_client.return_value = client
+        result = json.loads(await control_chaser("xfade_a"))
+        assert result["command_sent"] == "CrossFadeA"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_xfade_b(self, mock_get_client):
+        from src.server import control_chaser
+
+        client = _mock_client()
+        mock_get_client.return_value = client
+        result = json.loads(await control_chaser("xfade_b"))
+        assert result["command_sent"] == "CrossFadeB"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_skip_fwd_with_executor_and_page(self, mock_get_client):
+        from src.server import control_chaser
+
+        client = _mock_client()
+        mock_get_client.return_value = client
+        result = json.loads(await control_chaser("skip_fwd", executor_id=201, page=2))
+        assert result["command_sent"] == "SkipPlus Executor 2.201"
+
+    @pytest.mark.asyncio
+    async def test_speed_missing_value_returns_error(self):
+        from src.server import control_chaser
+
+        result = json.loads(await control_chaser("speed"))
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_case_insensitive_action(self, mock_get_client):
+        from src.server import control_chaser
+
+        client = _mock_client()
+        mock_get_client.return_value = client
+        result = json.loads(await control_chaser("RATE", value=100))
+        assert result["command_sent"] == "Rate 100"
+
+
+# ============================================================
+# Additional branch-coverage for control_special_master
+# ============================================================
+
+
+class TestControlSpecialMasterBranchCoverage:
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_speed_master(self, mock_get_client):
+        from src.server import control_special_master
+
+        client = _mock_client()
+        mock_get_client.return_value = client
+        result = json.loads(await control_special_master("speed1", 120))
+        assert result["command_sent"] == "SpecialMaster Speed1Master At 120"
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_rate_master(self, mock_get_client):
+        from src.server import control_special_master
+
+        client = _mock_client()
+        mock_get_client.return_value = client
+        result = json.loads(await control_special_master("rate1", 100))
+        assert result["command_sent"] == "SpecialMaster Rate1Master At 100"
+
+    @pytest.mark.asyncio
+    async def test_error_includes_valid_masters_list(self):
+        from src.server import control_special_master
+
+        result = json.loads(await control_special_master("bogus", 50))
+        assert "error" in result
+        assert "valid_masters" in result
+        assert "grandmaster" in result["valid_masters"]
