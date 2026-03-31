@@ -468,3 +468,104 @@ def parse_list_output(raw: str) -> ListOutput:
         prompt=prompt,
         column_headers=tuple(header_columns),
     )
+
+
+# ---------------------------------------------------------------------------
+# Executor-specific parser (KEY=VALUE inline format)
+# ---------------------------------------------------------------------------
+
+
+def parse_executor_list(raw: str) -> dict[str, str]:
+    """Parse all KEY=VALUE fields from a ``List Executor page.id`` response.
+
+    MA2 executor list output is uniquely KEY=VALUE inline (not tabular columns).
+    Output may span multiple lines due to terminal wrapping. Field keys can
+    contain dots (e.g. ``No.``).
+
+    Args:
+        raw: Raw telnet output from ``list executor page.id``.
+
+    Returns:
+        dict mapping field names to string values.
+        Empty dict if no KEY=VALUE pairs are found.
+
+    Example input::
+
+        Exec 1.203  No.=1.203 Name=Washes Color Sequence=Seq 202(9)
+        Width=1 SwopProtect=off Priority=Normal ...
+
+    Example output::
+
+        {"No.": "1.203", "Name": "Washes Color", "Sequence": "Seq 202(9)",
+         "Width": "1", "SwopProtect": "off", "Priority": "Normal", ...}
+    """
+    clean = _strip_ansi(raw)
+    lines = []
+    for line in clean.replace("\r", "\n").split("\n"):
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith("Executing"):
+            continue
+        if _BRACKET_PROMPT_RE.search(s):
+            continue
+        if _ANGLE_PROMPT_RE.search(s) and ">Executing" not in s:
+            continue
+        lines.append(s)
+
+    combined = " ".join(lines)
+
+    # Extract KEY=VALUE pairs; key may contain dots (No.)
+    # Value extends to the next KEY= boundary or end of string.
+    fields: dict[str, str] = {}
+    for m in re.finditer(
+        r"([\w.]+)=(.*?)(?=\s+[\w.]+=|\s*$)",
+        combined,
+    ):
+        key = m.group(1).strip()
+        val = m.group(2).strip()
+        if key and val:
+            fields[key] = val
+
+    return fields
+
+
+# ---------------------------------------------------------------------------
+# Tabular list convenience wrapper
+# ---------------------------------------------------------------------------
+
+
+def parse_tabular_list(raw: str) -> list[dict[str, str]]:
+    """Parse tabular List output into a list of dicts keyed by column headers.
+
+    Convenience wrapper over :func:`parse_list_output` for server tools that
+    need a simple ``list[dict]`` rather than the full :class:`ListOutput`.
+
+    Args:
+        raw: Raw telnet output from any ``list <type>`` command.
+
+    Returns:
+        List of dicts, one per entry. Standard keys are ``No.`` and ``Name``
+        (or the detected header names). Extra columns are included when
+        column headers are detected. Falls back to positional keys
+        (``col1``, ``col2``) when no headers are present.
+    """
+    out = parse_list_output(raw)
+    headers = list(out.column_headers)
+
+    result: list[dict[str, str]] = []
+    for entry in out.entries:
+        row: dict[str, str] = {}
+        if entry.object_type:
+            row["_type"] = entry.object_type
+        id_key = headers[0] if headers else "No."
+        name_key = headers[1] if len(headers) > 1 else "Name"
+        if entry.object_id:
+            row[id_key] = entry.object_id
+        if entry.name:
+            row[name_key] = entry.name
+        if entry.columns:
+            row.update(entry.columns)
+        result.append(row)
+
+    return result

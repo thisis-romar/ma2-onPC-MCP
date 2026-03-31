@@ -3636,31 +3636,28 @@ class TestAssignExecutorPropertyTool:
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
         mock_get_client.return_value = mock_client
-        result = await assign_executor_property(property_name="width", executor_id=1, value=2, confirm_destructive=True)
+        result = await assign_executor_property(executor_id=1, option="width", value=2, confirm_destructive=True, page=1)
         data = json.loads(result)
-        assert data["command_sent"] == "assign executor 1 /width=2"
+        assert data["command_sent"] == "Assign Executor 1.1 /width=2"
+
+    @pytest.mark.asyncio
+    async def test_assign_executor_property_invalid_option(self):
+        from src.server import assign_executor_property
+        result = await assign_executor_property(executor_id=1, option="badoption", value="on", confirm_destructive=True)
+        data = json.loads(result)
+        assert data["blocked"] is True
+        assert "badoption" in data["error"]
 
     @pytest.mark.asyncio
     @patch("src.server.get_client")
-    async def test_assign_sequence_priority(self, mock_get_client):
+    async def test_assign_executor_ratemaster(self, mock_get_client):
         from src.server import assign_executor_property
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
         mock_get_client.return_value = mock_client
-        result = await assign_executor_property(property_name="priority", sequence_id=1, value="high", confirm_destructive=True)
+        result = await assign_executor_property(executor_id=3, option="ratemaster", value="rate_individual", confirm_destructive=True)
         data = json.loads(result)
-        assert data["command_sent"] == "assign priority high sequence 1"
-
-    @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    async def test_assign_executor_rate(self, mock_get_client):
-        from src.server import assign_executor_property
-        mock_client = MagicMock()
-        mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
-        mock_get_client.return_value = mock_client
-        result = await assign_executor_property(property_name="rate", executor_id=3, confirm_destructive=True)
-        data = json.loads(result)
-        assert data["command_sent"] == "assign rate executor 3"
+        assert data["command_sent"] == "Assign Executor 1.3 /ratemaster=rate_individual"
 
 
 class TestIfFilterTool:

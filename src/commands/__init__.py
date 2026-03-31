@@ -93,6 +93,7 @@ from .functions import (
     build_list_users,
     build_login,
     build_logout,
+    build_assign_executor_option,
     build_set_executor_priority,
     build_store_user,
     # Call Function Keywords
@@ -311,6 +312,7 @@ __all__ = [
     "assign_fade",
     "assign_function",
     "assign_to_layout",
+    "build_assign_executor_option",
     "build_set_executor_priority",
     "empty",
     "temp_fader",

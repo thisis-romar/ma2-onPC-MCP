@@ -36,30 +36,6 @@ from .rights import RightsContext
 # Decision Checkpoint  (recompute-over-retain caching pattern)
 # ---------------------------------------------------------------------------
 
-@dataclass
-class DecisionCheckpoint:
-    """A distilled decision record for the 'recompute-over-retain' caching pattern.
-
-    Stores the fault label and replay query for a specific finding, NOT the raw
-    output. If is_fresh() returns True the cached finding is still valid.
-    If False, re-run the underlying tool call (replay) to refresh the checkpoint.
-
-    Design rule: never store raw fixture dicts or large blobs here.
-    Store only the fault label, what was checked, and how to re-check it.
-    """
-
-    fault: str                  # short label, e.g. "no_position_preset"
-    query: str                  # human-readable description of what was checked
-    observed_at: float          # Unix timestamp of last check
-    fresh_for_seconds: float    # how long this finding is valid (default: 60s)
-    replay: str                 # tool call or recipe string to regenerate this finding
-    confidence: float = 1.0     # 0.0–1.0; lower if check was indirect
-
-    def is_fresh(self) -> bool:
-        """Return True if the checkpoint is still within its freshness window."""
-        return (time.time() - self.observed_at) < self.fresh_for_seconds
-
-
 # ---------------------------------------------------------------------------
 # Working Memory  (short-term, in-process)
 # ---------------------------------------------------------------------------
