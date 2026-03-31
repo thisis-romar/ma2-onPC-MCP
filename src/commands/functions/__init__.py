@@ -223,6 +223,28 @@ from .users import (
     build_store_user,
 )
 
+# System / Console / RDM / Chaser / Effect parameter builders
+from .system import (
+    lock_console,
+    unlock_console,
+    call_plugin,
+    run_lua,
+    reload_plugins,
+    set_special_master,
+    SPECIAL_MASTER_NAMES,
+    rdm_automatch,
+    rdm_autopatch,
+    rdm_list,
+    rdm_info,
+    rdm_setpatch,
+    rdm_unmatch,
+    chaser_rate,
+    chaser_speed,
+    chaser_skip,
+    chaser_xfade,
+    set_effect_parameter,
+)
+
 # Values Function Keywords (At)
 from .values import (
     at,
@@ -449,4 +471,28 @@ __all__ = [
     "build_store_user",
     "build_delete_user",
     "build_assign_world_to_user_profile",
+    # System / Console
+    "lock_console",
+    "unlock_console",
+    # Plugin / Lua
+    "call_plugin",
+    "run_lua",
+    "reload_plugins",
+    # Special Master
+    "set_special_master",
+    "SPECIAL_MASTER_NAMES",
+    # RDM
+    "rdm_automatch",
+    "rdm_autopatch",
+    "rdm_list",
+    "rdm_info",
+    "rdm_setpatch",
+    "rdm_unmatch",
+    # Chaser live control
+    "chaser_rate",
+    "chaser_speed",
+    "chaser_skip",
+    "chaser_xfade",
+    # Effect programmer parameters
+    "set_effect_parameter",
 ]

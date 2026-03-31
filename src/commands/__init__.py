@@ -96,6 +96,24 @@ from .functions import (
     build_assign_executor_option,
     build_set_executor_priority,
     build_store_user,
+    call_plugin,
+    chaser_rate,
+    chaser_skip,
+    chaser_speed,
+    chaser_xfade,
+    lock_console,
+    rdm_automatch,
+    rdm_autopatch,
+    rdm_info,
+    rdm_list,
+    rdm_setpatch,
+    rdm_unmatch,
+    reload_plugins,
+    run_lua,
+    set_effect_parameter,
+    set_special_master,
+    unlock_console,
+    SPECIAL_MASTER_NAMES,
     # Call Function Keywords
     call,
     # Other Function Keywords
@@ -498,6 +516,30 @@ __all__ = [
     "build_store_user",
     "build_delete_user",
     "build_assign_world_to_user_profile",
+    # System / Console
+    "lock_console",
+    "unlock_console",
+    # Plugin / Lua
+    "call_plugin",
+    "run_lua",
+    "reload_plugins",
+    # Special Master
+    "set_special_master",
+    "SPECIAL_MASTER_NAMES",
+    # RDM
+    "rdm_automatch",
+    "rdm_autopatch",
+    "rdm_list",
+    "rdm_info",
+    "rdm_setpatch",
+    "rdm_unmatch",
+    # Chaser live control
+    "chaser_rate",
+    "chaser_speed",
+    "chaser_skip",
+    "chaser_xfade",
+    # Effect programmer parameters
+    "set_effect_parameter",
     # Busking / Performance Layer
     "assign_effect_to_executor",
     "set_effect_rate",
