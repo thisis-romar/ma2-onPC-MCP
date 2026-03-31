@@ -294,10 +294,206 @@ def _build_plan_only(goal: str, params: dict) -> TaskPlan:
     ])
 
 
+def _build_color_sequence_workflow(goal: str, params: dict) -> TaskPlan:
+    """Decompose a color palette or hue sequence build workflow."""
+    sequence_id = params.get("sequence_id", 99)
+    executor_id = params.get("executor_id", 201)
+    hue_pair    = params.get("hue_pair", None)
+
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="audit_color_presets",
+            agent_role="InspectionAgent",
+            description="List color preset pool to discover available presets",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_preset_pool", "query_object_list"],
+            inputs={"preset_type": "color"},
+            eval_criteria="Preset pool returned non-empty color preset list",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="validate_target_sequence",
+            agent_role="InspectionAgent",
+            description=f"Check sequence {sequence_id} for existing cues",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "list_system_variables"],
+            inputs={"sequence_id": sequence_id},
+            depends_on=["audit_color_presets"],
+            eval_criteria="Cue count reported (zero or existing)",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="build_color_cues",
+            agent_role="SequenceAgent",
+            description="SelFix → apply preset → store cue → appearance → ClearAll for each color",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_current_cue", "label_or_appearance", "apply_preset"],
+            inputs={"sequence_id": sequence_id, "hue_pair": hue_pair, "overwrite": True},
+            depends_on=["validate_target_sequence"],
+            eval_criteria="Cue count matches preset count",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="assign_to_executor",
+            agent_role="ExecutorAgent",
+            description=f"Assign sequence {sequence_id} to executor {executor_id}",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["assign_object", "get_executor_status"],
+            inputs={"sequence_id": sequence_id, "executor_id": executor_id},
+            depends_on=["build_color_cues"],
+            eval_criteria="Executor status confirms sequence assignment",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_color_sequence",
+            agent_role="ValidationAgent",
+            description="Count cues in sequence and confirm executor assignment",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "get_executor_status"],
+            inputs={"sequence_id": sequence_id, "executor_id": executor_id},
+            depends_on=["assign_to_executor"],
+            eval_criteria="Cue count == preset count AND executor shows sequence",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_preset_library_workflow(goal: str, params: dict) -> TaskPlan:
+    """Decompose a full preset library build across all preset types."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="audit_existing_presets",
+            agent_role="InspectionAgent",
+            description="List all preset pools to find occupied slots",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_preset_pool", "query_object_list"],
+            eval_criteria="All preset type pools queried",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="store_dimmer_presets",
+            agent_role="PresetAgent",
+            description="Store 5 dimmer presets (Full, 75%, Half, 25%, Off) — universal",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_new_preset", "label_or_appearance"],
+            depends_on=["audit_existing_presets"],
+            eval_criteria="5 dimmer presets in pool",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="store_color_presets",
+            agent_role="PresetAgent",
+            description="Store 8 color presets (White–Yellow spectrum) — universal",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_new_preset", "label_or_appearance"],
+            depends_on=["audit_existing_presets"],
+            eval_criteria="8 color presets in pool",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="store_position_presets",
+            agent_role="PresetAgent",
+            description="Store 5+ position presets per moving head group — selective",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_new_preset", "label_or_appearance", "list_groups"],
+            depends_on=["audit_existing_presets"],
+            eval_criteria="At least 5 position presets in pool",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_preset_library",
+            agent_role="ValidationAgent",
+            description="Confirm counts: ≥5 dimmer, ≥8 color, ≥5 position presets",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_preset_pool", "query_object_list"],
+            depends_on=["store_dimmer_presets", "store_color_presets", "store_position_presets"],
+            eval_criteria="All counts meet targets",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_patch_fixtures_workflow(goal: str, params: dict) -> TaskPlan:
+    """Decompose a fixture patching and group creation workflow."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="discover_fixture_types",
+            agent_role="InspectionAgent",
+            description="List existing fixture types to avoid re-importing",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_console_destination", "list_fixture_types"],
+            eval_criteria="Fixture type pool listed without error",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="discover_patch",
+            agent_role="InspectionAgent",
+            description="List current DMX patch to find free addresses",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_universes", "query_object_list"],
+            depends_on=["discover_fixture_types"],
+            eval_criteria="DMX address map returned",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="import_fixture_types",
+            agent_role="PatchAgent",
+            description="Import new fixture type XML files (skip if already present)",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["import_fixture_type"],
+            depends_on=["discover_fixture_types"],
+            eval_criteria="Fixture type appears in pool after import",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="patch_fixtures",
+            agent_role="PatchAgent",
+            description="Patch each fixture to a DMX address using verified free slots",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["patch_fixture"],
+            depends_on=["import_fixture_types", "discover_patch"],
+            eval_criteria="All fixtures appear in fixture list",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="create_fixture_groups",
+            agent_role="GroupAgent",
+            description="Create one group per fixture type via macro (reliable store pattern)",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_object", "label_or_appearance"],
+            depends_on=["patch_fixtures"],
+            eval_criteria="Groups queryable via list_groups",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_patch",
+            agent_role="ValidationAgent",
+            description="Confirm fixture count and group membership",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_console_destination", "query_object_list", "get_object_info"],
+            depends_on=["create_fixture_groups"],
+            eval_criteria="Fixture and group counts match expected values",
+            workflow="inspect",
+        ),
+    ])
+
+
 _RULES: list[Rule] = [
+    (r"color palette|hue sequence|hue pair|palette sequence|color cue list",
+                                                                   _build_color_sequence_workflow),
     (r"wash|color look|stage wash",                                    _build_wash_look),
     (r"blackout|blk|fade to black",                                    _build_blackout_sequence),
-    (r"group.*preset|library|rig setup|patch",                         _build_group_preset_library),
+    (r"preset library|build presets|store presets|preset layout",      _build_preset_library_workflow),
+    (r"patch fixture|repatch|fixture type|dmx address|new fixture",    _build_patch_fixtures_workflow),
+    (r"group.*preset|library|rig setup",                               _build_group_preset_library),
     (r"inspect|check|show state|what is|status|list|query|how many",   _build_inspect_only),
     (r"plan|draft|propose|what would|what should|design",              _build_plan_only),
 ]
@@ -318,6 +514,11 @@ WORKER_CATALOG: dict[str, list[str]] = {
     "object-resolution-worker": ["discover_object_names", "query_object_list",
                                  "get_object_info"],
     "safety-preflight-checker": ["list_system_variables", "get_variable"],
+    "preset-library-builder":   ["list_preset_pool", "store_new_preset",
+                                 "label_or_appearance", "query_object_list"],
+    "patch-and-group-builder":  ["list_console_destination", "import_fixture_type",
+                                 "patch_fixture", "store_object", "label_or_appearance",
+                                 "get_object_info"],
 }
 
 
