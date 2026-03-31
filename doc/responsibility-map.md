@@ -1,9 +1,9 @@
 ---
 title: Responsibility Map
 description: File-by-file module role matrix with smell detection for the ma2-onPC-MCP architecture
-version: 1.1.0
+version: 1.2.0
 created: 2026-03-29T09:00:00Z
-last_updated: 2026-03-31T12:00:00Z
+last_updated: 2026-03-31T23:00:00Z
 ---
 
 # Responsibility Map
@@ -35,7 +35,7 @@ artifact in the Phase 1 architecture refactor based on the transcript's central 
 | Module | Primary Role | Smells / Notes |
 |--------|-------------|----------------|
 | `src/server.py` | MCP Surface | ⚠ Also contains `_handle_errors` decorator (policy) and `_load_taxonomy_cached` (state) — acceptable boundary violations for FastMCP pattern |
-| `src/server_orchestration_tools.py` | MCP Surface | Registers agentic tools 110-142; creates singletons for telemetry/skill/memory — thin wrapper, acceptable |
+| `src/server_orchestration_tools.py` | MCP Surface | Registers agentic tools 110-143; creates singletons for telemetry/skill/memory — thin wrapper, acceptable |
 | `src/orchestrator.py` | Planner | ✅ Correct role — hydrates state, decomposes, executes, persists to LTM. ⚠ `_default_sub_agent` is in-process, not a true isolated context |
 | `src/task_decomposer.py` | Planner support | ✅ Pure rule-based NL → SubTask. ⚠ Only 3 hardcoded rules + fallback — narrow planning capability |
 | `src/commands/*.py` | Tool | ✅ Pure functions, no I/O. No smells. |
@@ -72,9 +72,9 @@ artifact in the Phase 1 architecture refactor based on the transcript's central 
 **Problem:** Executes tool calls in the same Python process. No fresh LLM context window.
 **Fix:** Wire a real subagent spawner via `sub_agent_fn` parameter. Requires Claude API / Agent SDK — out of MCP server scope. Document pattern for integrators.
 
-### S2 — Planner sees all 151 tools (Medium)
+### S2 — Planner sees all 176 tools (Medium)
 **Location:** `src/server.py` — all tools always registered at startup
-**Problem:** All 151 tools consume instruction budget in every session.
+**Problem:** All 176 tools consume instruction budget in every session.
 **Fix:** Use `suggest_tool_for_task` for pre-session retrieval. Long-term: FastMCP dynamic tool registration. See `doc/tool-surface-tiers.md`.
 
 ### S3 — TaskDecomposer has 3 hardcoded rules (Low)
@@ -89,7 +89,7 @@ artifact in the Phase 1 architecture refactor based on the transcript's central 
 
 ### S5 — server.py instructions= block is stale (Medium)
 **Location:** `src/server.py:371` — FastMCP `instructions=` argument
-**Problem:** Lists ~28 tools from an older version; does not reflect 151 current tools.
+**Problem:** Lists ~28 tools from an older version; does not reflect 176 current tools.
 **Fix:** Replace with a compact summary pointing to `suggest_tool_for_task` for discovery. See Phase 3 in the refactor plan.
 
 ---
