@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.3.0
+version: 4.4.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-31T18:00:00Z
+last_updated: 2026-03-31T20:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **173 tools**, **MCP resources**, and **MCP prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **176 tools**, **MCP resources**, and **MCP prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,7 +22,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server — 140 tools + MCP resources + MCP prompts, safety gate |
+| `src/server.py` | FastMCP server — 143 tools + MCP resources + MCP prompts, safety gate |
 | `src/server_orchestration_tools.py` | Registers tools 110-142 (agentic layer) onto FastMCP |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
@@ -104,7 +104,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-31): **2285 tests** (unit + live integration).
+- Current counts (2026-03-31): **2329 tests** (unit + live integration).
 
 ---
 

@@ -257,12 +257,156 @@ class TestSubTaskWorkflowField:
         propose = next(s for s in plan.steps if s.name == "propose_change_plan")
         assert propose.workflow == "plan"
 
-    def test_worker_catalog_has_six_entries(self):
+    def test_worker_catalog_has_eight_entries(self):
         from src.task_decomposer import WORKER_CATALOG
-        assert len(WORKER_CATALOG) == 6
+        assert len(WORKER_CATALOG) == 8
 
     def test_worker_catalog_values_are_nonempty_lists(self):
         from src.task_decomposer import WORKER_CATALOG
         for worker, tools in WORKER_CATALOG.items():
             assert isinstance(tools, list), f"{worker} tools must be a list"
             assert len(tools) > 0, f"{worker} must have at least one tool"
+
+    def test_new_workers_in_catalog(self):
+        from src.task_decomposer import WORKER_CATALOG
+        assert "preset-library-builder" in WORKER_CATALOG
+        assert "patch-and-group-builder" in WORKER_CATALOG
+
+
+# ── Color sequence workflow rule ──────────────────────────────────────────────
+
+class TestDecomposeColorSequenceRule:
+    def setup_method(self):
+        from src.task_decomposer import TaskDecomposer
+        self.d = TaskDecomposer()
+
+    def test_color_palette_matches(self):
+        plan = self.d.decompose("build a color palette sequence")
+        assert len(plan.steps) >= 4
+
+    def test_hue_sequence_matches(self):
+        plan = self.d.decompose("create hue sequence for executor 202")
+        assert len(plan.steps) >= 4
+
+    def test_hue_pair_matches(self):
+        plan = self.d.decompose("build hue pair sequence")
+        assert len(plan.steps) >= 4
+
+    def test_palette_sequence_matches(self):
+        plan = self.d.decompose("generate a palette sequence from presets")
+        assert len(plan.steps) >= 4
+
+    def test_first_step_is_read_only(self):
+        from src.vocab import RiskTier
+        plan = self.d.decompose("build a color palette sequence")
+        assert plan.ordered_steps()[0].allowed_risk == RiskTier.SAFE_READ
+
+    def test_has_destructive_store_step(self):
+        from src.vocab import RiskTier
+        plan = self.d.decompose("color palette")
+        risks = [s.allowed_risk for s in plan.steps]
+        assert RiskTier.DESTRUCTIVE in risks
+
+    def test_build_color_cues_step_present(self):
+        plan = self.d.decompose("color palette")
+        names = [s.name for s in plan.steps]
+        assert "build_color_cues" in names
+
+    def test_has_executor_assignment_step(self):
+        plan = self.d.decompose("color palette")
+        names = [s.name for s in plan.steps]
+        assert "assign_to_executor" in names
+
+    def test_verify_step_is_inspect_workflow(self):
+        plan = self.d.decompose("color palette")
+        verify = next((s for s in plan.steps if s.name == "verify_color_sequence"), None)
+        assert verify is not None
+        assert verify.workflow == "inspect"
+
+    def test_color_palette_does_not_shadow_wash(self):
+        plan = self.d.decompose("blue color look wash")
+        # Should still fire wash rule — first step is selection
+        names = [s.name for s in plan.steps]
+        assert "select_wash_group" in names
+
+    def test_params_sequence_id_propagated(self):
+        plan = self.d.decompose("color palette", {"sequence_id": 42})
+        cue_step = next(s for s in plan.steps if s.name == "build_color_cues")
+        assert cue_step.inputs.get("sequence_id") == 42
+
+
+# ── Preset library workflow rule ──────────────────────────────────────────────
+
+class TestDecomposePresetLibraryRule:
+    def setup_method(self):
+        from src.task_decomposer import TaskDecomposer
+        self.d = TaskDecomposer()
+
+    def test_preset_library_matches(self):
+        plan = self.d.decompose("build preset library for this rig")
+        assert len(plan.steps) >= 4
+
+    def test_store_presets_matches(self):
+        plan = self.d.decompose("store presets for all fixture types")
+        assert len(plan.steps) >= 4
+
+    def test_first_step_is_audit(self):
+        plan = self.d.decompose("build preset library")
+        assert plan.ordered_steps()[0].name == "audit_existing_presets"
+
+    def test_has_multiple_destructive_steps(self):
+        from src.vocab import RiskTier
+        plan = self.d.decompose("build preset library")
+        destructive = [s for s in plan.steps if s.allowed_risk == RiskTier.DESTRUCTIVE]
+        assert len(destructive) >= 2
+
+    def test_verify_depends_on_three_stores(self):
+        plan = self.d.decompose("build preset library")
+        verify = next(s for s in plan.steps if s.name == "verify_preset_library")
+        assert len(verify.depends_on) == 3
+
+
+# ── Patch fixtures workflow rule ──────────────────────────────────────────────
+
+class TestDecomposePatchFixturesRule:
+    def setup_method(self):
+        from src.task_decomposer import TaskDecomposer
+        self.d = TaskDecomposer()
+
+    def test_patch_fixture_matches(self):
+        plan = self.d.decompose("patch new fixtures and set DMX address")
+        assert len(plan.steps) >= 4
+
+    def test_repatch_matches(self):
+        plan = self.d.decompose("repatch the rig with new universes")
+        assert len(plan.steps) >= 4
+
+    def test_fixture_type_matches(self):
+        plan = self.d.decompose("import fixture type from library")
+        assert len(plan.steps) >= 4
+
+    def test_first_step_is_discover(self):
+        from src.vocab import RiskTier
+        plan = self.d.decompose("repatch the rig")
+        assert plan.ordered_steps()[0].allowed_risk == RiskTier.SAFE_READ
+
+    def test_patch_fixtures_step_present(self):
+        plan = self.d.decompose("patch fixture")
+        names = [s.name for s in plan.steps]
+        assert "patch_fixtures" in names
+
+    def test_import_step_present(self):
+        plan = self.d.decompose("patch fixture")
+        names = [s.name for s in plan.steps]
+        assert "import_fixture_types" in names
+
+    def test_patch_before_group(self):
+        plan = self.d.decompose("repatch")
+        ordered = plan.ordered_steps()
+        names = [s.name for s in ordered]
+        assert names.index("patch_fixtures") < names.index("create_fixture_groups")
+
+    def test_verify_is_last(self):
+        plan = self.d.decompose("repatch")
+        ordered = plan.ordered_steps()
+        assert ordered[-1].name == "verify_patch"

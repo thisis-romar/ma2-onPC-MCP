@@ -8534,6 +8534,81 @@ async def list_worlds() -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.SETUP_CONSOLE)
+@_handle_errors
+async def store_world(
+    world_id: int,
+    name: str | None = None,
+    overwrite: bool = False,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Create (store) a new World pool object on the grandMA2 console. (DESTRUCTIVE)
+
+    Worlds restrict which fixtures a user profile can control. After storing,
+    use assign_world_to_user_profile to attach the world to a user.
+
+    Args:
+        world_id: World slot number (1-256)
+        name: Optional label applied immediately after store
+        overwrite: If True, adds /overwrite flag (replaces existing slot)
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON with commands_sent and raw_responses.
+    """
+    if not confirm_destructive:
+        return json.dumps({"blocked": True, "reason": "confirm_destructive required"}, indent=2)
+
+    client = await get_client()
+    flag = " /overwrite" if overwrite else ""
+    store_cmd = f"store world {world_id}{flag}"
+    raw1 = await client.send_command_with_response(store_cmd)
+
+    commands_sent = [store_cmd]
+    raw_responses = [raw1]
+
+    if name:
+        label_cmd = build_label("world", world_id, name)
+        raw2 = await client.send_command_with_response(label_cmd)
+        commands_sent.append(label_cmd)
+        raw_responses.append(raw2)
+
+    return json.dumps({
+        "commands_sent": commands_sent,
+        "raw_responses": raw_responses,
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SETUP_CONSOLE)
+@_handle_errors
+async def label_world(
+    world_id: int,
+    name: str,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Label an existing World pool object on the grandMA2 console. (DESTRUCTIVE)
+
+    Args:
+        world_id: World slot number to label (1-256)
+        name: Name to assign to the world
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON with command_sent and raw_response.
+    """
+    if not confirm_destructive:
+        return json.dumps({"blocked": True, "reason": "confirm_destructive required"}, indent=2)
+
+    client = await get_client()
+    cmd = build_label("world", world_id, name)
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({"command_sent": cmd, "raw_response": raw}, indent=2)
+
+
+@mcp.tool()
 @require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def list_timers() -> str:
@@ -8665,6 +8740,53 @@ async def list_agenda_events() -> str:
     cmd = build_list_objects("Agenda")
     raw = await client.send_command_with_response(cmd)
     return json.dumps({"command_sent": cmd, "raw_response": raw}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.MACRO_EDIT)
+@_handle_errors
+async def store_agenda(
+    agenda_id: int,
+    name: str | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Create (store) a new Agenda pool object on the grandMA2 console. (DESTRUCTIVE)
+
+    Agendas are time-triggered events (clock/sunrise/sunset) that fire macros or
+    cues automatically. After storing, use the assign tool to attach a macro trigger.
+
+    The store command creates the pool slot. To add time triggers to an existing
+    agenda, use store_timecode_event with object_type="agenda".
+
+    Args:
+        agenda_id: Agenda slot number (1-256)
+        name: Optional label applied immediately after store
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON with commands_sent and raw_responses.
+    """
+    if not confirm_destructive:
+        return json.dumps({"blocked": True, "reason": "confirm_destructive required"}, indent=2)
+
+    client = await get_client()
+    store_cmd = f"store agenda {agenda_id}"
+    raw1 = await client.send_command_with_response(store_cmd)
+
+    commands_sent = [store_cmd]
+    raw_responses = [raw1]
+
+    if name:
+        label_cmd = build_label("agenda", agenda_id, name)
+        raw2 = await client.send_command_with_response(label_cmd)
+        commands_sent.append(label_cmd)
+        raw_responses.append(raw2)
+
+    return json.dumps({
+        "commands_sent": commands_sent,
+        "raw_responses": raw_responses,
+    }, indent=2)
 
 
 # ============================================================

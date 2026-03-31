@@ -5577,3 +5577,102 @@ class TestScopeEnforcement:
         data = json.loads(result)
         assert data["blocked"] is True
         assert data["scope_required"] == "gma2:user:manage"
+
+
+# ── store_world / label_world ────────────────────────────────────────────────
+
+class TestStoreWorldTool:
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import store_world
+        result = json.loads(await store_world(world_id=5))
+        assert result["blocked"] is True
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_store_command(self, mock_get_client):
+        from src.server import store_world
+        client = MagicMock()
+        client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = client
+
+        result = json.loads(await store_world(world_id=5, confirm_destructive=True))
+        assert "store world 5" in result["commands_sent"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_overwrite_flag(self, mock_get_client):
+        from src.server import store_world
+        client = MagicMock()
+        client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = client
+
+        result = json.loads(await store_world(world_id=3, overwrite=True, confirm_destructive=True))
+        assert "store world 3 /overwrite" in result["commands_sent"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_with_name_sends_two_commands(self, mock_get_client):
+        from src.server import store_world
+        client = MagicMock()
+        client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = client
+
+        result = json.loads(await store_world(world_id=5, name="Stage Left", confirm_destructive=True))
+        assert len(result["commands_sent"]) == 2
+        assert result["commands_sent"][0] == "store world 5"
+        assert "Stage Left" in result["commands_sent"][1]
+
+
+class TestLabelWorldTool:
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import label_world
+        result = json.loads(await label_world(world_id=3, name="FOH"))
+        assert result["blocked"] is True
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_label_command(self, mock_get_client):
+        from src.server import label_world
+        client = MagicMock()
+        client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = client
+
+        result = json.loads(await label_world(world_id=3, name="Stage Left", confirm_destructive=True))
+        assert "Stage Left" in result["command_sent"]
+        assert "world" in result["command_sent"]
+
+
+# ── store_agenda ─────────────────────────────────────────────────────────────
+
+class TestStoreAgendaTool:
+    @pytest.mark.asyncio
+    async def test_blocked_without_confirm(self):
+        from src.server import store_agenda
+        result = json.loads(await store_agenda(agenda_id=1))
+        assert result["blocked"] is True
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_sends_store_command(self, mock_get_client):
+        from src.server import store_agenda
+        client = MagicMock()
+        client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = client
+
+        result = json.loads(await store_agenda(agenda_id=1, confirm_destructive=True))
+        assert "store agenda 1" in result["commands_sent"]
+
+    @pytest.mark.asyncio
+    @patch("src.server.get_client")
+    async def test_with_name_sends_two_commands(self, mock_get_client):
+        from src.server import store_agenda
+        client = MagicMock()
+        client.send_command_with_response = AsyncMock(return_value="OK")
+        mock_get_client.return_value = client
+
+        result = json.loads(await store_agenda(agenda_id=2, name="Song A", confirm_destructive=True))
+        assert len(result["commands_sent"]) == 2
+        assert result["commands_sent"][0] == "store agenda 2"
+        assert "Song A" in result["commands_sent"][1]
