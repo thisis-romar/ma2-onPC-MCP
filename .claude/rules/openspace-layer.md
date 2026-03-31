@@ -1,9 +1,9 @@
 ---
 title: OpenSpace Layer Developer Conventions
 description: Telemetry, skill lifecycle, DESTRUCTIVE approval, SkillImprover, and context management rules
-version: 1.2.1
+version: 1.2.2
 created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-30T12:30:00Z
+last_updated: 2026-03-31T12:00:00Z
 ---
 
 # OpenSpace Layer Developer Conventions
@@ -14,7 +14,7 @@ last_updated: 2026-03-30T12:30:00Z
 
 ## Context Management
 
-**Subagent isolation** — `Orchestrator._default_sub_agent()` (`src/orchestrator.py:145`)
+**Subagent isolation** — `Orchestrator._default_sub_agent()` (`src/orchestrator.py:144`)
 executes tool calls in-process. It is NOT a fresh LLM context window. True context
 isolation requires an LLM client (Claude API / Agent SDK). The `sub_agent_fn` parameter
 in `Orchestrator.__init__` is the correct injection point for integrators who want to
