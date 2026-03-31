@@ -1,14 +1,14 @@
 ---
 title: Tool Surface Tiers
-description: Classification of all 143 MCP tools into planner-visible tiers A/B/C to manage context budget
-version: 1.0.0
+description: Classification of all 151 MCP tools into planner-visible tiers A/B/C to manage context budget
+version: 1.1.0
 created: 2026-03-29T09:00:00Z
-last_updated: 2026-03-29T09:00:00Z
+last_updated: 2026-03-31T12:00:00Z
 ---
 
 # Tool Surface Tiers
 
-The transcript's core observation: **143 tools always visible to the parent planner is a context budget risk**. This document classifies all tools into three tiers to guide future dynamic tool loading.
+The transcript's core observation: **151 tools always visible to the parent planner is a context budget risk**. This document classifies all tools into three tiers to guide future dynamic tool loading.
 
 ---
 
@@ -50,6 +50,9 @@ These tools give the planner situational awareness and safe entrypoints. They co
 | `playback_action` | Playback | go/pause/goto on executors |
 | `set_intensity` | Lighting | Dimmer control |
 | `clear_programmer` | Programmer | Reset programmer state |
+| `get_executor_state` | Executor Inspection | Read all 32 fields of one executor via List Executor page.id |
+| `scan_page_executor_layout` | Executor Inspection | Map occupied slots on a page — required before width expansion |
+| `discover_fixture_type_attributes` | Executor Inspection | Attribute names for a fixture type via EditSetup tree navigation |
 
 ---
 
@@ -144,7 +147,7 @@ All workers return a **fixed envelope**:
 
 ## MCP Primitive Classification
 
-For the 143 tools, the question "is this really a tool?" has three answers:
+For the 151 tools, the question "is this really a tool?" has three answers:
 
 | If it… | Should be |
 |--------|-----------|

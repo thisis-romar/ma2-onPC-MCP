@@ -3,14 +3,14 @@ title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
 version: 4.2.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-30T13:00:00Z
+last_updated: 2026-03-31T12:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **148 tools**, **MCP resources**, and **MCP prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **151 tools**, **MCP resources**, and **MCP prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,15 +22,15 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server — 115 tools + MCP resources + MCP prompts, safety gate |
-| `src/server_orchestration_tools.py` | Registers tools 110-143 (agentic layer) onto FastMCP |
+| `src/server.py` | FastMCP server — 118 tools + MCP resources + MCP prompts, safety gate |
+| `src/server_orchestration_tools.py` | Registers tools 110-142 (agentic layer) onto FastMCP |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
 | `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 178 pure command-builder functions, grouped by keyword type |
+| `src/commands/` | 182 pure command-builder functions, grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
 | `src/vocab.py` | 156 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
@@ -104,7 +104,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-30): **2166 tests** (unit + live integration).
+- Current counts (2026-03-31): **2195 tests** (unit + live integration).
 
 ---
 

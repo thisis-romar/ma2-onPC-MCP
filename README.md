@@ -1,7 +1,7 @@
 ---
 title: GrandPA2-Buddy
-description: AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet
-version: 3.20.0
+description: AI agent for grandMA2 lighting consoles — 151 MCP tools via Telnet
+version: 3.21.0
 created: 2025-02-27T00:00:00Z
 last_updated: 2026-03-31T00:00:00Z
 ---
@@ -16,21 +16,21 @@ last_updated: 2026-03-31T00:00:00Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
-  <img src="https://img.shields.io/badge/MCP_Tools-148-brightgreen?style=for-the-badge" alt="148 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-2053-brightgreen?style=for-the-badge" alt="2053 Tests">
+  <img src="https://img.shields.io/badge/MCP_Tools-151-brightgreen?style=for-the-badge" alt="151 MCP Tools">
+  <img src="https://img.shields.io/badge/Tests-2195-brightgreen?style=for-the-badge" alt="2195 Tests">
 </p>
 
-**An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 148 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
+**An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 151 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
 
 <table>
-<tr><td><b>Agent Harness</b></td><td>148 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
+<tr><td><b>Agent Harness</b></td><td>151 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
 <tr><td><b>Embedded Agent Core</b></td><td>Orchestrator, task decomposer, working + long-term memory, and a skill registry with self-improvement suggestions. Inject a real LLM client and it becomes a fully autonomous lighting agent that plans, executes, remembers, and learns.</td></tr>
 <tr><td><b>Layered safety gate</b></td><td>Three risk tiers enforced before any command reaches the console: <code>SAFE_READ</code> (always allowed), <code>SAFE_WRITE</code> (standard mode), <code>DESTRUCTIVE</code> (blocked until <code>confirm_destructive=True</code>). Line-break injection rejected at the transport layer.</td></tr>
 <tr><td><b>A closed learning loop</b></td><td>Every tool call recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Skills are versioned playbooks with full lineage tracking.</td></tr>
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
 </table>
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [148 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [151 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 *The name is a play on "grandMA2" — [dedicated to someone special](DEDICATION.md).*
 
@@ -64,9 +64,9 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```mermaid
 graph TD
     H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>33 tools (110–142) · orchestrator · skills"] --> A
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>115 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>118 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>180 pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>182 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
@@ -95,7 +95,7 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 
 | Layer | What it is | Key files |
 |-------|-----------|-----------|
-| **Bottom 115 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | `src/server.py` |
+| **Bottom 118 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | `src/server.py` |
 | **Top 33 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | `src/server_orchestration_tools.py`, `src/orchestrator.py` |
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
@@ -104,7 +104,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 115 interactive tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 118 interactive tools, safety gate, env config |
 | `src/server_orchestration_tools.py` | 33 agentic tools (110–142) registered onto FastMCP |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
@@ -118,7 +118,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/vocab.py` | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
-| `src/commands/` | 180 exported command-builder functions, grouped by keyword type |
+| `src/commands/` | 182 exported command-builder functions, grouped by keyword type |
 | `src/commands/busking.py` | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
@@ -156,7 +156,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **148 tools** to MCP clients, grouped into 15 categories plus an agentic orchestration layer:
+The server exposes **151 tools** to MCP clients, grouped into 15 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -376,7 +376,10 @@ select_executor(executor_id=1, deselect=True)
 | Tool | Description |
 |------|-------------|
 | `assign_object` | Assign objects, functions, fades, or layout positions |
-| `assign_executor_property` | Assign a property on an executor (e.g. width, priority, rate) |
+| `assign_executor_property` | Assign any of 22 settable options on an executor (width, priority, autostart, etc.) — page-qualified |
+| `get_executor_state` | Read all 32 fields of one executor via `List Executor page.id` (SAFE_READ) |
+| `scan_page_executor_layout` | Map executor slot occupancy on a page — required pre-flight before width expansion (SAFE_READ) |
+| `discover_fixture_type_attributes` | Discover fixture type attribute names via EditSetup tree navigation (SAFE_READ) |
 | `label_or_appearance` | Label or set visual appearance of objects |
 | `edit_object` | Edit, cut, or paste objects |
 | `cut_paste_object` | Cut an object to clipboard, or paste clipboard content at a location |
@@ -657,7 +660,7 @@ Nine read-only resources exposable to any MCP client. Use them for zero-telnet c
 |-----|-------------|
 | `ma2://docs/rights-matrix` | OAuth scope → MA2Right mapping matrix (JSON) |
 | `ma2://docs/vocab-summary` | All 156 keywords with RiskTier and category (JSON) |
-| `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 148 tools in 14 categories (JSON) |
+| `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 151 tools in 14 categories (JSON) |
 | `ma2://docs/responsibility-map` | Module responsibility map for architectural decisions (Markdown) |
 | `ma2://docs/tool-surface-tiers` | Tier A/B/C classification for every tool (Markdown) |
 | `ma2://skills/{skill_id}` | Skill injection payload by ID — returns formatted user message ready for agent injection |
@@ -997,7 +1000,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. **178 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. **182 exported functions** covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -1129,8 +1132,8 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ```
 ma2-onPC-MCP/
 ├── src/
-│   ├── server.py                           # FastMCP server (115 interactive tools)
-│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–143)
+│   ├── server.py                           # FastMCP server (118 interactive tools)
+│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–142)
 │   │
 │   │   # Orchestration & Memory
 │   ├── orchestrator.py                     # Multi-agent task runner + session memory
@@ -1155,7 +1158,7 @@ ma2-onPC-MCP/
 │   ├── vocab.py                            # 156 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
-│   ├── commands/                           # 180 exported command-builder functions
+│   ├── commands/                           # 182 exported command-builder functions
 │   │   ├── busking.py                      # Busking/performance builders (6 functions)
 │   │   ├── objects/                        # Object keywords (9 modules)
 │   │   └── functions/                      # Function keywords (17 modules)

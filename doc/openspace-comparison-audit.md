@@ -1,9 +1,9 @@
 ---
 title: OpenSpace Framework Comparison Audit
 description: Feature-by-feature comparison of ma2-onPC-MCP against the OpenSpace self-evolving skill framework, with gap analysis and prioritised roadmap
-version: 1.1.0
+version: 1.2.0
 created: 2026-03-29T00:00:00Z
-last_updated: 2026-03-30T14:00:00Z
+last_updated: 2026-03-31T12:00:00Z
 ---
 
 # OpenSpace Framework Comparison Audit
@@ -23,7 +23,7 @@ All findings were verified directly against the repository source as of 2026-03-
 
 ### ma2-onPC-MCP
 
-An MCP server that exposes **148 tools** so AI assistants can control a grandMA2 lighting console
+An MCP server that exposes **151 tools** so AI assistants can control a grandMA2 lighting console
 via Telnet. Its own README describes it as:
 
 > "an agent-ready, syntax-aware Telnet control server for MA Lighting grandMA2 consoles"
@@ -59,7 +59,7 @@ The core claim is that agents improve themselves without human intervention.
 | Skill evolution dashboard | ❌ Absent | No React dashboard |
 | CloudSkill community / registry | ❌ Absent | RAG store is local SQLite only (`rag/store/rag.db`) |
 | Token efficiency tracking | ⚠️ Partial | Session-level `token_spend` / `charge_tokens()` / `token_report()` in `WorkingMemory` (`src/agent_memory.py:96,210–220`). Per-MCP-tool invocation instrumentation is absent. |
-| MCP integration | ✅ Excellent | 148 tools (115 in `server.py` + 33 in `server_orchestration_tools.py`), stdio transport, Claude Desktop + VS Code configs |
+| MCP integration | ✅ Excellent | 151 tools (118 in `server.py` + 33 in `server_orchestration_tools.py`), stdio transport, Claude Desktop + VS Code configs |
 | Python 3.12 | ✅ Yes | `.python-version` file |
 | MIT license | ⚠️ No — Apache 2.0 | `LICENSE` file |
 | Benchmark / metrics pipeline | ❌ Absent | 1854 unit tests exist but no performance-benchmark loop |
@@ -87,7 +87,7 @@ this. For a system controlling live physical hardware, this safety model is more
 
 ### 3.2 MCP tool quality
 
-148 tools across 14 categories, pure-function command builders in `src/commands/`,
+151 tools across 14 categories, pure-function command builders in `src/commands/`,
 structured schemas, VS Code extension, Claude Desktop config. This is production-grade MCP work.
 
 ### 3.3 RAG pipeline

@@ -1,9 +1,9 @@
 ---
 title: "CD Tree \u2194 MCP Tool Correlation Matrix"
 description: Maps every MCP tool to its grandMA2 console object tree branch for navigation-based verification
-version: 2.9.0
+version: 3.0.0
 created: 2026-03-08T22:00:00Z
-last_updated: 2026-03-30T14:00:00Z
+last_updated: 2026-03-31T12:00:00Z
 ---
 
 # CD Tree \u2194 MCP Tool Correlation Matrix
@@ -14,7 +14,7 @@ This document maps every MCP tool to the grandMA2 console object tree branch
 it operates on. Use this to know which `cd` + `list` path to inspect when
 verifying that an MCP tool actually created/modified/deleted the expected object.
 
-## Quick Reference: 148 MCP Tools → Tree Branches (115 interactive + 33 agentic)
+## Quick Reference: 151 MCP Tools → Tree Branches (118 interactive + 33 agentic)
 
 ### Navigation & Inspection Tools (6)
 
@@ -86,11 +86,14 @@ verifying that an MCP tool actually created/modified/deleted the expected object
 | `highlight_fixtures` | Programmer | `Highlight On/Off` | Toggle highlight mode for selected fixtures |
 | `blackout_toggle` | Global | `Blackout` | Toggle master blackout |
 
-### Executor & Playback Tools (1)
+### Executor & Playback Tools (4)
 
 | MCP Tool | Tree Branch | cd + list Verification | MA Command |
 |----------|------------|----------------------|------------|
 | `release_executor` | `cd Executor` | N/A (playback state) | `Release Executor N` |
+| `get_executor_state` | `List Executor page.id` | Returns 32 KEY=VALUE fields | `List Executor 1.N` |
+| `scan_page_executor_layout` | `List Executor page.id` (range) | Occupancy map + free slots | `List Executor 1.N` (per slot) |
+| `discover_fixture_type_attributes` | `cd EditSetup → FixtureTypes → N → 1 → 1` | ChannelType rows with attribute names | `cd EditSetup; cd FixtureTypes; cd N; cd 1; cd 1; list` |
 
 ### Show Management Tools (2)
 
@@ -263,6 +266,7 @@ delete_object("effect", 99, confirm_destructive=True)
 | Object Create/Modify | 15 | `create_fixture_group`, `store_current_cue`, `store_new_preset`, `store_object`, `assign_object` (5 modes), `label_or_appearance`, `copy_or_move_object`, `edit_object`, `set_intensity`, `clone_object`, `block_unblock_cue` |
 | Object Delete | 2 | `delete_object`, `remove_content` |
 | Playback & Control | 11 | `execute_sequence`, `playback_action`, `run_macro`, `apply_preset`, `set_attribute`, `release_executor`, `blackout_toggle`, `control_executor`, `load_cue`, `cut_paste_object`, `fix_locate_fixture` |
+| Executor Inspection | 3 | `get_executor_state`, `scan_page_executor_layout`, `discover_fixture_type_attributes` |
 | Import/Export | 2 | `export_objects`, `import_objects` |
 | Highlight & Selection | 3 | `highlight_fixtures`, `modify_selection`, `manipulate_selection` |
 | Show Management | 2 | `load_show`, `new_show` |
@@ -274,4 +278,4 @@ delete_object("effect", 99, confirm_destructive=True)
 | Fixture Patching | 4 | `browse_patch_schedule`, `patch_fixture`, `unpatch_fixture`, `set_fixture_type_property` |
 | User Management | 4 | `list_console_users`, `create_console_user`, `assign_world_to_user_profile`, `inspect_sessions` |
 | Utility | 5 | `clear_programmer`, `park_fixture`/`unpark_fixture`, `manage_variable`, `send_raw_command`, `search_codebase` |
-| **Total** | **86** | *(29 additional interactive tools + 33 agentic tools [110-143] not mapped to cd tree branches)* |
+| **Total** | **89** | *(29 additional interactive tools + 33 agentic tools [110-142] not mapped to cd tree branches)* |
