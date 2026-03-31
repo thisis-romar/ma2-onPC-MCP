@@ -29,20 +29,18 @@ Tools covered:
 """
 
 import json
-import dataclasses
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
-from src.server_orchestration_tools import register_orchestration_tools
+import pytest
+
 from src.commands.constants import OAuthScope
 from src.console_state import (
     ConsoleStateSnapshot,
+    CueRecord,
     ExecutorState,
     SequenceEntry,
-    CueRecord,
-    MAtricksTracker,
 )
-
+from src.server_orchestration_tools import register_orchestration_tools
 
 # ── Test helpers ──────────────────────────────────────────────────────────────
 
@@ -834,7 +832,8 @@ class TestRetryFailedSteps:
     @pytest.mark.asyncio
     async def test_failed_steps_trigger_run(self):
         from unittest.mock import AsyncMock as _AsyncMock
-        from src.orchestrator import OrchestrationResult, StepResult
+
+        from src.orchestrator import OrchestrationResult
 
         fake_result = OrchestrationResult(
             session_id="new123",

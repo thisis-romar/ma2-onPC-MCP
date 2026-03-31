@@ -93,7 +93,7 @@ def crawl_web(
     client = httpx.Client(
         timeout=30.0,
         follow_redirects=True,
-        headers={"User-Agent": "gma2-mcp-rag-crawler/1.0 (documentation indexer)"},
+        headers={"User-Agent": "grandpa2-buddy-rag-crawler/1.0 (documentation indexer)"},
     )
 
     try:

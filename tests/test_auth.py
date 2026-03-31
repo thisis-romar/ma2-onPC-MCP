@@ -6,8 +6,6 @@ Tests for src/auth.py — scope parsing, expansion, checking, and the
 """
 
 import json
-import os
-from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -120,7 +118,7 @@ class TestGetGrantedScopes:
 
     def test_tier5_includes_all_20_scopes(self, monkeypatch):
         monkeypatch.setenv("GMA_SCOPE", "tier:5")
-        from src.auth import get_granted_scopes, ALL_SCOPES
+        from src.auth import ALL_SCOPES, get_granted_scopes
         scopes = get_granted_scopes()
         assert scopes == ALL_SCOPES
         assert len(scopes) == 20

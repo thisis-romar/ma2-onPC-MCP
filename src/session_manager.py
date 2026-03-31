@@ -18,6 +18,7 @@ The intersection means no single layer can unilaterally escalate privileges.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from dataclasses import dataclass, field
@@ -238,12 +239,10 @@ class SessionManager:
                     sessions = list(self._sessions.values())
                 for session in sessions:
                     if session.client.is_connected:
-                        try:
+                        with contextlib.suppress(Exception):
                             # Empty-string send keeps the socket alive without
-                            # any console side-effects
+                            # any console side-effects; will reconnect on next get()
                             await session.client.send_command("")
-                        except Exception:
-                            pass  # Will reconnect on next get()
             except asyncio.CancelledError:
                 break
             except Exception as exc:
@@ -254,7 +253,5 @@ class SessionManager:
 
 
 async def _safe_disconnect(client: GMA2TelnetClient) -> None:
-    try:
+    with contextlib.suppress(Exception):
         await client.disconnect()
-    except Exception:
-        pass

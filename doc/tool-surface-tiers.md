@@ -1,14 +1,14 @@
 ---
 title: Tool Surface Tiers
-description: Classification of all 151 MCP tools into planner-visible tiers A/B/C to manage context budget
-version: 1.0.1
+description: Classification of all 143 MCP tools into planner-visible tiers A/B/C to manage context budget
+version: 1.0.0
 created: 2026-03-29T09:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+last_updated: 2026-03-29T09:00:00Z
 ---
 
 # Tool Surface Tiers
 
-The transcript's core observation: **151 tools always visible to the parent planner is a context budget risk**. This document classifies all tools into three tiers to guide future dynamic tool loading.
+The transcript's core observation: **143 tools always visible to the parent planner is a context budget risk**. This document classifies all tools into three tiers to guide future dynamic tool loading.
 
 ---
 
@@ -110,7 +110,7 @@ Not exposed to the parent planner. Used internally by workers or tool implementa
 - `scan_console_indexes` — batch scan helper used by `hydrate_console_state`
 - `_load_taxonomy_cached` — internal taxonomy cache
 - All command builder functions in `src/commands/` — pure function primitives
-- `_build_store_options`, `quote_name` — helper utilities
+- `_build_options`, `quote_name` — helper utilities
 - Session pool internals (`src/session_manager.py`)
 - RAG pipeline internals (`rag/ingest/`, `rag/retrieve/`)
 
@@ -144,7 +144,7 @@ All workers return a **fixed envelope**:
 
 ## MCP Primitive Classification
 
-For the 151 tools, the question "is this really a tool?" has three answers:
+For the 143 tools, the question "is this really a tool?" has three answers:
 
 | If it… | Should be |
 |--------|-----------|

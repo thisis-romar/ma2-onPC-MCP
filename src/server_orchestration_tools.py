@@ -1,5 +1,5 @@
 """
-server_orchestration_tools.py — Register 33 agentic MCP tools (110-143) onto the FastMCP instance.
+server_orchestration_tools.py — Register 27 agentic MCP tools (110-137) onto the FastMCP instance.
 
 Tools 110-118 bring the MA2 MCP server's agentic capability up to the multi-agent
 model: task decomposition, orchestrated execution, memory recall, token tracking,
@@ -10,12 +10,10 @@ with zero telnet cost (get_console_state, get_park_ledger, get_filter_state,
 get_world_state, get_matricks_state, get_programmer_selection, hydrate_sequences,
 get_sequence_memory, assert_selection_count, assert_preset_exists, get_executor_detail).
 
-Tools 131-137 provide state diff, showfile info, system variable polling,
-orchestration safety gates (confirm_destructive_steps, abort_task, retry_failed_steps),
-and assert_fixture_exists.
+Tools 130-133 provide state diff, showfile info, and system variable polling.
 
-Tools 138-143 form the OpenSpace observability layer: telemetry, skill registry,
-improvement suggestions, and DESTRUCTIVE approval gating.
+Tools 134-136 are orchestration safety gates: confirm_destructive_steps, abort_task,
+and retry_failed_steps.
 
 Usage in server.py:
     from src.server_orchestration_tools import register_orchestration_tools
@@ -24,16 +22,14 @@ Usage in server.py:
 
 from __future__ import annotations
 
-from typing import Any
 from mcp.server.fastmcp import FastMCP
 
+from .agent_memory import LongTermMemory
 from .orchestrator import Orchestrator
-from .task_decomposer import TaskDecomposer
-from .pool_name_index import ObjectRef, PoolNameIndex
-from .telemetry import ToolTelemetry
 from .skill import SkillRegistry
 from .skill_improver import SkillImprover
-from .agent_memory import LongTermMemory
+from .task_decomposer import TaskDecomposer
+from .telemetry import ToolTelemetry
 
 
 def register_orchestration_tools(
@@ -253,7 +249,8 @@ def register_orchestration_tools(
                         mcp_tools (array), depends_on (array), eval_criteria
         """
         import json
-        from .task_decomposer import SubTask, TaskPlan, RiskTier
+
+        from .task_decomposer import RiskTier, SubTask, TaskPlan
 
         try:
             steps_raw = json.loads(steps_json)

@@ -9,10 +9,8 @@ Covers:
   - register_rule() custom rules
 """
 
-import pytest
-from src.task_decomposer import SubTask, TaskPlan, TaskDecomposer
+from src.task_decomposer import SubTask, TaskDecomposer, TaskPlan
 from src.vocab import RiskTier
-
 
 # ── SubTask ──────────────────────────────────────────────────────────────────
 
@@ -192,7 +190,8 @@ class TestDecomposeFallback:
 
 class TestCustomRule:
     def test_custom_rule_takes_priority(self):
-        from src.task_decomposer import TaskPlan, SubTask, RiskTier as RT
+        from src.task_decomposer import RiskTier as RT
+        from src.task_decomposer import SubTask, TaskPlan
         d = TaskDecomposer()
 
         def custom_builder(goal, params):
@@ -215,3 +214,55 @@ class TestCustomRule:
         d.register_rule(r"only_this", lambda g, p: TaskPlan(goal=g, steps=[]))
         plan = d.decompose("blue wash")
         assert len(plan.steps) > 0  # wash rule still fires
+
+
+# ── SubTask.workflow field ───────────────────────────────────────────────────
+
+class TestSubTaskWorkflowField:
+    def test_subtask_has_workflow_field(self):
+        st = SubTask(
+            name="x", agent_role="A", description="d",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=[],
+        )
+        assert hasattr(st, "workflow")
+        assert st.workflow == "inspect"  # default
+
+    def test_workflow_can_be_set_to_execute(self):
+        st = SubTask(
+            name="x", agent_role="A", description="d",
+            allowed_risk=RiskTier.DESTRUCTIVE, mcp_tools=[],
+            workflow="execute",
+        )
+        assert st.workflow == "execute"
+
+    def test_wash_look_execute_steps_annotated(self):
+        d = TaskDecomposer()
+        plan = d.decompose("blue wash", {"color": "blue"})
+        execute_names = {s.name for s in plan.steps if s.workflow == "execute"}
+        inspect_names = {s.name for s in plan.steps if s.workflow == "inspect"}
+        assert "store_wash_cue" in execute_names
+        assert "verify_wash_cue" in inspect_names
+
+    def test_inspect_only_rule_matches(self):
+        d = TaskDecomposer()
+        plan = d.decompose("show state of the console")
+        assert all(s.workflow == "inspect" for s in plan.steps)
+        assert plan.steps[0].name == "read_system_state"
+
+    def test_plan_only_rule_matches(self):
+        d = TaskDecomposer()
+        plan = d.decompose("propose a change to sequence 1")
+        names = [s.name for s in plan.steps]
+        assert "propose_change_plan" in names
+        propose = next(s for s in plan.steps if s.name == "propose_change_plan")
+        assert propose.workflow == "plan"
+
+    def test_worker_catalog_has_six_entries(self):
+        from src.task_decomposer import WORKER_CATALOG
+        assert len(WORKER_CATALOG) == 6
+
+    def test_worker_catalog_values_are_nonempty_lists(self):
+        from src.task_decomposer import WORKER_CATALOG
+        for worker, tools in WORKER_CATALOG.items():
+            assert isinstance(tools, list), f"{worker} tools must be a list"
+            assert len(tools) > 0, f"{worker} must have at least one tool"

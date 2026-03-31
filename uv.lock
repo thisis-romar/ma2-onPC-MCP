@@ -200,7 +200,7 @@ wheels = [
 ]
 
 [[package]]
-name = "gma2-mcp"
+name = "grandpa2-buddy"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

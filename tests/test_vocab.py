@@ -479,3 +479,49 @@ class TestVocabSpec:
         entry = spec.object_keyword_entries["Channel"]
         assert entry.canonical == "Channel"
         assert entry.context_change is True
+
+
+class TestPlaybackControlKeywords:
+    """Regression tests for playback_control keywords verified live but absent
+    from the JSON vocabulary. Kill was missing from _extra_keywords; Off/On/
+    Release/Toggle work via JSON normalization. Fixed 2026-03-30."""
+
+    PLAYBACK_KEYWORDS = ["Off", "On", "Kill", "Release", "Toggle"]
+
+    def test_kill_resolves(self, spec):
+        result = classify_token("Kill", spec)
+        assert result.kind == KeywordKind.KEYWORD
+        assert result.canonical == "Kill"
+
+    def test_kill_is_safe_write(self, spec):
+        result = classify_token("Kill", spec)
+        assert result.risk == RiskTier.SAFE_WRITE
+
+    def test_kill_is_function_category(self, spec):
+        result = classify_token("Kill", spec)
+        assert result.category == KeywordCategory.FUNCTION
+
+    def test_kill_case_insensitive(self, spec):
+        result = classify_token("kill", spec)
+        assert result.canonical == "Kill"
+        assert result.risk == RiskTier.SAFE_WRITE
+
+    def test_all_playback_keywords_resolve(self, spec):
+        for kw in self.PLAYBACK_KEYWORDS:
+            result = classify_token(kw, spec)
+            assert result.kind != KeywordKind.UNKNOWN, f"{kw} returned UNKNOWN"
+            assert result.risk == RiskTier.SAFE_WRITE, f"{kw} risk={result.risk}"
+
+    def test_all_playback_keywords_are_function_category(self, spec):
+        for kw in self.PLAYBACK_KEYWORDS:
+            result = classify_token(kw, spec)
+            assert result.category == KeywordCategory.FUNCTION, (
+                f"{kw} category={result.category}"
+            )
+
+    def test_off_lowercase_resolves_to_canonical(self, spec):
+        """'off' (normalized form) must resolve to canonical 'Off', not be stray."""
+        result = classify_token("off", spec)
+        assert result.canonical == "Off"
+        assert result.category == KeywordCategory.FUNCTION
+        assert result.risk == RiskTier.SAFE_WRITE

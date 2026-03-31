@@ -409,3 +409,35 @@ class TestLoadNextPrev:
     def test_load_prev_sequence(self):
         from src.commands import load_prev
         assert load_prev(sequence=5) == "loadprev sequence 5"
+
+
+class TestGoFastMultiExecutor:
+    """Tests for go_fast_forward / go_fast_back with list[int] executor."""
+
+    def test_go_fast_forward_executor_list(self):
+        from src.commands import go_fast_forward
+        assert go_fast_forward(executor=[1, 2, 3]) == ">>> executor 1 + 2 + 3"
+
+    def test_go_fast_forward_executor_two(self):
+        from src.commands import go_fast_forward
+        assert go_fast_forward(executor=[2, 4]) == ">>> executor 2 + 4"
+
+    def test_go_fast_back_executor_list(self):
+        from src.commands import go_fast_back
+        assert go_fast_back(executor=[1, 2, 3]) == "<<< executor 1 + 2 + 3"
+
+    def test_go_fast_back_executor_two(self):
+        from src.commands import go_fast_back
+        assert go_fast_back(executor=[2, 4]) == "<<< executor 2 + 4"
+
+
+class TestGoMultiObjectId:
+    """Tests for go / go_back with list[int] object_id."""
+
+    def test_go_executor_list(self):
+        from src.commands import go
+        assert go("executor", [1, 2, 3]) == "go executor 1 + 2 + 3"
+
+    def test_go_back_executor_list(self):
+        from src.commands import go_back
+        assert go_back("executor", [5, 6]) == "goback executor 5 + 6"

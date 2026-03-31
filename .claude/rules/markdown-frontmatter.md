@@ -1,16 +1,16 @@
 ---
-title: Markdown Front Matter Convention
-description: Required YAML front matter fields and rules for all .md files in this repository
+title: Markdown Front Matter Rules
+description: Required YAML front matter fields and conventions for all .md files in this repo
 version: 1.0.0
-created: 2026-03-30T00:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+created: 2026-03-29T08:30:00Z
+last_updated: 2026-03-29T08:30:00Z
 ---
 
-# Markdown Front Matter Convention
+# Markdown Front Matter Rules
 
 All `.md` files in this repository **must** include YAML front matter (`---` fences) at the top.
 
-## Required Fields
+## Required fields
 
 | Field | Format | Description |
 |-------|--------|-------------|
@@ -23,7 +23,7 @@ All `.md` files in this repository **must** include YAML front matter (`---` fen
 ## Rules
 
 1. **New `.md` files** — add front matter before writing any content.
-2. **Editing existing `.md` files** — update `last_updated` to the current date/time. Bump `version` if the change is non-trivial (typo fixes don't require a bump).
+2. **Editing existing `.md` files** — update `last_updated`. Bump `version` for non-trivial changes.
 3. **Do not** backfill `created` dates — use the actual date the file was created.
 
 ## Template

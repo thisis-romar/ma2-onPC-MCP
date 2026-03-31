@@ -1,6 +1,7 @@
 """Tests for the RAG chunker (Python AST, markdown, line-based)."""
 
-from rag.ingest.chunk import chunk_file
+from rag.ingest.chunk import _split_range, chunk_file
+from rag.config import CHARS_PER_TOKEN, DEFAULT_CHUNK_MAX_TOKENS
 from rag.types import RepoFile
 from rag.utils.hash import sha256
 
@@ -121,3 +122,87 @@ class TestLineBasedChunking:
         f = _make_file(text, language="yaml", path="config.yml", kind="config")
         chunks = chunk_file(f, "doc1")
         assert len(chunks) == 1
+
+
+# ---------------------------------------------------------------------------
+# Regression tests: infinite-loop guard in _split_range / _chunk_lines
+# Trigger condition: avg_line_len > max_chars / overlap_lines (240 chars with defaults)
+# ---------------------------------------------------------------------------
+
+
+class TestSplitRangeOverlapGuard:
+    """_split_range must always terminate regardless of overlap vs window size."""
+
+    def _lines(self, count: int, line_len: int = 10) -> list[str]:
+        return [("x" * line_len + "\n") for _ in range(count)]
+
+    def test_normal_overlap(self):
+        """overlap < lines_per_sub — standard case, must return multiple ranges."""
+        lines = self._lines(200, line_len=10)   # avg 11 chars → lines_per_sub >> 20
+        result = _split_range(1, 200, lines, max_chars=4800, overlap_lines=20)
+        assert len(result) >= 1
+        # First range starts at 1
+        assert result[0][0] == 1
+
+    def test_overlap_equals_window(self):
+        """overlap_lines == lines_per_sub — previously caused infinite loop."""
+        # avg_line_len=500 → lines_per_sub = max(10, 4800//500) = max(10,9) = 10
+        # overlap_lines=10 == lines_per_sub → infinite loop before fix
+        lines = self._lines(50, line_len=500)
+        result = _split_range(1, 50, lines, max_chars=4800, overlap_lines=10)
+        assert len(result) >= 1
+        assert result[-1][1] == 50  # last range ends at end_line
+
+    def test_overlap_exceeds_window(self):
+        """overlap_lines > lines_per_sub — the exact failure that caused the MemoryError."""
+        # avg_line_len=600 → lines_per_sub = max(10, 4800//600) = max(10,8) = 10
+        # overlap_lines=20 > lines_per_sub=10 → infinite loop before fix
+        lines = self._lines(30, line_len=600)
+        result = _split_range(1, 30, lines, max_chars=4800, overlap_lines=20)
+        assert len(result) >= 1
+        assert result[-1][1] == 30
+
+    def test_single_chunk_fits(self):
+        """Range that fits in one sub-chunk returns exactly 1 tuple."""
+        lines = self._lines(5, line_len=10)
+        result = _split_range(1, 5, lines, max_chars=4800, overlap_lines=20)
+        assert len(result) == 1
+        assert result[0] == (1, 5)
+
+    def test_pos_always_advances(self):
+        """Each consecutive range starts strictly after the previous one ends minus overlap."""
+        lines = self._lines(100, line_len=500)  # long lines → small window
+        result = _split_range(1, 100, lines, max_chars=4800, overlap_lines=20)
+        for i in range(1, len(result)):
+            assert result[i][0] > result[i - 1][0], "pos did not advance between sub-ranges"
+
+
+class TestChunkLinesLongLines:
+    """chunk_file with long-average-line files must terminate (regression for MemoryError)."""
+
+    def _long_line_file(self, n_lines: int = 100, line_len: int = 500) -> RepoFile:
+        text = ("a" * line_len + "\n") * n_lines
+        return RepoFile(path="big.txt", kind="config", language="text",
+                        text=text, hash=sha256(text))
+
+    def test_returns_at_least_one_chunk(self):
+        """100 lines × 500 chars = avg 501 chars/line > 240 threshold — must not hang."""
+        f = self._long_line_file(100, 500)
+        chunks = chunk_file(f, "doc_long")
+        assert len(chunks) >= 1
+
+    def test_chunk_text_nonempty(self):
+        f = self._long_line_file(50, 600)
+        chunks = chunk_file(f, "doc_long2")
+        assert all(c.text.strip() for c in chunks)
+
+    def test_all_lines_covered(self):
+        """Union of all chunk line ranges must span the whole file."""
+        n_lines = 80
+        f = self._long_line_file(n_lines, 500)
+        chunks = chunk_file(f, "doc_cov")
+        covered = set()
+        for c in chunks:
+            covered.update(range(c.start_line, c.end_line + 1))
+        assert min(covered) == 1
+        assert max(covered) == n_lines

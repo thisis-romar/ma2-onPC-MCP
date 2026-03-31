@@ -45,4 +45,4 @@ src/categorization/taxonomy.json
 *.taxonomy.json
 
 # KMeans clustering data artifacts (too large for RAG chunker)
-doc/grandMA2_KMeans_Complete.json
+doc/grandMA2_KMeans_Complete.json.claude/settings.local.json

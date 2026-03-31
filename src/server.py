@@ -15,11 +15,15 @@ import logging
 import os
 import re
 import sys
+import time
 from datetime import UTC
+from pathlib import Path
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from src.agent_memory import LongTermMemory
+from src.auth import OAuthScope, has_scope, require_scope
 from src.commands import (
     add_to_selection as build_add_to_selection,
 )
@@ -30,6 +34,9 @@ from src.commands import (
     add_var as build_add_var,
 )
 from src.commands import (
+    align as build_align,
+)
+from src.commands import (
     appearance as build_appearance,
 )
 from src.commands import (
@@ -38,6 +45,9 @@ from src.commands import (
 )
 from src.commands import (
     assign_delay as build_assign_delay,
+)
+from src.commands import (
+    assign_effect_to_executor as build_assign_effect_to_executor,
 )
 from src.commands import (
     assign_fade as build_assign_fade,
@@ -53,6 +63,10 @@ from src.commands import (
 )
 from src.commands import (
     attribute_at,
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_store_user,
     call,
     channel_at,
     fixture_at,
@@ -69,6 +83,9 @@ from src.commands import (
     blackout as build_blackout,
 )
 from src.commands import (
+    block as build_block,
+)
+from src.commands import (
     clear as build_clear,
 )
 from src.commands import (
@@ -81,10 +98,16 @@ from src.commands import (
     clear_selection as build_clear_selection,
 )
 from src.commands import (
+    clone as build_clone,
+)
+from src.commands import (
     copy as build_copy,
 )
 from src.commands import (
     cut as build_cut,
+)
+from src.commands import (
+    def_go_back as build_def_go_back,
 )
 from src.commands import (
     def_go_forward as build_def_go_forward,
@@ -102,6 +125,9 @@ from src.commands import (
     delete_fixture as build_delete_fixture,
 )
 from src.commands import (
+    delete_show as build_delete_show,
+)
+from src.commands import (
     # edit_object
     edit as build_edit,
 )
@@ -110,6 +136,9 @@ from src.commands import (
 )
 from src.commands import (
     export_object as build_export_object,
+)
+from src.commands import (
+    fix_fixture as build_fix_fixture,
 )
 from src.commands import (
     flash_executor as build_flash_executor,
@@ -152,6 +181,9 @@ from src.commands import (
     info as build_info,
 )
 from src.commands import (
+    invert as build_invert,
+)
+from src.commands import (
     label as build_label,
 )
 from src.commands import (
@@ -168,6 +200,9 @@ from src.commands import (
     list_effect_library as build_list_effect_library,
 )
 from src.commands import (
+    list_fader_modules as build_list_fader_modules,
+)
+from src.commands import (
     list_group as build_list_group,
 )
 from src.commands import (
@@ -175,21 +210,6 @@ from src.commands import (
 )
 from src.commands import (
     list_macro_library as build_list_macro_library,
-)
-from src.commands import (
-    list_fader_modules as build_list_fader_modules,
-)
-from src.commands import (
-    list_plugin_library as build_list_plugin_library,
-)
-from src.commands import (
-    list_update as build_list_update,
-)
-from src.commands import (
-    delete_show as build_delete_show,
-)
-from src.commands import (
-    temp_fader as build_temp_fader,
 )
 from src.commands import (
     list_messages as build_list_messages,
@@ -202,10 +222,16 @@ from src.commands import (
     list_oops as build_list_oops,
 )
 from src.commands import (
+    list_plugin_library as build_list_plugin_library,
+)
+from src.commands import (
     list_preset as build_list_preset,
 )
 from src.commands import (
     list_shows as build_list_shows,
+)
+from src.commands import (
+    list_update as build_list_update,
 )
 from src.commands import (
     list_user_var as build_list_user_var,
@@ -214,7 +240,16 @@ from src.commands import (
     list_var as build_list_var,
 )
 from src.commands import (
+    load_next as build_load_next,
+)
+from src.commands import (
+    load_prev as build_load_prev,
+)
+from src.commands import (
     load_show as build_load_show,
+)
+from src.commands import (
+    locate as build_locate,
 )
 from src.commands import (
     move as build_move,
@@ -241,6 +276,9 @@ from src.commands import (
     paste as build_paste,
 )
 from src.commands import (
+    release_effects_on_page as build_release_effects_on_page,
+)
+from src.commands import (
     release_executor as build_release_executor,
 )
 from src.commands import (
@@ -263,6 +301,12 @@ from src.commands import (
     remove_selection as build_remove_selection,
 )
 from src.commands import (
+    set_effect_rate as build_set_effect_rate,
+)
+from src.commands import (
+    set_effect_speed as build_set_effect_speed,
+)
+from src.commands import (
     set_user_var as build_set_user_var,
 )
 from src.commands import (
@@ -271,6 +315,9 @@ from src.commands import (
 )
 from src.commands import (
     solo_executor as build_solo_executor,
+)
+from src.commands import (
+    stomp_executor as build_stomp_executor,
 )
 from src.commands import (
     # store_object
@@ -286,48 +333,10 @@ from src.commands import (
     store_preset as build_store_preset,
 )
 from src.commands import (
-    unpark as build_unpark,
-)
-from src.commands import (
-    update_cue as build_update_cue,
-)
-from src.auth import OAuthScope, require_scope
-from src.commands import (
-    build_assign_world_to_user_profile,
-    build_delete_user,
-    build_list_users,
-    build_login,
-    build_store_user,
-)
-from src.commands import (
-    align as build_align,
-)
-from src.commands import (
-    block as build_block,
-)
-from src.commands import (
-    clone as build_clone,
-)
-from src.commands import (
-    fix_fixture as build_fix_fixture,
-)
-from src.commands import (
-    invert as build_invert,
-)
-from src.commands import (
-    load_next as build_load_next,
-)
-from src.commands import (
-    load_prev as build_load_prev,
-)
-from src.commands import (
-    locate as build_locate,
-)
-from src.commands import (
-    stomp_executor as build_stomp_executor,
-)
-from src.commands import (
     swop_executor as build_swop_executor,
+)
+from src.commands import (
+    temp_fader as build_temp_fader,
 )
 from src.commands import (
     top_executor as build_top_executor,
@@ -335,15 +344,24 @@ from src.commands import (
 from src.commands import (
     unblock as build_unblock,
 )
-from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
-from src.session_manager import SessionManager
+from src.commands import (
+    unpark as build_unpark,
+)
+from src.commands import (
+    update_cue as build_update_cue,
+)
+from src.commands import (
+    zero_page_faders as build_zero_page_faders,
+)
 from src.credentials import get_operator_identity, resolve_console_credentials
+from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
+from src.orchestrator import Orchestrator
+from src.server_orchestration_tools import register_orchestration_tools
+from src.session_manager import SessionManager
+from src.telemetry import ToolTelemetry, infer_risk_tier
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
 from src.vocab import RiskTier, build_v39_spec, classify_token
-from src.agent_memory import LongTermMemory
-from src.orchestrator import Orchestrator
-from src.server_orchestration_tools import register_orchestration_tools
 
 # Load environment variables
 load_dotenv()
@@ -368,77 +386,35 @@ _vocab_spec = build_v39_spec()
 # Create MCP server
 mcp = FastMCP(
     name="grandMA2-MCP",
-    instructions="""
-    This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following 151 tools to operate grandMA2 (118 core in server.py + 33 agentic in server_orchestration_tools.py):
+    instructions="""grandMA2 MCP server — 148 tools, 9 resources, 6 prompts.
 
-    --- Navigation & Inspection ---
-    1. navigate_console - Navigate the console object tree (cd)
-    2. get_console_location - Query current console destination
-    3. list_console_destination - List objects at current destination
-    4. scan_console_indexes - Batch scan numeric indexes at any tree level
+Use suggest_tool_for_task(task_description) to find the right tool for any task.
+Use ma2://docs/tool-taxonomy resource to browse all 148 tools by category.
 
-    --- Lighting Control ---
-    5. set_intensity - Set dimmer level on fixtures, groups, or channels
-    6. set_attribute - Set attribute values (Pan, Tilt, Zoom, etc.)
-    7. apply_preset - Apply a stored preset (color, position, gobo, etc.)
-    8. execute_sequence - Legacy sequence playback (go/pause/goto)
-    9. playback_action - Full playback control (go, go_back, goto, fast_forward, etc.)
-    10. clear_programmer - Clear programmer state (all, selection, active)
-    11. park_fixture - Park a fixture/DMX at current or specified output
-    12. unpark_fixture - Release a parked fixture/DMX
+Core workflows:
+  Inspect  → navigate_console, list_console_destination, query_object_list, get_object_info
+  Plan     → inspect + list_system_variables + suggest_tool_for_task
+  Execute  → run_orchestrated_task (handles preflight, execution, verification)
 
-    --- Programming ---
-    13. create_fixture_group - Select fixtures and save as a named group
-    14. store_current_cue - Store programmer into a cue (DESTRUCTIVE)
-    15. store_new_preset - Store programmer as a preset (DESTRUCTIVE)
-    16. store_object - Store generic objects: macros, effects, worlds (DESTRUCTIVE)
-    17. set_node_property - Set a property on a node via tree path
-    18. copy_or_move_object - Copy or move objects between slots
-    19. delete_object - Delete any object (DESTRUCTIVE)
-    20. run_macro - Execute a stored macro by ID
-
-    --- Assignment & Layout ---
-    21. assign_object - Assign objects, functions, fades, or layout positions (DESTRUCTIVE)
-    22. label_or_appearance - Label or style objects (DESTRUCTIVE)
-    23. edit_object - Edit, cut, or paste objects (cut/paste DESTRUCTIVE)
-    24. remove_content - Remove content from objects (DESTRUCTIVE)
-
-    --- Info & Queries ---
-    25. get_object_info - Query info on any object
-    26. query_object_list - List cues, groups, presets, attributes, messages
-    27. manage_variable - Set or add to console variables (global/user)
-    28. send_raw_command - Send any MA command directly (safety-gated)
-
-    --- Codebase & Documentation Search ---
-    29. search_codebase - Semantic/keyword search across this server's own source code,
-        tests, docs, AND the official grandMA2 help documentation (when indexed).
-        Use this to discover command builder signatures, safety rules,
-        implementation details, or grandMA2 console operation instructions.
-
-    --- User Management (continued) ---
-    102. delete_user - Delete a console user account by slot (DESTRUCTIVE)
-
-    --- Library & Module Browsing ---
-    103. browse_effect_library - Browse effect templates in the grandMA2 effect library
-    104. browse_macro_library - Browse macro templates in the grandMA2 macro library
-    105. browse_plugin_library - Browse plugin templates in the grandMA2 plugin library
-    106. list_fader_modules - List connected fader modules
-    107. list_update_history - List programming update history
-
-    --- Show Management (continued) ---
-    108. delete_show - Delete a show file from disk (DESTRUCTIVE)
-
-    --- Playback (continued) ---
-    109. assign_temp_fader - Set the temp fader level on the selected executor
-
-    SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
-    """,
+SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
+Rights: read ma2://docs/rights-matrix before any mutating operation.
+""",
 )
 
 # Per-operator session pool
 _session_manager: SessionManager | None = None
 _session_manager_lock = asyncio.Lock()
+
+# Telemetry singleton — created lazily, shared by all tool wrappers
+_telemetry_singleton: ToolTelemetry | None = None
+
+
+def _get_telemetry() -> ToolTelemetry:
+    """Return the module-level ToolTelemetry singleton (lazy init)."""
+    global _telemetry_singleton
+    if _telemetry_singleton is None:
+        _telemetry_singleton = ToolTelemetry()
+    return _telemetry_singleton
 
 
 async def _get_session_manager() -> SessionManager:
@@ -475,21 +451,50 @@ async def get_client() -> GMA2TelnetClient:
 
 
 def _handle_errors(func):
-    """Decorator that catches exceptions in MCP tools and returns JSON errors."""
+    """Decorator that catches exceptions in MCP tools and returns JSON errors.
+
+    Also records every invocation to the ``tool_invocations`` telemetry table
+    (controlled by the ``GMA_TELEMETRY`` env var; default enabled).
+    Risk tier and operator identity are inferred once at decoration time.
+    """
+    _risk_tier = infer_risk_tier(func)
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs) -> str:
+        t0 = time.monotonic()
+        result: str = ""
+        error_class: str | None = None
         try:
-            return await func(*args, **kwargs)
+            result = await func(*args, **kwargs)
         except ConnectionError as e:
             logger.error("Connection error in %s: %s", func.__name__, e)
-            return json.dumps({"error": f"Connection failed: {e}", "blocked": True}, indent=2)
+            error_class = "ConnectionError"
+            result = json.dumps({"error": f"Connection failed: {e}", "blocked": True}, indent=2)
         except RuntimeError as e:
             logger.error("Runtime error in %s: %s", func.__name__, e)
-            return json.dumps({"error": f"Runtime error: {e}", "blocked": True}, indent=2)
+            error_class = "RuntimeError"
+            result = json.dumps({"error": f"Runtime error: {e}", "blocked": True}, indent=2)
         except Exception as e:
             logger.error("Unexpected error in %s: %s", func.__name__, e, exc_info=True)
-            return json.dumps({"error": f"Unexpected error: {e}", "blocked": True}, indent=2)
+            error_class = type(e).__name__
+            result = json.dumps({"error": f"Unexpected error: {e}", "blocked": True}, indent=2)
+        finally:
+            if os.getenv("GMA_TELEMETRY", "1") != "0":
+                try:  # noqa: SIM105
+                    _get_telemetry().record_sync(
+                        tool_name=func.__name__,
+                        inputs_json=json.dumps(
+                            {k: str(v)[:200] for k, v in kwargs.items()}, default=str
+                        ),
+                        output_preview=result[:500] if result else "",
+                        error_class=error_class,
+                        latency_ms=(time.monotonic() - t0) * 1000,
+                        risk_tier=_risk_tier,
+                        operator=os.getenv("GMA_USER", "unknown"),
+                    )
+                except Exception:  # noqa: BLE001, SIM105
+                    pass  # telemetry must never break a tool call
+        return result
 
     return wrapper
 
@@ -1895,17 +1900,31 @@ async def list_system_variables(
     }, indent=2)
 
 
+async def _read_selected_exec(client) -> tuple[str | None, str | None]:
+    """Read $SELECTEDEXEC and $SELECTEDEXECCUE from the console.
+
+    Returns (exec_value, cue_value). Both are None if ListVar fails or the
+    variables are absent in the response.
+    """
+    try:
+        raw = await client.send_command_with_response("ListVar")
+        variables = _parse_listvar(raw)
+        return variables.get("$SELECTEDEXEC"), variables.get("$SELECTEDEXECCUE")
+    except Exception:
+        return None, None
+
+
 @mcp.tool()
 @require_scope(OAuthScope.PLAYBACK_GO)
 @_handle_errors
 async def playback_action(
     action: str,
     object_type: str | None = None,
-    object_id: int | None = None,
+    object_id: int | list[int] | None = None,
     cue_id: int | float | None = None,
     end: int | None = None,
     cue_mode: str | None = None,
-    executor: int | None = None,
+    executor: int | list[int] | None = None,
     sequence: int | None = None,
 ) -> str:
     """
@@ -1921,26 +1940,37 @@ async def playback_action(
             "goto" — jump to a specific cue (requires cue_id)
             "fast_forward" — skip forward (>>>)
             "fast_back" — skip backward (<<<)
-            "def_go" — go on the selected executor (go+)
-            "def_pause" — pause the selected executor
+            "def_go" — go on the selected executor (go+); response includes
+                       selected_executor and selected_cue_before
+            "def_go_back" / "def_goback" — go back on the selected executor;
+                       response includes selected_executor and selected_cue_before
+            "def_pause" — pause the selected executor; response includes
+                       selected_executor and selected_cue_before
         object_type: Object type for go/go_back (e.g. "executor", "sequence")
-        object_id: Object ID for go/go_back
+        object_id: Object ID for go/go_back — single int or list of ints.
+                   List produces "N + M + ..." syntax for multi-executor targeting.
         cue_id: Target cue number (required for "goto")
         end: End ID for range (go/go_back)
         cue_mode: Cue execution mode: "normal", "assert", "xassert", "release"
-        executor: Executor ID for goto/fast_forward/fast_back
+        executor: Executor ID for goto/fast_forward/fast_back — single int or list of ints.
+                  List produces "N + M + ..." syntax (e.g. [1,2,3] → ">>> executor 1 + 2 + 3").
         sequence: Sequence ID for goto/fast_forward/fast_back
 
     Returns:
         str: JSON with command_sent and raw_response.
+             def_go/def_go_back/def_pause also include selected_executor and
+             selected_cue_before (read from $SELECTEDEXEC before firing).
 
     Examples:
         - Go on executor 1: action="go", object_type="executor", object_id=1
+        - Go on executors 1+2+3: action="go", object_type="executor", object_id=[1,2,3]
         - Go back: action="go_back"
         - Goto cue 5: action="goto", cue_id=5
         - Goto cue 3 on sequence 2: action="goto", cue_id=3, sequence=2
         - Fast forward: action="fast_forward"
+        - Fast forward executors 1,2,3: action="fast_forward", executor=[1,2,3]
         - Go on selected executor: action="def_go"
+        - Go back on selected executor: action="def_go_back"
     """
     action = action.lower()
 
@@ -2011,15 +2041,29 @@ async def playback_action(
         cmd = build_go_fast_forward(executor=executor, sequence=sequence)
     elif action == "fast_back":
         cmd = build_go_fast_back(executor=executor, sequence=sequence)
-    elif action == "def_go":
-        cmd = build_def_go_forward()
-    elif action == "def_pause":
-        cmd = build_def_go_pause()
+    elif action in ("def_go", "def_go_back", "def_goback", "def_pause"):
+        client = await get_client()
+        sel_exec, sel_cue = await _read_selected_exec(client)
+
+        if action == "def_go":
+            cmd = build_def_go_forward()
+        elif action in ("def_go_back", "def_goback"):
+            cmd = build_def_go_back()
+        else:  # def_pause
+            cmd = build_def_go_pause()
+
+        raw_response = await client.send_command_with_response(cmd)
+        return json.dumps({
+            "command_sent": cmd,
+            "raw_response": raw_response,
+            "selected_executor": sel_exec,
+            "selected_cue_before": sel_cue,
+        }, indent=2)
     else:
         return json.dumps({
             "error": (
                 f"Unknown action: {action}. Use 'go', 'go_back', 'goto', "
-                f"'fast_forward', 'fast_back', 'def_go', or 'def_pause'."
+                f"'fast_forward', 'fast_back', 'def_go', 'def_go_back', or 'def_pause'."
             ),
             "blocked": True,
         }, indent=2)
@@ -3189,6 +3233,18 @@ async def toggle_console_mode(mode: str) -> str:
     if mode not in valid:
         return json.dumps({"error": f"mode must be one of {valid}", "blocked": True}, indent=2)
 
+    # Blind mode puts the console into the programming layer — requires presets scope.
+    if mode == "blind" and not has_scope(OAuthScope.PROGRAMMER_WRITE):
+        return json.dumps({
+            "blocked": True,
+            "error": (
+                "Blind mode requires OAuth scope 'gma2:programmer:write' "
+                "(tier:2 or higher). Highlight/Solo/Freeze only require tier:1."
+            ),
+            "scope_required": str(OAuthScope.PROGRAMMER_WRITE),
+            "scope_tier": 2,
+        }, indent=2)
+
     client = await get_client()
     response = await client.send_command_with_response(mode)
 
@@ -3889,26 +3945,72 @@ async def store_cue_with_timing(
 async def select_executor(
     executor_id: int,
     page: int | None = None,
+    deselect: bool = False,
 ) -> str:
     """
     Select an executor on the console.
 
+    IMPORTANT: MA2 telnet 'select executor N' is single-selection only — there
+    is no list syntax. You cannot select multiple executors simultaneously via
+    this command. Pass only a single executor_id integer.
+
+    After sending the command, $SELECTEDEXEC is read back to confirm the
+    selection took effect. A 'warning' field is included in the response if
+    the confirmed value does not match the requested executor_id.
+
+    To clear the current selection, pass deselect=True. This sends a bare
+    'select' command with no argument. NOTE: bare 'select' behaviour is
+    unverified on grandMA2 telnet — it may clear selection, be silently
+    ignored, or produce an error. Inspect 'raw_response' to confirm.
+
     Args:
-        executor_id: Executor number (1-999)
-        page: Page number for page-qualified addressing (optional)
+        executor_id: Executor number (1-999). Single value only.
+        page: Page number for page-qualified addressing (optional).
+              e.g. page=2, executor_id=5 → 'select executor 2.5'.
+              $SELECTEDEXEC returns the executor number only (not page-qualified).
+        deselect: If True, send bare 'select' to clear the current selection
+                  instead of selecting executor_id. Defaults to False.
 
     Returns:
-        str: JSON result with command sent
+        str: JSON with command_sent, raw_response, confirmed_selected_exec,
+             and risk_tier. Includes 'warning' if confirmed value doesn't match.
     """
+    client = await get_client()
+
+    if deselect:
+        cmd = "select"
+        response = await client.send_command_with_response(cmd)
+        listvar_raw = await client.send_command_with_response("ListVar")
+        confirmed = _parse_listvar(listvar_raw).get("$SELECTEDEXEC")
+        return json.dumps({
+            "command_sent": cmd,
+            "raw_response": response,
+            "confirmed_selected_exec": confirmed,
+            "note": "Bare 'select' sent to clear selection. Behaviour unverified on grandMA2 telnet.",
+            "risk_tier": "SAFE_WRITE",
+        }, indent=2)
+
     ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
     cmd = f"select executor {ref}"
-    client = await get_client()
     response = await client.send_command_with_response(cmd)
-    return json.dumps({
+
+    listvar_raw = await client.send_command_with_response("ListVar")
+    variables = _parse_listvar(listvar_raw)
+    confirmed = variables.get("$SELECTEDEXEC")
+
+    result: dict = {
         "command_sent": cmd,
         "raw_response": response,
+        "confirmed_selected_exec": confirmed,
         "risk_tier": "SAFE_WRITE",
-    }, indent=2)
+    }
+    # $SELECTEDEXEC stores executor number only (not page-qualified)
+    if confirmed is None or confirmed.strip() != str(executor_id):
+        result["warning"] = (
+            f"$SELECTEDEXEC is '{confirmed}' after command but expected '{executor_id}'. "
+            "The selection may not have taken effect."
+        )
+    return json.dumps(result, indent=2)
 
 
 @mcp.tool()
@@ -4107,9 +4209,8 @@ async def set_executor_priority(
     raw = await client.send_command_with_response(cmd)
 
     # Sync priority to snapshot write-tracker (Gap 10)
-    if snap := _orchestrator.last_snapshot:
-        if executor_id in snap.executor_state:
-            snap.executor_state[executor_id].priority = priority
+    if (snap := _orchestrator.last_snapshot) and executor_id in snap.executor_state:
+        snap.executor_state[executor_id].priority = priority
 
     return json.dumps({
         "command_sent": cmd,
@@ -6503,7 +6604,7 @@ async def _check_pool_slots(
         destination = pool_key
 
     # Navigate to pool
-    nav = await navigate(client, destination)
+    await navigate(client, destination)
 
     # List contents
     lst = await list_destination(client)
@@ -6930,21 +7031,30 @@ async def suggest_tool_for_task(
     task_description: str,
     top_n: int = 3,
     provider: str = "zero",
+    prefer_semantic: bool = True,
 ) -> str:
     """
     Suggest MCP tools for a natural-language task description (SAFE_READ).
 
     Embeds the task description and finds the closest tools by cosine
     similarity against stored docstring embeddings.  Falls back to keyword
-    matching when using the zero-vector provider.
+    matching when using the zero-vector provider or when no embedding token
+    is available.
 
     Args:
         task_description: What you want to accomplish (e.g. "fade out all fixtures").
         top_n: Number of suggestions to return (default 3).
         provider: Embedding provider — "zero" (keyword fallback) or "github".
+            Overridden by ``prefer_semantic`` when a token is available.
+        prefer_semantic: When True (default), automatically use embedding-based
+            search if GITHUB_MODELS_TOKEN is set in the environment.  Falls back
+            to keyword matching with a ``warning`` field when no token is present.
+            Set to False to force keyword matching regardless of token availability.
 
     Returns:
         str: JSON array of suggested tools with scores and descriptions.
+             Includes a top-level ``warning`` key when semantic search was
+             requested but fell back to keyword matching.
     """
     import numpy as np
 
@@ -6962,29 +7072,42 @@ async def suggest_tool_for_task(
 
     docstrings = get_docstring_map(taxonomy)
 
-    if provider == "zero":
-        # Keyword-based fallback: score tools by word overlap
+    # Resolve effective provider: prefer_semantic promotes "zero" → "github"
+    # when a token is available; records a warning when it cannot.
+    semantic_warning: str | None = None
+    effective_provider = provider
+    if prefer_semantic and provider == "zero":
+        if os.environ.get("GITHUB_MODELS_TOKEN", ""):
+            effective_provider = "github"
+        else:
+            semantic_warning = (
+                "prefer_semantic=True but GITHUB_MODELS_TOKEN is not set; "
+                "using keyword matching. Set GITHUB_MODELS_TOKEN for semantic search."
+            )
+
+    def _keyword_scores() -> list[tuple[str, float]]:
         task_words = set(task_description.lower().split())
-        scores: list[tuple[str, float]] = []
+        result: list[tuple[str, float]] = []
         for name, doc in docstrings.items():
             tool_words = set(name.replace("_", " ").lower().split()) | set(doc.lower().split())
             overlap = len(task_words & tool_words)
             if overlap > 0:
-                scores.append((name, float(overlap) / max(len(task_words), 1)))
-        scores.sort(key=lambda x: -x[1])
+                result.append((name, float(overlap) / max(len(task_words), 1)))
+        result.sort(key=lambda x: -x[1])
+        return result
+
+    if effective_provider == "zero":
+        scores: list[tuple[str, float]] = _keyword_scores()
     else:
         # Embed task and compare via cosine similarity
         names, emb_matrix = get_embedding_matrix(taxonomy)
         if emb_matrix.size == 0 or np.allclose(emb_matrix, 0.0):
             # Fall back to keyword matching
-            task_words = set(task_description.lower().split())
-            scores = []
-            for name, doc in docstrings.items():
-                tool_words = set(name.replace("_", " ").lower().split()) | set(doc.lower().split())
-                overlap = len(task_words & tool_words)
-                if overlap > 0:
-                    scores.append((name, float(overlap) / max(len(task_words), 1)))
-            scores.sort(key=lambda x: -x[1])
+            scores = _keyword_scores()
+            semantic_warning = (
+                (semantic_warning or "")
+                + " Embedding matrix is empty (zero-vector store); using keyword matching."
+            ).strip()
         else:
             from rag.ingest.embed import GitHubModelsProvider
 
@@ -7004,8 +7127,8 @@ async def suggest_tool_for_task(
             scores.sort(key=lambda x: -x[1])
 
     top = scores[:top_n]
-    return json.dumps(
-        [
+    result: dict = {
+        "suggestions": [
             {
                 "name": name,
                 "score": round(score, 4),
@@ -7013,9 +7136,11 @@ async def suggest_tool_for_task(
                 "description": docstrings.get(name, ""),
             }
             for name, score in top
-        ],
-        indent=2,
-    )
+        ]
+    }
+    if semantic_warning:
+        result["warning"] = semantic_warning
+    return json.dumps(result, indent=2)
 
 
 # ============================================================================
@@ -7419,520 +7544,6 @@ async def assign_temp_fader(
 
 
 # ============================================================
-# Busking / Performance Layer Tools
-# ============================================================
-
-
-@mcp.tool()
-@require_scope(OAuthScope.CUE_STORE)
-@_handle_errors
-async def assign_effect_to_executor(
-    effect_id: int,
-    executor_id: int,
-    page: int | None = None,
-    confirm_destructive: bool = False,
-) -> str:
-    """
-    Assign a sequence (effect) to an executor fader slot.
-
-    Implements the "fader-per-effect" busking model: one effect per fader so
-    the operator can blend intensities live. Use a dedicated page (e.g. page 2)
-    to keep busking faders separate from cue sequences.
-
-    Args:
-        effect_id: Sequence/effect ID to assign.
-        executor_id: Target executor number.
-        page: Optional page number. If given, command uses page.executor addressing.
-        confirm_destructive: Must be True — assigns overwrite any existing content.
-
-    Returns:
-        JSON with command_sent and executor address used.
-
-    Example:
-        assign_effect_to_executor(effect_id=5, executor_id=12, page=2,
-                                  confirm_destructive=True)
-        → "assign sequence 5 at executor 2.12"
-    """
-    if not confirm_destructive:
-        return json.dumps({
-            "status": "blocked",
-            "reason": "confirm_destructive must be True — assign will overwrite any existing executor content",
-        })
-    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
-    cmd = f"assign sequence {effect_id} at executor {addr}"
-    client = await get_client()
-    resp = await client.send_command_with_response(cmd)
-    return json.dumps({
-        "status": "ok",
-        "command_sent": cmd,
-        "executor_address": addr,
-        "response_preview": resp[:120] if resp else "",
-    })
-
-
-@mcp.tool()
-@require_scope(OAuthScope.CUE_STORE)
-@_handle_errors
-async def assign_sequence_to_executor(
-    sequence_id: int,
-    executor_id: int,
-    page: int | None = None,
-    confirm_destructive: bool = False,
-) -> str:
-    """
-    Assign a cue-list sequence to an executor for playback (DESTRUCTIVE).
-
-    Use this for traditional cue-list shows where a sequence runs on a specific
-    executor fader. For busking (looping effects), use assign_effect_to_executor instead.
-
-    Args:
-        sequence_id: Sequence ID to assign (the cue list).
-        executor_id: Target executor number.
-        page: Optional page qualifier. E.g. page=1, executor_id=5 → executor 1.5.
-        confirm_destructive: Must be True — overwrites any existing executor content.
-
-    Returns:
-        JSON with command_sent and executor address.
-
-    Example:
-        assign_sequence_to_executor(sequence_id=1, executor_id=5, confirm_destructive=True)
-        → "assign sequence 1 at executor 5"
-    """
-    if not confirm_destructive:
-        return json.dumps({
-            "status": "blocked",
-            "reason": "confirm_destructive must be True — assign will overwrite existing executor content",
-        })
-    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
-    cmd = build_assign("sequence", sequence_id, target_type="executor", target_id=addr)
-    client = await get_client()
-    resp = await client.send_command_with_response(cmd)
-    return json.dumps({
-        "status": "ok",
-        "command_sent": cmd,
-        "executor_address": addr,
-        "response_preview": resp[:120] if resp else "",
-    })
-
-
-@mcp.tool()
-@require_scope(OAuthScope.CUE_STORE)
-@_handle_errors
-async def assign_macro_to_executor(
-    macro_id: int,
-    executor_id: int,
-    page: int | None = None,
-    confirm_destructive: bool = False,
-) -> str:
-    """
-    Assign a macro to an executor button for one-touch triggering (DESTRUCTIVE).
-
-    Use this to place song-loader macros, utility macros, or any macro on a
-    physical executor button. The executor becomes a single-press macro trigger.
-
-    Args:
-        macro_id: Macro ID to assign.
-        executor_id: Target executor number.
-        page: Optional page qualifier for page.executor addressing.
-        confirm_destructive: Must be True — overwrites any existing executor content.
-
-    Returns:
-        JSON with command_sent and executor address.
-
-    Example:
-        assign_macro_to_executor(macro_id=5, executor_id=1, page=2, confirm_destructive=True)
-        → "assign macro 5 at executor 2.1"
-    """
-    if not confirm_destructive:
-        return json.dumps({
-            "status": "blocked",
-            "reason": "confirm_destructive must be True — assign will overwrite existing executor content",
-        })
-    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
-    cmd = build_assign("macro", macro_id, target_type="executor", target_id=addr)
-    client = await get_client()
-    resp = await client.send_command_with_response(cmd)
-    return json.dumps({
-        "status": "ok",
-        "command_sent": cmd,
-        "executor_address": addr,
-        "response_preview": resp[:120] if resp else "",
-    })
-
-
-@mcp.tool()
-@require_scope(OAuthScope.CUE_STORE)
-@_handle_errors
-async def assign_executor_function(
-    function: str,
-    executor_id: int,
-    page: int | None = None,
-    confirm_destructive: bool = False,
-) -> str:
-    """
-    Assign a button or fader function to an executor (DESTRUCTIVE).
-
-    Changes what the executor's button or fader does. Common button functions:
-    Go, GoBack, Pause, Flash, Toggle, On, Off, Kill, Select, Top, Freeze, Solo,
-    Release, DoubleSpeed, HalfSpeed, DoubleRate, HalfRate.
-
-    Common fader functions: Master, Crossfade, CrossfadeA, CrossfadeB, Temp,
-    Speed, Rate, MasterFade, StepFade, StepInFade, StepOutFade, ManualXFade.
-
-    Args:
-        function: Function name (case-insensitive). Must be a valid MA2 executor function.
-        executor_id: Target executor number.
-        page: Optional page qualifier.
-        confirm_destructive: Must be True.
-
-    Returns:
-        JSON with command_sent. Includes error if function name is unrecognised.
-
-    Example:
-        assign_executor_function("Toggle", executor_id=5, confirm_destructive=True)
-        → "assign toggle at executor 5"
-    """
-    if not confirm_destructive:
-        return json.dumps({
-            "status": "blocked",
-            "reason": "confirm_destructive must be True",
-        })
-    from src.commands.constants import EXECUTOR_BUTTON_FUNCTIONS, EXECUTOR_FADER_FUNCTIONS
-    valid = frozenset(f.lower() for f in EXECUTOR_BUTTON_FUNCTIONS + EXECUTOR_FADER_FUNCTIONS)
-    if function.lower() not in valid:
-        all_fns = sorted(EXECUTOR_BUTTON_FUNCTIONS + EXECUTOR_FADER_FUNCTIONS)
-        return json.dumps({
-            "status": "error",
-            "reason": f"'{function}' is not a valid executor function.",
-            "valid_functions": all_fns,
-        })
-    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
-    cmd = build_assign_function(function, "executor", addr)
-    client = await get_client()
-    resp = await client.send_command_with_response(cmd)
-    return json.dumps({
-        "status": "ok",
-        "command_sent": cmd,
-        "executor_address": addr,
-        "response_preview": resp[:120] if resp else "",
-    })
-
-
-@mcp.tool()
-@require_scope(OAuthScope.PLAYBACK_GO)
-@_handle_errors
-async def modulate_effect(
-    executor_id: int,
-    rate: float | None = None,
-    speed: float | None = None,
-    page: int | None = None,
-) -> str:
-    """
-    Set the rate or speed of an active effect on an executor fader.
-
-    Use rate (0–200 %) to scale the effect's default tempo, or speed (BPM) to
-    set an absolute tempo. Exactly one of rate or speed must be supplied.
-
-    Args:
-        executor_id: Executor number holding the active effect.
-        rate: Rate percentage (0–200). Scales default effect speed.
-        speed: Absolute speed in BPM.
-        page: Optional page qualifier for executor addressing.
-
-    Returns:
-        JSON with command_sent.
-
-    Example:
-        modulate_effect(executor_id=12, rate=150, page=2)
-        → "executor 2.12 at rate 150"
-    """
-    if rate is None and speed is None:
-        return json.dumps({"status": "error", "reason": "Provide rate or speed, not both absent."})
-    if rate is not None and speed is not None:
-        return json.dumps({"status": "error", "reason": "Provide rate OR speed, not both."})
-    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
-    if rate is not None:
-        cmd = f"executor {addr} at rate {rate}"
-    else:
-        cmd = f"executor {addr} at speed {speed}"
-    client = await get_client()
-    resp = await client.send_command_with_response(cmd)
-    return json.dumps({
-        "status": "ok",
-        "command_sent": cmd,
-        "response_preview": resp[:120] if resp else "",
-    })
-
-
-@mcp.tool()
-@require_scope(OAuthScope.PLAYBACK_GO)
-@_handle_errors
-async def clear_effects_on_page(
-    page: int,
-    executor_start: int = 1,
-    executor_end: int = 90,
-) -> str:
-    """
-    Release all effect executors on a page range.
-
-    Walks executor_start through executor_end on the given page and sends a
-    release command for each. Silently skips executors with no content.
-    Use before a song change to guarantee a clean fader state.
-
-    Args:
-        page: Page number to clear.
-        executor_start: First executor number to release (default 1).
-        executor_end: Last executor number to release (default 90).
-
-    Returns:
-        JSON with commands_sent count and page cleared.
-
-    Example:
-        clear_effects_on_page(page=2, executor_start=1, executor_end=20)
-        → releases executors 2.1 through 2.20
-    """
-    client = await get_client()
-    count = 0
-    for n in range(executor_start, executor_end + 1):
-        cmd = f"release executor {page}.{n}"
-        await client.send_command_with_response(cmd)
-        count += 1
-    return json.dumps({
-        "status": "ok",
-        "page": page,
-        "executors_released": count,
-        "range": f"{executor_start}–{executor_end}",
-    })
-
-
-@mcp.tool()
-@require_scope(OAuthScope.PLAYBACK_GO)
-@_handle_errors
-async def normalize_page_faders(
-    page: int,
-    executor_start: int = 1,
-    executor_end: int = 90,
-) -> str:
-    """
-    Zero all faders on a page without releasing their executors.
-
-    Sends a single ranged 'at 0' command to bring all faders to zero while
-    keeping executor assignments intact. Use between songs to silently fade
-    out all busking effects before the next song's faders are raised.
-
-    Args:
-        page: Page number to normalize.
-        executor_start: First executor in range (default 1).
-        executor_end: Last executor in range (default 90).
-
-    Returns:
-        JSON with command_sent.
-
-    Example:
-        normalize_page_faders(page=2)
-        → "executor 2.1 thru 2.90 at 0"
-    """
-    cmd = f"executor {page}.{executor_start} thru {page}.{executor_end} at 0"
-    client = await get_client()
-    resp = await client.send_command_with_response(cmd)
-    return json.dumps({
-        "status": "ok",
-        "command_sent": cmd,
-        "response_preview": resp[:120] if resp else "",
-    })
-
-
-@mcp.tool()
-@require_scope(OAuthScope.STATE_READ)
-@_handle_errors
-async def classify_show_mode() -> str:
-    """
-    Analyse the show structure and classify it as busking, sequence, hybrid, or empty.
-
-    Queries sequence count, executor assignments, and macro count from the console
-    to infer the operator's primary workflow mode:
-
-    - **busking**   — many short effects assigned to faders, few or no cue lists
-    - **sequence**  — one or more long cue-list sequences, minimal standalone effects
-    - **hybrid**    — mix of cue lists and effect faders
-    - **empty**     — no sequences or executors found
-
-    Returns:
-        JSON with mode, evidence dict, and a brief recommendation.
-
-    Example response:
-        {"mode": "busking", "evidence": {"sequences": 12, "executors_used": 8,
-         "macros": 24}, "recommendation": "Use busking tools for fader control."}
-    """
-    client = await get_client()
-
-    # Query key indicators
-    seq_resp = await client.send_command_with_response("list sequence")
-    macro_resp = await client.send_command_with_response("list macro")
-    exec_resp = await client.send_command_with_response("list executor")
-
-    def _count_lines(resp: str) -> int:
-        lines = [ln.strip() for ln in (resp or "").splitlines()
-                 if ln.strip() and "NO OBJECTS" not in ln and not ln.strip().startswith("[")]
-        return len(lines)
-
-    seq_count = _count_lines(seq_resp)
-    macro_count = _count_lines(macro_resp)
-    exec_count = _count_lines(exec_resp)
-
-    # Classify
-    if seq_count == 0 and exec_count == 0:
-        mode = "empty"
-        recommendation = "No sequences or executors found. Build your show before using playback tools."
-    elif seq_count > 0 and exec_count <= 2:
-        mode = "sequence"
-        recommendation = "Sequence-driven show. Use playback_action and goto_cue for cue control."
-    elif exec_count >= 4 and seq_count > 0:
-        mode = "hybrid"
-        recommendation = "Mixed show. Cue list tools for main sequences; busking tools for effect faders."
-    elif exec_count >= 4:
-        mode = "busking"
-        recommendation = "Busking show. Use assign_effect_to_executor, modulate_effect, and normalize_page_faders."
-    else:
-        mode = "hybrid"
-        recommendation = "Mixed structure detected. Review executor assignments before choosing workflow."
-
-    return json.dumps({
-        "mode": mode,
-        "evidence": {
-            "sequences": seq_count,
-            "executors_used": exec_count,
-            "macros": macro_count,
-        },
-        "recommendation": recommendation,
-    })
-
-
-# ============================================================
-# MCP Resources — Busking Knowledge Base
-# ============================================================
-
-
-@mcp.resource("ma2://busking/patterns")
-def busking_patterns() -> str:
-    """Live performance busking patterns for grandMA2."""
-    return """\
-# Busking Patterns — grandMA2
-
-## Core Model: Fader-Per-Effect
-Each executor runs one continuously looping effect. Fader = master intensity.
-- Fader 0 → effect runs silently (do NOT release between songs)
-- Fader 100 → full intensity
-- No cue steps — everything always running, always modulatable
-
-## Executor Layout (per song page)
-[1] Song loader macro (first-button protocol)
-[2] Strobe / flash effect
-[3] Chase (color or position)
-[4] Beam effect (gobos, zoom)
-[5] Ambient wash
-[6] Key light / special
-[7] Audience blinder
-[8] Haze / atmospheric
-[9] Group master — front wash
-[10] Group master — back wash
-
-Fixed global page: overture look, house lights, emergency blackout, SM cueing macro.
-
-## Live Recovery Protocol
-Step 1: normalize_page_faders(page)   — fade to 0, keep executors active
-Step 2: clear_effects_on_page(page)   — release all executors
-Step 3: Re-trigger song loader (Exec 1 on current page)
-Step 4: Gradually raise effect faders one at a time
-
-NEVER skip step 1 — releasing running effects with faders above 0 causes a visible flash.
-
-## Safety Rules
-- Never assign_effect_to_executor during a live show (pre-show only)
-- normalize_page_faders ALWAYS before clear_effects_on_page
-- Group masters (execs 9-10) override individual effect intensities — check first
-- Effects survive ClearAll; programmer clear does NOT kill faders
-"""
-
-
-@mcp.resource("ma2://busking/effect-design")
-def busking_effect_design() -> str:
-    """Effect design reference for busking on grandMA2."""
-    return """\
-# Effect Design — grandMA2 Busking
-
-## Rate vs Speed
-| Goal | Tool | Parameter |
-|------|------|-----------|
-| Scale default tempo | modulate_effect(rate=N) | 50=half, 100=normal, 200=double |
-| Lock to BPM | modulate_effect(speed=BPM) | e.g. 128 for EDM |
-| Dim/brighten | Push/pull fader | 0–100 |
-| Kill single effect | clear_effects_on_page(page, N, N) | single exec |
-
-Use rate for feel adjustments; use speed when syncing to a specific BPM track.
-
-## MAtricks Layering
-Add spatial variation without duplicating effects:
-1. Select fixture group
-2. MAtricksInterleave 4 — divides fixtures into alternating groups
-3. Run effect — MA2 applies phase offset automatically
-
-Useful combinations:
-- Strobe + Interleave 2 → alternating strobe (odd/even)
-- Chase + Interleave 4 → 4-way pixel chase
-- Beam effect + Groups 2 → two independent beam zones
-
-## Batch Release Safety
-Before releasing a page:
-1. normalize_page_faders(page) — zero all faders first
-2. clear_effects_on_page(page) — then release
-Never release with faders above 0.
-"""
-
-
-@mcp.resource("ma2://busking/color-design")
-def busking_color_design() -> str:
-    """Color design strategy for live performance on grandMA2."""
-    return """\
-# Color Design — grandMA2 Busking
-
-## Why Constrained Palettes
-One hue per song = consistent emotional anchor. Vary intensity and texture, not color.
-Rule: one hue per song, 4 brightness stops applied via presets.
-
-## HSB Parameters (MA2 range: 0–100, NOT 0–255)
-/h=0–360 (hue) | /s=0–100 (saturation) | /br=0–100 (brightness)
-Never use RGB for live color design — HSB maps directly to what the LD sees.
-
-## 4-Stop Monochromatic Palette
-Stop 1 — Full punch:  br=100, s=90  (chorus, peak)
-Stop 2 — Mid warm:    br=70,  s=85  (verse, moderate)
-Stop 3 — Moody fill:  br=40,  s=80  (breakdown, intimate)
-Stop 4 — Near-black:  br=15,  s=75  (intro/outro, transitions)
-Keep saturation high — dropping saturation washes colour out.
-
-## Preset Numbering Convention
-preset_id = (song_number × 10) + stop_index
-Stop indices: 1=full, 2=mid, 3=moody, 4=accent
-Preset type: Color (type 4 in MA2)
-
-Example: Song 3, mid warm → preset 32  (apply: Preset 4.32)
-
-## Color Lock Technique
-1. Pre-show: store full-punch color preset for each song at slot (N*10+1)
-2. First-button macro line 2: Go Preset 4.{song*10+1}
-3. This locks the color as programmer base before effects start
-4. Effects modulating only intensity/position inherit the locked color
-
-## Song Transition
-1. New song loader fires: ClearAll + new color preset applied
-2. New color becomes base for ALL fixtures
-3. Fade up new song's effect faders
-4. Old song's effects already released by ClearAll
-"""
-
-
-# ============================================================
 # Agentic Layer — Orchestrator wiring
 # ============================================================
 
@@ -7965,6 +7576,643 @@ _orchestrator = Orchestrator(
 )
 
 register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, OAuthScope)
+
+
+# ============================================================
+# MCP Resources
+# Static and semi-static context exposed as URI-addressable docs
+# ============================================================
+
+
+@mcp.resource("ma2://docs/rights-matrix")
+def resource_rights_matrix() -> str:
+    """
+    MA2 OAuth scope → MA2Right mapping matrix (read-only reference).
+
+    Returns the full JSON rights matrix from doc/ma2-rights-matrix.json.
+    Use this resource to look up which OAuth scope is required for any
+    MA2 operation before attempting to call a tool.
+    """
+    rights_path = Path(__file__).parent.parent / "doc" / "ma2-rights-matrix.json"
+    try:
+        return rights_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return json.dumps({"error": "rights matrix not found at doc/ma2-rights-matrix.json"})
+
+
+@mcp.resource("ma2://docs/vocab-summary")
+def resource_vocab_summary() -> str:
+    """
+    grandMA2 keyword vocabulary summary — all 141 keywords with RiskTier and category.
+
+    Use this resource to look up the safety tier of any MA2 keyword before
+    including it in a command string.  Tier determines whether confirm_destructive
+    is required and which OAuthScope must be active.
+    """
+    from src.vocab import classify_token, load_vocab
+    spec = load_vocab()
+    summary = {}
+    all_keywords = list(spec.function_keywords.keys()) + list(spec.object_keywords.keys())
+    for kw in all_keywords:
+        resolved = classify_token(kw, spec)
+        summary[kw] = {"category": resolved.category, "risk_tier": resolved.risk_tier}
+    return json.dumps(summary, indent=2)
+
+
+@mcp.resource("ma2://docs/tool-taxonomy")
+def resource_tool_taxonomy() -> str:
+    """
+    ML-generated tool taxonomy — 143 tools clustered into 14 categories.
+
+    Each entry includes tool name, category, and docstring summary.
+    Use this resource to understand the tool landscape before calling
+    suggest_tool_for_task, or to verify a tool exists before invoking it.
+    """
+    taxonomy = _load_taxonomy_cached()
+    # Return a compact summary: category → tool names
+    categories = taxonomy.get("categories", {})
+    summary = {
+        cat: [t["name"] for t in data.get("tools", [])]
+        for cat, data in categories.items()
+    }
+    return json.dumps({"categories": summary, "total_tools": sum(len(v) for v in summary.values())}, indent=2)
+
+
+@mcp.resource("ma2://docs/responsibility-map")
+def resource_responsibility_map() -> str:
+    """
+    Module responsibility map — every file's primary role and architectural smells.
+
+    Use this resource when making architectural decisions or when adding new
+    modules, to ensure the new code is placed in the correct layer.
+    """
+    map_path = Path(__file__).parent.parent / "doc" / "responsibility-map.md"
+    try:
+        return map_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return "# Responsibility map not found. Run the architecture audit to regenerate."
+
+
+@mcp.resource("ma2://docs/tool-surface-tiers")
+def resource_tool_surface_tiers() -> str:
+    """
+    Tool surface tier classification — which tools are Tier A (always visible),
+    Tier B (retrievable), or Tier C (internal).
+
+    Use this resource to decide whether to add a new tool to the planner-visible
+    surface or keep it as a worker-only primitive.
+    """
+    tiers_path = Path(__file__).parent.parent / "doc" / "tool-surface-tiers.md"
+    try:
+        return tiers_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return "# Tool surface tiers doc not found."
+
+
+@mcp.resource("ma2://skills/{skill_id}")
+def resource_skill_body(skill_id: str) -> str:
+    """
+    Retrieve a skill's formatted injection payload by ID.
+
+    Returns the skill body formatted as a user message ready for injection,
+    but only if the skill is usable (approved or non-DESTRUCTIVE).
+    Returns an error message if the skill is not found or not yet approved.
+
+    Use SkillRegistry.get_usable() for the same check with Python access.
+    """
+    from src.skill import SkillRegistry
+    reg = SkillRegistry()
+    skill = reg.get_usable(skill_id)
+    if skill is None:
+        sk = reg.get(skill_id)
+        if sk is None:
+            return f"Skill '{skill_id}' not found in registry."
+        return f"Skill '{skill_id}' exists but is not usable (safety_scope=DESTRUCTIVE, approved=False). Requires SYSTEM_ADMIN approval."
+    return skill.as_user_message()
+
+
+@mcp.resource("ma2://busking/patterns")
+def resource_busking_patterns() -> str:
+    """
+    Best-practice busking patterns for live performance lighting (read-only).
+
+    Covers: fader-per-effect model, song macro page protocol, live recovery
+    steps, and color lock technique. Use before designing a busking show.
+    """
+    return """\
+# grandMA2 Busking Patterns
+
+## Fader-Per-Effect Model
+Each executor on a fader page runs one effect. The fader controls intensity
+(0 = silent, 100 = full). Effects stay armed — zero fader silences, raise
+fader restores. Never release effects mid-song; use normalize_page_faders.
+
+Layout convention:
+  - Column 1 (Exec 1): Song loader macro (first-button protocol)
+  - Columns 2–8 (Exec 2–8): Effect faders (strobe, chase, color, beam...)
+  - Columns 9–10: Group masters (intensity override for rig sections)
+  - Fixed right page: Global effects that persist across songs
+
+## Song Macro Page Protocol
+Each song gets one page. Page name: `SNG_{n}_{SongName}` (e.g. SNG_3_Villains).
+
+**First button (Exec 1) macro lines:**
+1. `ClearAll` — reset programmer
+2. `Go Preset 4.{palette_id}` — apply song color palette
+3. `Go Macro {song_setup_macro}` — recall rig positions and timing
+4. `SelectDrive {executor_page}` — jump to this song's effect page
+
+**Remaining buttons:** effect executors — no macros, faders only.
+
+## Live Recovery Protocol
+When show state drifts (wrong levels, stuck effects):
+1. `normalize_page_faders(page)` — zero all faders silently
+2. `clear_effects_on_page(page)` — release stuck executors
+3. Re-trigger song loader (Exec 1) to restore clean state
+4. Gradually raise faders to rebuild look
+
+## Color Lock Technique
+Prevents color bleed when multiple effects are active:
+1. Store song color as a Color preset (e.g. Preset 4.30 = deep amber)
+2. Apply preset to all fixtures via Group masters before effects start
+3. Effects modulate intensity/position only — color preset holds the hue
+4. On song change: apply new color preset before raising new effect faders
+"""
+
+
+@mcp.resource("ma2://busking/effect-design")
+def resource_effect_design() -> str:
+    """
+    Effect-to-executor assignment patterns and rate/speed semantics (read-only).
+
+    Covers: assign_effect_to_executor usage, rate vs speed distinction,
+    MAtricks layering for busking, and batch release safety.
+    """
+    return """\
+# grandMA2 Effect Design for Busking
+
+## Effect Assignment
+Use `assign_effect_to_executor(effect_id, executor_id, page=N)` to bind an
+effect from the library to a fader slot. This is DESTRUCTIVE — do during
+pre-show programming, not during live performance.
+
+Command generated: `Assign Effect {id} Executor {id}` or `Assign Effect {id} Page {n}.{exec}`
+
+After assignment, the fader controls the effect's master intensity (0-100).
+The effect runs continuously while the executor is active.
+
+## Rate vs Speed
+| Parameter | Command | Semantics | Range |
+|-----------|---------|-----------|-------|
+| Rate | `EffectRate {n}` | Relative multiplier — 100 = normal | 1–200 |
+| Speed | `EffectSpeed {n}` | Absolute BPM — overrides rate | 20–300 |
+
+Use `modulate_effect(mode="rate", value=150)` to push effects 1.5× faster.
+Use `modulate_effect(mode="speed", value=120)` to lock effects to 120 BPM.
+
+Speed and rate affect the *selected* effects globally. To target a specific
+executor's effect, select it first with `select_executor(executor_id)`.
+
+## MAtricks Layering
+Layer MAtricks patterns over effects for per-fixture phase offsets:
+1. Select group, apply MAtricks Interleave
+2. Run effect — each fixture gets a phase offset proportional to its index
+3. Adjust interleave with `modulate_effect` rate to control chase tightness
+
+## Batch Release Safety
+`clear_effects_on_page(page, start_exec=1, end_exec=20)` sends 20 Off
+commands in a single chained string. On slow consoles this may cause a
+brief flash as effects die in sequence. To avoid: use `normalize_page_faders`
+first (silences without visual glitch), then `clear_effects_on_page`.
+"""
+
+
+@mcp.resource("ma2://busking/color-design")
+def resource_color_design() -> str:
+    """
+    Constrained color palette design for busking shows (read-only).
+
+    Covers: HSB palette strategy, preset numbering, monochromatic constraint,
+    and color lock via group master. Use when designing song color palettes.
+    """
+    return """\
+# grandMA2 Constrained Color Design for Busking
+
+## HSB vs RGB
+Always use HSB for live busking color design. MA2 HSB range: 0-100 (not 0-255).
+
+| Parameter | Flag | Range | Notes |
+|-----------|------|-------|-------|
+| Hue | `/h=` | 0–360 | Degrees |
+| Saturation | `/s=` | 0–100 | 0 = white, 100 = full color |
+| Brightness | `/br=` | 0–100 | 0 = black, 100 = full |
+
+Example: `store_preset 4.30 /h=30 /s=95 /br=100` = deep amber.
+
+## Monochromatic Palette Strategy
+Each song gets one hue with 4 brightness stops:
+- Stop 1: Full intensity (br=100, s=90)
+- Stop 2: Mid punch (br=70, s=85)
+- Stop 3: Moody fill (br=40, s=80)
+- Stop 4: Near-black accent (br=15, s=75)
+
+## Preset Numbering Convention
+`preset_id = song_id * 10 + stop_index`
+
+| Song | Stop | Preset |
+|------|------|--------|
+| Song 1 | 1 (full) | 11 |
+| Song 1 | 2 (mid) | 12 |
+| Song 3 | 4 (accent) | 34 |
+
+Recall with `apply_preset(preset_type="color", preset_id=34)`.
+
+## Color Lock Technique
+1. Before raising effect faders, apply the song's full-intensity color preset
+   to all rig fixtures via group masters: `group_at(group_id=99, value=100)`
+2. Effects that only modulate intensity/position inherit the locked color
+3. Transition between songs: apply new color preset (step 1) BEFORE releasing
+   the previous song's effect faders — avoids white flash on crossover
+4. For fixtures with separate color channels (CMY movers): store color in a
+   Color preset, not in the programmer, so it survives `ClearAll`
+"""
+
+
+# ============================================================
+# MCP Prompts
+# User-initiated workflow templates for console operations
+# ============================================================
+
+
+@mcp.prompt()
+def preflight_destructive_change(operation: str, target: str, reason: str = "") -> str:
+    """
+    Run pre-flight checks before any destructive console operation.
+
+    Use this prompt before calling any DESTRUCTIVE tool to ensure the
+    operation is safe to proceed.
+
+    Args:
+        operation: The destructive operation to perform (e.g. "delete_object", "store_current_cue").
+        target: The object or path being modified (e.g. "Group 5", "Sequence 1 Cue 3").
+        reason: Why this change is needed (optional but recommended for audit trail).
+    """
+    return f"""Perform a safety pre-flight before executing: {operation} on {target}
+
+Reason: {reason or "(not specified)"}
+
+Pre-flight checklist:
+1. Read `ma2://docs/rights-matrix` — confirm the current user has sufficient rights for {operation}.
+2. Call `list_system_variables` — check $USERRIGHTS and $SHOWFILE.
+3. Call `get_object_info` on {target} — confirm the target exists and capture its current state.
+4. Check if Blind mode is active (`$BLINDMODE` or `mode_overrides["blind"]`).
+5. If the operation affects executors, verify no cue is running on the target executor.
+
+Only proceed with {operation} after all five checks pass.
+If any check fails, report the finding and ask the user to confirm before proceeding.
+Use `confirm_destructive=True` when calling the tool."""
+
+
+@mcp.prompt()
+def inspect_console(focus: str = "full") -> str:
+    """
+    Guided console state inspection — Inspect workflow.
+
+    Produces a structured console overview without any mutations.
+
+    Args:
+        focus: What to inspect — "full" (default), "playback", "fixtures", "show", or "rights".
+    """
+    focus_map = {
+        "full": "system variables, active executors, programmer state, and current show info",
+        "playback": "active executors, running cues, fader levels, and executor assignments",
+        "fixtures": "patched fixture types, selected fixtures, programmer content",
+        "show": "show file name, universe count, group count, sequence count, and preset pool sizes",
+        "rights": "current user, rights level, active world, and active filter",
+    }
+    scope = focus_map.get(focus, focus_map["full"])
+    return f"""Inspect the grandMA2 console — {focus} focus.
+
+Read-only inspection only. No mutations permitted.
+
+Steps:
+1. Call `list_system_variables` — capture all 26 system variables.
+2. Inspect: {scope}.
+3. Call `navigate_console` to `cd /` and `list_console_destination` to see the root object tree.
+4. If focus includes executors: call `query_object_list` for active sequences and their cue counts.
+5. Summarize findings in this structure:
+
+{{
+  "console_version": "$VERSION",
+  "show_file": "$SHOWFILE",
+  "active_user": "$USER",
+  "rights": "$USERRIGHTS",
+  "selected_exec": "$SELECTEDEXEC",
+  "active_cue": "$SELECTEDEXECCUE",
+  "fixture_count": <from list>,
+  "findings": ["..."]
+}}"""
+
+
+@mcp.prompt()
+def plan_cue_store(
+    sequence_id: str,
+    cue_number: str,
+    fixture_selection: str,
+    preset_or_values: str,
+) -> str:
+    """
+    Plan a cue store operation with safety and rights checks — Plan workflow.
+
+    Use this prompt to generate a structured cue store plan before executing.
+    The plan includes pre-flight checks, proposed commands, and a verification step.
+
+    Args:
+        sequence_id: Sequence number (e.g. "1", "99").
+        cue_number: Target cue number (e.g. "1", "3.5").
+        fixture_selection: Fixture group or ID range to use (e.g. "Group 1", "Fixture 1 Thru 10").
+        preset_or_values: Preset to apply or manual values (e.g. "Preset 4.5", "Full").
+    """
+    return f"""Plan a cue store operation without executing it yet.
+
+Target: Store Cue {cue_number} in Sequence {sequence_id}
+Fixtures: {fixture_selection}
+Values/Preset: {preset_or_values}
+
+Plan steps:
+1. PRE-FLIGHT: Call `list_system_variables` — confirm $USERRIGHTS has Programmer or higher.
+2. PRE-FLIGHT: Call `query_object_list` for Sequence {sequence_id} — check if Cue {cue_number} already exists.
+   If it exists: plan a /merge store. If not: plan a clean store.
+3. SELECT: Plan `SelFix {fixture_selection}` — verify fixture count > 0.
+4. APPLY: Plan `{preset_or_values}` — identify whether this is a preset recall or direct value.
+5. STORE PLAN: Emit the exact command to be executed:
+   `Store Cue {cue_number} Sequence {sequence_id} /merge`
+6. VERIFY PLAN: After store, plan `query_object_list` on Sequence {sequence_id} to confirm Cue {cue_number} exists.
+
+Return the plan as a JSON object with "pre_flight", "commands", and "verify" arrays.
+Do NOT execute any commands yet. This is a planning step only."""
+
+
+@mcp.prompt()
+def diagnose_playback_failure(executor_id: str, symptom: str) -> str:
+    """
+    Diagnose a playback failure on a specific executor — Inspect + Plan workflows.
+
+    Use this prompt when a cue or executor is not behaving as expected.
+
+    Args:
+        executor_id: The executor identifier (e.g. "1", "201", "1.1.201").
+        symptom: What is observed (e.g. "cue not advancing", "no output", "wrong fixtures responding").
+    """
+    return f"""Diagnose playback failure on Executor {executor_id}.
+
+Observed symptom: {symptom}
+
+Diagnostic steps:
+1. Call `list_system_variables` — check $SELECTEDEXEC, $SELECTEDEXECCUE, $FADERPAGE.
+2. Call `query_object_list` for the sequence assigned to Executor {executor_id} — count cues, check for gaps.
+3. Call `get_object_info` on Executor {executor_id} — check assignment, priority, options.
+4. Call `send_raw_command` with `list Executor {executor_id}` — capture raw executor state.
+5. Load skill `ma2://skills/telnet-feedback-triage` — apply FeedbackClass classification to any UNKNOWN COMMAND or WARNING responses.
+
+Common failure patterns:
+- "no output": check blind mode ($BLINDMODE), check if output is patched, check DMX universe assignment.
+- "cue not advancing": check trigger setting (Time/Go), check MIB settings, check if executor has "Kill" active.
+- "wrong fixtures": check world assignment, check if programmer has conflicting values (call `clear_programmer`).
+
+Return structured findings: {{"fault_class": "...", "root_cause": "...", "recommended_actions": [...]}}"""
+
+
+@mcp.prompt()
+def load_show_safely(show_name: str) -> str:
+    """
+    Safe show loading checklist — prevents accidental Telnet disconnection.
+
+    Use this prompt before any new_show or load_show operation.
+
+    Args:
+        show_name: The show file to load (e.g. "my_show_2026").
+    """
+    return f"""Load show "{show_name}" safely without severing the MCP Telnet connection.
+
+Pre-load checklist:
+1. Call `list_system_variables` — record current $SHOWFILE, $HOSTIP, $VERSION.
+2. Call `save_show` if any unsaved changes should be preserved.
+3. CRITICAL: Verify that the load command will preserve connectivity:
+   - For `new_show`: MUST use preserve_connectivity=True (passes /globalsettings /network /protocols).
+   - For `load_show`: confirm the target show has Telnet enabled in its global settings.
+4. Confirm the operator understands: loading a show with Telnet disabled will disconnect this MCP session.
+
+Only proceed after the checklist is complete.
+If loading a completely blank show, the user MUST manually re-enable Telnet in
+Setup → Console → Global Settings before the next MCP connection."""
+
+
+@mcp.prompt()
+def bootstrap_rights_users() -> str:
+    """
+    Bootstrap the standard six-tier MA2 rights user accounts — guided provisioning workflow.
+
+    Use this prompt when setting up a new show file with the standard
+    operator rights ladder (Admin, LightOperator, Programmer, PlaybackOperator, Guest, Emergency).
+    """
+    return """Bootstrap the standard MA2 rights user accounts.
+
+This is a DESTRUCTIVE workflow — it creates user accounts and modifies user profiles.
+All steps require confirm_destructive=True.
+
+Steps:
+1. INSPECT: Call `list_console_users` — check which accounts already exist.
+   Built-in accounts Administrator and Guest always exist and cannot be deleted.
+2. READ RESOURCE: Load `ma2://docs/rights-matrix` — review the six-tier rights ladder.
+3. PLAN: For each missing account in the standard set:
+   - Admin (rights: Admin)
+   - LightOperator (rights: Light-Operator)
+   - Programmer (rights: Programmer)
+   - PlaybackOp (rights: Playback-Operator)
+   - Guest (rights: Guest)
+4. EXECUTE: For each planned account, call `create_user(username=..., rights=..., confirm_destructive=True)`.
+5. VERIFY: Call `list_console_users` again — confirm all accounts were created.
+6. SAVE: Call `save_show` to persist the new accounts.
+
+Return a summary of: accounts created, accounts skipped (already existed), any errors."""
+
+
+# ============================================================
+# Busking / Performance Layer Tools
+# Live performance primitives: effect assignment, fader control, show mode
+# ============================================================
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def assign_effect_to_executor(
+    effect_id: int,
+    executor_id: int,
+    page: int | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Assign an effect template to a fader executor slot (DESTRUCTIVE).
+
+    Binds an effect from the effect library to an executor so the fader controls
+    effect intensity in live busking mode. This is the core primitive for the
+    fader-per-effect busking model.
+
+    Args:
+        effect_id: Effect pool ID to assign (1-based).
+        executor_id: Target executor slot number on the page.
+        page: Optional page number. When given, qualifies as 'Page {page}.{exec}'.
+        confirm_destructive: Must be True to execute (DESTRUCTIVE — modifies executor assignment).
+
+    Returns:
+        JSON result with command sent and console response.
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "assign_effect_to_executor is DESTRUCTIVE (modifies executor assignment). Pass confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+            "command_preview": build_assign_effect_to_executor(effect_id, executor_id, page=page),
+        }, indent=2)
+    client = await get_client()
+    cmd = build_assign_effect_to_executor(effect_id, executor_id, page=page)
+    response = await client.send_command(cmd)
+    return json.dumps({"command": cmd, "response": response, "effect_id": effect_id, "executor_id": executor_id}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def modulate_effect(
+    mode: str,
+    value: int,
+) -> str:
+    """
+    Set rate or speed on active effects in real time (SAFE_WRITE).
+
+    Used in busking to live-modulate effect tempo without stopping playback.
+    Rate is a relative multiplier (100 = normal, 200 = double).
+    Speed is an absolute BPM target (overrides rate).
+
+    Args:
+        mode: "rate" (relative 1–200, 100=normal) or "speed" (absolute BPM).
+        value: Numeric value for the chosen mode.
+
+    Returns:
+        JSON result with command sent and console response.
+    """
+    if mode == "rate":
+        cmd = build_set_effect_rate(value)
+    else:
+        cmd = build_set_effect_speed(value)
+    client = await get_client()
+    response = await client.send_command(cmd)
+    return json.dumps({"command": cmd, "mode": mode, "value": value, "response": response}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def clear_effects_on_page(
+    page: int,
+    start_exec: int = 1,
+    end_exec: int = 20,
+) -> str:
+    """
+    Release (kill) all effect executors across a page range (SAFE_WRITE).
+
+    Sends Off commands to every executor in the range, stopping all running
+    effects. Use during song transitions to clean up the previous song's state.
+    Does not change fader positions — use normalize_page_faders for that.
+
+    Args:
+        page: Fader page number.
+        start_exec: First executor slot to release (default 1).
+        end_exec: Last executor slot to release (default 20).
+
+    Returns:
+        JSON result with command count and console response.
+    """
+    client = await get_client()
+    cmd = build_release_effects_on_page(page, start_exec=start_exec, end_exec=end_exec)
+    response = await client.send_command(cmd)
+    count = end_exec - start_exec + 1
+    return json.dumps({"command_count": count, "page": page, "response": response}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def normalize_page_faders(
+    page: int,
+    start_exec: int = 1,
+    end_exec: int = 20,
+) -> str:
+    """
+    Set all faders on a page to 0 without releasing executors (SAFE_WRITE).
+
+    Silences all effects while keeping them armed for instant recall — the
+    standard busking blackout technique. Faders return to zero but executors
+    remain active; pushing the fader up immediately restores the effect.
+
+    Args:
+        page: Fader page number.
+        start_exec: First executor slot (default 1).
+        end_exec: Last executor slot (default 20).
+
+    Returns:
+        JSON result with command count and console response.
+    """
+    client = await get_client()
+    cmd = build_zero_page_faders(page, start_exec=start_exec, end_exec=end_exec)
+    response = await client.send_command(cmd)
+    count = end_exec - start_exec + 1
+    return json.dumps({"command_count": count, "page": page, "zeroed": True, "response": response}, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def classify_show_mode() -> str:
+    """
+    Inspect the show and classify its execution mode (SAFE_READ).
+
+    Queries the effect and macro libraries to determine whether the current
+    show is structured for busking (effect-fader model), sequence-driven
+    playback, or a hybrid of both.
+
+    Returns:
+        JSON with mode classification and supporting evidence:
+        - "busking"  — primarily effects assigned to fader executors
+        - "sequence" — primarily cue sequences on executors
+        - "hybrid"   — mix of effects and sequences
+        - "empty"    — no content detected
+    """
+    client = await get_client()
+    effect_response = await client.send_command(build_list_effect_library())
+    macro_response = await client.send_command(build_list_macro_library())
+
+    effect_lines = [line for line in effect_response.splitlines() if line.strip() and not line.startswith("[")]
+    macro_lines = [line for line in macro_response.splitlines() if line.strip() and not line.startswith("[")]
+
+    effect_count = len(effect_lines)
+    macro_count = len(macro_lines)
+
+    if effect_count == 0 and macro_count == 0:
+        mode = "empty"
+    elif effect_count > macro_count * 2:
+        mode = "busking"
+    elif macro_count > effect_count * 2:
+        mode = "sequence"
+    else:
+        mode = "hybrid"
+
+    return json.dumps({
+        "mode": mode,
+        "evidence": {"effects": effect_count, "macros": macro_count},
+    }, indent=2)
 
 
 # ============================================================

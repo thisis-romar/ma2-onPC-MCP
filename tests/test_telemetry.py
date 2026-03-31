@@ -1,186 +1,276 @@
 """
 tests/test_telemetry.py — Unit tests for src/telemetry.py
 
-Covers:
-  - infer_risk_tier() module-level function
-  - ToolTelemetry: record_sync, metrics, recent, top_failing_tools
+All tests use an in-memory or temp-file SQLite DB (GMA_TELEMETRY=0 is NOT set
+so the real recording path is exercised).  No live console required.
 """
 
-import tempfile
+from __future__ import annotations
+
 import time
-from pathlib import Path
 
 import pytest
 
 from src.telemetry import ToolTelemetry, infer_risk_tier
 
+# ---------------------------------------------------------------------------
+# Fixture
+# ---------------------------------------------------------------------------
 
-# ── infer_risk_tier ──────────────────────────────────────────────────────────
+@pytest.fixture
+def tel(tmp_path):
+    db = tmp_path / "test_telemetry.db"
+    t = ToolTelemetry(db_path=db)
+    yield t
+    t.close()
+
+
+# ---------------------------------------------------------------------------
+# infer_risk_tier
+# ---------------------------------------------------------------------------
+
+def _make_func(name, has_confirm=False):
+    if has_confirm:
+        def f(confirm_destructive: bool = False):
+            pass
+    else:
+        def f():
+            pass
+    f.__name__ = name
+    return f
 
 
 class TestInferRiskTier:
-    def test_confirm_destructive_param_returns_destructive(self):
-        def delete_thing(confirm_destructive: bool = False):
-            pass
+    def test_destructive_if_confirm_param(self):
+        f = _make_func("store_cue", has_confirm=True)
+        assert infer_risk_tier(f) == "DESTRUCTIVE"
 
-        assert infer_risk_tier(delete_thing) == "DESTRUCTIVE"
+    def test_safe_read_list_prefix(self):
+        f = _make_func("list_objects")
+        assert infer_risk_tier(f) == "SAFE_READ"
 
-    def test_list_prefix_returns_safe_read(self):
-        def list_objects():
-            pass
+    def test_safe_read_get_prefix(self):
+        f = _make_func("get_console_state")
+        assert infer_risk_tier(f) == "SAFE_READ"
 
-        assert infer_risk_tier(list_objects) == "SAFE_READ"
+    def test_safe_read_discover_prefix(self):
+        f = _make_func("discover_object_names")
+        assert infer_risk_tier(f) == "SAFE_READ"
 
-    def test_get_prefix_returns_safe_read(self):
-        def get_variable():
-            pass
+    def test_safe_read_search_prefix(self):
+        f = _make_func("search_codebase")
+        assert infer_risk_tier(f) == "SAFE_READ"
 
-        assert infer_risk_tier(get_variable) == "SAFE_READ"
+    def test_safe_read_info_prefix(self):
+        f = _make_func("info_object")
+        assert infer_risk_tier(f) == "SAFE_READ"
 
-    def test_discover_prefix_returns_safe_read(self):
-        def discover_object_names():
-            pass
+    def test_safe_read_suggest_prefix(self):
+        f = _make_func("suggest_tool_for_task")
+        assert infer_risk_tier(f) == "SAFE_READ"
 
-        assert infer_risk_tier(discover_object_names) == "SAFE_READ"
+    def test_safe_write_default(self):
+        f = _make_func("execute_sequence")
+        assert infer_risk_tier(f) == "SAFE_WRITE"
 
-    def test_suggest_prefix_returns_safe_read(self):
-        def suggest_tool_for_task():
-            pass
-
-        assert infer_risk_tier(suggest_tool_for_task) == "SAFE_READ"
-
-    def test_search_prefix_returns_safe_read(self):
-        def search_codebase():
-            pass
-
-        assert infer_risk_tier(search_codebase) == "SAFE_READ"
-
-    def test_non_read_non_destructive_returns_safe_write(self):
-        def set_intensity(level: int):
-            pass
-
-        assert infer_risk_tier(set_intensity) == "SAFE_WRITE"
-
-    def test_confirm_destructive_overrides_list_prefix(self):
-        # A function starting with list_ BUT also having confirm_destructive → DESTRUCTIVE
-        def list_and_delete(confirm_destructive: bool = False):
-            pass
-
-        assert infer_risk_tier(list_and_delete) == "DESTRUCTIVE"
+    def test_confirm_overrides_prefix(self):
+        """confirm_destructive wins even if name starts with 'list_'."""
+        f = _make_func("list_and_delete", has_confirm=True)
+        assert infer_risk_tier(f) == "DESTRUCTIVE"
 
 
-# ── ToolTelemetry ────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# ToolTelemetry._init_schema
+# ---------------------------------------------------------------------------
+
+class TestSchema:
+    def test_tables_created(self, tel):
+        rows = tel._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()
+        names = {r[0] for r in rows}
+        assert "tool_invocations" in names
+
+    def test_indexes_created(self, tel):
+        rows = tel._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='index'"
+        ).fetchall()
+        names = {r[0] for r in rows}
+        assert "idx_ti_tool" in names
+        assert "idx_ti_ts" in names
 
 
-@pytest.fixture
-def tel_tmp():
-    """ToolTelemetry backed by a temp DB, cleaned up after test."""
-    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
-        db_path = Path(f.name)
-    tel = ToolTelemetry(db_path=db_path)
-    yield tel
-    tel.close()
-    db_path.unlink(missing_ok=True)
+# ---------------------------------------------------------------------------
+# record_sync
+# ---------------------------------------------------------------------------
+
+class TestRecordSync:
+    def test_basic_record(self, tel):
+        tel.record_sync(
+            tool_name="list_objects",
+            inputs_json='{"keyword":"Group"}',
+            output_preview="Group 1",
+            error_class=None,
+            latency_ms=12.3,
+            risk_tier="SAFE_READ",
+            operator="administrator",
+        )
+        row = tel._conn.execute(
+            "SELECT tool_name, error_class, latency_ms, risk_tier, operator "
+            "FROM tool_invocations"
+        ).fetchone()
+        assert row[0] == "list_objects"
+        assert row[1] is None
+        assert abs(row[2] - 12.3) < 0.01
+        assert row[3] == "SAFE_READ"
+        assert row[4] == "administrator"
+
+    def test_error_record(self, tel):
+        tel.record_sync(
+            tool_name="create_fixture_group",
+            inputs_json="{}",
+            output_preview='{"error":"Connection failed"}',
+            error_class="ConnectionError",
+            latency_ms=5.0,
+            risk_tier="DESTRUCTIVE",
+            operator="admin",
+        )
+        row = tel._conn.execute(
+            "SELECT error_class FROM tool_invocations WHERE tool_name='create_fixture_group'"
+        ).fetchone()
+        assert row[0] == "ConnectionError"
+
+    def test_multiple_records(self, tel):
+        for i in range(5):
+            tel.record_sync(
+                tool_name="go_executor",
+                inputs_json="{}",
+                output_preview="ok",
+                error_class=None,
+                latency_ms=float(i),
+                risk_tier="SAFE_WRITE",
+                operator="op",
+            )
+        count = tel._conn.execute(
+            "SELECT COUNT(*) FROM tool_invocations WHERE tool_name='go_executor'"
+        ).fetchone()[0]
+        assert count == 5
+
+    def test_record_never_raises(self, tel):
+        """record_sync must not raise even if connection is broken."""
+        tel._conn.close()  # break the connection
+        # Should not raise
+        tel.record_sync(
+            tool_name="any",
+            inputs_json="{}",
+            output_preview="",
+            error_class=None,
+            latency_ms=1.0,
+            risk_tier="SAFE_READ",
+            operator="x",
+        )
 
 
-def _record(tel: ToolTelemetry, tool_name: str, *, error_class=None, latency_ms=10.0):
-    tel.record_sync(
-        tool_name=tool_name,
-        inputs_json="{}",
-        output_preview="ok",
-        error_class=error_class,
-        latency_ms=latency_ms,
-        risk_tier="SAFE_WRITE",
-        operator="test",
-        session_id="test-session",
-    )
+# ---------------------------------------------------------------------------
+# metrics
+# ---------------------------------------------------------------------------
 
+class TestMetrics:
+    def _insert(self, tel, tool_name, latency, error_class=None, ts_offset=0):
+        tel._conn.execute(
+            "INSERT INTO tool_invocations "
+            "(ts,tool_name,inputs_json,output_preview,error_class,latency_ms,risk_tier,operator) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            (time.time() - ts_offset, tool_name, "{}", "", error_class, latency, "SAFE_READ", "op"),
+        )
+        tel._conn.commit()
 
-class TestToolTelemetryMetrics:
-    def test_metrics_no_data_returns_zero_calls(self, tel_tmp):
-        m = tel_tmp.metrics("unknown_tool")
+    def test_no_calls(self, tel):
+        result = tel.metrics("nonexistent_tool", days=7)
+        assert result["calls"] == 0
+        assert result["tool"] == "nonexistent_tool"
+
+    def test_basic_metrics(self, tel):
+        for lat in [10.0, 20.0, 30.0, 40.0, 50.0]:
+            self._insert(tel, "list_objects", lat)
+        m = tel.metrics("list_objects", days=7)
+        assert m["calls"] == 5
+        assert m["error_count"] == 0
+        assert m["error_rate"] == 0.0
+        assert m["p50_ms"] == 30.0
+
+    def test_error_rate(self, tel):
+        self._insert(tel, "create_fixture_group", 10.0, error_class="ConnectionError")
+        self._insert(tel, "create_fixture_group", 10.0, error_class="ConnectionError")
+        self._insert(tel, "create_fixture_group", 10.0)
+        m = tel.metrics("create_fixture_group", days=7)
+        assert m["calls"] == 3
+        assert m["error_count"] == 2
+        assert abs(m["error_rate"] - 0.667) < 0.01
+
+    def test_old_records_excluded(self, tel):
+        # Insert a record 10 days ago
+        self._insert(tel, "old_tool", 5.0, ts_offset=10 * 86400)
+        m = tel.metrics("old_tool", days=7)
         assert m["calls"] == 0
 
-    def test_metrics_one_success(self, tel_tmp):
-        _record(tel_tmp, "set_intensity")
-        m = tel_tmp.metrics("set_intensity")
-        assert m["calls"] == 1
-        assert m["error_count"] == 0
 
-    def test_metrics_one_error(self, tel_tmp):
-        _record(tel_tmp, "set_intensity", error_class="RuntimeError")
-        m = tel_tmp.metrics("set_intensity")
-        assert m["error_count"] == 1
-        assert "RuntimeError" in m["error_classes"]
+# ---------------------------------------------------------------------------
+# top_failing_tools
+# ---------------------------------------------------------------------------
 
-    def test_metrics_error_rate(self, tel_tmp):
-        _record(tel_tmp, "set_intensity")
-        _record(tel_tmp, "set_intensity")
-        _record(tel_tmp, "set_intensity", error_class="TimeoutError")
-        m = tel_tmp.metrics("set_intensity")
-        assert m["calls"] == 3
-        assert m["error_count"] == 1
-        assert abs(m["error_rate"] - 0.333) < 0.01
+class TestTopFailingTools:
+    def _insert_error(self, tel, tool_name, error_class, count=1):
+        for _ in range(count):
+            tel._conn.execute(
+                "INSERT INTO tool_invocations "
+                "(ts,tool_name,inputs_json,output_preview,error_class,latency_ms,risk_tier,operator) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (time.time(), tool_name, "{}", "", error_class, 1.0, "SAFE_WRITE", "op"),
+            )
+        tel._conn.commit()
 
-    def test_metrics_latency_stats_present(self, tel_tmp):
-        _record(tel_tmp, "navigate_console", latency_ms=5.0)
-        _record(tel_tmp, "navigate_console", latency_ms=15.0)
-        m = tel_tmp.metrics("navigate_console")
-        assert m["min_ms"] == 5.0
-        assert m["max_ms"] == 15.0
-        assert m["p50_ms"] is not None
+    def test_returns_tools_above_threshold(self, tel):
+        self._insert_error(tel, "bad_tool", "ConnectionError", count=5)
+        failing = tel.top_failing_tools(days=7, min_failures=3)
+        names = [f["tool_name"] for f in failing]
+        assert "bad_tool" in names
+
+    def test_excludes_tools_below_threshold(self, tel):
+        self._insert_error(tel, "rare_fail", "RuntimeError", count=2)
+        failing = tel.top_failing_tools(days=7, min_failures=3)
+        names = [f["tool_name"] for f in failing]
+        assert "rare_fail" not in names
+
+    def test_empty_when_no_errors(self, tel):
+        tel.record_sync(
+            tool_name="good_tool", inputs_json="{}", output_preview="ok",
+            error_class=None, latency_ms=1.0, risk_tier="SAFE_READ", operator="op",
+        )
+        assert tel.top_failing_tools(days=7, min_failures=1) == []
 
 
-class TestToolTelemetryRecent:
-    def test_recent_empty_for_unknown_tool(self, tel_tmp):
-        assert tel_tmp.recent("no_such_tool") == []
+# ---------------------------------------------------------------------------
+# recent
+# ---------------------------------------------------------------------------
 
-    def test_recent_returns_rows(self, tel_tmp):
-        _record(tel_tmp, "play_back")
-        rows = tel_tmp.recent("play_back")
-        assert len(rows) == 1
-        assert rows[0]["tool_name"] == "play_back"
-
-    def test_recent_newest_first(self, tel_tmp):
+class TestRecent:
+    def test_returns_rows_in_desc_order(self, tel):
         for i in range(3):
-            _record(tel_tmp, "my_tool", latency_ms=float(i))
-            time.sleep(0.01)
-        rows = tel_tmp.recent("my_tool", limit=3)
-        # rows are newest first: latencies should be 2, 1, 0
-        assert rows[0]["latency_ms"] == 2.0
-        assert rows[2]["latency_ms"] == 0.0
-
-    def test_recent_limit_respected(self, tel_tmp):
-        for _ in range(10):
-            _record(tel_tmp, "flood_tool")
-        rows = tel_tmp.recent("flood_tool", limit=3)
+            tel.record_sync(
+                tool_name="my_tool", inputs_json="{}", output_preview=f"result_{i}",
+                error_class=None, latency_ms=float(i), risk_tier="SAFE_WRITE",
+                operator="op",
+            )
+        rows = tel.recent("my_tool", limit=3)
         assert len(rows) == 3
+        # Most recent first (highest latency was inserted last)
+        assert rows[0]["latency_ms"] == 2.0
 
-
-class TestToolTelemetryTopFailing:
-    def test_top_failing_empty_when_no_errors(self, tel_tmp):
-        _record(tel_tmp, "safe_tool")
-        assert tel_tmp.top_failing_tools(min_failures=1) == []
-
-    def test_top_failing_returns_tool_above_threshold(self, tel_tmp):
-        for _ in range(4):
-            _record(tel_tmp, "bad_tool", error_class="ConnectionError")
-        result = tel_tmp.top_failing_tools(min_failures=3)
-        assert len(result) == 1
-        assert result[0]["tool_name"] == "bad_tool"
-        assert result[0]["total"] == 4
-
-    def test_top_failing_excludes_tool_below_threshold(self, tel_tmp):
-        for _ in range(2):
-            _record(tel_tmp, "slightly_bad", error_class="RuntimeError")
-        result = tel_tmp.top_failing_tools(min_failures=3)
-        assert result == []
-
-    def test_top_failing_aggregates_multiple_error_classes(self, tel_tmp):
-        _record(tel_tmp, "multi_err", error_class="ConnectionError")
-        _record(tel_tmp, "multi_err", error_class="RuntimeError")
-        _record(tel_tmp, "multi_err", error_class="TimeoutError")
-        result = tel_tmp.top_failing_tools(min_failures=3)
-        assert len(result) == 1
-        assert len(result[0]["errors"]) == 3
-        assert result[0]["total"] == 3
+    def test_limit_respected(self, tel):
+        for _ in range(10):
+            tel.record_sync(
+                tool_name="tool_x", inputs_json="{}", output_preview="",
+                error_class=None, latency_ms=1.0, risk_tier="SAFE_READ", operator="op",
+            )
+        assert len(tel.recent("tool_x", limit=5)) == 5
