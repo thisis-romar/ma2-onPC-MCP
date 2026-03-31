@@ -370,7 +370,7 @@ mcp = FastMCP(
     name="grandMA2-MCP",
     instructions="""
     This is an MCP server for controlling grandMA2 lighting console.
-    You can use the following 118 tools to operate grandMA2:
+    You can use the following 151 tools to operate grandMA2 (118 core in server.py + 33 agentic in server_orchestration_tools.py):
 
     --- Navigation & Inspection ---
     1. navigate_console - Navigate the console object tree (cd)
@@ -7416,6 +7416,520 @@ async def assign_temp_fader(
         "raw_response": raw_response,
         "risk_tier": "SAFE_WRITE",
     }, indent=2)
+
+
+# ============================================================
+# Busking / Performance Layer Tools
+# ============================================================
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def assign_effect_to_executor(
+    effect_id: int,
+    executor_id: int,
+    page: int | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Assign a sequence (effect) to an executor fader slot.
+
+    Implements the "fader-per-effect" busking model: one effect per fader so
+    the operator can blend intensities live. Use a dedicated page (e.g. page 2)
+    to keep busking faders separate from cue sequences.
+
+    Args:
+        effect_id: Sequence/effect ID to assign.
+        executor_id: Target executor number.
+        page: Optional page number. If given, command uses page.executor addressing.
+        confirm_destructive: Must be True — assigns overwrite any existing content.
+
+    Returns:
+        JSON with command_sent and executor address used.
+
+    Example:
+        assign_effect_to_executor(effect_id=5, executor_id=12, page=2,
+                                  confirm_destructive=True)
+        → "assign sequence 5 at executor 2.12"
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "status": "blocked",
+            "reason": "confirm_destructive must be True — assign will overwrite any existing executor content",
+        })
+    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    cmd = f"assign sequence {effect_id} at executor {addr}"
+    client = await get_client()
+    resp = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "status": "ok",
+        "command_sent": cmd,
+        "executor_address": addr,
+        "response_preview": resp[:120] if resp else "",
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def assign_sequence_to_executor(
+    sequence_id: int,
+    executor_id: int,
+    page: int | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Assign a cue-list sequence to an executor for playback (DESTRUCTIVE).
+
+    Use this for traditional cue-list shows where a sequence runs on a specific
+    executor fader. For busking (looping effects), use assign_effect_to_executor instead.
+
+    Args:
+        sequence_id: Sequence ID to assign (the cue list).
+        executor_id: Target executor number.
+        page: Optional page qualifier. E.g. page=1, executor_id=5 → executor 1.5.
+        confirm_destructive: Must be True — overwrites any existing executor content.
+
+    Returns:
+        JSON with command_sent and executor address.
+
+    Example:
+        assign_sequence_to_executor(sequence_id=1, executor_id=5, confirm_destructive=True)
+        → "assign sequence 1 at executor 5"
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "status": "blocked",
+            "reason": "confirm_destructive must be True — assign will overwrite existing executor content",
+        })
+    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    cmd = build_assign("sequence", sequence_id, target_type="executor", target_id=addr)
+    client = await get_client()
+    resp = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "status": "ok",
+        "command_sent": cmd,
+        "executor_address": addr,
+        "response_preview": resp[:120] if resp else "",
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def assign_macro_to_executor(
+    macro_id: int,
+    executor_id: int,
+    page: int | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Assign a macro to an executor button for one-touch triggering (DESTRUCTIVE).
+
+    Use this to place song-loader macros, utility macros, or any macro on a
+    physical executor button. The executor becomes a single-press macro trigger.
+
+    Args:
+        macro_id: Macro ID to assign.
+        executor_id: Target executor number.
+        page: Optional page qualifier for page.executor addressing.
+        confirm_destructive: Must be True — overwrites any existing executor content.
+
+    Returns:
+        JSON with command_sent and executor address.
+
+    Example:
+        assign_macro_to_executor(macro_id=5, executor_id=1, page=2, confirm_destructive=True)
+        → "assign macro 5 at executor 2.1"
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "status": "blocked",
+            "reason": "confirm_destructive must be True — assign will overwrite existing executor content",
+        })
+    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    cmd = build_assign("macro", macro_id, target_type="executor", target_id=addr)
+    client = await get_client()
+    resp = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "status": "ok",
+        "command_sent": cmd,
+        "executor_address": addr,
+        "response_preview": resp[:120] if resp else "",
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def assign_executor_function(
+    function: str,
+    executor_id: int,
+    page: int | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Assign a button or fader function to an executor (DESTRUCTIVE).
+
+    Changes what the executor's button or fader does. Common button functions:
+    Go, GoBack, Pause, Flash, Toggle, On, Off, Kill, Select, Top, Freeze, Solo,
+    Release, DoubleSpeed, HalfSpeed, DoubleRate, HalfRate.
+
+    Common fader functions: Master, Crossfade, CrossfadeA, CrossfadeB, Temp,
+    Speed, Rate, MasterFade, StepFade, StepInFade, StepOutFade, ManualXFade.
+
+    Args:
+        function: Function name (case-insensitive). Must be a valid MA2 executor function.
+        executor_id: Target executor number.
+        page: Optional page qualifier.
+        confirm_destructive: Must be True.
+
+    Returns:
+        JSON with command_sent. Includes error if function name is unrecognised.
+
+    Example:
+        assign_executor_function("Toggle", executor_id=5, confirm_destructive=True)
+        → "assign toggle at executor 5"
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "status": "blocked",
+            "reason": "confirm_destructive must be True",
+        })
+    from src.commands.constants import EXECUTOR_BUTTON_FUNCTIONS, EXECUTOR_FADER_FUNCTIONS
+    valid = frozenset(f.lower() for f in EXECUTOR_BUTTON_FUNCTIONS + EXECUTOR_FADER_FUNCTIONS)
+    if function.lower() not in valid:
+        all_fns = sorted(EXECUTOR_BUTTON_FUNCTIONS + EXECUTOR_FADER_FUNCTIONS)
+        return json.dumps({
+            "status": "error",
+            "reason": f"'{function}' is not a valid executor function.",
+            "valid_functions": all_fns,
+        })
+    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    cmd = build_assign_function(function, "executor", addr)
+    client = await get_client()
+    resp = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "status": "ok",
+        "command_sent": cmd,
+        "executor_address": addr,
+        "response_preview": resp[:120] if resp else "",
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
+@_handle_errors
+async def modulate_effect(
+    executor_id: int,
+    rate: float | None = None,
+    speed: float | None = None,
+    page: int | None = None,
+) -> str:
+    """
+    Set the rate or speed of an active effect on an executor fader.
+
+    Use rate (0–200 %) to scale the effect's default tempo, or speed (BPM) to
+    set an absolute tempo. Exactly one of rate or speed must be supplied.
+
+    Args:
+        executor_id: Executor number holding the active effect.
+        rate: Rate percentage (0–200). Scales default effect speed.
+        speed: Absolute speed in BPM.
+        page: Optional page qualifier for executor addressing.
+
+    Returns:
+        JSON with command_sent.
+
+    Example:
+        modulate_effect(executor_id=12, rate=150, page=2)
+        → "executor 2.12 at rate 150"
+    """
+    if rate is None and speed is None:
+        return json.dumps({"status": "error", "reason": "Provide rate or speed, not both absent."})
+    if rate is not None and speed is not None:
+        return json.dumps({"status": "error", "reason": "Provide rate OR speed, not both."})
+    addr = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    if rate is not None:
+        cmd = f"executor {addr} at rate {rate}"
+    else:
+        cmd = f"executor {addr} at speed {speed}"
+    client = await get_client()
+    resp = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "status": "ok",
+        "command_sent": cmd,
+        "response_preview": resp[:120] if resp else "",
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
+@_handle_errors
+async def clear_effects_on_page(
+    page: int,
+    executor_start: int = 1,
+    executor_end: int = 90,
+) -> str:
+    """
+    Release all effect executors on a page range.
+
+    Walks executor_start through executor_end on the given page and sends a
+    release command for each. Silently skips executors with no content.
+    Use before a song change to guarantee a clean fader state.
+
+    Args:
+        page: Page number to clear.
+        executor_start: First executor number to release (default 1).
+        executor_end: Last executor number to release (default 90).
+
+    Returns:
+        JSON with commands_sent count and page cleared.
+
+    Example:
+        clear_effects_on_page(page=2, executor_start=1, executor_end=20)
+        → releases executors 2.1 through 2.20
+    """
+    client = await get_client()
+    count = 0
+    for n in range(executor_start, executor_end + 1):
+        cmd = f"release executor {page}.{n}"
+        await client.send_command_with_response(cmd)
+        count += 1
+    return json.dumps({
+        "status": "ok",
+        "page": page,
+        "executors_released": count,
+        "range": f"{executor_start}–{executor_end}",
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.PLAYBACK_GO)
+@_handle_errors
+async def normalize_page_faders(
+    page: int,
+    executor_start: int = 1,
+    executor_end: int = 90,
+) -> str:
+    """
+    Zero all faders on a page without releasing their executors.
+
+    Sends a single ranged 'at 0' command to bring all faders to zero while
+    keeping executor assignments intact. Use between songs to silently fade
+    out all busking effects before the next song's faders are raised.
+
+    Args:
+        page: Page number to normalize.
+        executor_start: First executor in range (default 1).
+        executor_end: Last executor in range (default 90).
+
+    Returns:
+        JSON with command_sent.
+
+    Example:
+        normalize_page_faders(page=2)
+        → "executor 2.1 thru 2.90 at 0"
+    """
+    cmd = f"executor {page}.{executor_start} thru {page}.{executor_end} at 0"
+    client = await get_client()
+    resp = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "status": "ok",
+        "command_sent": cmd,
+        "response_preview": resp[:120] if resp else "",
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def classify_show_mode() -> str:
+    """
+    Analyse the show structure and classify it as busking, sequence, hybrid, or empty.
+
+    Queries sequence count, executor assignments, and macro count from the console
+    to infer the operator's primary workflow mode:
+
+    - **busking**   — many short effects assigned to faders, few or no cue lists
+    - **sequence**  — one or more long cue-list sequences, minimal standalone effects
+    - **hybrid**    — mix of cue lists and effect faders
+    - **empty**     — no sequences or executors found
+
+    Returns:
+        JSON with mode, evidence dict, and a brief recommendation.
+
+    Example response:
+        {"mode": "busking", "evidence": {"sequences": 12, "executors_used": 8,
+         "macros": 24}, "recommendation": "Use busking tools for fader control."}
+    """
+    client = await get_client()
+
+    # Query key indicators
+    seq_resp = await client.send_command_with_response("list sequence")
+    macro_resp = await client.send_command_with_response("list macro")
+    exec_resp = await client.send_command_with_response("list executor")
+
+    def _count_lines(resp: str) -> int:
+        lines = [ln.strip() for ln in (resp or "").splitlines()
+                 if ln.strip() and "NO OBJECTS" not in ln and not ln.strip().startswith("[")]
+        return len(lines)
+
+    seq_count = _count_lines(seq_resp)
+    macro_count = _count_lines(macro_resp)
+    exec_count = _count_lines(exec_resp)
+
+    # Classify
+    if seq_count == 0 and exec_count == 0:
+        mode = "empty"
+        recommendation = "No sequences or executors found. Build your show before using playback tools."
+    elif seq_count > 0 and exec_count <= 2:
+        mode = "sequence"
+        recommendation = "Sequence-driven show. Use playback_action and goto_cue for cue control."
+    elif exec_count >= 4 and seq_count > 0:
+        mode = "hybrid"
+        recommendation = "Mixed show. Cue list tools for main sequences; busking tools for effect faders."
+    elif exec_count >= 4:
+        mode = "busking"
+        recommendation = "Busking show. Use assign_effect_to_executor, modulate_effect, and normalize_page_faders."
+    else:
+        mode = "hybrid"
+        recommendation = "Mixed structure detected. Review executor assignments before choosing workflow."
+
+    return json.dumps({
+        "mode": mode,
+        "evidence": {
+            "sequences": seq_count,
+            "executors_used": exec_count,
+            "macros": macro_count,
+        },
+        "recommendation": recommendation,
+    })
+
+
+# ============================================================
+# MCP Resources — Busking Knowledge Base
+# ============================================================
+
+
+@mcp.resource("ma2://busking/patterns")
+def busking_patterns() -> str:
+    """Live performance busking patterns for grandMA2."""
+    return """\
+# Busking Patterns — grandMA2
+
+## Core Model: Fader-Per-Effect
+Each executor runs one continuously looping effect. Fader = master intensity.
+- Fader 0 → effect runs silently (do NOT release between songs)
+- Fader 100 → full intensity
+- No cue steps — everything always running, always modulatable
+
+## Executor Layout (per song page)
+[1] Song loader macro (first-button protocol)
+[2] Strobe / flash effect
+[3] Chase (color or position)
+[4] Beam effect (gobos, zoom)
+[5] Ambient wash
+[6] Key light / special
+[7] Audience blinder
+[8] Haze / atmospheric
+[9] Group master — front wash
+[10] Group master — back wash
+
+Fixed global page: overture look, house lights, emergency blackout, SM cueing macro.
+
+## Live Recovery Protocol
+Step 1: normalize_page_faders(page)   — fade to 0, keep executors active
+Step 2: clear_effects_on_page(page)   — release all executors
+Step 3: Re-trigger song loader (Exec 1 on current page)
+Step 4: Gradually raise effect faders one at a time
+
+NEVER skip step 1 — releasing running effects with faders above 0 causes a visible flash.
+
+## Safety Rules
+- Never assign_effect_to_executor during a live show (pre-show only)
+- normalize_page_faders ALWAYS before clear_effects_on_page
+- Group masters (execs 9-10) override individual effect intensities — check first
+- Effects survive ClearAll; programmer clear does NOT kill faders
+"""
+
+
+@mcp.resource("ma2://busking/effect-design")
+def busking_effect_design() -> str:
+    """Effect design reference for busking on grandMA2."""
+    return """\
+# Effect Design — grandMA2 Busking
+
+## Rate vs Speed
+| Goal | Tool | Parameter |
+|------|------|-----------|
+| Scale default tempo | modulate_effect(rate=N) | 50=half, 100=normal, 200=double |
+| Lock to BPM | modulate_effect(speed=BPM) | e.g. 128 for EDM |
+| Dim/brighten | Push/pull fader | 0–100 |
+| Kill single effect | clear_effects_on_page(page, N, N) | single exec |
+
+Use rate for feel adjustments; use speed when syncing to a specific BPM track.
+
+## MAtricks Layering
+Add spatial variation without duplicating effects:
+1. Select fixture group
+2. MAtricksInterleave 4 — divides fixtures into alternating groups
+3. Run effect — MA2 applies phase offset automatically
+
+Useful combinations:
+- Strobe + Interleave 2 → alternating strobe (odd/even)
+- Chase + Interleave 4 → 4-way pixel chase
+- Beam effect + Groups 2 → two independent beam zones
+
+## Batch Release Safety
+Before releasing a page:
+1. normalize_page_faders(page) — zero all faders first
+2. clear_effects_on_page(page) — then release
+Never release with faders above 0.
+"""
+
+
+@mcp.resource("ma2://busking/color-design")
+def busking_color_design() -> str:
+    """Color design strategy for live performance on grandMA2."""
+    return """\
+# Color Design — grandMA2 Busking
+
+## Why Constrained Palettes
+One hue per song = consistent emotional anchor. Vary intensity and texture, not color.
+Rule: one hue per song, 4 brightness stops applied via presets.
+
+## HSB Parameters (MA2 range: 0–100, NOT 0–255)
+/h=0–360 (hue) | /s=0–100 (saturation) | /br=0–100 (brightness)
+Never use RGB for live color design — HSB maps directly to what the LD sees.
+
+## 4-Stop Monochromatic Palette
+Stop 1 — Full punch:  br=100, s=90  (chorus, peak)
+Stop 2 — Mid warm:    br=70,  s=85  (verse, moderate)
+Stop 3 — Moody fill:  br=40,  s=80  (breakdown, intimate)
+Stop 4 — Near-black:  br=15,  s=75  (intro/outro, transitions)
+Keep saturation high — dropping saturation washes colour out.
+
+## Preset Numbering Convention
+preset_id = (song_number × 10) + stop_index
+Stop indices: 1=full, 2=mid, 3=moody, 4=accent
+Preset type: Color (type 4 in MA2)
+
+Example: Song 3, mid warm → preset 32  (apply: Preset 4.32)
+
+## Color Lock Technique
+1. Pre-show: store full-punch color preset for each song at slot (N*10+1)
+2. First-button macro line 2: Go Preset 4.{song*10+1}
+3. This locks the color as programmer base before effects start
+4. Effects modulating only intensity/position inherit the locked color
+
+## Song Transition
+1. New song loader fires: ClearAll + new color preset applied
+2. New color becomes base for ALL fixtures
+3. Fade up new song's effect faders
+4. Old song's effects already released by ClearAll
+"""
 
 
 # ============================================================

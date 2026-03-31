@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Agent conventions, architecture quick-reference, and development rules for ma2-onPC-MCP
-version: 3.23.0
+version: 3.24.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-29T03:00:00Z
+last_updated: 2026-03-30T00:00:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **137 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **151 tools** so AI assistants can control a grandMA2 lighting console via Telnet.
 All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/commands/` are pure functions returning strings — no side effects. The MCP layer in `src/server.py` wires tool calls to telnet via the navigation and safety layers.
 
 ---
@@ -19,7 +19,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 110 tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 118 tools, safety gate, env config |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
@@ -27,7 +27,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/commands/` | 179+ pure command-builder functions, grouped by keyword type |
-| `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_options()` flag assembly |
+| `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
 | `src/vocab.py` | 141 keyword vocab, `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `rag/ingest/` | crawl → chunk → embed → store pipeline |
 | `rag/retrieve/` | cosine similarity search + rerank |
@@ -39,11 +39,14 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `scripts/categorize_tools.py` | CLI: extract features, embed, cluster, write taxonomy JSON |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
-| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
+| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite) + DecisionCheckpoint cache |
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
-| `src/server_orchestration_tools.py` | Registers tools 110-137 (agentic layer) onto FastMCP |
+| `src/telemetry.py` | Per-tool invocation recorder (tool_invocations table, GMA_TELEMETRY env var) |
+| `src/skill.py` | Versioned skill registry: SkillRegistry, Skill dataclass, lineage tracking |
+| `src/skill_improver.py` | Read-only failure pattern + promotion candidate analysis (never writes) |
+| `src/server_orchestration_tools.py` | Registers tools 110-143 (agentic + OpenSpace layer) onto FastMCP |
 
 ---
 
@@ -105,7 +108,7 @@ make install-hooks
 
 - Pure functions only — no imports from `src.telnet_client`, `src.navigation`, or `src.server`.
 - Return raw grandMA2 command strings, e.g. `"Store Cue 1 Sequence 99 /merge"`.
-- Use `src/commands/helpers.py` for option flag assembly (`_build_options()`).
+- Use `src/commands/helpers.py` for option flag assembly (`_build_store_options()`).
 - Use `src/commands/constants.py` for `PRESET_TYPES` mapping (e.g. `"color" → 4`).
 
 ### Tests
@@ -113,7 +116,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` and skipped by default.
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-29): **1854 unit tests**, **142 live integration tests** (1996 total).
+- Current counts (2026-03-30): **1894 unit tests**, **142 live integration tests** (2036 total).
 
 ### New Show — connectivity preservation
 
@@ -174,6 +177,33 @@ The `manage_matricks` tool dispatches to these keywords via an `action` paramete
 - **No telnet command reads current MAtricks state** — state is only visible in the GUI toolbar.
 - Pool path: `cd MAtricks` → `UserProfiles/Default 1/MatrixPool`.
 - **`store_matricks_preset`** tool: combined set + store + label workflow (DESTRUCTIVE).
+
+### Virtual Position Mode (VPM) — live-verified 2026-03-30
+
+Fixtures 601–606 (Elation Fuze SFX Extended, 31ch, Pan Ch1/Tilt Ch3) in show
+`19-toronto-2025-09-09-v4` use **Virtual Position Mode**: position is encoded as
+3D stage coordinates, not raw Pan/Tilt.
+
+`attribute "Pan" at N` and `attribute "Tilt" at N` are **silently discarded** in VPM mode —
+MA2 accepts the command without error but nothing enters the programmer.
+Use `attribute "STAGEX" at N`, `attribute "STAGEY" at N`, `attribute "STAGEZ" at N` (meters).
+Setting any XYZ attribute automatically adds `VIRTUAL_POSITION_MODE`, `MARK`, and `FLIP` to the programmer.
+
+**5 position preset coordinates (fixtures 601–606, show `19-toronto-2025-09-09-v4`):**
+
+| Preset | Name | STAGEX | STAGEY | STAGEZ |
+|--------|------|--------|--------|--------|
+| 2.1 | Home | 0 | 0 | −1.4356079 |
+| 2.2 | FOH-Center | 0 | 3.0 | −1.4356079 |
+| 2.3 | Stage-Left | −3.0 | 1.5 | −1.4356079 |
+| 2.4 | Stage-Right | 3.0 | 1.5 | −1.4356079 |
+| 2.5 | TopLight | 0 | 0 | −4.0 |
+
+**STAGEZ baseline** = −1.4356079 from preset 2.7 (the only pre-existing working position preset).
+**`list attribute`** shows the attribute library — NOT programmer state. Useless as a diagnostic.
+**Reliable validation:** store → `Export Preset N` → parse XML → confirm `<Values>` block is present.
+
+---
 
 ### Appearance colors
 
