@@ -48,7 +48,7 @@ _TIER_CREDENTIALS: dict[int, tuple[str, str, str, str]] = {
 }
 
 
-def resolve_console_credentials(scopes: set[str] | None = None) -> tuple[str, str]:
+def resolve_console_credentials(scopes: frozenset[str] | set[str] | None = None) -> tuple[str, str]:
     """
     Return ``(username, password)`` for the console user that corresponds to
     the effective OAuth scope tier.
@@ -79,7 +79,7 @@ def resolve_console_credentials(scopes: set[str] | None = None) -> tuple[str, st
     return os.getenv(user_env, default_user), os.getenv(pw_env, default_pw)
 
 
-def get_operator_identity(scopes: set[str] | None = None) -> str:
+def get_operator_identity(scopes: frozenset[str] | set[str] | None = None) -> str:
     """
     Return the operator identity string used as the session pool key.
 
@@ -108,7 +108,7 @@ def get_operator_identity(scopes: set[str] | None = None) -> str:
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
 
-def _max_tier(scopes: set[str]) -> int:
+def _max_tier(scopes: frozenset[str] | set[str]) -> int:
     """Return the highest scope tier represented in *scopes* (0–5)."""
     from .commands.constants import OAUTH_TIER_SCOPES
 
