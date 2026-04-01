@@ -2,8 +2,8 @@
 title: grandMA2 List Command Field Reference
 description: All column fields returned by List <ObjectType> for every major MA2 object type — live-verified from console (show claude_ma2_ctrl, 2026-03-31)
 version: 1.0.0
-created: 2026-03-31T00:00:00Z
-last_updated: 2026-03-31T00:00:00Z
+created: 2026-03-31T21:52:55Z
+last_updated: 2026-03-31T21:52:55Z
 ---
 
 # grandMA2 List Command Field Reference

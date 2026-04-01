@@ -2,8 +2,8 @@
 title: Functional Domains, Hardkeys, and Executor Priorities
 description: MA2 keyword domains, multi-press key chains, and executor priority constants
 version: 1.1.0
-created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-30T13:30:00Z
+created: 2026-03-29T21:44:45Z
+last_updated: 2026-03-30T11:23:42Z
 ---
 
 # Functional Domains, Hardkeys, and Executor Priorities

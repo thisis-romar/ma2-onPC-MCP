@@ -2,8 +2,8 @@
 title: MA2 Command Conventions
 description: Live-verified MA2 command rules, quoting, navigation, and data directory layout
 version: 1.0.0
-created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-29T08:30:00Z
+created: 2026-03-29T21:44:45Z
+last_updated: 2026-03-29T21:44:45Z
 ---
 
 # MA2 Command Conventions

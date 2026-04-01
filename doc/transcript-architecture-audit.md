@@ -2,8 +2,8 @@
 title: Transcript Architecture Audit
 description: Audit of ma2-onPC-MCP against 10 agent architecture concepts from a Claude Code video transcript
 version: 1.2.0
-created: 2026-03-29T08:00:00Z
-last_updated: 2026-03-31T23:00:00Z
+created: 2026-03-29T21:20:36Z
+last_updated: 2026-03-31T23:56:48Z
 ---
 
 # Transcript Architecture Audit

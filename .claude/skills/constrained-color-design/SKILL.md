@@ -2,8 +2,8 @@
 title: Constrained Color Design
 description: Instruction module for monochromatic palette design in grandMA2 — HSB strategy, preset numbering, color lock technique, and song-to-palette mapping
 version: 1.1.0
-created: 2026-03-30T00:00:00Z
-last_updated: 2026-03-30T14:00:00Z
+created: 2026-03-30T03:17:46Z
+last_updated: 2026-03-30T11:57:23Z
 ---
 
 # Constrained Color Design
