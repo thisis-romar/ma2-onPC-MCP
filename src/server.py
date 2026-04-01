@@ -395,6 +395,7 @@ from src.commands import (
 from src.commands import (
     set_effect_parameter as build_set_effect_parameter,
 )
+from src.context import _current_session_id
 from src.credentials import get_operator_identity, resolve_console_credentials
 from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
 from src.orchestrator import Orchestrator
@@ -457,6 +458,8 @@ def _get_telemetry() -> ToolTelemetry:
     if _telemetry_singleton is None:
         _telemetry_singleton = ToolTelemetry()
     return _telemetry_singleton
+
+
 
 
 async def _get_session_manager() -> SessionManager:
@@ -533,6 +536,7 @@ def _handle_errors(func):
                         latency_ms=(time.monotonic() - t0) * 1000,
                         risk_tier=_risk_tier,
                         operator=os.getenv("GMA_USER", "unknown"),
+                        session_id=_current_session_id.get(),
                     )
                 except Exception:  # noqa: BLE001, SIM105
                     pass  # telemetry must never break a tool call

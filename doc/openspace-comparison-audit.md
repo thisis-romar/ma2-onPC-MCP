@@ -1,7 +1,7 @@
 ---
 title: OpenSpace Framework Comparison Audit
 description: Feature-by-feature comparison of ma2-onPC-MCP against the OpenSpace self-evolving skill framework, with gap analysis and prioritised roadmap
-version: 1.3.0
+version: 1.4.0
 created: 2026-03-29T00:00:00Z
 last_updated: 2026-03-31T23:00:00Z
 ---
@@ -239,18 +239,63 @@ This constraint should shape every architectural decision in Layers 1–3 above.
 
 ---
 
-## 7. Summary Verdict
+## 7. Current Implementation Status (2026-03-31)
+
+A codebase audit against the four-layer roadmap revealed the repo is at **Layer 1.5–2.0**,
+not Layer 0 as originally stated. Three structural bugs were found and fixed.
+
+### Layer Status
+
+| Layer | Status | Notes |
+|---|---|---|
+| **Layer 1 — Telemetry** | ✅ Fixed | `tool_invocations` table exists; `session_id` ContextVar linkage added (`src/context.py`); singleton isolation fixed |
+| **Layer 2 — Skill artifact** | ✅ Complete | `Skill` dataclass, `SkillRegistry`, versioning, lineage, approval workflow all implemented |
+| **Layer 3 — Improvement loop** | ⚠️ Partial | `SkillImprover` surfaces suggestions; Tool 141 handles promotion (manual, not autonomous). No auto-repair loop. |
+| **Layer 4 — Metrics/UI** | ❌ Absent | No dashboard, no community registry, no lineage visualisation |
+
+### Known Bugs Fixed (2026-03-31)
+
+**Bug 1 — No `session_id` in telemetry decorator** (`src/server.py`)
+
+Every tool call recorded `session_id=""` (empty default), breaking the
+tool-invocation → session linkage that `SkillImprover` depends on.
+
+**Fix:** Added `src/context.py` with `_current_session_id: ContextVar[str]`.
+`Orchestrator._run_sequential` and `_run_parallel` now set it before each SubTask;
+`@_handle_errors` reads it when writing to `tool_invocations`. The ContextVar is
+async-safe (isolated per asyncio Task).
+
+**Bug 2 — Singleton isolation** (`src/server_orchestration_tools.py`)
+
+Tools 138–143 created `ToolTelemetry()` at registration time — a separate SQLite
+connection from the one `@_handle_errors` writes to. `get_tool_metrics` returned
+0 rows even when invocations existed.
+
+**Fix:** Tools 138–143 now import the singleton via `_get_telemetry()` from `src/server.py`,
+guaranteeing both the reader (Tool 138) and the writer (`@_handle_errors`) share one DB.
+
+**Bug 3 — Duplicate checkpoint methods** (`src/agent_memory.py`)
+
+`WorkingMemory.add_checkpoint()` and `fresh_checkpoint()` were each defined twice.
+Python MRO silently used the second definition; the first was unreachable dead code.
+
+**Fix:** Removed the first (dead) pair. The surviving implementation uses keyword
+args and returns a `DecisionCheckpoint` object — the correct API used everywhere.
+
+---
+
+## 8. Summary Verdict
 
 | Dimension | Assessment |
 |---|---|
-| Architectural match to OpenSpace | ~10–15% overlap |
+| Architectural match to OpenSpace | ~30–35% overlap (Layer 1+2 complete, Layer 3 partial) |
 | Production readiness as MCP control server | High — suitable for live use |
 | Safety model vs. OpenSpace | Superior (hardware-aware, three-tier, rights-native) |
-| Closest path to OpenSpace Layer 1 | Instrument `@_handle_errors` → `tool_invocations` table |
-| Estimated effort to Layer 1 | ~1 day (decorator + schema migration) |
-| Estimated effort to Layer 2 | ~2–3 days (`Skill` dataclass + SQLite schema + RAG pivot) |
+| Telemetry feedback loop | ✅ Fixed — session_id flows from orchestrator → tool call → DB row |
+| Improvement loop | ⚠️ Partial — suggestions generated; promotion is manual (by design) |
+| Next milestone | Layer 3 auto-repair: apply `RepairSuggestion` hints after operator review |
 
-ma2-onPC-MCP is an **execution/control plane**. OpenSpace is a **learning/evolution plane**.
-They solve different problems. The repo is approximately at Layer 0 of the four-layer roadmap
-above. Closing the gap is tractable — but only worthwhile if the autonomy benefits outweigh
-the additional surface area for live-show risk.
+ma2-onPC-MCP is an **execution/control plane with an emerging learning layer**.
+OpenSpace is a **learning/evolution plane**. The repo has closed the telemetry and
+skill-artifact gaps. The remaining distance is the autonomous improvement loop —
+intentionally gated behind human approval for a live-hardware control system.

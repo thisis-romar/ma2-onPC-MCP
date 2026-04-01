@@ -321,3 +321,23 @@ class TestDecisionCheckpoint:
         assert snap["checkpoint_count"] == 1
         assert snap["checkpoints"][0]["fault"] == "rights_denied"
         assert snap["checkpoints"][0]["confidence"] == "high"
+
+
+# ── Duplicate method guard (Bug 3 fix) ───────────────────────────────────────
+
+class TestNoDuplicateCheckpointMethods:
+    """WorkingMemory must have exactly one definition of each checkpoint helper."""
+
+    def test_single_add_checkpoint_definition(self):
+        import inspect
+        src = inspect.getsource(WorkingMemory)
+        assert src.count("def add_checkpoint") == 1, (
+            "WorkingMemory has duplicate add_checkpoint definitions"
+        )
+
+    def test_single_fresh_checkpoint_definition(self):
+        import inspect
+        src = inspect.getsource(WorkingMemory)
+        assert src.count("def fresh_checkpoint") == 1, (
+            "WorkingMemory has duplicate fresh_checkpoint definitions"
+        )
