@@ -10778,6 +10778,8 @@ async def plan_agent_goal(goal: str) -> str:
 # Server Startup
 # ============================================================
 
+_VALID_TRANSPORTS = ("stdio", "sse", "streamable-http")
+
 
 def main():
     """MCP Server entry point."""
@@ -10792,8 +10794,21 @@ def main():
             "network deployments."
         )
 
-    # Start server using stdio transport
-    mcp.run(transport="stdio")
+    # Select transport from environment (default: stdio for Claude Code / Claude Desktop)
+    transport = os.environ.get("GMA_TRANSPORT", "stdio").lower()
+    if transport not in _VALID_TRANSPORTS:
+        raise ValueError(
+            f"Invalid GMA_TRANSPORT={transport!r}. "
+            f"Valid options: {', '.join(_VALID_TRANSPORTS)}"
+        )
+
+    if transport != "stdio":
+        logger.warning(
+            "HTTP transport (%s) has no built-in authentication. "
+            "Only use on trusted local networks.", transport,
+        )
+
+    mcp.run(transport=transport)
 
 
 if __name__ == "__main__":
