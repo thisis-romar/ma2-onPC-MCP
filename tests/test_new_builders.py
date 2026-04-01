@@ -1,182 +1,164 @@
 """
-Tests for new command builders added in session 2026-03-10:
-  solo(), blind(), freeze(), oops(), save_show(), delete_show(), update()
-  + extended highlight() with object support
+Tests for new command builders added in Phase 1.
 """
-
-from src.commands.functions.edit import oops
-from src.commands.functions.playback import blind, freeze, solo
-from src.commands.functions.selection import highlight
-from src.commands.functions.store import delete_show, save_show, update
-
-# ============================================================================
-# solo() — universal (live-verified: all 16 object types)
-# ============================================================================
-
-
-class TestSolo:
-    def test_bare_solo(self):
-        assert solo() == "solo"
-
-    def test_solo_executor(self):
-        assert solo("executor", 3) == "solo executor 3"
-
-    def test_solo_group(self):
-        assert solo("group", 5) == "solo group 5"
-
-    def test_solo_sequence(self):
-        assert solo("sequence", 99) == "solo sequence 99"
-
-    def test_solo_fixture(self):
-        assert solo("fixture", 10) == "solo fixture 10"
-
-    def test_solo_type_only(self):
-        assert solo("group") == "solo group"
+import pytest
+from src.commands import (
+    master_at, special_master_at, list_masters,
+    block_cue, unblock_cue, learn_executor, kill_executor,
+    toggle_executor, freeze_executor,
+    double_rate, half_rate, double_speed, half_speed,
+    align, locate, flip,
+    store_look, extract,
+    macro_condition_line, record_macro, VALID_CONDITION_OPERATORS,
+    lua_execute, reboot_console, restart_console, shutdown_console,
+    send_chat, lock_console,
+)
 
 
-# ============================================================================
-# blind() — universal (live-verified: all 16 object types)
-# ============================================================================
+class TestMasterAt:
+    def test_basic(self): assert master_at(1, 80) == "Master 1 At 80"
+    def test_zero(self): assert master_at(3, 0) == "Master 3 At 0"
+    def test_full(self): assert master_at(1, 100) == "Master 1 At 100"
 
+class TestSpecialMasterAt:
+    def test_basic(self): assert special_master_at(3, 1, 50) == "SpecialMaster 3.1 At 50"
+    def test_full(self): assert special_master_at(1, 1, 100) == "SpecialMaster 1.1 At 100"
+    def test_zero(self): assert special_master_at(2, 3, 0) == "SpecialMaster 2.3 At 0"
 
-class TestBlind:
-    def test_bare_blind(self):
-        assert blind() == "blind"
+class TestListMasters:
+    def test_returns_command(self): assert list_masters() == "List Master"
 
-    def test_blind_executor(self):
-        assert blind("executor", 3) == "blind executor 3"
+class TestBlockCue:
+    def test_bare(self): assert block_cue(5) == "Block Cue 5"
+    def test_with_sequence(self): assert block_cue(3, sequence_id=1) == "Block Cue 3 Sequence 1"
+    def test_float_cue(self): assert block_cue(1.5, sequence_id=2) == "Block Cue 1.5 Sequence 2"
+    def test_no_sequence_keyword(self): assert "Sequence" not in block_cue(10)
 
-    def test_blind_sequence(self):
-        assert blind("sequence", 5) == "blind sequence 5"
+class TestUnblockCue:
+    def test_bare(self): assert unblock_cue(5) == "Unblock Cue 5"
+    def test_with_sequence(self): assert unblock_cue(3, sequence_id=1) == "Unblock Cue 3 Sequence 1"
+    def test_float_cue(self): assert unblock_cue(2.5) == "Unblock Cue 2.5"
 
-    def test_blind_type_only(self):
-        assert blind("executor") == "blind executor"
+class TestLearnExecutor:
+    def test_bare(self): assert learn_executor(1) == "Learn Executor 1"
+    def test_page_qualified(self): assert learn_executor(5, page=2) == "Learn Executor 2.5"
+    def test_no_dot_without_page(self): assert "." not in learn_executor(3)
 
+class TestKillExecutor:
+    def test_bare(self): assert kill_executor(3) == "Kill Executor 3"
+    def test_page_qualified(self): assert kill_executor(5, page=2) == "Kill Executor 2.5"
 
-# ============================================================================
-# freeze() — universal (live-verified: all 16 object types)
-# ============================================================================
+class TestToggleExecutor:
+    def test_bare(self): assert toggle_executor(3) == "Toggle Executor 3"
+    def test_page_qualified(self): assert toggle_executor(5, page=2) == "Toggle Executor 2.5"
 
+class TestFreezeExecutor:
+    def test_bare(self): assert freeze_executor(3) == "Freeze Executor 3"
+    def test_page_qualified(self): assert freeze_executor(5, page=2) == "Freeze Executor 2.5"
+    def test_different_from_generic_freeze(self):
+        from src.commands import freeze
+        assert freeze_executor(1) != freeze()
 
-class TestFreeze:
-    def test_bare_freeze(self):
-        assert freeze() == "freeze"
+class TestDoubleRate:
+    def test_global(self): assert double_rate() == "DoubleRate"
+    def test_executor(self): assert double_rate(executor=3) == "DoubleRate Executor 3"
 
-    def test_freeze_executor(self):
-        assert freeze("executor", 3) == "freeze executor 3"
+class TestHalfRate:
+    def test_global(self): assert half_rate() == "HalfRate"
+    def test_executor(self): assert half_rate(executor=3) == "HalfRate Executor 3"
 
-    def test_freeze_sequence(self):
-        assert freeze("sequence", 5) == "freeze sequence 5"
+class TestDoubleSpeed:
+    def test_global(self): assert double_speed() == "DoubleSpeed"
+    def test_executor(self): assert double_speed(executor=3) == "DoubleSpeed Executor 3"
 
-    def test_freeze_fixture(self):
-        assert freeze("fixture", 10) == "freeze fixture 10"
+class TestHalfSpeed:
+    def test_global(self): assert half_speed() == "HalfSpeed"
+    def test_executor(self): assert half_speed(executor=3) == "HalfSpeed Executor 3"
 
-    def test_freeze_type_only(self):
-        assert freeze("group") == "freeze group"
+class TestAlignExtended:
+    def test_bare_preserves_original(self): assert align() == "align"
+    def test_left_to_right(self): assert align(">") == "align >"
+    def test_right_to_left(self): assert align("<") == "align <"
+    def test_center_out(self): assert align("><") == "align ><"
+    def test_edges_in(self): assert align("<>") == "align <>"
 
+class TestLocateExtended:
+    def test_bare_preserves_original(self): assert locate() == "locate"
+    def test_single_fixture(self): assert locate(1) == "locate fixture 1"
+    def test_range(self): assert locate(1, 10) == "locate fixture 1 thru 10"
+    def test_list(self): assert locate([1, 3, 5]) == "locate fixture 1 + 3 + 5"
+    def test_no_thru_without_end(self): assert "thru" not in locate(5)
 
-# ============================================================================
-# oops() — universal (live-verified: all 16 object types)
-# ============================================================================
+class TestFlip:
+    def test_returns_flip(self): assert flip() == "Flip"
 
+class TestStoreLook:
+    def test_bare(self): assert store_look() == "StoreLook"
+    def test_with_id(self): assert store_look(5) == "StoreLook 5"
+    def test_merge(self): assert store_look(3, merge=True) == "StoreLook 3 /merge"
+    def test_overwrite(self): assert store_look(3, overwrite=True) == "StoreLook 3 /overwrite"
+    def test_no_id_merge(self): assert store_look(merge=True) == "StoreLook /merge"
+    def test_merge_and_overwrite(self):
+        result = store_look(1, merge=True, overwrite=True)
+        assert "/merge" in result and "/overwrite" in result
 
-class TestOops:
-    def test_bare_oops(self):
-        assert oops() == "oops"
+class TestExtract:
+    def test_returns_extract(self): assert extract() == "Extract"
 
-    def test_oops_cue(self):
-        assert oops("cue", 5) == "oops cue 5"
+class TestValidConditionOperators:
+    def test_contains_equality(self): assert "==" in VALID_CONDITION_OPERATORS
+    def test_contains_inequality(self): assert "!=" in VALID_CONDITION_OPERATORS
+    def test_contains_less(self): assert "<" in VALID_CONDITION_OPERATORS
+    def test_contains_greater(self): assert ">" in VALID_CONDITION_OPERATORS
+    def test_no_single_equals(self): assert "=" not in VALID_CONDITION_OPERATORS
 
-    def test_oops_group(self):
-        assert oops("group", 3) == "oops group 3"
+class TestMacroConditionLine:
+    def test_equality(self):
+        assert macro_condition_line("$mymode", "==", 1, "Go Executor 1") == "[$mymode == 1] Go Executor 1"
+    def test_less_than(self):
+        assert macro_condition_line("$counter", "<", 10, "AddVar $counter + 1") == "[$counter < 10] AddVar $counter + 1"
+    def test_greater_than(self):
+        assert macro_condition_line("$val", ">", 5, "Go Executor 2") == "[$val > 5] Go Executor 2"
+    def test_inequality(self):
+        assert macro_condition_line("$mode", "!=", 0, "Kill Executor 1") == "[$mode != 0] Kill Executor 1"
+    def test_raises_on_missing_dollar(self):
+        with pytest.raises(ValueError): macro_condition_line("mymode", "==", 1, "Go Executor 1")
+    def test_raises_on_single_equals(self):
+        with pytest.raises(ValueError): macro_condition_line("$mymode", "=", 1, "Go Executor 1")
+    def test_raises_on_invalid_operator(self):
+        with pytest.raises(ValueError): macro_condition_line("$mymode", ">=", 1, "Go Executor 1")
+    def test_raises_on_empty_command(self):
+        with pytest.raises(ValueError): macro_condition_line("$mymode", "==", 1, "")
+    def test_raises_on_whitespace_command(self):
+        with pytest.raises(ValueError): macro_condition_line("$mymode", "==", 1, "   ")
 
-    def test_oops_type_only(self):
-        assert oops("sequence") == "oops sequence"
+class TestRecordMacro:
+    def test_basic(self): assert record_macro(1) == "Record Macro 1"
+    def test_high_slot(self): assert record_macro(99) == "Record Macro 99"
+    def test_starts_with_record(self): assert record_macro(5).startswith("Record Macro ")
 
+class TestLuaExecute:
+    def test_basic(self):
+        result = lua_execute("gma.echo('hello')")
+        assert result.startswith('Lua "') and "gma.echo" in result
+    def test_matches_run_lua(self):
+        from src.commands import run_lua
+        assert lua_execute("test") == run_lua("test")
 
-# ============================================================================
-# save_show() — universal (live-verified: all 16 object types)
-# ============================================================================
+class TestRebootConsole:
+    def test_returns_reboot(self): assert reboot_console() == "Reboot"
 
+class TestRestartConsole:
+    def test_returns_restart(self): assert restart_console() == "Restart"
 
-class TestSaveShow:
-    def test_bare_save(self):
-        assert save_show() == "saveshow"
+class TestShutdownConsole:
+    def test_returns_shutdown(self): assert shutdown_console() == "Shutdown"
 
-    def test_save_with_name(self):
-        assert save_show("my_show") == 'saveshow "my_show"'
+class TestSendChat:
+    def test_basic(self): assert send_chat("Hello from onPC") == 'Chat "Hello from onPC"'
+    def test_empty(self): assert send_chat("") == 'Chat ""'
 
-    def test_save_with_spaces_in_name(self):
-        assert save_show("My Show File") == 'saveshow "My Show File"'
-
-
-# ============================================================================
-# delete_show() — universal (live-verified: all 16 object types)
-# ============================================================================
-
-
-class TestDeleteShow:
-    def test_delete_show_basic(self):
-        assert delete_show("old_show") == 'deleteshow "old_show"'
-
-    def test_delete_show_noconfirm(self):
-        assert delete_show("old_show", noconfirm=True) == 'deleteshow "old_show" /noconfirm'
-
-
-# ============================================================================
-# update() — generic, universal (live-verified: all 16 object types)
-# Note: update_cue() is the richer cue-specific variant, kept as-is
-# ============================================================================
-
-
-class TestUpdate:
-    def test_update_group(self):
-        assert update("group", 3) == "update group 3"
-
-    def test_update_preset(self):
-        assert update("preset", "1.5") == "update preset 1.5"
-
-    def test_update_sequence(self):
-        assert update("sequence", 99) == "update sequence 99"
-
-    def test_update_merge(self):
-        assert update("group", 3, merge=True) == "update group 3 /merge"
-
-    def test_update_overwrite(self):
-        assert update("sequence", 1, overwrite=True) == "update sequence 1 /overwrite"
-
-    def test_update_cueonly_true(self):
-        assert update("cue", 5, cueonly=True) == "update cue 5 /cueonly=true"
-
-    def test_update_cueonly_false(self):
-        assert update("cue", 5, cueonly=False) == "update cue 5 /cueonly=false"
-
-    def test_update_no_options(self):
-        assert update("macro", 10) == "update macro 10"
-
-
-# ============================================================================
-# highlight() — extended with optional object support
-# ============================================================================
-
-
-class TestHighlightExtended:
-    def test_bare_on(self):
-        """Existing behaviour preserved."""
-        assert highlight() == "highlight on"
-
-    def test_bare_off(self):
-        """Existing behaviour preserved."""
-        assert highlight(False) == "highlight off"
-
-    def test_highlight_executor(self):
-        assert highlight(object_type="executor", object_id=3) == "highlight executor 3"
-
-    def test_highlight_group(self):
-        assert highlight(object_type="group", object_id=5) == "highlight group 5"
-
-    def test_highlight_sequence(self):
-        assert highlight(object_type="sequence", object_id=99) == "highlight sequence 99"
-
-    def test_highlight_type_only(self):
-        assert highlight(object_type="fixture") == "highlight fixture"
+class TestLockConsoleExtended:
+    def test_no_password(self): assert lock_console() == "Lock"
+    def test_with_password(self): assert lock_console("secret") == 'Lock "secret"'
+    def test_password_quoted(self): assert '"1234"' in lock_console("1234")

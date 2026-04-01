@@ -222,12 +222,22 @@ def fix_fixture(
 # ============================================================================
 
 
-def locate() -> str:
+def locate(
+    fixture_ids: int | list[int] | None = None,
+    end: int | None = None,
+) -> str:
     """
     Locate selected fixtures (fire to default/locate state).
 
     Locate fires the selected fixtures to their default state: full intensity,
     open colour, centre position, beam fully open.
+
+    When fixture_ids are provided, locates those specific fixtures.
+    When called bare, resets the current selection.
+
+    Args:
+        fixture_ids: Fixture number(s), single int or list (optional)
+        end: Ending number for range: fixture_ids Thru end (optional)
 
     Returns:
         str: MA command string
@@ -235,8 +245,21 @@ def locate() -> str:
     Examples:
         >>> locate()
         'locate'
+        >>> locate(1)
+        'locate fixture 1'
+        >>> locate(1, 10)
+        'locate fixture 1 thru 10'
+        >>> locate([1, 3, 5])
+        'locate fixture 1 + 3 + 5'
     """
-    return "locate"
+    if fixture_ids is None:
+        return "locate"
+    if isinstance(fixture_ids, list):
+        ids_str = " + ".join(str(f) for f in fixture_ids)
+        return f"locate fixture {ids_str}"
+    if end is not None:
+        return f"locate fixture {fixture_ids} thru {end}"
+    return f"locate fixture {fixture_ids}"
 
 
 # ============================================================================
@@ -270,12 +293,16 @@ def invert() -> str:
 # ============================================================================
 
 
-def align() -> str:
+def align(mode: str | None = None) -> str:
     """
     Align programmer values across the current fixture selection.
 
     Align distributes the values in the programmer evenly from the first to
-    the last fixture in the selection.
+    the last fixture in the selection. The optional mode controls direction.
+
+    Args:
+        mode: Alignment mode — ">" left-to-right, "<" right-to-left,
+            "><" center-out, "<>" edges-in, or None for default toggle.
 
     Returns:
         str: MA command string
@@ -283,5 +310,33 @@ def align() -> str:
     Examples:
         >>> align()
         'align'
+        >>> align(">")
+        'align >'
+        >>> align("<>")
+        'align <>'
     """
+    if mode is not None:
+        return f"align {mode}"
     return "align"
+
+
+# ============================================================================
+# FLIP FUNCTION KEYWORD
+# ============================================================================
+
+
+def flip() -> str:
+    """
+    Construct a Flip command to flip pan/tilt to alternate position.
+
+    Flip cycles through alternative pan/tilt positions for moving lights
+    that can reach the same point from different orientations.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> flip()
+        'Flip'
+    """
+    return "Flip"

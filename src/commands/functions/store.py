@@ -523,3 +523,45 @@ def store_preset(
     )
 
     return cmd
+
+
+# ============================================================================
+# STORELOOK FUNCTION KEYWORD
+# ============================================================================
+
+
+def store_look(
+    look_id: int | None = None,
+    *,
+    merge: bool = False,
+    overwrite: bool = False,
+) -> str:
+    """
+    Construct a StoreLook command to store the programmer as a temporary look.
+
+    Args:
+        look_id: Look pool slot number (optional; stores to next available if omitted)
+        merge: Merge new values into existing look
+        overwrite: Overwrite existing look
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> store_look()
+        'StoreLook'
+        >>> store_look(5)
+        'StoreLook 5'
+        >>> store_look(3, merge=True)
+        'StoreLook 3 /merge'
+        >>> store_look(3, overwrite=True)
+        'StoreLook 3 /overwrite'
+    """
+    cmd = "StoreLook"
+    if look_id is not None:
+        cmd += f" {look_id}"
+    if merge:
+        cmd += " /merge"
+    if overwrite:
+        cmd += " /overwrite"
+    return cmd

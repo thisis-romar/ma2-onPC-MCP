@@ -868,3 +868,251 @@ def freeze(
     if object_type is not None:
         return f"freeze {object_type}"
     return "freeze"
+
+
+# ============================================================================
+# BLOCK / UNBLOCK FUNCTION KEYWORDS
+# ============================================================================
+
+
+def block_cue(
+    cue_id: int | float,
+    *,
+    sequence_id: int | None = None,
+) -> str:
+    """
+    Construct a Block command to block tracking for a cue.
+
+    Blocked cues do not allow tracked values to pass through them.
+
+    Args:
+        cue_id: Cue number to block
+        sequence_id: Sequence number (optional scoping)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> block_cue(5)
+        'Block Cue 5'
+        >>> block_cue(3, sequence_id=1)
+        'Block Cue 3 Sequence 1'
+    """
+    cmd = f"Block Cue {cue_id}"
+    if sequence_id is not None:
+        cmd += f" Sequence {sequence_id}"
+    return cmd
+
+
+def unblock_cue(
+    cue_id: int | float,
+    *,
+    sequence_id: int | None = None,
+) -> str:
+    """
+    Construct an Unblock command to unblock tracking for a cue.
+
+    Args:
+        cue_id: Cue number to unblock
+        sequence_id: Sequence number (optional scoping)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> unblock_cue(5)
+        'Unblock Cue 5'
+        >>> unblock_cue(3, sequence_id=1)
+        'Unblock Cue 3 Sequence 1'
+    """
+    cmd = f"Unblock Cue {cue_id}"
+    if sequence_id is not None:
+        cmd += f" Sequence {sequence_id}"
+    return cmd
+
+
+# ============================================================================
+# LEARN FUNCTION KEYWORD
+# ============================================================================
+
+
+def learn_executor(
+    executor_id: int,
+    *,
+    page: int | None = None,
+) -> str:
+    """
+    Construct a Learn command to capture timing from a manual crossfade.
+
+    Args:
+        executor_id: Executor ID
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> learn_executor(1)
+        'Learn Executor 1'
+        >>> learn_executor(5, page=2)
+        'Learn Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"Learn Executor {ref}"
+
+
+# ============================================================================
+# KILL / TOGGLE / FREEZE EXECUTOR KEYWORDS
+# ============================================================================
+
+
+def kill_executor(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Construct a Kill command to immediately stop an executor.
+
+    Args:
+        executor_id: Executor ID
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> kill_executor(3)
+        'Kill Executor 3'
+        >>> kill_executor(5, page=2)
+        'Kill Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"Kill Executor {ref}"
+
+
+def toggle_executor(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Construct a Toggle command to toggle an executor on/off.
+
+    Args:
+        executor_id: Executor ID
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> toggle_executor(3)
+        'Toggle Executor 3'
+        >>> toggle_executor(5, page=2)
+        'Toggle Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"Toggle Executor {ref}"
+
+
+def freeze_executor(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Construct a Freeze command scoped to a specific executor.
+
+    Args:
+        executor_id: Executor ID
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> freeze_executor(3)
+        'Freeze Executor 3'
+        >>> freeze_executor(5, page=2)
+        'Freeze Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"Freeze Executor {ref}"
+
+
+# ============================================================================
+# RATE / SPEED MODIFIERS
+# ============================================================================
+
+
+def double_rate(*, executor: int | None = None) -> str:
+    """
+    Construct a DoubleRate command to double the rate of an executor or selection.
+
+    Args:
+        executor: Executor number (optional; applies globally if omitted)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> double_rate()
+        'DoubleRate'
+        >>> double_rate(executor=3)
+        'DoubleRate Executor 3'
+    """
+    if executor is not None:
+        return f"DoubleRate Executor {executor}"
+    return "DoubleRate"
+
+
+def half_rate(*, executor: int | None = None) -> str:
+    """
+    Construct a HalfRate command to halve the rate of an executor or selection.
+
+    Args:
+        executor: Executor number (optional; applies globally if omitted)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> half_rate()
+        'HalfRate'
+        >>> half_rate(executor=3)
+        'HalfRate Executor 3'
+    """
+    if executor is not None:
+        return f"HalfRate Executor {executor}"
+    return "HalfRate"
+
+
+def double_speed(*, executor: int | None = None) -> str:
+    """
+    Construct a DoubleSpeed command to double the playback speed.
+
+    Args:
+        executor: Executor number (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> double_speed()
+        'DoubleSpeed'
+        >>> double_speed(executor=3)
+        'DoubleSpeed Executor 3'
+    """
+    if executor is not None:
+        return f"DoubleSpeed Executor {executor}"
+    return "DoubleSpeed"
+
+
+def half_speed(*, executor: int | None = None) -> str:
+    """
+    Construct a HalfSpeed command to halve the playback speed.
+
+    Args:
+        executor: Executor number (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> half_speed()
+        'HalfSpeed'
+        >>> half_speed(executor=3)
+        'HalfSpeed Executor 3'
+    """
+    if executor is not None:
+        return f"HalfSpeed Executor {executor}"
+    return "HalfSpeed"

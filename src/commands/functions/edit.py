@@ -988,3 +988,25 @@ def oops(
         return f"oops {object_type}"
     return "oops"
 
+
+# ============================================================================
+# EXTRACT FUNCTION KEYWORD
+# ============================================================================
+
+
+def extract() -> str:
+    """
+    Construct an Extract command to pull tracked values into the programmer.
+
+    Extract pulls tracked attribute values from the active cue into the
+    programmer, making them available for editing without affecting other cues.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> extract()
+        'Extract'
+    """
+    return "Extract"
+
