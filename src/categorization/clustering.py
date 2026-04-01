@@ -53,29 +53,16 @@ def kmeans_plus_plus(
     return centroids
 
 
-def kmeans(
+def _kmeans_single(
     X: NDArray[np.float64],
     k: int,
     *,
     max_iter: int = 300,
     tol: float = 1e-4,
-    seed: int | None = 42,
+    rng: np.random.Generator,
 ) -> tuple[NDArray[np.int64], NDArray[np.float64], float]:
-    """Run K-Means clustering.
-
-    Returns
-    -------
-    labels : (n,) cluster assignments
-    centroids : (k, d) final centroids
-    inertia : sum of squared distances to assigned centroid
-    """
-    rng = np.random.default_rng(seed)
-    X = np.asarray(X, dtype=np.float64)
+    """Single run of Lloyd's K-Means algorithm (internal)."""
     n, d = X.shape
-
-    if k > n:
-        raise ValueError(f"k={k} exceeds sample count n={n}")
-
     centroids = kmeans_plus_plus(X, k, rng)
     labels = np.zeros(n, dtype=np.int64)
 
@@ -103,6 +90,57 @@ def kmeans(
 
     inertia = float(np.sum(np.min(_pairwise_sq_dist(X, centroids), axis=1)))
     return labels, centroids, inertia
+
+
+def kmeans(
+    X: NDArray[np.float64],
+    k: int,
+    *,
+    max_iter: int = 300,
+    tol: float = 1e-4,
+    seed: int | None = 42,
+    n_init: int = 10,
+) -> tuple[NDArray[np.int64], NDArray[np.float64], float]:
+    """Run K-Means clustering with multiple restarts.
+
+    Runs *n_init* independent initialisations and returns the result with
+    the lowest inertia (sum of squared distances to assigned centroid).
+
+    Parameters
+    ----------
+    n_init : number of independent runs (default 10).  Higher values
+        reduce sensitivity to random initialisation at the cost of runtime.
+
+    Returns
+    -------
+    labels : (n,) cluster assignments
+    centroids : (k, d) final centroids
+    inertia : sum of squared distances to assigned centroid
+    """
+    X = np.asarray(X, dtype=np.float64)
+    n, d = X.shape
+
+    if k > n:
+        raise ValueError(f"k={k} exceeds sample count n={n}")
+
+    best_labels: NDArray[np.int64] | None = None
+    best_centroids: NDArray[np.float64] | None = None
+    best_inertia = np.inf
+
+    base_rng = np.random.default_rng(seed)
+    for _ in range(n_init):
+        # Derive a child RNG for each restart so results are deterministic
+        child_rng = np.random.default_rng(base_rng.integers(0, 2**63))
+        labels, centroids, inertia = _kmeans_single(
+            X, k, max_iter=max_iter, tol=tol, rng=child_rng,
+        )
+        if inertia < best_inertia:
+            best_labels = labels
+            best_centroids = centroids
+            best_inertia = inertia
+
+    assert best_labels is not None  # at least one run completed
+    return best_labels, best_centroids, best_inertia  # type: ignore[return-value]
 
 
 # ---------------------------------------------------------------------------
@@ -193,7 +231,9 @@ def find_optimal_k(
     X = np.asarray(X, dtype=np.float64)
     n = X.shape[0]
     if k_range is None:
-        k_range = range(3, min(13, n))
+        # For 90 tools, explore up to ~sqrt(n) clusters (~9-10) but cap at 20
+        upper = min(max(int(n ** 0.5) + 5, 13), n)
+        k_range = range(3, upper)
 
     scores: dict[int, float] = {}
     for k in k_range:
@@ -213,6 +253,22 @@ def find_optimal_k(
 # ---------------------------------------------------------------------------
 # Utilities
 # ---------------------------------------------------------------------------
+
+
+def drop_zero_variance(
+    X: NDArray[np.float64],
+) -> tuple[NDArray[np.float64], NDArray[np.bool_]]:
+    """Remove columns with zero variance (constant across all samples).
+
+    Returns
+    -------
+    filtered : (n, d') array with only non-constant columns
+    kept_mask : (d,) boolean mask of which original columns were kept
+    """
+    X = np.asarray(X, dtype=np.float64)
+    variances = X.var(axis=0)
+    mask = variances > 0
+    return X[:, mask], mask
 
 
 def normalize_minmax(X: NDArray[np.float64]) -> NDArray[np.float64]:
