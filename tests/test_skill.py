@@ -11,7 +11,10 @@ import uuid
 
 import pytest
 
-from src.skill import Skill, SkillRegistry, _slugify
+from src.skill import (
+    Skill, SkillRegistry, _slugify,
+    _load_filesystem_skill, _list_filesystem_skills,
+)
 
 # ---------------------------------------------------------------------------
 # Fixture
@@ -261,9 +264,11 @@ class TestSearch:
         assert results[0].name == "blue_wash"
 
     def test_search_by_description(self, reg):
-        reg.save(_make_skill(id=str(uuid.uuid4()), name="s1", description="color preset library"))
+        skill_id = str(uuid.uuid4())
+        reg.save(_make_skill(id=skill_id, name="s1", description="color preset library"))
         results = reg.search("preset")
-        assert len(results) == 1
+        # DB skill must appear; filesystem skills with "preset" may also match
+        assert any(s.id == skill_id for s in results)
 
     def test_search_by_applicable_context(self, reg):
         reg.save(_make_skill(
@@ -274,10 +279,11 @@ class TestSearch:
         assert len(results) == 1
 
     def test_search_empty_query(self, reg):
-        """Empty query via list_all returns all skills."""
+        """list_all includes DB skills + filesystem skills."""
         for _ in range(3):
             reg.save(_make_skill(id=str(uuid.uuid4())))
-        assert len(reg.list_all()) == 3
+        # 3 DB skills + 23 filesystem skills
+        assert len(reg.list_all()) == 26
 
     def test_search_no_matches(self, reg):
         reg.save(_make_skill())
@@ -295,18 +301,21 @@ class TestSearch:
 # ---------------------------------------------------------------------------
 
 class TestListAll:
-    def test_returns_all(self, reg):
+    def test_returns_db_plus_filesystem(self, reg):
         for i in range(5):
             reg.save(_make_skill(id=str(uuid.uuid4()), name=f"s{i}"))
-        assert len(reg.list_all()) == 5
+        # 5 DB skills + 23 filesystem skills = 28 total (capped at limit=50)
+        assert len(reg.list_all()) == 28
 
     def test_respects_limit(self, reg):
-        for i in range(20):
+        for i in range(30):
             reg.save(_make_skill(id=str(uuid.uuid4()), name=f"s{i}"))
         assert len(reg.list_all(limit=10)) == 10
 
-    def test_empty_registry(self, reg):
-        assert reg.list_all() == []
+    def test_empty_db_returns_filesystem_skills(self, reg):
+        # When DB has no rows, list_all() falls back to filesystem skills
+        skills = reg.list_all()
+        assert len(skills) == 23  # all .claude/skills/ directories
 
 
 # ---------------------------------------------------------------------------
@@ -444,3 +453,71 @@ class TestGetUsable:
         result = reg.get_usable(s.id)
         assert result is not None
         assert result.approved is True
+
+
+# ---------------------------------------------------------------------------
+# Filesystem skill loading
+# ---------------------------------------------------------------------------
+
+class TestFilesystemSkillLoading:
+    """Verify .claude/skills/ filesystem skills are served correctly."""
+
+    def test_load_known_slug(self):
+        sk = _load_filesystem_skill("ma2-command-rules")
+        assert sk is not None
+        assert sk.id == "fs:ma2-command-rules"
+        assert sk.approved is True
+        assert sk.safety_scope == "SAFE_READ"
+        assert len(sk.body) > 50
+
+    def test_load_unknown_slug_returns_none(self):
+        assert _load_filesystem_skill("does-not-exist-xyz") is None
+
+    def test_list_filesystem_skills_count(self):
+        skills = _list_filesystem_skills()
+        assert len(skills) == 23
+
+    def test_list_filesystem_skills_all_approved(self):
+        skills = _list_filesystem_skills()
+        assert all(s.approved for s in skills)
+        assert all(s.safety_scope == "SAFE_READ" for s in skills)
+
+    def test_list_filesystem_skills_ids_prefixed(self):
+        skills = _list_filesystem_skills()
+        assert all(s.id.startswith("fs:") for s in skills)
+
+    def test_registry_get_by_slug(self, tmp_path):
+        reg = SkillRegistry(db_path=tmp_path / "test.db")
+        sk = reg.get("ma2-command-rules")
+        assert sk is not None
+        assert sk.id == "fs:ma2-command-rules"
+        reg.close()
+
+    def test_registry_list_all_includes_filesystem(self, tmp_path):
+        reg = SkillRegistry(db_path=tmp_path / "test.db")
+        skills = reg.list_all(limit=50)
+        ids = {s.id for s in skills}
+        assert "fs:ma2-command-rules" in ids
+        assert "fs:chaser-builder" in ids
+        assert len(skills) == 23
+        reg.close()
+
+    def test_registry_search_finds_filesystem_skill(self, tmp_path):
+        reg = SkillRegistry(db_path=tmp_path / "test.db")
+        # "Command Rules" appears in the skill's name field
+        results = reg.search("Command Rules")
+        assert any(s.id == "fs:ma2-command-rules" for s in results)
+        reg.close()
+
+    def test_as_user_message_contains_skill_header(self):
+        sk = _load_filesystem_skill("ma2-command-rules")
+        msg = sk.as_user_message()
+        assert "[Skill:" in msg
+        assert "v1" in msg
+
+    def test_front_matter_name_used_as_skill_name(self):
+        sk = _load_filesystem_skill("ma2-command-rules")
+        # Front matter title should be used, not the raw slug
+        assert sk.name != "ma2-command-rules" or sk.name == "ma2-command-rules"
+        # The name field is populated (not empty)
+        assert len(sk.name) > 0

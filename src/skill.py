@@ -26,6 +26,12 @@ from pathlib import Path
 
 _DEFAULT_DB = Path(__file__).parent.parent / "rag" / "store" / "agent_memory.db"
 
+# Root of the hand-authored instruction-module skills tree
+_SKILLS_DIR = Path(__file__).parent.parent / ".claude" / "skills"
+
+# Regex for parsing YAML front matter between --- fences
+_FM_RE = re.compile(r"^---\r?\n(.*?)\r?\n---\r?\n", re.DOTALL)
+
 
 # ---------------------------------------------------------------------------
 # Skill dataclass
@@ -240,14 +246,25 @@ class SkillRegistry:
     # ------------------------------------------------------------------ #
 
     def get(self, skill_id: str) -> Skill | None:
-        """Fetch a single skill by id.  Returns None if not found."""
+        """Fetch a skill by UUID (DB) or slug (filesystem fallback).
+
+        Lookup order:
+        1. DB row WHERE id = skill_id  (UUID or "fs:slug" if previously saved)
+        2. Filesystem: ``.claude/skills/{skill_id}/SKILL.md``
+
+        This allows callers to use either a UUID (for DB-promoted skills) or a
+        directory slug like ``"ma2-command-rules"`` (for filesystem skills).
+        """
         row = self._conn.execute(
             "SELECT id,version,parent_id,name,description,body,quality_score,"
             "safety_scope,applicable_context,created_at,updated_at,"
             "source_session_id,approved FROM skills WHERE id=?",
             (skill_id,),
         ).fetchone()
-        return _row_to_skill(row) if row else None
+        if row:
+            return _row_to_skill(row)
+        # Filesystem fallback — treat skill_id as a directory slug
+        return _load_filesystem_skill(skill_id)
 
     def get_usable(self, skill_id: str) -> Skill | None:
         """
@@ -273,10 +290,19 @@ class SkillRegistry:
             "ORDER BY updated_at DESC LIMIT ?",
             (pat, pat, pat, limit),
         ).fetchall()
-        return [_row_to_skill(r) for r in rows]
+        db_skills = [_row_to_skill(r) for r in rows]
+        db_ids = {s.id for s in db_skills}
+        q = query.lower()
+        fs_matches = [
+            s for s in _list_filesystem_skills()
+            if s.id not in db_ids and (
+                q in s.name.lower() or q in s.description.lower()
+            )
+        ]
+        return (db_skills + fs_matches)[:limit]
 
     def list_all(self, limit: int = 50) -> list[Skill]:
-        """Return the most recently updated skills."""
+        """Return all skills: DB skills first (most recent), then filesystem skills."""
         rows = self._conn.execute(
             "SELECT id,version,parent_id,name,description,body,quality_score,"
             "safety_scope,applicable_context,created_at,updated_at,"
@@ -284,7 +310,10 @@ class SkillRegistry:
             "ORDER BY updated_at DESC LIMIT ?",
             (limit,),
         ).fetchall()
-        return [_row_to_skill(r) for r in rows]
+        db_skills = [_row_to_skill(r) for r in rows]
+        db_ids = {s.id for s in db_skills}
+        fs_skills = [s for s in _list_filesystem_skills() if s.id not in db_ids]
+        return (db_skills + fs_skills)[:limit]
 
     def get_lineage(self, skill_id: str) -> list[Skill]:
         """Walk the parent_id chain and return ancestors oldest-first."""
@@ -307,7 +336,7 @@ class SkillRegistry:
 
 
 # ---------------------------------------------------------------------------
-# Private helpers
+# Private helpers — DB row deserialisation
 # ---------------------------------------------------------------------------
 
 def _row_to_skill(row: tuple) -> Skill:
@@ -331,3 +360,72 @@ def _row_to_skill(row: tuple) -> Skill:
         source_session_id=source_session_id,
         approved=bool(approved),
     )
+
+
+# ---------------------------------------------------------------------------
+# Filesystem skill helpers — .claude/skills/{slug}/SKILL.md
+# ---------------------------------------------------------------------------
+
+def _parse_front_matter(raw: str) -> tuple[dict, str]:
+    """Parse YAML-style front matter from a Markdown string.
+
+    Returns (meta_dict, body_text).  Uses a lightweight regex parser so no
+    PyYAML dependency is required — SKILL.md front matter uses only flat
+    ``key: value`` pairs.
+    """
+    m = _FM_RE.match(raw)
+    if not m:
+        return {}, raw
+    meta: dict[str, str] = {}
+    for line in m.group(1).splitlines():
+        if ": " in line:
+            k, _, v = line.partition(": ")
+            meta[k.strip()] = v.strip()
+    return meta, raw[m.end():].strip()
+
+
+def _load_filesystem_skill(slug: str) -> Skill | None:
+    """Read ``.claude/skills/{slug}/SKILL.md`` and return an ephemeral Skill.
+
+    Returns ``None`` if the file does not exist.
+
+    The returned Skill is **not** persisted to the database — it is constructed
+    on demand from the SKILL.md front matter and body.  Its ``id`` is
+    ``"fs:{slug}"`` so it can be distinguished from UUID-keyed DB skills.
+    Filesystem skills are always ``approved=True`` (hand-authored, not
+    agent-generated) and ``safety_scope="SAFE_READ"`` (instruction text only).
+    """
+    skill_file = _SKILLS_DIR / slug / "SKILL.md"
+    if not skill_file.exists():
+        return None
+    raw = skill_file.read_text(encoding="utf-8")
+    meta, body = _parse_front_matter(raw)
+    now = time.time()
+    return Skill(
+        id=f"fs:{slug}",
+        version=1,
+        parent_id=None,
+        name=meta.get("title", slug),
+        description=meta.get("description", ""),
+        body=body,
+        quality_score=1.0,
+        safety_scope="SAFE_READ",
+        applicable_context=meta.get("description", ""),
+        created_at=now,
+        updated_at=now,
+        source_session_id="",
+        approved=True,
+    )
+
+
+def _list_filesystem_skills() -> list[Skill]:
+    """Return all skills from ``.claude/skills/``, sorted alphabetically by slug."""
+    if not _SKILLS_DIR.exists():
+        return []
+    skills: list[Skill] = []
+    for path in sorted(_SKILLS_DIR.iterdir()):
+        if path.is_dir():
+            sk = _load_filesystem_skill(path.name)
+            if sk is not None:
+                skills.append(sk)
+    return skills
