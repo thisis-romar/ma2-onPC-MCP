@@ -1,7 +1,7 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.7.0
+version: 4.8.0
 created: 2026-03-01T23:37:51Z
 last_updated: 2026-04-01T00:25:43Z
 ---
@@ -10,7 +10,7 @@ last_updated: 2026-04-01T00:25:43Z
 
 ## Project Identity
 
-MCP server exposing **184 tools**, **13 resources**, **10 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **189 tools**, **13 resources**, **10 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -47,6 +47,15 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `rag/` | crawl → chunk → embed → store → retrieve pipeline |
 | `.claude/rules/` | Scoped rule files (loaded on demand, not at startup) |
 | `.claude/skills/` | Instruction modules (playbooks injected as user messages) |
+| `src/agent/runtime.py` | Agent harness: goal → plan → execute → verify → trace |
+| `src/agent/planner.py` | Rule-based domain planner, goal classification |
+| `src/agent/executor.py` | Step executor with retries, confirmation flow |
+| `src/agent/policy.py` | Plan-level governance (extends `src/vocab.py` safety) |
+| `src/agent/verification.py` | Post-mutation state verification |
+| `src/agent/memory.py` | SQLite workflow memory (conventions, recipes, run history) |
+| `src/agent/trace.py` | Structured JSON execution traces |
+| `src/agent/state.py` | Data models: RunContext, PlanStep, Checkpoint |
+| `src/agent/workflows/` | Workflow templates: patch, preset, playback, common |
 
 **Responsibility map:** see `doc/responsibility-map.md`.
 **Tool tier classification:** see `doc/tool-surface-tiers.md`.
@@ -134,6 +143,26 @@ Three tiers enforced before any command reaches the console:
 - Never pass `confirm_destructive=True` automatically.
 - Line breaks (`\r`, `\n`) in command strings are rejected by the safety gate.
 - **`new_show` without `/globalsettings` disables Telnet** — always keep `preserve_connectivity=True`.
+
+---
+
+## Agent Harness (`src/agent/`)
+
+The agent harness enables autonomous multi-step execution on top of the existing MCP tools — no changes to command builders, telnet client, or navigation.
+
+```
+AgentRuntime (runtime.py)
+  → DomainPlanner (planner.py) — rule-based goal → plan
+  → PolicyEngine (policy.py) — plan-level governance
+  → StepExecutor (executor.py) — tool dispatch + retries
+  → Verifier (verification.py) — post-mutation checks
+  → WorkflowMemory (memory.py) — SQLite operational memory
+  → ExecutionTrace (trace.py) — JSON audit artifacts
+```
+
+MCP tools added: `run_agent_goal(goal, auto_confirm, dry_run)`, `plan_agent_goal(goal)`.
+
+**Note:** `DomainPlanner` uses its own `PlanStep` model. Use `src/agent_bridge.py` (see below) to convert between `PlanStep` and main's `SubTask` for cross-system interop.
 
 ---
 
