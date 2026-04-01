@@ -347,7 +347,7 @@ class Orchestrator:
 
         # ── Step 0: Hydrate console state (closes all 19 gaps) ──────
         console_state_summary = ""
-        if self._auto_hydrate:
+        if self._auto_hydrate and self._send is not None:
             try:
                 hydrator = ConsoleStateHydrator(self._send)
                 snapshot = await hydrator.hydrate(sequence_ids=sequence_ids)
@@ -515,10 +515,12 @@ class Orchestrator:
             finally:
                 _current_session_id.reset(_tok)
             for step, res in zip(ready, batch, strict=False):
-                if isinstance(res, Exception):
-                    res = StepResult(step_name=step.name, success=False, error=str(res))
-                results.append(res)
-                if res.success:
+                if isinstance(res, BaseException):
+                    step_res: StepResult = StepResult(step_name=step.name, success=False, error=str(res))
+                else:
+                    step_res = res  # type: ignore[assignment]
+                results.append(step_res)
+                if step_res.success:
                     completed.add(step.name)
                 remaining.remove(step)
 
