@@ -11,37 +11,21 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
+def _discover_modules(subdir: str) -> list[str]:
+    """Auto-discover command submodules from ``src/commands/{subdir}/``."""
+    pkg_dir = Path(__file__).resolve().parent.parent / "commands" / subdir
+    if not pkg_dir.is_dir():
+        return []
+    return sorted(
+        p.stem for p in pkg_dir.glob("*.py") if p.stem != "__init__"
+    )
+
+
 # Command builder submodule names used for multi-hot encoding.
-FUNCTION_MODULES = [
-    "assignment",
-    "call",
-    "edit",
-    "helping",
-    "importexport",
-    "info",
-    "labeling",
-    "macro",
-    "navigation",
-    "park",
-    "playback",
-    "selection",
-    "store",
-    "values",
-    "variables",
-]
-
-OBJECT_MODULES = [
-    "attributes",
-    "cues",
-    "dmx",
-    "executors",
-    "fixtures",
-    "groups",
-    "layouts",
-    "presets",
-    "time",
-]
-
+# Auto-discovered from src/commands/{functions,objects}/ to stay in sync.
+FUNCTION_MODULES = _discover_modules("functions")
+OBJECT_MODULES = _discover_modules("objects")
 ALL_MODULES = FUNCTION_MODULES + OBJECT_MODULES
 
 # MA2 action verbs looked-up in docstring / body for multi-hot.
@@ -112,9 +96,14 @@ class ToolFeatures:
         for mod in ALL_MODULES:
             vec.append(1.0 if mod in self.command_modules else 0.0)
 
-        # Action verb multi-hot (20 dims)
-        for verb in ACTION_VERBS:
-            vec.append(1.0 if verb in self.action_verbs else 0.0)
+        # Action verb multi-hot (20 dims) — L2-normalised per tool so that
+        # tools with many verbs (e.g. send_raw_command with 9) don't dominate
+        # distance calculations over tools with 1-2 verbs.
+        verb_vec = [1.0 if verb in self.action_verbs else 0.0 for verb in ACTION_VERBS]
+        norm = sum(v * v for v in verb_vec) ** 0.5
+        if norm > 0:
+            verb_vec = [v / norm for v in verb_vec]
+        vec.extend(verb_vec)
 
         return vec
 
@@ -197,6 +186,8 @@ def _infer_submodule(builder_name: str) -> str:
         return "call"
     if name.startswith("macro"):
         return "macro"
+    if name.startswith("matricks"):
+        return "matricks"
     if name.startswith(("blackout", "release", "flash", "on_", "off_", "toggle", "solo", "temp")):
         return "playback"
     if name.startswith(("page_", "add_to_selection", "remove_from_selection", "if_condition", "condition")):
@@ -237,7 +228,9 @@ def _detect_risk_tier(docstring: str, has_destructive_param: bool) -> str:
 
 def _detect_action_verbs(docstring: str, body_source: str) -> list[str]:
     combined = (docstring + " " + body_source).lower()
-    return [v for v in ACTION_VERBS if v in combined]
+    # Use word-boundary matching to avoid false positives
+    # (e.g. "clear" matching "unclear", "nuclear")
+    return [v for v in ACTION_VERBS if re.search(rf"\b{re.escape(v)}\b", combined)]
 
 
 def _detect_command_modules(

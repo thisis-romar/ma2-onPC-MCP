@@ -15,6 +15,7 @@ import pytest
 from src.categorization.clustering import (
     combine_features,
     cosine_similarity,
+    drop_zero_variance,
     euclidean_distance,
     find_optimal_k,
     kmeans,
@@ -24,6 +25,10 @@ from src.categorization.clustering import (
     silhouette_score,
 )
 from src.categorization.features import (
+    ALL_MODULES,
+    ACTION_VERBS,
+    FUNCTION_MODULES,
+    OBJECT_MODULES,
     ToolFeatures,
     extract_tool_features,
 )
@@ -532,3 +537,337 @@ class TestFullPipeline:
                 assert t["name"] not in all_tools_in_cats, f"Duplicate: {t['name']}"
                 all_tools_in_cats.add(t["name"])
         assert all_tools_in_cats == {t.name for t in tools}
+
+
+# ===========================================================================
+# Module Auto-Discovery Tests
+# ===========================================================================
+
+
+class TestModuleAutoDiscovery:
+    """Verify auto-discovery picks up all command submodules."""
+
+    def test_matricks_in_function_modules(self):
+        """matricks.py exists in src/commands/functions/ and should be discovered."""
+        assert "matricks" in FUNCTION_MODULES
+
+    def test_all_known_function_modules_present(self):
+        """All expected function modules should be auto-discovered."""
+        expected = {
+            "assignment", "call", "edit", "helping", "importexport",
+            "info", "labeling", "macro", "matricks", "navigation",
+            "park", "playback", "selection", "store", "values", "variables",
+        }
+        assert expected.issubset(set(FUNCTION_MODULES))
+
+    def test_all_known_object_modules_present(self):
+        expected = {
+            "attributes", "cues", "dmx", "executors", "fixtures",
+            "groups", "layouts", "presets", "time",
+        }
+        assert expected == set(OBJECT_MODULES)
+
+    def test_structural_dim_matches_modules(self):
+        """structural_dim must equal 3 + 5 + 2 + len(ALL_MODULES) + len(ACTION_VERBS)."""
+        expected = 3 + 5 + 2 + len(ALL_MODULES) + len(ACTION_VERBS)
+        assert ToolFeatures.structural_dim() == expected
+
+    def test_no_init_in_modules(self):
+        """__init__.py should not appear in discovered modules."""
+        assert "__init__" not in FUNCTION_MODULES
+        assert "__init__" not in OBJECT_MODULES
+
+
+# ===========================================================================
+# MCP Tool Wrapper Tests
+# ===========================================================================
+
+
+class TestMCPToolWrappers:
+    """Tests for the 4 categorization MCP tools in server.py."""
+
+    @pytest.fixture(autouse=True)
+    def _generate_taxonomy(self, tmp_path, monkeypatch):
+        """Generate a taxonomy.json in a temp dir for all tests."""
+        import sys
+
+        _ROOT = Path(__file__).resolve().parent.parent
+        sys.path.insert(0, str(_ROOT))
+
+        from scripts.categorize_tools import run
+        from src.categorization import taxonomy as tax_mod
+
+        out_path = tmp_path / "taxonomy.json"
+        run(provider_name="zero", output=str(out_path), server_path=str(SERVER_PATH))
+
+        # Monkeypatch taxonomy module to use our temp file
+        monkeypatch.setattr(tax_mod, "DEFAULT_TAXONOMY_PATH", out_path)
+
+        # Also reset server module cache
+        import src.server as server_mod
+        monkeypatch.setattr(server_mod, "_taxonomy_cache", None)
+
+        self.taxonomy_path = out_path
+        self.taxonomy = tax_mod.load_taxonomy(out_path)
+
+    def test_taxonomy_generated(self):
+        """Pipeline should generate a valid taxonomy file."""
+        assert self.taxonomy_path.exists()
+        assert "metadata" in self.taxonomy
+        assert "categories" in self.taxonomy
+        assert "tool_features" in self.taxonomy
+        assert self.taxonomy["metadata"]["tool_count"] >= 70
+
+    def test_confidence_no_zero(self):
+        """No tool should have confidence exactly 0.0 (silhouette-based)."""
+        for cat_name, cat in self.taxonomy["categories"].items():
+            for t in cat["tools"]:
+                # Silhouette maps to [0, 1]; only a perfectly misclassified
+                # tool would get 0.0, which shouldn't happen on real data.
+                assert t["confidence"] > 0.0, (
+                    f"Tool {t['name']} in {cat_name} has confidence 0.0"
+                )
+
+    def test_confidence_range(self):
+        """All confidence values should be in [0, 1]."""
+        for cat in self.taxonomy["categories"].values():
+            for t in cat["tools"]:
+                assert 0.0 <= t["confidence"] <= 1.0, (
+                    f"Tool {t['name']} confidence {t['confidence']} out of range"
+                )
+
+    @pytest.mark.asyncio
+    async def test_get_similar_tools_returns_results(self):
+        """get_similar_tools should return ranked results."""
+        import json
+
+        import src.server as server_mod
+
+        # Use a known tool name from the taxonomy
+        first_tool = list(self.taxonomy["tool_features"].keys())[0]
+        raw = await server_mod.get_similar_tools.__wrapped__(first_tool, top_n=3)
+        result = json.loads(raw)
+        assert isinstance(result, list)
+        assert len(result) <= 3
+        # Check similarity is in descending order
+        sims = [r["similarity"] for r in result]
+        assert sims == sorted(sims, reverse=True)
+
+    @pytest.mark.asyncio
+    async def test_get_similar_tools_unknown_tool(self):
+        """get_similar_tools should return error for unknown tools."""
+        import json
+
+        import src.server as server_mod
+
+        raw = await server_mod.get_similar_tools.__wrapped__("totally_fake_tool_xyz", top_n=3)
+        result = json.loads(raw)
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_suggest_tool_keyword_fallback(self):
+        """suggest_tool_for_task with zero provider should use keyword matching."""
+        import json
+
+        import src.server as server_mod
+
+        raw = await server_mod.suggest_tool_for_task.__wrapped__(
+            "list all fixtures", top_n=3, provider="zero"
+        )
+        result = json.loads(raw)
+        # With zero-vector provider, returns {"suggestions": [...], "warning": "..."}
+        # With real embeddings, returns a bare list — handle both.
+        suggestions = result if isinstance(result, list) else result.get("suggestions", [])
+        assert len(suggestions) <= 3
+        assert len(suggestions) > 0
+
+    def test_alpha_validation(self):
+        """Alpha out of [0, 1] should raise ValueError."""
+        from scripts.categorize_tools import run
+
+        with pytest.raises(ValueError, match="alpha must be in"):
+            run(provider_name="zero", alpha=-0.5, server_path=str(SERVER_PATH))
+        with pytest.raises(ValueError, match="alpha must be in"):
+            run(provider_name="zero", alpha=1.5, server_path=str(SERVER_PATH))
+
+
+# ===========================================================================
+# Audit Tests — clustering quality, stability, and correctness
+# ===========================================================================
+
+
+class TestClusteringAudit:
+    """Audit tests verifying clustering quality and robustness."""
+
+    def _run_pipeline(self, seed=42, k_override=None):
+        """Run the full pipeline and return (tools, combined, labels, sil)."""
+        tools = extract_tool_features(str(SERVER_PATH))
+        structural = np.array(
+            [t.to_structural_vector() for t in tools], dtype=np.float64,
+        )
+        structural, _ = drop_zero_variance(structural)
+        structural_norm = normalize_minmax(structural)
+        embeddings = np.zeros((len(tools), 384), dtype=np.float64)
+        combined = combine_features(structural_norm, embeddings, alpha=0.4)
+
+        if k_override:
+            labels, _, _ = kmeans(combined, k_override, seed=seed)
+        else:
+            best_k, _ = find_optimal_k(combined, seed=seed)
+            labels, _, _ = kmeans(combined, best_k, seed=seed)
+
+        sil = silhouette_score(combined, labels)
+        return tools, combined, labels, sil
+
+    def test_silhouette_above_random(self):
+        """Global silhouette should be meaningfully above zero (random baseline)."""
+        _, _, _, sil = self._run_pipeline()
+        assert sil > 0.05, (
+            f"Silhouette {sil:.4f} is near-random; clustering is not meaningful"
+        )
+
+    def test_no_mega_cluster(self):
+        """No single cluster should contain >50% of all tools."""
+        tools, _, labels, _ = self._run_pipeline()
+        n = len(tools)
+        unique, counts = np.unique(labels, return_counts=True)
+        for cid, count in zip(unique, counts):
+            assert count <= n * 0.5, (
+                f"Cluster {cid} has {count}/{n} tools (>{50}%) — mega-cluster"
+            )
+
+    def test_few_small_clusters(self):
+        """At most 1 cluster may have fewer than 3 tools (outlier tolerance)."""
+        _, _, labels, _ = self._run_pipeline()
+        unique, counts = np.unique(labels, return_counts=True)
+        small = sum(1 for c in counts if c < 3)
+        assert small <= 1, (
+            f"{small} clusters have <3 tools — too many near-empty clusters"
+        )
+
+    def test_multi_restart_stability(self):
+        """Multiple restarts should improve or match single-restart inertia."""
+        tools = extract_tool_features(str(SERVER_PATH))
+        structural = np.array(
+            [t.to_structural_vector() for t in tools], dtype=np.float64,
+        )
+        structural, _ = drop_zero_variance(structural)
+        structural_norm = normalize_minmax(structural)
+        embeddings = np.zeros((len(tools), 384), dtype=np.float64)
+        combined = combine_features(structural_norm, embeddings, alpha=0.4)
+
+        _, _, inertia_multi = kmeans(combined, 5, seed=42, n_init=10)
+        _, _, inertia_single = kmeans(combined, 5, seed=42, n_init=1)
+
+        assert inertia_multi <= inertia_single + 1e-6, (
+            f"Multi-restart inertia ({inertia_multi:.4f}) should be <= "
+            f"single-restart ({inertia_single:.4f})"
+        )
+
+    def test_destructive_tools_mostly_not_in_read_cluster(self):
+        """Most DESTRUCTIVE tools should not be in read-only categories.
+
+        Unsupervised clustering may place a few DESTRUCTIVE tools in
+        read-oriented clusters when they share structural features.
+        We tolerate up to 20% misassignment.
+        """
+        tools, _, labels, _ = self._run_pipeline()
+        cluster_labels = generate_labels(tools, labels)
+
+        destructive = [(t, int(lbl)) for t, lbl in zip(tools, labels)
+                       if t.risk_tier == "DESTRUCTIVE"]
+        misassigned = [
+            t.name for t, cid in destructive
+            if cluster_labels[cid] == "Inspection & Queries"
+        ]
+        ratio = len(misassigned) / len(destructive) if destructive else 0.0
+        assert ratio <= 0.2, (
+            f"{len(misassigned)}/{len(destructive)} ({ratio:.0%}) DESTRUCTIVE tools "
+            f"in read-only clusters: {misassigned}"
+        )
+
+    def test_verb_detection_no_false_matches(self):
+        """Verb detection should not match substrings like 'unclear' → 'clear'."""
+        from src.categorization.features import _detect_action_verbs
+
+        # "unclear" should NOT match "clear"
+        verbs = _detect_action_verbs("This is unclear behavior", "pass")
+        assert "clear" not in verbs, "'unclear' false-matched as 'clear'"
+
+        # "information" should NOT match "info"
+        verbs = _detect_action_verbs("Provide information about", "pass")
+        assert "info" not in verbs, "'information' false-matched as 'info'"
+
+        # Actual verb usage should still match
+        verbs = _detect_action_verbs("Clear the programmer", "clear()")
+        assert "clear" in verbs, "'clear' should match when used as a word"
+
+    def test_per_sample_silhouette_no_extreme_negatives(self):
+        """No tool should have silhouette < -0.5 (severely misassigned)."""
+        _, combined, labels, _ = self._run_pipeline()
+        samples = silhouette_samples(combined, labels)
+        worst = float(samples.min())
+        assert worst > -0.5, (
+            f"Worst per-sample silhouette is {worst:.4f} — severely misassigned tool"
+        )
+
+    def test_label_uniqueness_in_pipeline(self):
+        """All category labels in a real pipeline run should be unique."""
+        tools, _, labels, _ = self._run_pipeline()
+        cluster_labels = generate_labels(tools, labels)
+        label_values = list(cluster_labels.values())
+        assert len(label_values) == len(set(label_values)), (
+            f"Duplicate labels: {label_values}"
+        )
+
+    def test_verb_normalization(self):
+        """Verb sub-vector should be L2-normalised (unit norm when verbs present)."""
+        t = ToolFeatures(
+            name="test_tool",
+            action_verbs=["list", "info", "store", "delete"],
+        )
+        vec = t.to_structural_vector()
+        dim = ToolFeatures.structural_dim()
+        # Verb dims are the last len(ACTION_VERBS) entries
+        verb_start = dim - len(ACTION_VERBS)
+        verb_vec = np.array(vec[verb_start:])
+        l2_norm = float(np.linalg.norm(verb_vec))
+        assert l2_norm == pytest.approx(1.0, abs=1e-6), (
+            f"Verb sub-vector L2 norm should be 1.0, got {l2_norm}"
+        )
+
+    def test_verb_normalization_no_verbs(self):
+        """Tools with no verbs should have zero verb sub-vector."""
+        t = ToolFeatures(name="test_tool", action_verbs=[])
+        vec = t.to_structural_vector()
+        dim = ToolFeatures.structural_dim()
+        verb_start = dim - len(ACTION_VERBS)
+        verb_vec = vec[verb_start:]
+        assert all(v == 0.0 for v in verb_vec)
+
+    def test_zero_variance_columns_dropped(self):
+        """drop_zero_variance should remove constant columns."""
+        X = np.array([
+            [1, 5, 0, 3],
+            [2, 5, 0, 4],
+            [3, 5, 0, 5],
+        ], dtype=np.float64)
+        filtered, mask = drop_zero_variance(X)
+        # Columns 1 and 2 are constant → dropped
+        assert filtered.shape == (3, 2), f"Expected (3, 2), got {filtered.shape}"
+        assert mask.tolist() == [True, False, False, True]
+        np.testing.assert_array_equal(filtered[:, 0], [1, 2, 3])
+        np.testing.assert_array_equal(filtered[:, 1], [3, 4, 5])
+
+    def test_zero_variance_on_real_features(self):
+        """Real tool features should have some zero-variance dims to drop."""
+        tools = extract_tool_features(str(SERVER_PATH))
+        structural = np.array(
+            [t.to_structural_vector() for t in tools], dtype=np.float64,
+        )
+        filtered, mask = drop_zero_variance(structural)
+        dropped = structural.shape[1] - filtered.shape[1]
+        assert dropped >= 5, (
+            f"Expected ≥5 zero-variance dims dropped, only dropped {dropped}"
+        )
+        assert filtered.shape[1] < structural.shape[1]

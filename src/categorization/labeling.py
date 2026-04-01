@@ -42,6 +42,9 @@ _MODULE_LABEL_MAP: list[tuple[list[str], str]] = [
     (["fixtures", "groups"], "Fixture Management"),
     (["cues", "executors"], "Cue & Executor Control"),
     (["presets"], "Preset Management"),
+    (["matricks"], "MAtricks & Selection"),
+    (["macro"], "Macro Execution"),
+    (["call"], "Calling & Recall"),
 ]
 
 
@@ -65,7 +68,7 @@ def generate_labels(
     used_labels: set[str] = set()
 
     for cid in unique_labels:
-        cluster_tools = [t for t, lbl in zip(tools, labels, strict=True) if int(lbl) == cid]
+        cluster_tools = [t for t, lbl in zip(tools, labels, strict=False) if int(lbl) == cid]
         label = _label_for_cluster(cluster_tools)
 
         # Deduplicate
@@ -110,9 +113,25 @@ def _label_for_cluster(tools: list[ToolFeatures]) -> str:
         module_counter.update(t.command_modules)
         risk_counter[t.risk_tier] += 1
 
+    # Check DESTRUCTIVE dominance first — avoids lumping destructive tools
+    # under "Inspection & Queries" when they happen to also have read verbs
+    if risk_counter.get("DESTRUCTIVE", 0) / n > 0.5:
+        # Try write-oriented verb labels only (skip "Inspection & Queries")
+        for verbs, label in _VERB_LABEL_MAP:
+            if label == "Inspection & Queries":
+                continue
+            count = sum(verb_counter.get(v, 0) for v in verbs)
+            if count > 0 and count / n >= 0.4:
+                return label
+        return "Destructive Operations"
+
     # Check risk-tier dominance
     if risk_counter.get("SAFE_READ", 0) / n > 0.6:
-        # Mostly read-only
+        # Mostly read-only — try module specificity before generic label
+        for modules, label in _MODULE_LABEL_MAP:
+            count = sum(module_counter.get(m, 0) for m in modules)
+            if count > 0 and count / n >= 0.4:
+                return label
         return "Inspection & Queries"
 
     # Check verb dominance

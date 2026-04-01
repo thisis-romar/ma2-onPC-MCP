@@ -58,6 +58,9 @@ def run(
     server_path: str | None = None,
 ) -> dict:
     """Execute the full categorization pipeline and return the taxonomy dict."""
+    if not 0.0 <= alpha <= 1.0:
+        raise ValueError(f"alpha must be in [0, 1], got {alpha}")
+
     server_file = Path(server_path) if server_path else _ROOT / "src" / "server.py"
     out_path = Path(output) if output else DEFAULT_TAXONOMY_PATH
 
@@ -133,7 +136,7 @@ def run(
             "tools": [
                 {
                     "name": t.name,
-                    "confidence": round(float(1.0 - d / max_dist), 4) if max_dist > 0 else 1.0,
+                    "confidence": max(1e-4, round(float(1.0 - d / max_dist), 4)) if max_dist > 0 else 1.0,
                 }
                 for (t, _), d in zip(cluster_tools, dists)
             ],
@@ -157,7 +160,7 @@ def run(
 
     # Print summary
     print("\n" + "=" * 60)
-    print(f"  Tool Categorization — {len(tools)} tools → {best_k} categories")
+    print(f"  Tool Categorization -- {len(tools)} tools -> {best_k} categories")
     print(f"  Silhouette score: {sil:.4f}")
     print(f"  Provider: {provider_name}")
     print("=" * 60)

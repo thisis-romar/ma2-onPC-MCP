@@ -40,3 +40,25 @@ CREATE INDEX IF NOT EXISTS idx_chunks_repo_ref ON chunks(repo_ref);
 CREATE INDEX IF NOT EXISTS idx_chunks_path ON chunks(path);
 CREATE INDEX IF NOT EXISTS idx_chunks_kind ON chunks(kind);
 CREATE INDEX IF NOT EXISTS idx_chunks_doc_id ON chunks(doc_id);
+
+-- FTS5 full-text index for fast text search
+CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+    chunk_id UNINDEXED,
+    text,
+    content='chunks',
+    content_rowid='rowid'
+);
+
+-- Triggers to keep FTS index in sync with chunks table
+CREATE TRIGGER IF NOT EXISTS chunks_fts_insert AFTER INSERT ON chunks BEGIN
+    INSERT INTO chunks_fts(rowid, chunk_id, text) VALUES (new.rowid, new.chunk_id, new.text);
+END;
+
+CREATE TRIGGER IF NOT EXISTS chunks_fts_delete AFTER DELETE ON chunks BEGIN
+    INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, text) VALUES ('delete', old.rowid, old.chunk_id, old.text);
+END;
+
+CREATE TRIGGER IF NOT EXISTS chunks_fts_update AFTER UPDATE ON chunks BEGIN
+    INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, text) VALUES ('delete', old.rowid, old.chunk_id, old.text);
+    INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, text) VALUES ('insert', new.rowid, new.chunk_id, new.text);
+END;
