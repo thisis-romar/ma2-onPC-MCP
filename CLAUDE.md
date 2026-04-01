@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.4.0
+version: 4.5.0
 created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-31T23:00:00Z
+last_updated: 2026-03-31T23:30:00Z
 ---
 
 # Project Rules
@@ -32,7 +32,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/commands/` | 198 pure command-builder functions (206 exports incl. 8 constants), grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
-| `src/vocab.py` | 158 keyword vocab entries (89 function + 56 object + 7 helping + 6 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
+| `src/vocab.py` | 157 keyword vocab entries (90 function + 56 object + 5 helping + 6 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache |
@@ -104,7 +104,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-31): **2322 tests** (unit + live integration).
+- Current counts (2026-03-31): **2336 tests** (unit + live integration).
 
 ---
 

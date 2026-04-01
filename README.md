@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 176 MCP tools via Telnet
-version: 3.22.0
+version: 3.23.0
 created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-31T23:00:00Z
+last_updated: 2026-03-31T23:30:00Z
 ---
 
 <p align="center">
@@ -17,7 +17,7 @@ last_updated: 2026-03-31T23:00:00Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP_Tools-176-brightgreen?style=for-the-badge" alt="176 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-2322-brightgreen?style=for-the-badge" alt="2322 Tests">
+  <img src="https://img.shields.io/badge/Tests-2336-brightgreen?style=for-the-badge" alt="2336 Tests">
 </p>
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 176 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
@@ -70,7 +70,7 @@ graph TD
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
-    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>158 keywords · risk tiers"] -.-> A
+    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>157 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
     I["🧠 Memory & Planning<br/><code>src/agent_memory.py · src/orchestrator.py</code><br/>WorkingMemory · LTM · TaskDecomposer"] -.-> H
     J["📊 OpenSpace<br/><code>src/telemetry.py · src/skill.py · src/skill_improver.py</code><br/>invocation recorder · skill registry · improvement loop"] -.-> H
@@ -117,7 +117,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/vocab.py` | 158 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| `src/vocab.py` | 157 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
 | `src/commands/` | 198 exported command-builder functions, grouped by keyword type |
 | `src/commands/busking.py` | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
@@ -659,7 +659,7 @@ Nine read-only resources exposable to any MCP client. Use them for zero-telnet c
 | URI | Description |
 |-----|-------------|
 | `ma2://docs/rights-matrix` | OAuth scope → MA2Right mapping matrix (JSON) |
-| `ma2://docs/vocab-summary` | All 158 keywords with RiskTier and category (JSON) |
+| `ma2://docs/vocab-summary` | All 157 keywords with RiskTier and category (JSON) |
 | `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 176 tools in 14 categories (JSON) |
 | `ma2://docs/responsibility-map` | Module responsibility map for architectural decisions (Markdown) |
 | `ma2://docs/tool-surface-tiers` | Tier A/B/C classification for every tool (Markdown) |
@@ -696,6 +696,22 @@ Instruction modules (`.claude/skills/`) that are injected as user messages into 
 | `busking-lighting-performance` | Live busking — fader-per-effect model, executor layout, effect layering, live recovery |
 | `song-macro-page-design` | Song macro pages — first-button protocol, executor column layout, jump target safety |
 | `constrained-color-design` | Monochromatic HSB palette design — preset numbering, color lock, song-to-palette mapping |
+| `preset-library-architect` | Build full dimmer/position/color/gobo preset pools from raw attribute values |
+| `patch-and-group-builder` | Patch fixtures, build groups by type/position, and verify selection counts |
+| `chaser-builder` | Step-based chasers, running lights via MAtricks, strobes — speed/rate/direction control |
+| `cue-tracking-and-timing` | Tracking vs non-tracking, Block/Unblock, MIB, timing layers, trigger types, Update vs Store |
+| `executor-configuration` | Executor priority, trigger types, fader functions, speed masters, protect options |
+| `show-management-and-psr` | Save/Load/New show (connectivity preservation), PSR workflow, Export/Import XML |
+| `macro-advanced` | SetVar/SetUserVar, conditionals, CmdDelay, jump targets, XML authoring, Store Group timing |
+| `clone-and-data-transfer` | Clone fixture with `/selective`, copy/move pool objects, cue-range copy, cross-show PSR |
+| `effect-programmer` | Build effects from scratch, layer rate/speed/phase, assign to executors |
+| `world-filter-designer` | Create worlds, assign fixtures, configure filter objects, control visibility |
+| `timecode-show-programmer` | Build timecode shows, assign events to cues, enable/disable tracks |
+| `color-preset-creator` | Store universal color presets from RGB values — builds the preset pool |
+| `color-palette-sequence-builder` | Build a cue sequence where each cue references a universal color preset |
+| `hue-palette-creator` | Store 96 universal hue presets (4.101–4.196) using the HSB color model |
+| `hue-sequence-builder` | Build a 16-cue sequence from an adjacent hue pair — 8 saturation variants per hue |
+| `sequence-executor-assigner` | Assign a sequence to a free executor so it appears as a playback fader |
 
 Skills are loaded on demand via `ma2://skills/{skill_id}` resource or injected by the orchestrator. Use `list_skills` / `get_skill` tools to browse and inspect them at runtime.
 
@@ -791,7 +807,7 @@ In addition to the 3-layer model, every keyword is classified into one of three 
 
 ### Keyword Classification
 
-The vocabulary classifies all **156 grandMA2 keywords** into categories:
+The vocabulary classifies all **157 grandMA2 keywords** into categories:
 
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
@@ -1155,7 +1171,7 @@ ma2-onPC-MCP/
 │   ├── telnet_client.py                    # Async Telnet (telnetlib3, injection prevention)
 │   ├── navigation.py                       # cd + list + scan orchestration
 │   ├── prompt_parser.py                    # Telnet prompt & tabular list parser
-│   ├── vocab.py                            # 158 keywords, risk tiers, functional domains
+│   ├── vocab.py                            # 157 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
 │   ├── commands/                           # 198 exported command-builder functions
