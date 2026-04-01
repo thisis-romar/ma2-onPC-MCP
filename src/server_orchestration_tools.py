@@ -29,7 +29,6 @@ from .orchestrator import Orchestrator
 from .skill import SkillRegistry
 from .skill_improver import SkillImprover
 from .task_decomposer import TaskDecomposer
-from .telemetry import ToolTelemetry
 
 
 def register_orchestration_tools(
@@ -1197,9 +1196,12 @@ def register_orchestration_tools(
     # Telemetry + Skill registry + Improvement loop                       #
     # ================================================================== #
 
-    # Singletons created once at registration time; all 6 tools share them.
+    # Import the telemetry singleton from server.py so Tools 138–143 read from the
+    # exact same DB connection that @_handle_errors writes to. Creating a second
+    # ToolTelemetry() instance would produce a split view with zero shared rows.
     import json as _json
-    _tel = ToolTelemetry()
+    from .server import _get_telemetry as _get_server_telemetry
+    _tel = _get_server_telemetry()
     _reg = SkillRegistry()
     _ltm_skill = LongTermMemory()
     _imp = SkillImprover(_tel, _reg, _ltm_skill)

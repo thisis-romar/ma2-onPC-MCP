@@ -20,6 +20,8 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from src.context import _current_session_id
+
 from .agent_memory import LongTermMemory, WorkingMemory
 from .console_state import ConsoleStateHydrator, ConsoleStateSnapshot
 from .rights import (
@@ -423,7 +425,11 @@ class Orchestrator:
                 wm.mark_failed(step.name, "dependency not met")
                 continue
 
-            result = await self._sub_agent(step, wm, self._call)
+            _tok = _current_session_id.set(wm.session_id)
+            try:
+                result = await self._sub_agent(step, wm, self._call)
+            finally:
+                _current_session_id.reset(_tok)
             results.append(result)
             if result.success:
                 completed.add(step.name)
@@ -443,10 +449,14 @@ class Orchestrator:
             if not ready:
                 ready = [remaining[0]]
 
-            batch = await asyncio.gather(
-                *[self._sub_agent(s, wm, self._call) for s in ready],
-                return_exceptions=True,
-            )
+            _tok = _current_session_id.set(wm.session_id)
+            try:
+                batch = await asyncio.gather(
+                    *[self._sub_agent(s, wm, self._call) for s in ready],
+                    return_exceptions=True,
+                )
+            finally:
+                _current_session_id.reset(_tok)
             for step, res in zip(ready, batch, strict=False):
                 if isinstance(res, Exception):
                     res = StepResult(step_name=step.name, success=False, error=str(res))

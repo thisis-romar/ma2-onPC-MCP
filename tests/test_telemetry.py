@@ -274,3 +274,61 @@ class TestRecent:
                 error_class=None, latency_ms=1.0, risk_tier="SAFE_READ", operator="op",
             )
         assert len(tel.recent("tool_x", limit=5)) == 5
+
+
+# ---------------------------------------------------------------------------
+# session_id linkage (Bug 1 fix)
+# ---------------------------------------------------------------------------
+
+class TestSessionIdLinkage:
+    """Verify that session_id is stored and queryable."""
+
+    def test_session_id_stored(self, tel):
+        tel.record_sync(
+            tool_name="my_tool", inputs_json="{}", output_preview="ok",
+            error_class=None, latency_ms=5.0, risk_tier="SAFE_READ",
+            operator="op", session_id="ses-abc123",
+        )
+        rows = tel.recent("my_tool", limit=1)
+        assert rows[0]["session_id"] == "ses-abc123"
+
+    def test_session_id_defaults_to_empty(self, tel):
+        tel.record_sync(
+            tool_name="other_tool", inputs_json="{}", output_preview="ok",
+            error_class=None, latency_ms=1.0, risk_tier="SAFE_READ", operator="op",
+        )
+        rows = tel.recent("other_tool", limit=1)
+        assert rows[0]["session_id"] == ""
+
+
+# ---------------------------------------------------------------------------
+# Singleton identity (Bug 2 fix)
+# ---------------------------------------------------------------------------
+
+class TestSingletonIdentity:
+    """_get_telemetry() must return the same object on every call."""
+
+    def test_singleton_is_same_object(self):
+        from src.server import _get_telemetry
+        t1 = _get_telemetry()
+        t2 = _get_telemetry()
+        assert t1 is t2, "_get_telemetry() returned two different instances"
+
+
+# ---------------------------------------------------------------------------
+# ContextVar session_id propagation (Bug 1 fix)
+# ---------------------------------------------------------------------------
+
+class TestContextVarPropagation:
+    """_current_session_id ContextVar default is empty; can be set and read."""
+
+    def test_default_is_empty(self):
+        from src.context import _current_session_id
+        assert _current_session_id.get() == ""
+
+    def test_set_and_reset(self):
+        from src.context import _current_session_id
+        token = _current_session_id.set("ses-xyz")
+        assert _current_session_id.get() == "ses-xyz"
+        _current_session_id.reset(token)
+        assert _current_session_id.get() == ""

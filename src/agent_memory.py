@@ -231,20 +231,6 @@ class WorkingMemory:
         """Returns /UPR=N flag for playback commands scoped to this profile."""
         return self.rights_context.upr_flag()
 
-    # ── Decision checkpoint helpers ──────────────────────────────────
-
-    def add_checkpoint(self, checkpoint: DecisionCheckpoint) -> None:
-        """Store a decision checkpoint, replacing any existing one with the same fault."""
-        self.checkpoints = [c for c in self.checkpoints if c.fault != checkpoint.fault]
-        self.checkpoints.append(checkpoint)
-
-    def fresh_checkpoint(self, fault: str) -> DecisionCheckpoint | None:
-        """Return a fresh checkpoint for fault, or None if stale/absent."""
-        for c in self.checkpoints:
-            if c.fault == fault and c.is_fresh():
-                return c
-        return None
-
     # ── Step tracking ────────────────────────────────────────────────
 
     def mark_done(self, step: str) -> None:
@@ -256,7 +242,7 @@ class WorkingMemory:
     def add_pending_cue(self, cue: dict) -> None:
         self.pending_cues.append(cue)
 
-    # ── Token tracking ───────────────────────────────────────────────
+    # ── Decision checkpoint helpers ──────────────────────────────────
 
     def add_checkpoint(
         self,
@@ -284,6 +270,8 @@ class WorkingMemory:
             if cp.fault == fault and cp.is_fresh():
                 return cp
         return None
+
+    # ── Token tracking ───────────────────────────────────────────────
 
     def charge_tokens(self, n: int) -> None:
         self.token_spend += n
