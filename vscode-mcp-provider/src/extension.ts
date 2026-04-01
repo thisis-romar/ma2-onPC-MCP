@@ -10,6 +10,13 @@ export function activate(context: vscode.ExtensionContext) {
                     ['run', 'python', '-m', 'src.server'],
                     {}, // Optionally pass .env variables here
                     '1.0.0'
+                ),
+                new vscode.McpStdioServerDefinition(
+                    'time',
+                    'npx',
+                    ['-y', '@modelcontextprotocol/server-time'],
+                    {},
+                    '1.0.0'
                 )
             ]
         })
