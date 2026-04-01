@@ -9414,6 +9414,361 @@ async def detect_dmx_address_conflicts(universe_id: int | None = None) -> str:
 
 
 @mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
+@_handle_errors
+async def update_object(
+    object_type: str,
+    object_id: int | str | None = None,
+    sequence_id: int | None = None,
+    merge: bool = False,
+    overwrite: bool = False,
+    cueonly: bool | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Update any object with current programmer values (DESTRUCTIVE).
+
+    Generic update tool that works with all 16 object types.
+    For cue-specific updates with sequence scoping, prefer update_cue_data.
+
+    Args:
+        object_type: Object type — cue, group, preset, sequence, effect, macro, etc.
+        object_id: Object ID (optional; updates active if omitted for cue)
+        sequence_id: Sequence ID for cue-scoped updates (only used when object_type="cue")
+        merge: Merge programmer into existing values
+        overwrite: Overwrite existing values with programmer
+        cueonly: Prevent changes from tracking forward (True) or allow (False)
+        confirm_destructive: Must be True to execute
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": "update_object is DESTRUCTIVE. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    from src.commands import update as build_update, update_cue as build_update_cue
+    if object_type.lower() == "cue":
+        cmd = build_update_cue(
+            object_id, sequence_id=sequence_id,
+            merge=merge, overwrite=overwrite, cueonly=cueonly,
+        )
+    else:
+        cmd = build_update(
+            object_type, object_id,
+            merge=merge, overwrite=overwrite, cueonly=cueonly,
+        )
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": "DESTRUCTIVE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
+@_handle_errors
+async def programming_action(
+    action: str,
+    fixture_ids: int | list[int] | None = None,
+    end: int | None = None,
+    cue_id: int | float | None = None,
+    sequence_id: int | None = None,
+    macro_id: int | None = None,
+    executor_id: int | None = None,
+    page: int | None = None,
+    look_id: int | None = None,
+    mode: str | None = None,
+    merge: bool = False,
+    overwrite: bool = False,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Execute programmer operations — align, locate, flip, extract, learn,
+    block/unblock cue, record macro, store look.
+
+    Args:
+        action: One of:
+            SAFE_WRITE: "align", "locate", "flip", "extract", "learn"
+            DESTRUCTIVE: "block", "unblock", "record_macro", "store_look"
+        fixture_ids: Fixture number(s) for locate (single int or list)
+        end: Ending number for locate range
+        cue_id: Cue number for block/unblock
+        sequence_id: Sequence ID for block/unblock scoping
+        macro_id: Macro pool slot for record_macro
+        executor_id: Executor ID for learn
+        page: Page for learn page-qualified addressing
+        look_id: Look pool slot for store_look
+        mode: Alignment mode for align (">" "><" "<>" "<")
+        merge: Merge option for store_look
+        overwrite: Overwrite option for store_look
+        confirm_destructive: Required for block/unblock/record_macro/store_look
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier
+    """
+    from src.commands import (
+        align as build_align,
+        block_cue as build_block_cue,
+        extract as build_extract,
+        flip as build_flip,
+        learn_executor as build_learn_executor,
+        locate as build_locate,
+        record_macro as build_record_macro,
+        store_look as build_store_look,
+        unblock_cue as build_unblock_cue,
+    )
+
+    valid_actions = {
+        "align", "locate", "flip", "extract", "learn",
+        "block", "unblock", "record_macro", "store_look",
+    }
+    if action not in valid_actions:
+        return json.dumps({
+            "error": f"Invalid action '{action}'. Valid: {sorted(valid_actions)}",
+            "blocked": True,
+        }, indent=2)
+
+    destructive_actions = {"block", "unblock", "record_macro", "store_look"}
+    if action in destructive_actions and not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": f"Action '{action}' is DESTRUCTIVE. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    if action == "align":
+        cmd = build_align(mode=mode)
+    elif action == "locate":
+        cmd = build_locate(fixture_ids=fixture_ids, end=end)
+    elif action == "flip":
+        cmd = build_flip()
+    elif action == "extract":
+        cmd = build_extract()
+    elif action == "learn":
+        if executor_id is None:
+            return json.dumps({"error": "executor_id required for learn", "blocked": True}, indent=2)
+        cmd = build_learn_executor(executor_id, page=page)
+    elif action == "block":
+        if cue_id is None:
+            return json.dumps({"error": "cue_id required for block", "blocked": True}, indent=2)
+        cmd = build_block_cue(cue_id, sequence_id=sequence_id)
+    elif action == "unblock":
+        if cue_id is None:
+            return json.dumps({"error": "cue_id required for unblock", "blocked": True}, indent=2)
+        cmd = build_unblock_cue(cue_id, sequence_id=sequence_id)
+    elif action == "record_macro":
+        if macro_id is None:
+            return json.dumps({"error": "macro_id required for record_macro", "blocked": True}, indent=2)
+        cmd = build_record_macro(macro_id)
+    elif action == "store_look":
+        cmd = build_store_look(look_id=look_id, merge=merge, overwrite=overwrite)
+    else:
+        return json.dumps({"error": f"Unhandled action: {action}"}, indent=2)
+
+    risk = "DESTRUCTIVE" if action in destructive_actions else "SAFE_WRITE"
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": risk,
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.EXECUTOR_CTRL)
+@_handle_errors
+async def master_control(
+    action: str,
+    master_id: int | None = None,
+    master_type: int | None = None,
+    level: int | None = None,
+) -> str:
+    """
+    Control master faders — set level, set special master, or list all masters.
+
+    Args:
+        action: "set" (SAFE_WRITE), "set_special" (SAFE_WRITE), or "list" (SAFE_READ)
+        master_id: Master pool slot number (required for set / set_special)
+        master_type: Special master type number (required for set_special)
+        level: Level 0-100 (required for set / set_special)
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier
+    """
+    from src.commands import (
+        master_at as build_master_at,
+        special_master_at as build_special_master_at,
+        list_masters as build_list_masters,
+    )
+
+    valid_actions = ("set", "set_special", "list")
+    if action not in valid_actions:
+        return json.dumps({"error": f"action must be one of {valid_actions}", "blocked": True}, indent=2)
+
+    if action == "set":
+        if master_id is None or level is None:
+            return json.dumps({"error": "master_id and level required for set", "blocked": True}, indent=2)
+        cmd = build_master_at(master_id, level)
+        risk_tier = "SAFE_WRITE"
+    elif action == "set_special":
+        if master_type is None or master_id is None or level is None:
+            return json.dumps({"error": "master_type, master_id, level required for set_special", "blocked": True}, indent=2)
+        cmd = build_special_master_at(master_type, master_id, level)
+        risk_tier = "SAFE_WRITE"
+    else:
+        cmd = build_list_masters()
+        risk_tier = "SAFE_READ"
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": risk_tier,
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SYSTEM_ADMIN)
+@_handle_errors
+async def system_admin(
+    action: str,
+    user: str | None = None,
+    password: str | None = None,
+    script: str | None = None,
+    message: str | None = None,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    System administration — login, logout, lock, unlock, lua, chat,
+    reboot, restart, shutdown.
+
+    Args:
+        action: One of:
+            SAFE_READ: "logout"
+            SAFE_WRITE: "login", "lock", "unlock", "lua", "chat"
+            DESTRUCTIVE: "reboot", "restart", "shutdown"
+        user: Username (required for login)
+        password: Password (required for login; optional for lock/unlock)
+        script: Lua script string (required for lua)
+        message: Chat message text (required for chat)
+        confirm_destructive: Must be True for reboot/restart/shutdown
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier
+    """
+    from src.commands import (
+        build_login,
+        build_logout,
+        lock_console as build_lock,
+        unlock_console as build_unlock,
+        lua_execute as build_lua,
+        reboot_console as build_reboot,
+        restart_console as build_restart,
+        send_chat as build_chat,
+        shutdown_console as build_shutdown,
+    )
+
+    valid_actions = {"login", "logout", "lock", "unlock", "lua", "chat", "reboot", "restart", "shutdown"}
+    if action not in valid_actions:
+        return json.dumps({"error": f"Invalid action '{action}'. Valid: {sorted(valid_actions)}", "blocked": True}, indent=2)
+
+    destructive_actions = {"reboot", "restart", "shutdown"}
+    if action in destructive_actions and not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": f"Action '{action}' is DESTRUCTIVE. Set confirm_destructive=True to proceed.",
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    if action == "login":
+        if user is None or password is None:
+            return json.dumps({"error": "user and password required for login", "blocked": True}, indent=2)
+        cmd = build_login(user, password)
+        risk_tier = "SAFE_WRITE"
+    elif action == "logout":
+        cmd = build_logout()
+        risk_tier = "SAFE_READ"
+    elif action == "lock":
+        cmd = build_lock(password)
+        risk_tier = "SAFE_WRITE"
+    elif action == "unlock":
+        cmd = build_unlock(password)
+        risk_tier = "SAFE_WRITE"
+    elif action == "lua":
+        if script is None:
+            return json.dumps({"error": "script required for lua", "blocked": True}, indent=2)
+        cmd = build_lua(script)
+        risk_tier = "SAFE_WRITE"
+    elif action == "chat":
+        if message is None:
+            return json.dumps({"error": "message required for chat", "blocked": True}, indent=2)
+        cmd = build_chat(message)
+        risk_tier = "SAFE_WRITE"
+    elif action == "reboot":
+        cmd = build_reboot()
+        risk_tier = "DESTRUCTIVE"
+    elif action == "restart":
+        cmd = build_restart()
+        risk_tier = "DESTRUCTIVE"
+    else:
+        cmd = build_shutdown()
+        risk_tier = "DESTRUCTIVE"
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": risk_tier,
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def plugin_management(action: str) -> str:
+    """
+    Manage Lua plugins — list available plugins or reload the plugin pool.
+
+    Args:
+        action: "list" (SAFE_READ) or "reload" (SAFE_WRITE)
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier
+    """
+    from src.commands import (
+        list_plugin_library as build_list_plugins,
+        reload_plugins as build_reload_plugins,
+    )
+
+    if action == "list":
+        cmd = build_list_plugins()
+        risk_tier = "SAFE_READ"
+    elif action == "reload":
+        cmd = build_reload_plugins()
+        risk_tier = "SAFE_WRITE"
+    else:
+        return json.dumps({"error": f"Invalid action '{action}'. Valid: ['list', 'reload']", "blocked": True}, indent=2)
+
+    client = await get_client()
+    response = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": response,
+        "risk_tier": risk_tier,
+    }, indent=2)
+
+
+@mcp.tool()
 @require_scope(OAuthScope.DISCOVER)
 @_handle_errors
 async def get_telemetry_report(

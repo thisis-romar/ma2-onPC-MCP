@@ -86,8 +86,14 @@ from .functions import (
     # Blackout
     blackout,
     blind,
-    # Block / Unblock
+    # Block / Unblock (generic + sequence-scoped)
     block,
+    block_cue,
+    unblock_cue,
+    # Masters
+    master_at,
+    special_master_at,
+    list_masters,
     build_assign_world_to_user_profile,
     build_delete_user,
     build_list_users,
@@ -113,6 +119,11 @@ from .functions import (
     set_effect_parameter,
     set_special_master,
     unlock_console,
+    lua_execute,
+    reboot_console,
+    restart_console,
+    shutdown_console,
+    send_chat,
     SPECIAL_MASTER_NAMES,
     # Call Function Keywords
     call,
@@ -153,7 +164,10 @@ from .functions import (
     fix_fixture,
     fixture_at,
     flash_executor,
+    extract,
+    flip,
     freeze,
+    freeze_executor,
     get_user_var,
     go,
     go_back,
@@ -204,9 +218,20 @@ from .functions import (
     load_prev,
     load_show,
     locate,
-    # Macro Placeholder
+    # Macro Placeholder / Condition
     macro_with_input_after,
     macro_with_input_before,
+    macro_condition_line,
+    record_macro,
+    VALID_CONDITION_OPERATORS,
+    # Masters
+    double_rate,
+    half_rate,
+    double_speed,
+    half_speed,
+    kill_executor,
+    learn_executor,
+    toggle_executor,
     matricks_blocks,
     matricks_filter,
     matricks_groups,
@@ -252,6 +277,7 @@ from .functions import (
     store_cue,
     store_cue_timed,
     store_group,
+    store_look,
     store_matricks,
     store_preset,
     swop_executor,
@@ -522,6 +548,7 @@ __all__ = [
     # Plugin / Lua
     "call_plugin",
     "run_lua",
+    "lua_execute",
     "reload_plugins",
     # Special Master
     "set_special_master",
@@ -540,6 +567,40 @@ __all__ = [
     "chaser_xfade",
     # Effect programmer parameters
     "set_effect_parameter",
+    # Masters
+    "master_at",
+    "special_master_at",
+    "list_masters",
+    # Executor — block/unblock (sequence-scoped)
+    "block_cue",
+    "unblock_cue",
+    # Executor — learn / kill / toggle / freeze
+    "learn_executor",
+    "kill_executor",
+    "toggle_executor",
+    "freeze_executor",
+    # Rate / speed modifiers
+    "double_rate",
+    "half_rate",
+    "double_speed",
+    "half_speed",
+    # Selection — flip
+    "flip",
+    # Store — look
+    "store_look",
+    # Edit — extract
+    "extract",
+    # Macro — conditional / record
+    "VALID_CONDITION_OPERATORS",
+    "macro_condition_line",
+    "record_macro",
+    # Console lifecycle
+    "reboot_console",
+    "restart_console",
+    "shutdown_console",
+    "send_chat",
+    # Lua alias
+    "lua_execute",
     # Busking / Performance Layer
     "assign_effect_to_executor",
     "set_effect_rate",

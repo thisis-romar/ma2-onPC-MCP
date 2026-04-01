@@ -18,9 +18,12 @@ Covers console-level operations not tied to a specific pool:
 # ============================================================================
 
 
-def lock_console() -> str:
+def lock_console(password: str | None = None) -> str:
     """
     Lock the grandMA2 console UI (prevents accidental input).
+
+    Args:
+        password: Optional lock password.
 
     Returns:
         str: MA command string
@@ -28,7 +31,11 @@ def lock_console() -> str:
     Examples:
         >>> lock_console()
         'Lock'
+        >>> lock_console("secret")
+        'Lock "secret"'
     """
+    if password is not None:
+        return f'Lock "{password}"'
     return "Lock"
 
 
@@ -451,3 +458,96 @@ def set_effect_parameter(param: str, value: float) -> str:
         )
     keyword = f"Effect{key.capitalize()}" if key not in ("bpm", "hz") else f"Effect{key.upper()}"
     return f"{keyword} {value}"
+
+
+# ============================================================================
+# LUA EXECUTE ALIAS
+# ============================================================================
+
+
+def lua_execute(script: str) -> str:
+    """
+    Construct a Lua command to execute an inline Lua script.
+
+    Alias for run_lua() with a clearer name for use in MCP tools.
+
+    Args:
+        script: Lua script string
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> lua_execute("gma.echo('hello')")
+        "Lua \\"gma.echo('hello')\\""
+    """
+    return f'Lua "{script}"'
+
+
+# ============================================================================
+# CONSOLE LIFECYCLE
+# ============================================================================
+
+
+def reboot_console() -> str:
+    """
+    Construct a Reboot command to reboot the console hardware.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> reboot_console()
+        'Reboot'
+    """
+    return "Reboot"
+
+
+def restart_console() -> str:
+    """
+    Construct a Restart command to restart the console software.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> restart_console()
+        'Restart'
+    """
+    return "Restart"
+
+
+def shutdown_console() -> str:
+    """
+    Construct a Shutdown command to shut down the console.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> shutdown_console()
+        'Shutdown'
+    """
+    return "Shutdown"
+
+
+# ============================================================================
+# CHAT FUNCTION KEYWORD
+# ============================================================================
+
+
+def send_chat(message: str) -> str:
+    """
+    Construct a Chat command to send a message to other consoles in the session.
+
+    Args:
+        message: Chat message text
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> send_chat("Hello from onPC")
+        'Chat "Hello from onPC"'
+    """
+    return f'Chat "{message}"'

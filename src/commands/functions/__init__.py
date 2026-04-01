@@ -45,7 +45,7 @@ from .call import (
     call,
 )
 
-# Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove, Clone, Block, Unblock)
+# Edit Function Keywords (Edit, Cut, Paste, Copy, Move, Delete, Remove, Clone, Block, Unblock, Extract)
 from .edit import (
     block,
     clone,
@@ -59,6 +59,7 @@ from .edit import (
     delete_messages,
     delete_preset,
     edit,
+    extract,
     move,
     oops,
     paste,
@@ -119,10 +120,20 @@ from .labeling import (
     label_preset,
 )
 
-# Macro Placeholder Function Keywords
+# Macro Placeholder / Condition Function Keywords
 from .macro import (
     macro_with_input_after,
     macro_with_input_before,
+    macro_condition_line,
+    record_macro,
+    VALID_CONDITION_OPERATORS,
+)
+
+# Master Function Keywords
+from .masters import (
+    master_at,
+    special_master_at,
+    list_masters,
 )
 
 # MAtricks Command Keywords
@@ -156,11 +167,15 @@ from .park import (
 from .playback import (
     blackout,
     blind,
+    block_cue,
     def_go_back,
     def_go_forward,
     def_go_pause,
+    double_rate,
+    double_speed,
     flash_executor,
     freeze,
+    freeze_executor,
     go,
     go_back,
     go_back_executor,
@@ -172,6 +187,10 @@ from .playback import (
     goto,
     goto_cue,
     goto_timecode,
+    half_rate,
+    half_speed,
+    kill_executor,
+    learn_executor,
     load_next,
     load_prev,
     off_executor,
@@ -182,10 +201,12 @@ from .playback import (
     solo_executor,
     stomp_executor,
     swop_executor,
+    toggle_executor,
     top_executor,
+    unblock_cue,
 )
 
-# Selection Function Keywords (SelFix, Clear, Fix, Locate, Invert, Align)
+# Selection Function Keywords (SelFix, Clear, Fix, Locate, Invert, Align, Flip)
 from .selection import (
     align,
     clear,
@@ -193,6 +214,7 @@ from .selection import (
     clear_all,
     clear_selection,
     fix_fixture,
+    flip,
     highlight,
     invert,
     locate,
@@ -207,6 +229,7 @@ from .store import (
     store_cue,
     store_cue_timed,
     store_group,
+    store_look,
     store_matricks,
     store_preset,
     update,
@@ -229,7 +252,12 @@ from .system import (
     unlock_console,
     call_plugin,
     run_lua,
+    lua_execute,
     reload_plugins,
+    reboot_console,
+    restart_console,
+    shutdown_console,
+    send_chat,
     set_special_master,
     SPECIAL_MASTER_NAMES,
     rdm_automatch,
@@ -495,4 +523,36 @@ __all__ = [
     "chaser_xfade",
     # Effect programmer parameters
     "set_effect_parameter",
+    # Masters
+    "master_at",
+    "special_master_at",
+    "list_masters",
+    # Playback — executor control
+    "block_cue",
+    "unblock_cue",
+    "learn_executor",
+    "kill_executor",
+    "toggle_executor",
+    "freeze_executor",
+    # Playback — rate / speed modifiers
+    "double_rate",
+    "half_rate",
+    "double_speed",
+    "half_speed",
+    # Selection — flip
+    "flip",
+    # Store — look
+    "store_look",
+    # Edit — extract
+    "extract",
+    # Macro — conditional / record
+    "VALID_CONDITION_OPERATORS",
+    "macro_condition_line",
+    "record_macro",
+    # System — lifecycle / lua alias / chat
+    "lua_execute",
+    "reboot_console",
+    "restart_console",
+    "shutdown_console",
+    "send_chat",
 ]
