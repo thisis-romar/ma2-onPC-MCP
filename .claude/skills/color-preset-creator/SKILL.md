@@ -2,8 +2,8 @@
 title: Color Preset Creator
 description: Worker instruction module for storing universal color presets in grandMA2 from RGB values — creates the preset pool that color-palette-sequence-builder reads from
 version: 1.0.0
-created: 2026-03-31T00:00:00Z
-last_updated: 2026-03-31T00:00:00Z
+created: 2026-03-31T21:52:55Z
+last_updated: 2026-03-31T21:52:55Z
 ---
 
 # Color Preset Creator

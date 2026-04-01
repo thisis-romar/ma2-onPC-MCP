@@ -2,8 +2,8 @@
 title: OpenSpace Layer Developer Conventions
 description: Telemetry, skill lifecycle, DESTRUCTIVE approval, SkillImprover, and context management rules
 version: 1.2.2
-created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-31T12:00:00Z
+created: 2026-03-29T21:44:45Z
+last_updated: 2026-03-31T21:54:06Z
 ---
 
 # OpenSpace Layer Developer Conventions

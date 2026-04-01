@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.5.0
-created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-31T23:30:00Z
+version: 4.7.0
+created: 2026-03-01T23:37:51Z
+last_updated: 2026-04-01T00:25:43Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **176 tools**, **MCP resources**, and **MCP prompts** so AI assistants can control a grandMA2 lighting console via Telnet.
+MCP server exposing **184 tools**, **13 resources**, **10 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,8 +22,8 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server — 143 tools + MCP resources + MCP prompts, safety gate |
-| `src/server_orchestration_tools.py` | Registers tools 110-143 (agentic layer) onto FastMCP |
+| `src/server.py` | FastMCP server — 150 tools + 13 MCP resources + 10 MCP prompts, safety gate |
+| `src/server_orchestration_tools.py` | Registers tools 110-144 (agentic layer) onto FastMCP |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
@@ -33,14 +33,14 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/commands/` | 198 pure command-builder functions (206 exports incl. 8 constants), grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
 | `src/vocab.py` | 157 keyword vocab entries (90 function + 56 object + 5 helping + 6 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
-| `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
+| `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()` + `check_showfile()` |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
-| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache |
-| `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps |
+| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache; showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
+| `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
-| `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
+| `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
 | `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
 | `src/tools.py` | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 | `src/categorization/` | ML-based tool categorization: K-Means clustering + auto-labeling |
@@ -51,6 +51,18 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 **Responsibility map:** see `doc/responsibility-map.md`.
 **Tool tier classification:** see `doc/tool-surface-tiers.md`.
 **MCP primitive audit:** see `doc/transcript-architecture-audit.md`.
+
+---
+
+## MCP Servers (project-level)
+
+`.mcp.json` at the repo root registers the following servers for Claude Code CLI agents:
+
+| Server | Command | Purpose |
+|--------|---------|---------|
+| `time` | `npx -y @modelcontextprotocol/server-time` | Accurate timestamps for `.md` front matter |
+
+When writing or editing any `.md` file, call `get_current_time` first and use the returned `datetime` value for `created` / `last_updated` front matter fields.
 
 ---
 
@@ -104,7 +116,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-03-31): **2336 tests** (unit + live integration).
+- Current counts (2026-04-01): **2355 tests** (unit + live integration).
 
 ---
 

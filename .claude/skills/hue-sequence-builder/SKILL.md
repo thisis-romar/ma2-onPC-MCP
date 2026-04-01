@@ -2,8 +2,8 @@
 title: Hue Sequence Builder
 description: Worker instruction module for building a 16-cue grandMA2 sequence from an adjacent hue pair — 8 saturation variants per hue, color-coded with HSB appearance
 version: 1.0.0
-created: 2026-03-31T00:00:00Z
-last_updated: 2026-03-31T00:00:00Z
+created: 2026-03-31T21:52:55Z
+last_updated: 2026-03-31T21:52:55Z
 ---
 
 # Hue Sequence Builder

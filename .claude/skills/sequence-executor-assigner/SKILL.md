@@ -2,8 +2,8 @@
 title: Sequence Executor Assigner
 description: Worker instruction module for assigning a grandMA2 sequence to a free executor so it appears as a playback fader on the console
 version: 1.0.0
-created: 2026-03-31T00:00:00Z
-last_updated: 2026-03-31T00:00:00Z
+created: 2026-03-31T21:52:55Z
+last_updated: 2026-03-31T21:52:55Z
 ---
 
 # Sequence Executor Assigner

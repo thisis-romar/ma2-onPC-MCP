@@ -2,8 +2,8 @@
 title: ma2 onPC MCP — VS Code Extension
 description: VS Code extension that registers the ma2 onPC MCP server for AI assistants
 version: 1.2.0
-created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-31T23:30:00Z
+created: 2026-02-28T22:50:23Z
+last_updated: 2026-04-01T00:25:43Z
 ---
 
 # ma2 onPC MCP — VS Code Extension

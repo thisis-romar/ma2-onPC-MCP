@@ -2,8 +2,8 @@
 title: "grandMA2 CD Tree — Strategic Scan (Compact Show)"
 description: "Compact show cd tree from strategic scan (3,038 nodes) of grandMA2 onPC v3.9.60.65 — different show file from ma2-cd-tree-full.md"
 version: 1.1.0
-created: 2026-03-11T23:35:20Z
-last_updated: 2026-03-22T00:00:00Z
+created: 2026-03-12T00:22:07Z
+last_updated: 2026-03-28T02:09:33Z
 ---
 
 # grandMA2 CD Tree — Strategic Scan (Compact Show)

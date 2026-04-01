@@ -2,8 +2,8 @@
 title: Tool Surface Tiers
 description: Classification of all 176 MCP tools into planner-visible tiers A/B/C to manage context budget
 version: 1.2.0
-created: 2026-03-29T09:00:00Z
-last_updated: 2026-03-31T23:00:00Z
+created: 2026-03-29T21:44:45Z
+last_updated: 2026-03-31T23:56:48Z
 ---
 
 # Tool Surface Tiers

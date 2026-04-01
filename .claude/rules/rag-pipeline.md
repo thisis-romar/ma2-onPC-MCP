@@ -2,8 +2,8 @@
 title: RAG Pipeline Developer Conventions
 description: How the crawl-chunk-embed-store-retrieve pipeline works and how to maintain it
 version: 1.0.0
-created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-29T08:30:00Z
+created: 2026-03-29T21:44:45Z
+last_updated: 2026-03-29T21:44:45Z
 ---
 
 # RAG Pipeline Developer Conventions

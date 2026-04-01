@@ -2,8 +2,8 @@
 title: Song Macro Page Design
 description: Instruction module for designing grandMA2 song macro pages — first-button protocol, executor layout, page naming, and jump target safety
 version: 1.0.0
-created: 2026-03-30T00:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+created: 2026-03-30T03:17:46Z
+last_updated: 2026-03-30T03:17:46Z
 ---
 
 # Song Macro Page Design

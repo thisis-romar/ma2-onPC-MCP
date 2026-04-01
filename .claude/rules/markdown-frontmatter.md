@@ -2,8 +2,8 @@
 title: Markdown Front Matter Rules
 description: Required YAML front matter fields and conventions for all .md files in this repo
 version: 1.0.0
-created: 2026-03-29T08:30:00Z
-last_updated: 2026-03-29T08:30:00Z
+created: 2026-03-29T21:44:45Z
+last_updated: 2026-03-29T21:44:45Z
 ---
 
 # Markdown Front Matter Rules

@@ -2,8 +2,8 @@
 title: Busking Lighting Performance
 description: Instruction module for live-performance busking on grandMA2 — fader-per-effect model, executor layout, effect layering, and live recovery
 version: 1.0.0
-created: 2026-03-30T00:00:00Z
-last_updated: 2026-03-30T00:00:00Z
+created: 2026-03-30T03:17:46Z
+last_updated: 2026-03-30T03:17:46Z
 ---
 
 # Busking Lighting Performance

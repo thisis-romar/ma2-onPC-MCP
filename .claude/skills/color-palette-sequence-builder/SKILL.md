@@ -2,8 +2,8 @@
 title: Color Palette Sequence Builder
 description: Worker instruction module for building a grandMA2 cue sequence where each cue references a universal color preset, applied globally to all fixtures
 version: 1.2.0
-created: 2026-03-31T00:00:00Z
-last_updated: 2026-03-31T00:00:00Z
+created: 2026-03-31T21:52:55Z
+last_updated: 2026-03-31T21:52:55Z
 ---
 
 # Color Palette Sequence Builder

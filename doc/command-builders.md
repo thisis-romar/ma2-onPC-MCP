@@ -2,8 +2,8 @@
 title: Command Builder Reference
 description: Pure-function reference for all 198 grandMA2 command builders
 version: 1.6.0
-created: 2026-03-01T00:00:00Z
-last_updated: 2026-03-31T23:00:00Z
+created: 2026-03-02T23:52:10Z
+last_updated: 2026-03-31T23:56:48Z
 ---
 
 # Command Builder Reference

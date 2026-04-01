@@ -2,8 +2,8 @@
 title: Responsibility Map
 description: File-by-file module role matrix with smell detection for the ma2-onPC-MCP architecture
 version: 1.2.0
-created: 2026-03-29T09:00:00Z
-last_updated: 2026-03-31T23:00:00Z
+created: 2026-03-29T21:44:45Z
+last_updated: 2026-03-31T23:56:48Z
 ---
 
 # Responsibility Map

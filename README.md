@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
-description: AI agent for grandMA2 lighting consoles — 176 MCP tools via Telnet
-version: 3.23.0
-created: 2025-02-27T00:00:00Z
-last_updated: 2026-03-31T23:30:00Z
+description: AI agent for grandMA2 lighting consoles — 184 MCP tools via Telnet
+version: 3.25.0
+created: 2025-11-04T17:05:43Z
+last_updated: 2026-04-01T00:25:43Z
 ---
 
 <p align="center">
@@ -16,21 +16,21 @@ last_updated: 2026-03-31T23:30:00Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
-  <img src="https://img.shields.io/badge/MCP_Tools-176-brightgreen?style=for-the-badge" alt="176 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-2336-brightgreen?style=for-the-badge" alt="2336 Tests">
+  <img src="https://img.shields.io/badge/MCP_Tools-184-brightgreen?style=for-the-badge" alt="184 MCP Tools">
+  <img src="https://img.shields.io/badge/Tests-2355-brightgreen?style=for-the-badge" alt="2355 Tests">
 </p>
 
-**An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 176 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
+**An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 184 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
 
 <table>
-<tr><td><b>Agent Harness</b></td><td>176 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
+<tr><td><b>Agent Harness</b></td><td>184 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
 <tr><td><b>Embedded Agent Core</b></td><td>Orchestrator, task decomposer, working + long-term memory, and a skill registry with self-improvement suggestions. Inject a real LLM client and it becomes a fully autonomous lighting agent that plans, executes, remembers, and learns.</td></tr>
 <tr><td><b>Layered safety gate</b></td><td>Three risk tiers enforced before any command reaches the console: <code>SAFE_READ</code> (always allowed), <code>SAFE_WRITE</code> (standard mode), <code>DESTRUCTIVE</code> (blocked until <code>confirm_destructive=True</code>). Line-break injection rejected at the transport layer.</td></tr>
 <tr><td><b>A closed learning loop</b></td><td>Every tool call recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Skills are versioned playbooks with full lineage tracking.</td></tr>
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
 </table>
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [176 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [184 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 *The name is a play on "grandMA2" — [dedicated to someone special](DEDICATION.md).*
 
@@ -63,7 +63,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>33 tools (110–143) · orchestrator · skills"] --> A
+    H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>34 tools (110–144) · orchestrator · skills"] --> A
     A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>143 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
     C["🔧 Command Builders<br/><code>src/commands/</code><br/>198 pure functions → strings"] --> D
@@ -96,7 +96,7 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 | Layer | What it is | Key files |
 |-------|-----------|-----------|
 | **Bottom 143 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | `src/server.py` |
-| **Top 33 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | `src/server_orchestration_tools.py`, `src/orchestrator.py` |
+| **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | `src/server_orchestration_tools.py`, `src/orchestrator.py` |
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
 
@@ -105,11 +105,11 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | Module | Role |
 |--------|------|
 | `src/server.py` | FastMCP server, 143 interactive tools, safety gate, env config |
-| `src/server_orchestration_tools.py` | 33 agentic tools (110–143) registered onto FastMCP |
-| `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM |
+| `src/server_orchestration_tools.py` | 34 agentic tools (110–144) registered onto FastMCP |
+| `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
-| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) |
-| `src/console_state.py` | ConsoleStateSnapshot: hydrates 19 show-memory gaps |
+| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
+| `src/console_state.py` | ConsoleStateSnapshot: hydrates 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | `src/pool_name_index.py` | In-memory pool name/ID registry — zero-cost object resolution |
 | `src/rights.py` | MA2 native rights enforcement + telnet feedback classification |
 | `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
@@ -122,7 +122,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | `src/commands/busking.py` | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
-| `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage |
+| `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
 | `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
 | `src/tools.py` | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 
@@ -156,7 +156,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 
 ## MCP Tools
 
-The server exposes **176 tools** to MCP clients, grouped into 15 categories plus an agentic orchestration layer:
+The server exposes **184 tools** to MCP clients, grouped into 15 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -620,7 +620,7 @@ Read from the cached snapshot — **no telnet round-trips required**.
 | `retry_failed_steps` | Reload a past session from LTM and re-run the original goal |
 | `assert_fixture_exists` | Two-tier fixture patch validation (snapshot index → live telnet fallback) |
 
-#### OpenSpace Layer — Telemetry, Skills & Improvement (Tools 110–143)
+#### OpenSpace Layer — Telemetry, Skills & Improvement (Tools 110–144)
 
 | Tool | Scope | Description |
 |------|-------|-------------|
@@ -630,6 +630,19 @@ Read from the cached snapshot — **no telnet round-trips required**.
 | `promote_session_to_skill` | PROGRAMMER_WRITE | Manually promote a completed session to a named, versioned skill |
 | `get_improvement_suggestions` | DISCOVER | Repair suggestions (failing tools) + promotion candidates (successful sessions) |
 | `approve_skill` | SYSTEM_ADMIN | Human-gate: set `approved=True` on a DESTRUCTIVE-scope skill before agents may use it |
+| `assert_showfile_unchanged` | DISCOVER | Verify open show matches hydration baseline — live ListVar vs cached snapshot |
+
+#### Compliance, Patch Validation & Cross-Venue Tools
+
+| Tool | Scope | Description |
+|------|-------|-------------|
+| `detect_dmx_address_conflicts` | DISCOVER | Scan all universes for overlapping fixture DMX address assignments |
+| `get_telemetry_report` | DISCOVER | Export tool invocation telemetry as JSON or markdown audit log |
+| `generate_compliance_report` | DISCOVER | SB 132 / safety-audit compliance report from session telemetry |
+| `validate_preset_references` | DISCOVER | Scan cue list for references to deleted or missing preset pool entries |
+| `list_macro_jump_targets` | DISCOVER | Parse macro lines and extract all jump targets for index-shift planning |
+| `check_pool_slot_availability` | DISCOVER | Pre-flight: which pool slots are empty vs. occupied in a range |
+| `remap_fixture_ids` | PROGRAMMER_WRITE | Remap fixture references from one ID to another in groups after PSR import |
 
 > [!NOTE]
 > Call `hydrate_console_state` before using state-query tools. The snapshot caches values
@@ -654,15 +667,19 @@ Read from the cached snapshot — **no telnet round-trips required**.
 
 ## MCP Resources
 
-Nine read-only resources exposable to any MCP client. Use them for zero-telnet context before calling tools.
+Thirteen read-only resources exposable to any MCP client. Use them for zero-telnet context before calling tools.
 
 | URI | Description |
 |-----|-------------|
 | `ma2://docs/rights-matrix` | OAuth scope → MA2Right mapping matrix (JSON) |
 | `ma2://docs/vocab-summary` | All 157 keywords with RiskTier and category (JSON) |
-| `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 176 tools in 14 categories (JSON) |
+| `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 150 base tools clustered into 14 categories (JSON) |
 | `ma2://docs/responsibility-map` | Module responsibility map for architectural decisions (Markdown) |
 | `ma2://docs/tool-surface-tiers` | Tier A/B/C classification for every tool (Markdown) |
+| `ma2://docs/volunteer-guide` | Plain-language volunteer operator guide: three-tier access model + Sunday preflight |
+| `ma2://docs/sb132-compliance` | SB 132 / CA Film Tax Credit safety documentation mapped to telemetry fields |
+| `ma2://docs/rdm-workflow` | RDM discovery, autopatch, and device info best practices |
+| `ma2://docs/lua-scripting` | grandMA2 Lua 5.2 scripting reference: `gma.*` namespace + common patterns |
 | `ma2://skills/{skill_id}` | Skill injection payload by ID — returns formatted user message ready for agent injection |
 | `ma2://busking/patterns` | Best-practice busking patterns: fader model, song macro protocol, live recovery |
 | `ma2://busking/effect-design` | Effect-to-executor assignment patterns, rate vs speed, MAtricks layering |
@@ -672,7 +689,7 @@ All resources are read-only — no console side-effects.
 
 ## MCP Prompts
 
-Six workflow prompts that orchestrate tools into guided multi-step procedures.
+Ten workflow prompts that orchestrate tools into guided multi-step procedures.
 
 | Prompt | Args | Description |
 |--------|------|-------------|
@@ -682,6 +699,10 @@ Six workflow prompts that orchestrate tools into guided multi-step procedures.
 | `diagnose_playback_failure` | `executor_id`, `symptom` | Structured playback failure diagnosis — returns `fault_class`, `root_cause`, `recommended_actions` |
 | `load_show_safely` | `show_name` | Safe show loading checklist — prevents accidental Telnet disconnection via missing `/globalsettings` |
 | `bootstrap_rights_users` | *(none)* | Guided provisioning of the six-tier MA2 rights user accounts |
+| `volunteer_sunday_preflight` | `show_name`, `campus_name` | SAFE_READ preflight for volunteer operators — GREEN/AMBER/RED show verification before service |
+| `generate_busking_template` | `target_page`, `fixture_strategy` | Build a complete busking template from current patch — groups, presets, effects, executor layout |
+| `pre_show_health_check` | `sequence_ids`, `strict` | Full show health audit — showfile, presets, executors, cues, parks, and DMX with scored findings |
+| `adapt_show_to_venue` | `source_show_description`, `new_venue_notes` | Cross-venue show adaptation — patch comparison, group remapping, preset verification |
 
 ## Agent Skills
 
@@ -712,6 +733,17 @@ Instruction modules (`.claude/skills/`) that are injected as user messages into 
 | `hue-palette-creator` | Store 96 universal hue presets (4.101–4.196) using the HSB color model |
 | `hue-sequence-builder` | Build a 16-cue sequence from an adjacent hue pair — 8 saturation variants per hue |
 | `sequence-executor-assigner` | Assign a sequence to a free executor so it appears as a playback fader |
+| `rdm-workflow` | RDM discovery → device info → autopatch workflow via MCP |
+| `lua-and-plugins` | Lua 5.2 scripting with `gma.*` namespace, plugin invocation, and reload lifecycle |
+| `psr-show-migration` | PSR with pre-flight slot check, fixture ID verification, and post-import diff |
+| `compliance-documentation` | Generate SB 132 / insurance audit reports from session telemetry — SAFE_READ only |
+| `volunteer-operations` | Three-tier access model, Sunday morning preflight, and incident response for non-programmers |
+| `view-and-layout-designer` | Custom console views, executor button placement, image assignment, sheet recall |
+| `show-health-check` | Pre-show audit — showfile, presets, executors, cues, parks, DMX. Returns GREEN/AMBER/RED |
+| `busking-template-generator` | Build a complete busking template from any patched rig — groups, presets, effects, executor page |
+| `cross-venue-adaptation` | Adapt show to a new venue rig — patch comparison, group remapping, preset scope verification |
+| `training-mode` | Annotated SAFE_READ console tour for students, church volunteers, and IATSE training programs |
+| `remote-monitoring` | Continuous SAFE_READ polling — show change detection, alert conditions, broadcast and architectural protocols |
 
 Skills are loaded on demand via `ma2://skills/{skill_id}` resource or injected by the orchestrator. Use `list_skills` / `get_skill` tools to browse and inspect them at runtime.
 
@@ -732,10 +764,16 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
         "GMA_USER": "administrator",
         "GMA_PASSWORD": "admin"
       }
+    },
+    "time": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-time"]
     }
   }
 }
 ```
+
+The `time` server provides accurate ISO 8601 timestamps for markdown front matter — required by `.claude/rules/markdown-frontmatter.md`. It is also registered automatically for Claude Code CLI via `.mcp.json` and for VS Code via `vscode-mcp-provider/`.
 
 ### VS Code
 
@@ -1149,7 +1187,7 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ma2-onPC-MCP/
 ├── src/
 │   ├── server.py                           # FastMCP server (143 interactive tools)
-│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–143)
+│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–144)
 │   │
 │   │   # Orchestration & Memory
 │   ├── orchestrator.py                     # Multi-agent task runner + session memory

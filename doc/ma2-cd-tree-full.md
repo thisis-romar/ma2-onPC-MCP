@@ -2,8 +2,8 @@
 title: "grandMA2 CD Tree — Full Validated Print"
 description: "Complete recursive cd tree of grandMA2 onPC v3.9.60.65, live-scanned via telnet"
 version: 1.0.0
-created: 2026-03-11T22:44:59Z
-last_updated: 2026-03-11T22:44:59Z
+created: 2026-03-12T00:22:07Z
+last_updated: 2026-03-12T00:22:07Z
 ---
 
 # grandMA2 CD Tree — Full Validated Print
