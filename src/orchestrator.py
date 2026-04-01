@@ -23,7 +23,7 @@ from typing import Any
 from src.context import _current_session_id
 
 from .agent_memory import LongTermMemory, WorkingMemory
-from .console_state import ConsoleStateHydrator, ConsoleStateSnapshot
+from .console_state import ConsoleStateHydrator, ConsoleStateSnapshot, parse_showfile_from_listvar
 from .rights import (
     FeedbackClass,
     MA2Right,
@@ -352,6 +352,7 @@ class Orchestrator:
                 hydrator = ConsoleStateHydrator(self._send)
                 snapshot = await hydrator.hydrate(sequence_ids=sequence_ids)
                 wm.console_state = snapshot
+                wm.baseline_showfile = snapshot.showfile  # showfile change detection
                 self._last_snapshot = snapshot          # cache for tool access
                 wm.rights_context = RightsContext.from_snapshot(snapshot)
                 console_state_summary = snapshot.summary()
@@ -400,6 +401,23 @@ class Orchestrator:
             console_state_summary=console_state_summary,
         )
 
+    async def check_showfile(self) -> tuple[str, str]:
+        """Return (baseline_showfile, live_showfile) for comparison.
+
+        ``baseline_showfile`` comes from the last hydrated snapshot.
+        ``live_showfile`` is read live from the console via ListVar.
+        Both are empty strings when no telnet or no snapshot is available.
+        """
+        baseline = self._last_snapshot.showfile if self._last_snapshot else ""
+        if not self._send:
+            return baseline, ""
+        try:
+            raw = await self._send("ListVar")
+            live = parse_showfile_from_listvar(raw)
+        except Exception:
+            live = ""
+        return baseline, live
+
     async def hydrate_snapshot(
         self, sequence_ids: list[int] | None = None
     ) -> ConsoleStateSnapshot | None:
@@ -408,6 +426,39 @@ class Orchestrator:
             return None
         hydrator = ConsoleStateHydrator(self._send)
         return await hydrator.hydrate(sequence_ids=sequence_ids)
+
+    async def _showfile_guard(self, step: SubTask, wm: WorkingMemory) -> StepResult | None:
+        """Check that the open show has not changed since hydration.
+
+        Only runs for DESTRUCTIVE steps when a baseline exists and telnet is wired.
+        Returns a failed StepResult if the show changed, otherwise None (pass).
+        """
+        if step.allowed_risk != RiskTier.DESTRUCTIVE:
+            return None
+        if not wm.baseline_showfile or not self._send:
+            return None
+        try:
+            raw = await self._send("ListVar")
+            live = parse_showfile_from_listvar(raw)
+        except Exception as exc:
+            logger.warning("Showfile guard ListVar failed: %s — skipping check", exc)
+            return None
+        if not wm.showfile_changed(live):
+            return None
+        wm.console_state = None  # invalidate stale snapshot
+        msg = (
+            f"[FAILED_CLOSED] Show changed mid-session: "
+            f"expected '{wm.baseline_showfile}', got '{live}'. "
+            f"Re-run hydrate_console_state before proceeding."
+        )
+        logger.error(msg)
+        return StepResult(
+            step_name=step.name,
+            success=False,
+            error=msg,
+            feedback_class=FeedbackClass.FAILED_CLOSED,
+            rights_level=wm.rights_context.user_right.value,
+        )
 
     # ── Execution strategies ─────────────────────────────────────────
 
@@ -424,6 +475,12 @@ class Orchestrator:
                 ))
                 wm.mark_failed(step.name, "dependency not met")
                 continue
+
+            showfile_block = await self._showfile_guard(step, wm)
+            if showfile_block:
+                results.append(showfile_block)
+                wm.mark_failed(step.name, showfile_block.error)
+                break  # show has changed — abort remaining steps
 
             _tok = _current_session_id.set(wm.session_id)
             try:

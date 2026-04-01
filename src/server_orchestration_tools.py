@@ -1,5 +1,5 @@
 """
-server_orchestration_tools.py — Register 27 agentic MCP tools (110-137) onto the FastMCP instance.
+server_orchestration_tools.py — Register 35 agentic MCP tools (110-144) onto the FastMCP instance.
 
 Tools 110-118 bring the MA2 MCP server's agentic capability up to the multi-agent
 model: task decomposition, orchestrated execution, memory recall, token tracking,
@@ -1456,3 +1456,51 @@ def register_orchestration_tools(
             },
             indent=2,
         )
+
+    # ------------------------------------------------------------------ #
+    # Tool 144: assert_showfile_unchanged                                  #
+    # ------------------------------------------------------------------ #
+
+    @mcp.tool()
+    @require_scope_fn(OAuthScope.STATE_READ)
+    @handle_errors_fn
+    async def assert_showfile_unchanged() -> str:
+        """
+        Verify the currently open show matches the baseline captured at last hydration.
+
+        Performs a live ListVar read and compares $SHOWFILE against the cached
+        ConsoleStateSnapshot. Use this before committing a batch of DESTRUCTIVE
+        changes to confirm the operator has not loaded a different show since
+        the last hydrate_console_state call.
+
+        Returns:
+            JSON with {"ok": true, "showfile": name} when unchanged.
+            JSON with {"ok": false, "expected": baseline, "actual": live}
+            when the show has changed.
+            JSON with {"ok": false, "reason": "..."} when not yet hydrated
+            or telnet is unavailable.
+
+        Risk tier: SAFE_READ
+        """
+        import json
+        snap = orchestrator.last_snapshot
+        if snap is None:
+            return json.dumps({
+                "ok": False,
+                "reason": "Not hydrated — call hydrate_console_state first.",
+            })
+        baseline, live = await orchestrator.check_showfile()
+        if not live:
+            return json.dumps({
+                "ok": False,
+                "reason": "Could not read live $SHOWFILE — telnet unavailable.",
+            })
+        if live == baseline:
+            return json.dumps({"ok": True, "showfile": live})
+        return json.dumps({
+            "ok": False,
+            "expected": baseline,
+            "actual": live,
+            "action": "Call hydrate_console_state to re-sync agent memory to the new show.",
+        })
+
