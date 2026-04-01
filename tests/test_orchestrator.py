@@ -294,6 +294,68 @@ class TestOrchestratorRun:
         assert orch.recall("deadbeef") is None
 
     @pytest.mark.asyncio
+    async def test_showfile_guard_blocks_destructive_on_show_change(self, ltm_and_path):
+        ltm, _ = ltm_and_path
+
+        # telnet_send returns a ListVar response with a DIFFERENT showfile
+        listvar_response = "$Global : $SHOWFILE = different_show\n$Global : $USER = admin\n"
+        send_mock = AsyncMock(return_value=listvar_response)
+        tool_caller = AsyncMock(return_value='{"ok": true}')
+
+        orch = Orchestrator(tool_caller=tool_caller, telnet_send=send_mock, ltm=ltm,
+                            auto_hydrate=False)
+        orch._last_snapshot = MagicMock()
+        orch._last_snapshot.showfile = "original_show"
+
+        class ShowfileDecomposer:
+            def decompose(self, goal, params):
+                return TaskPlan(goal=goal, steps=[
+                    _step("destructive_step", risk=RiskTier.DESTRUCTIVE, confirmed=True),
+                ])
+
+        orch._decomposer = ShowfileDecomposer()
+        wm = _wm()
+        wm.baseline_showfile = "original_show"
+
+        # Directly test _showfile_guard
+        step = _step("destructive_step", risk=RiskTier.DESTRUCTIVE, confirmed=True)
+        result = await orch._showfile_guard(step, wm)
+        assert result is not None
+        assert result.success is False
+        assert result.feedback_class == FeedbackClass.FAILED_CLOSED
+        assert "different_show" in result.error
+        assert "original_show" in result.error
+
+    @pytest.mark.asyncio
+    async def test_showfile_guard_passes_when_show_unchanged(self, ltm_and_path):
+        ltm, _ = ltm_and_path
+
+        listvar_response = "$Global : $SHOWFILE = my_show\n"
+        send_mock = AsyncMock(return_value=listvar_response)
+
+        orch = Orchestrator(tool_caller=AsyncMock(), telnet_send=send_mock, ltm=ltm,
+                            auto_hydrate=False)
+
+        step = _step("destructive_step", risk=RiskTier.DESTRUCTIVE, confirmed=True)
+        wm = _wm()
+        wm.baseline_showfile = "my_show"
+        result = await orch._showfile_guard(step, wm)
+        assert result is None  # no block
+
+    @pytest.mark.asyncio
+    async def test_showfile_guard_skips_non_destructive(self, ltm_and_path):
+        ltm, _ = ltm_and_path
+        send_mock = AsyncMock(return_value="$Global : $SHOWFILE = other_show\n")
+        orch = Orchestrator(tool_caller=AsyncMock(), telnet_send=send_mock, ltm=ltm,
+                            auto_hydrate=False)
+        step = _step("safe_step", risk=RiskTier.SAFE_WRITE)
+        wm = _wm()
+        wm.baseline_showfile = "my_show"
+        # SAFE_WRITE should not trigger showfile guard
+        result = await orch._showfile_guard(step, wm)
+        assert result is None
+
+    @pytest.mark.asyncio
     async def test_dep_failure_skips_dependent(self, ltm_and_path):
         ltm, _ = ltm_and_path
 

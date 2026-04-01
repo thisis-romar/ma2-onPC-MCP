@@ -98,6 +98,10 @@ class WorkingMemory:
     # Set by Orchestrator before the first sub-agent runs.
     console_state: Any | None = None   # ConsoleStateSnapshot
 
+    # ── Showfile baseline: set when console_state is assigned ────────
+    # Used by the orchestrator pre-flight guard to detect show swaps.
+    baseline_showfile: str = ""
+
     # ── Rights context: MA2 native rights ladder ──────────────────────
     # Populated from ConsoleStateSnapshot.$USERRIGHTS during hydration.
     # Used by _preflight_guard to enforce per-right operation permissions.
@@ -217,6 +221,14 @@ class WorkingMemory:
         if self.console_state:
             return self.console_state.staleness_warning(max_age)
         return "No ConsoleStateSnapshot — run hydrate before DESTRUCTIVE steps"
+
+    def showfile_changed(self, live: str) -> bool:
+        """True if the live show name differs from the baseline captured at hydration.
+
+        Returns False when no baseline has been set (show was never hydrated),
+        so the guard does not block un-hydrated sessions.
+        """
+        return bool(self.baseline_showfile) and live != self.baseline_showfile
 
     # ── Rights helpers ────────────────────────────────────────────────
 

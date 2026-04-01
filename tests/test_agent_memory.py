@@ -341,3 +341,51 @@ class TestNoDuplicateCheckpointMethods:
         assert src.count("def fresh_checkpoint") == 1, (
             "WorkingMemory has duplicate fresh_checkpoint definitions"
         )
+
+
+# ── Showfile tracking (dynamic show awareness) ────────────────────────────────
+
+class TestShowfileTracking:
+    """WorkingMemory must track baseline showfile and detect changes."""
+
+    def _make_snapshot(self, showfile: str):
+        """Create a minimal ConsoleStateSnapshot-like object with a showfile field."""
+        from unittest.mock import MagicMock
+        snap = MagicMock()
+        snap.showfile = showfile
+        return snap
+
+    def test_baseline_field_exists_and_defaults_empty(self):
+        wm = WorkingMemory()
+        assert wm.baseline_showfile == ""
+
+    def test_baseline_set_explicitly(self):
+        # Orchestrator sets both fields after hydration
+        wm = WorkingMemory()
+        snap = self._make_snapshot("my_show")
+        wm.console_state = snap
+        wm.baseline_showfile = snap.showfile
+        assert wm.baseline_showfile == "my_show"
+
+    def test_baseline_persists_when_console_state_cleared(self):
+        wm = WorkingMemory()
+        snap = self._make_snapshot("my_show")
+        wm.console_state = snap
+        wm.baseline_showfile = snap.showfile
+        wm.console_state = None  # invalidate snapshot
+        assert wm.baseline_showfile == "my_show"  # baseline remains
+
+    def test_showfile_changed_returns_false_when_same(self):
+        wm = WorkingMemory()
+        wm.baseline_showfile = "show_a"
+        assert wm.showfile_changed("show_a") is False
+
+    def test_showfile_changed_returns_true_when_different(self):
+        wm = WorkingMemory()
+        wm.baseline_showfile = "show_a"
+        assert wm.showfile_changed("show_b") is True
+
+    def test_showfile_changed_returns_false_when_no_baseline(self):
+        wm = WorkingMemory()
+        # No hydration — baseline is empty string → guard should not block
+        assert wm.showfile_changed("any_show") is False

@@ -82,6 +82,14 @@ def _parse_listvar_raw(raw: str) -> dict[str, str]:
     return variables
 
 
+def parse_showfile_from_listvar(raw: str) -> str:
+    """Extract $SHOWFILE value from a ListVar response string.
+
+    Returns the show name, or "" if not found.
+    """
+    return _parse_listvar_raw(raw).get("$SHOWFILE", "")
+
+
 # ---------------------------------------------------------------------------
 # Sub-structures for gaps 6, 7, 9, 10
 # ---------------------------------------------------------------------------
