@@ -7773,6 +7773,16 @@ _orchestrator = Orchestrator(
 
 register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, OAuthScope)
 
+# Register MCP completions (argument autocompletion for prompts + resource templates)
+from src.completions import register_completions  # noqa: E402
+
+register_completions(mcp)
+
+# Register MCP resource subscriptions (live state push when resources change)
+from src.subscriptions import register_subscriptions  # noqa: E402
+
+register_subscriptions(mcp)
+
 
 # ============================================================
 # MCP Resources
