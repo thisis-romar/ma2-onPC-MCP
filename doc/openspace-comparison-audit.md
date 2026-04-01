@@ -62,7 +62,7 @@ The core claim is that agents improve themselves without human intervention.
 | MCP integration | ✅ Excellent | 176 tools (143 in `server.py` + 33 in `server_orchestration_tools.py`), stdio transport, Claude Desktop + VS Code configs |
 | Python 3.12 | ✅ Yes | `.python-version` file |
 | MIT license | ⚠️ No — Apache 2.0 | `LICENSE` file |
-| Benchmark / metrics pipeline | ❌ Absent | 2322 unit tests exist but no performance-benchmark loop |
+| Benchmark / metrics pipeline | ❌ Absent | 2336 unit tests exist but no performance-benchmark loop |
 
 ---
 
@@ -82,7 +82,7 @@ Three-tier risk model enforced before any command reaches the console:
 | `DESTRUCTIVE` | `delete`, `store`, `copy`, `assign` | Blocked unless `confirm_destructive=True` |
 
 Command injection prevention, `@_handle_errors` wrapper (`src/server.py:477–494`), and a
-158-keyword vocabulary classifier (`src/vocab.py`) back this up. OpenSpace mentions none of
+157-keyword vocabulary classifier (`src/vocab.py`) back this up. OpenSpace mentions none of
 this. For a system controlling live physical hardware, this safety model is more mature.
 
 ### 3.2 MCP tool quality
@@ -118,7 +118,7 @@ checks before any DESTRUCTIVE step. OpenSpace has no equivalent hardware-safety 
 
 ### 3.6 Test coverage
 
-2322 unit tests + live integration tests. OpenSpace's repository shows no equivalent
+2336 unit tests + live integration tests. OpenSpace's repository shows no equivalent
 test infrastructure.
 
 ---
