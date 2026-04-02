@@ -9,6 +9,14 @@ Included functions:
 - clear_selection: Deselect all fixtures
 - clear_active: Deactivate all active values
 - clear_all: Empty entire programmer
+- if_active: Filter selection to fixtures with active output
+- if_output: Filter selection to fixtures with any output value
+- if_prog: Filter selection to fixtures with programmer values
+- end_if: Close a macro conditional block
+- full_highlight: FullHighlight combined mode toggle
+- blind_edit: Enter blind edit mode (MA+Edit shortcut)
+- shuffle_selection: Randomise fixture selection order
+- shuffle_values: Randomise programmer values across selection
 """
 
 
@@ -340,3 +348,242 @@ def flip() -> str:
         'Flip'
     """
     return "Flip"
+
+
+# ============================================================================
+# IF SELECTION FILTER KEYWORDS
+# ============================================================================
+# These qualifiers narrow the active fixture selection to only those matching
+# the given output or programmer state condition.
+# ============================================================================
+
+
+def if_active() -> str:
+    """
+    Construct an 'If Active' command to filter selection to active fixtures.
+
+    Narrows the current selection to fixtures that have at least one
+    attribute at a non-zero output value (i.e. contributing to output).
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> if_active()
+        'If Active'
+    """
+    return "If Active"
+
+
+def if_output() -> str:
+    """
+    Construct an 'If Output' command to filter selection to fixtures with output.
+
+    Narrows the current selection to fixtures that have any output value,
+    whether driven by playback, park, or the programmer.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> if_output()
+        'If Output'
+    """
+    return "If Output"
+
+
+def if_prog() -> str:
+    """
+    Construct an 'If Programmer' command to filter selection to programmer fixtures.
+
+    Narrows the current selection to only those fixtures that currently
+    have values active in the programmer.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> if_prog()
+        'If Programmer'
+    """
+    return "If Programmer"
+
+
+def end_if() -> str:
+    """
+    Construct an 'EndIf' command to close a macro conditional block.
+
+    EndIf terminates an If/While conditional block inside a grandMA2 macro.
+    Not typically used as a standalone telnet command — primarily used
+    in macro line construction via macro_condition_line().
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> end_if()
+        'EndIf'
+    """
+    return "EndIf"
+
+
+# ============================================================================
+# FULL HIGHLIGHT / BLIND EDIT MODE KEYWORDS
+# ============================================================================
+
+
+def full_highlight() -> str:
+    """
+    Construct a FullHighlight command.
+
+    FullHighlight is the combined Full + Highlight mode toggle.
+    It fires all selected fixtures to full intensity while also
+    engaging highlight mode, making selected fixtures stand out
+    against a dimmed background.
+
+    Keyboard shortcut: double-press the Full key.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> full_highlight()
+        'FullHighlight'
+    """
+    return "FullHighlight"
+
+
+def blind_edit() -> str:
+    """
+    Construct a BlindEdit command to enter edit mode in blind.
+
+    BlindEdit enters the edit view for the currently selected object
+    while in blind mode, allowing cue editing without affecting live output.
+
+    Keyboard shortcut: MA + Edit key.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> blind_edit()
+        'BlindEdit'
+    """
+    return "BlindEdit"
+
+
+# ============================================================================
+# SHUFFLE FUNCTION KEYWORDS
+# ============================================================================
+
+
+def shuffle_selection() -> str:
+    """
+    Construct a ShuffleSelection command to randomise fixture selection order.
+
+    ShuffleSelection randomises the order of the currently selected fixtures
+    so that MAtricks and alignment operations process them in a random sequence.
+    Useful for creating organic, non-linear looks.
+
+    Keyboard shortcut: MA + Align key.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> shuffle_selection()
+        'ShuffleSelection'
+    """
+    return "ShuffleSelection"
+
+
+def shuffle_values() -> str:
+    """
+    Construct a ShuffleValues command to randomise programmer values.
+
+    ShuffleValues redistributes the current programmer values randomly
+    across the selected fixtures. The same set of values is preserved
+    but assigned to different fixtures in the selection.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> shuffle_values()
+        'ShuffleValues'
+    """
+    return "ShuffleValues"
+
+
+# ============================================================================
+# PREVIEW MODE KEYWORDS
+# ============================================================================
+
+
+def preview(executor_id: int | None = None) -> str:
+    """
+    Construct a Preview command to enter preview mode for an executor.
+
+    Preview mode shows the output of a cue without affecting live output.
+    When called with an executor_id it previews that specific executor;
+    when called bare it activates preview mode for the currently selected.
+
+    Args:
+        executor_id: Executor number (optional).
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> preview()
+        'Preview'
+        >>> preview(5)
+        'Preview Executor 5'
+    """
+    if executor_id is not None:
+        return f"Preview Executor {executor_id}"
+    return "Preview"
+
+
+def preview_edit(executor_id: int | None = None) -> str:
+    """
+    Construct a PreviewEdit command to open the preview editor for an executor.
+
+    PreviewEdit opens the cue content editor while in preview mode so that
+    cues can be edited without affecting the live output.
+
+    Args:
+        executor_id: Executor number (optional).
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> preview_edit()
+        'PreviewEdit'
+        >>> preview_edit(3)
+        'PreviewEdit Executor 3'
+    """
+    if executor_id is not None:
+        return f"PreviewEdit Executor {executor_id}"
+    return "PreviewEdit"
+
+
+def preview_executor(executor_id: int) -> str:
+    """
+    Construct a PreviewExecutor command to directly preview a specific executor.
+
+    PreviewExecutor combines selecting and previewing an executor in a single
+    command, making it faster to switch the preview target during programming.
+
+    Args:
+        executor_id: Executor number (required).
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> preview_executor(7)
+        'PreviewExecutor 7'
+    """
+    return f"PreviewExecutor {executor_id}"

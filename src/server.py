@@ -243,6 +243,37 @@ from src.commands import (
     load_next as build_load_next,
 )
 from src.commands import (
+    psr as build_psr,
+    psr_list as build_psr_list,
+    psr_prepare as build_psr_prepare,
+)
+from src.commands import (
+    blind_edit as build_blind_edit,
+    full_highlight as build_full_highlight,
+    if_active as build_if_active,
+    if_output as build_if_output,
+    if_prog as build_if_prog,
+    shuffle_selection as build_shuffle_selection,
+    shuffle_values as build_shuffle_values,
+)
+from src.commands import (
+    fade_path as build_fade_path,
+    flash_go as build_flash_go,
+    flash_on as build_flash_on,
+    manual_xfade as build_manual_xfade,
+    out_delay as build_out_delay,
+    out_fade as build_out_fade,
+    preview as build_preview,
+    preview_edit as build_preview_edit,
+    preview_executor as build_preview_executor,
+    snap_percent as build_snap_percent,
+    step_fade as build_step_fade,
+    step_in_fade as build_step_in_fade,
+    step_out_fade as build_step_out_fade,
+    swop_go as build_swop_go,
+    swop_on as build_swop_on,
+)
+from src.commands import (
     load_prev as build_load_prev,
 )
 from src.commands import (
@@ -3446,21 +3477,26 @@ async def control_executor(
     confirm_destructive: bool = False,
 ) -> str:
     """
-    Control an executor: start, stop, flash, swop, solo, top, stomp, or set speed.
+    Control an executor: start, stop, flash, swop, solo, top, stomp, set speed,
+    flash_go, flash_on, swop_go, swop_on, or manual_xfade.
 
     set_speed is DESTRUCTIVE (modifies stored data).
 
     Args:
-        action: "on", "off", "flash", "swop", "solo", "top", "stomp", or "set_speed"
+        action: "on", "off", "flash", "swop", "solo", "top", "stomp", "set_speed",
+            "flash_go", "flash_on", "swop_go", "swop_on", or "manual_xfade"
         executor_id: Executor ID (1-999)
         page: Page number for page-qualified addressing (optional)
-        speed_value: BPM value for set_speed (0.0–999.0; required for set_speed)
+        speed_value: BPM for set_speed, or crossfade position (0–100) for manual_xfade
         confirm_destructive: Must be True when action="set_speed"
 
     Returns:
         str: JSON result with command sent
     """
-    valid_actions = ("on", "off", "flash", "swop", "solo", "top", "stomp", "set_speed")
+    valid_actions = (
+        "on", "off", "flash", "swop", "solo", "top", "stomp", "set_speed",
+        "flash_go", "flash_on", "swop_go", "swop_on", "manual_xfade",
+    )
     if action not in valid_actions:
         return json.dumps({"error": f"action must be one of {valid_actions}", "blocked": True}, indent=2)
     if executor_id < 1:
@@ -3478,6 +3514,11 @@ async def control_executor(
         ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
         cmd = f"assign speed {speed_value} at executor {ref}"
         risk_tier = "DESTRUCTIVE"
+    elif action == "manual_xfade":
+        if speed_value is None:
+            return json.dumps({"error": "speed_value (xfade position 0–100) is required for action='manual_xfade'", "blocked": True}, indent=2)
+        cmd = build_manual_xfade(executor_id, speed_value, page=page)
+        risk_tier = "SAFE_WRITE"
     elif action == "on":
         cmd = build_on_executor(executor_id, page=page)
         risk_tier = "SAFE_WRITE"
@@ -3487,8 +3528,20 @@ async def control_executor(
     elif action == "flash":
         cmd = build_flash_executor(executor_id, page=page)
         risk_tier = "SAFE_WRITE"
+    elif action == "flash_go":
+        cmd = build_flash_go(executor_id, page=page)
+        risk_tier = "SAFE_WRITE"
+    elif action == "flash_on":
+        cmd = build_flash_on(executor_id, page=page)
+        risk_tier = "SAFE_WRITE"
     elif action == "swop":
         cmd = build_swop_executor(executor_id, page=page)
+        risk_tier = "SAFE_WRITE"
+    elif action == "swop_go":
+        cmd = build_swop_go(executor_id, page=page)
+        risk_tier = "SAFE_WRITE"
+    elif action == "swop_on":
+        cmd = build_swop_on(executor_id, page=page)
         risk_tier = "SAFE_WRITE"
     elif action == "top":
         cmd = build_top_executor(executor_id, page=page)
@@ -9110,7 +9163,8 @@ async def set_effect_param(param: str, value: float) -> str:
     """
     Set an effect parameter in the programmer for the current fixture selection.
 
-    Valid parameters: bpm, hz, high, low, phase, width, attack, decay.
+    Valid parameters (defined by _EFFECT_PARAM_KEYWORDS in system.py — add new
+    params there): bpm, hz, high, low, phase, width, attack, decay, delay, fade.
 
     - bpm / hz   : Effect speed (beats per minute or Hertz)
     - high / low : Upper and lower value limits (0-100)
@@ -9118,10 +9172,12 @@ async def set_effect_param(param: str, value: float) -> str:
     - width      : Pulse width (0-100)
     - attack     : Attack time (0-100)
     - decay      : Decay time (0-100)
+    - delay      : Delay before effect starts each cycle (0-100)
+    - fade       : Fade in/out at start and end of effect (0-100)
 
     Args:
-        param: Parameter name (case-insensitive). One of: bpm, hz, high, low,
-               phase, width, attack, decay.
+        param: Parameter name (case-insensitive). ValueError lists valid params.
+        value: Numeric value appropriate for the parameter.
         value: Numeric value appropriate for the parameter.
 
     Returns:
@@ -9505,7 +9561,9 @@ async def programming_action(
 
     Args:
         action: One of:
-            SAFE_WRITE: "align", "locate", "flip", "extract", "learn"
+            SAFE_WRITE: "align", "locate", "flip", "extract", "learn",
+                        "shuffle_selection", "shuffle_values",
+                        "full_highlight", "blind_edit"
             DESTRUCTIVE: "block", "unblock", "record_macro", "store_look"
         fixture_ids: Fixture number(s) for locate (single int or list)
         end: Ending number for locate range
@@ -9538,6 +9596,8 @@ async def programming_action(
     valid_actions = {
         "align", "locate", "flip", "extract", "learn",
         "block", "unblock", "record_macro", "store_look",
+        "shuffle_selection", "shuffle_values",
+        "full_highlight", "blind_edit",
     }
     if action not in valid_actions:
         return json.dumps({
@@ -9579,6 +9639,14 @@ async def programming_action(
         cmd = build_record_macro(macro_id)
     elif action == "store_look":
         cmd = build_store_look(look_id=look_id, merge=merge, overwrite=overwrite)
+    elif action == "shuffle_selection":
+        cmd = build_shuffle_selection()
+    elif action == "shuffle_values":
+        cmd = build_shuffle_values()
+    elif action == "full_highlight":
+        cmd = build_full_highlight()
+    elif action == "blind_edit":
+        cmd = build_blind_edit()
     else:
         return json.dumps({"error": f"Unhandled action: {action}"}, indent=2)
 
@@ -10772,6 +10840,932 @@ async def plan_agent_goal(goal: str) -> str:
         ],
         "policy_warnings": warnings,
     }, indent=2)
+
+
+# ============================================================
+# PSR — Partial Show Read Tools, Resource, and Prompt
+# ============================================================
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SHOW_LOAD)
+@_handle_errors
+async def prepare_partial_show_read(source_show: str) -> str:
+    """
+    Lock a source show file for Partial Show Read (PSR) access (SAFE_WRITE).
+
+    PSRPrepare must be called before list_psr_objects or partial_show_read
+    to make the source show available for selective import.
+
+    Args:
+        source_show: Name of the source show file (without .show extension).
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier.
+    """
+    cmd = build_psr_prepare(source_show)
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def list_psr_objects(source_show: str) -> str:
+    """
+    List objects available for Partial Show Read from a source show (SAFE_READ).
+
+    Returns the PSRList output — object types and IDs that can be imported
+    into the current show via partial_show_read.
+
+    Call prepare_partial_show_read first to lock the source show.
+
+    Args:
+        source_show: Name of the source show file (without .show extension).
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier.
+    """
+    cmd = build_psr_list(source_show)
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw,
+        "risk_tier": "SAFE_READ",
+    }, indent=2)
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SHOW_LOAD)
+@_handle_errors
+async def partial_show_read(
+    source_show: str,
+    object_type: str,
+    object_id: str | None = None,
+    merge: bool = False,
+    confirm_destructive: bool = False,
+) -> str:
+    """
+    Import objects from a source show into the current show via PSR (DESTRUCTIVE).
+
+    Partial Show Read (PSR) selectively copies objects (cues, sequences, groups,
+    presets, macros, etc.) from a saved show file into the current show without
+    loading the entire show.
+
+    Workflow:
+    1. prepare_partial_show_read(source_show) — lock source show
+    2. list_psr_objects(source_show) — see what is available
+    3. partial_show_read(source_show, object_type, ...) — import objects
+
+    Args:
+        source_show: Name of the source show file (without .show extension).
+        object_type: MA2 object type to import, e.g. "Cue", "Sequence", "Group",
+                     "Preset", "Macro", "Effect", "Timecode", "Filter", "View".
+        object_id: Object ID, range, or slot string (e.g. "1", "1 Thru 5", "1.1").
+                   Omit to import all objects of the given type.
+        merge: If True, merges imported objects into existing slots (/merge flag).
+               If False (default), overwrites any conflicting slots.
+        confirm_destructive: Must be True to proceed — PSR overwrites existing
+                             show objects and cannot be undone without Oops.
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier.
+    """
+    if not confirm_destructive:
+        return json.dumps({
+            "blocked": True,
+            "error": (
+                "partial_show_read overwrites objects in the current show. "
+                "Set confirm_destructive=True to proceed."
+            ),
+            "risk_tier": "DESTRUCTIVE",
+        }, indent=2)
+
+    cmd = build_psr(source_show, object_type, object_id, merge=merge)
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw,
+        "risk_tier": "DESTRUCTIVE",
+        "blocked": False,
+    }, indent=2)
+
+
+@mcp.resource("ma2://docs/psr-guide")
+def psr_guide() -> str:
+    """PSR workflow guide — slot conflict resolution, fixture ID verification, post-import diff."""
+    return """# grandMA2 Partial Show Read (PSR) Guide
+
+## Overview
+
+Partial Show Read (PSR) imports selected objects from a saved show file into the
+current show without replacing the entire show. It is the standard method for
+merging cue content, groups, presets, or macros between shows.
+
+## MA2 Console Commands
+
+| MCP Tool | MA2 Command | Purpose |
+|----------|-------------|---------|
+| prepare_partial_show_read | PSRPrepare "show" | Lock source show for reading |
+| list_psr_objects | PSRList "show" | Enumerate available objects |
+| partial_show_read | PSR "show" Type [ID] | Import objects |
+
+## Workflow
+
+1. **prepare_partial_show_read(source_show)**  (`PSRPrepare "source_show"`)
+   Locks the source show file so MA2 can read it. Run this first.
+
+2. **list_psr_objects(source_show)**  (`PSRList "source_show"`)
+   Returns a list of object types and pool slots available in the source show.
+   Use this to discover what can be imported before committing.
+
+3. **partial_show_read(source_show, object_type, object_id, merge=False)**  (`PSR "source_show" Type [ID]`)
+   Imports objects into the current show. Requires confirm_destructive=True.
+
+## Slot Conflict Rules
+
+- Without /merge: imported objects overwrite any existing objects at the same slot.
+- With /merge: imported cue content is merged into existing sequences/cues.
+- If the target slot is occupied and you do not want to overwrite it, first
+  copy the existing object to a free slot before running PSR.
+
+## Fixture ID Verification
+
+Before importing cue content, verify that the fixture IDs in the source show
+match the fixture IDs in the current show. PSR imports cue data by fixture ID —
+if IDs differ, cues will apply to the wrong fixtures or produce empty steps.
+
+Check with list_system_variables() ($SHOWFILE) and query_object_list() for
+Fixture to compare fixture ID ranges between shows.
+
+## Post-Import Diff Pattern
+
+After running PSR, verify the import succeeded:
+1. Call list_psr_objects(source_show) again — imported items should be absent
+   from the available list if the console tracks them as consumed.
+2. Call query_object_list for the imported object type to confirm slot is populated.
+3. If cues were imported: call list_cue(sequence_id) to verify cue numbers.
+
+## Object Types Supported
+
+Cue, Sequence, Group, Preset, Macro, Effect, Timecode, Filter, View, Layout,
+World, Plugin, Timer.
+
+## Error Codes
+
+- SLOT CONFLICT: Target slot occupied; use merge=True or clear the slot first.
+- SOURCE NOT PREPARED: Call prepare_partial_show_read first.
+- FILE NOT FOUND: Verify source_show name matches exactly (case-sensitive on some builds).
+- FIXTURE ID MISMATCH: Source fixture IDs do not exist in current show patch.
+"""
+
+
+
+@mcp.prompt()
+def migrate_show_via_psr(
+    source_show: str,
+    target_objects: str,
+    dry_run: bool = True,
+) -> str:
+    """
+    Guided PSR migration — import objects from a source show into the current show.
+
+    Generates a step-by-step plan for selectively copying show content using
+    Partial Show Read (PSR). When dry_run=True, only inspection steps run
+    and no changes are made to the current show.
+
+    Args:
+        source_show: Name of the source show file (without .show extension).
+        target_objects: Comma-separated list of object types to import,
+                        e.g. "Cue,Sequence,Group" or "Preset,Macro".
+        dry_run: If True (default), inspect only — do not import. Set False to execute.
+    """
+    object_list = [o.strip() for o in target_objects.split(",") if o.strip()]
+    mode = (
+        "DRY RUN — inspection only, no changes will be made"
+        if dry_run
+        else "LIVE IMPORT — objects will be written to the current show"
+    )
+
+    steps = []
+    for obj in object_list:
+        if dry_run:
+            steps.append(
+                f'  - Call list_psr_objects("{source_show}") and filter for {obj} entries'
+            )
+        else:
+            steps.append(
+                f'  - Call partial_show_read("{source_show}", "{obj}", '
+                f"confirm_destructive=True) to import all {obj} objects"
+            )
+
+    steps_text = "\n".join(steps) if steps else "  - (no object types specified)"
+
+    return f"""Perform a PSR migration from '{source_show}' into the current show.
+
+Mode: {mode}
+Target objects: {', '.join(object_list) if object_list else '(none specified)'}
+
+## Pre-flight checks (always run these first)
+
+1. Call list_system_variables() — confirm $SHOWFILE (current show) and $USER rights.
+2. Call prepare_partial_show_read("{source_show}") — lock the source show for reading.
+3. Call list_psr_objects("{source_show}") — record all available object types and slot IDs.
+4. For any cue/sequence objects: call query_object_list for Fixture on both shows
+   and verify fixture ID ranges match. Warn the operator if they differ.
+
+## Slot conflict check
+
+For each object type to import:
+- Call query_object_list for that type in the current show.
+- Identify any slot IDs that overlap with the source show objects.
+- If overlaps exist: present the conflict list and ask the operator to confirm
+  overwrite OR specify a safe target slot range.
+
+## Import steps
+
+{steps_text}
+
+## Post-import verification
+
+For each imported object type:
+- Call query_object_list to confirm the slot is now populated.
+- For sequences/cues: call list_cue(sequence_id) to verify cue count.
+- Report any slots that are still empty after import (possible import failure).
+
+## Notes
+
+- PSR is DESTRUCTIVE — always confirm with the operator before running live.
+- Use dry_run=True for the first pass to assess conflicts before committing.
+- Oops (undo) is available immediately after PSR if the import produces unexpected results.
+"""
+
+
+# ============================================================
+# P4 — Selection Filter Tool
+# ============================================================
+
+_FIXTURE_FILTER_MAP = {
+    "active": build_if_active,
+    "output": build_if_output,
+    "programmer": build_if_prog,
+}
+
+
+@mcp.tool()
+@require_scope(OAuthScope.PROGRAMMER_WRITE)
+@_handle_errors
+async def filter_fixture_selection(filter_type: str) -> str:
+    """
+    Filter the current fixture selection by output or programmer state (SAFE_WRITE).
+
+    Narrows the active fixture selection to only those fixtures matching
+    the given state condition. Use after making a broad selection to
+    isolate only the fixtures of interest.
+
+    Args:
+        filter_type: Filtering condition —
+            "active"     → If Active: fixtures with non-zero output
+            "output"     → If Output: fixtures contributing any output value
+            "programmer" → If Programmer: fixtures with values in the programmer
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier.
+    """
+    if filter_type not in _FIXTURE_FILTER_MAP:
+        return json.dumps({
+            "blocked": True,
+            "error": f"filter_type must be one of {list(_FIXTURE_FILTER_MAP)}",
+        }, indent=2)
+
+    cmd = _FIXTURE_FILTER_MAP[filter_type]()
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+# ============================================================
+# P7 — Advanced Timing Tool
+# ============================================================
+
+_VALID_TIMING_ACTIONS = frozenset({
+    "fade_path", "out_fade", "out_delay",
+    "step_fade", "step_in_fade", "step_out_fade",
+    "snap_percent",
+})
+
+
+@mcp.tool()
+@require_scope(OAuthScope.CUE_STORE)
+@_handle_errors
+async def set_advanced_timing(
+    action: str,
+    value: float | None = None,
+    path_type: str | None = None,
+    cue_id: int | None = None,
+    sequence_id: int | None = None,
+) -> str:
+    """
+    Set advanced cue/chaser timing parameters (SAFE_WRITE).
+
+    Actions:
+      "fade_path"     → FadePath {path_type}  — set fade curve shape
+      "out_fade"      → OutFade {value} [Cue N [Sequence M]]
+      "out_delay"     → OutDelay {value} [Cue N [Sequence M]]
+      "step_fade"     → StepFade {value}  — chaser step crossfade time
+      "step_in_fade"  → StepInFade {value}  — chaser step in-fade time
+      "step_out_fade" → StepOutFade {value}  — chaser step out-fade time
+      "snap_percent"  → SnapPercent {value}  — snap crossfade to a percentage (MA+Top)
+
+    Args:
+        action: One of the action names listed above.
+        value: Numeric time value in seconds, or percentage for snap_percent
+            (required for all actions except fade_path).
+        path_type: Fade curve name (required for fade_path):
+            linear, easeIn, easeOut, easeInOut, step, brokenLine.
+        cue_id: Cue number for out_fade / out_delay scope (optional).
+        sequence_id: Sequence number for out_fade / out_delay scope (optional).
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier.
+    """
+    if action not in _VALID_TIMING_ACTIONS:
+        return json.dumps({
+            "blocked": True,
+            "error": f"action must be one of {sorted(_VALID_TIMING_ACTIONS)}",
+        }, indent=2)
+
+    if action == "fade_path":
+        if not path_type:
+            return json.dumps({
+                "blocked": True,
+                "error": "path_type is required for action='fade_path'",
+            }, indent=2)
+        try:
+            cmd = build_fade_path(path_type)
+        except ValueError as exc:
+            return json.dumps({"blocked": True, "error": str(exc)}, indent=2)
+    elif action == "snap_percent":
+        if value is None:
+            return json.dumps({"blocked": True, "error": "value is required"}, indent=2)
+        cmd = build_snap_percent(value)
+    elif action == "out_fade":
+        if value is None:
+            return json.dumps({"blocked": True, "error": "value is required"}, indent=2)
+        cmd = build_out_fade(value, cue_id=cue_id, sequence_id=sequence_id)
+    elif action == "out_delay":
+        if value is None:
+            return json.dumps({"blocked": True, "error": "value is required"}, indent=2)
+        cmd = build_out_delay(value, cue_id=cue_id, sequence_id=sequence_id)
+    elif action == "step_fade":
+        if value is None:
+            return json.dumps({"blocked": True, "error": "value is required"}, indent=2)
+        cmd = build_step_fade(value)
+    elif action == "step_in_fade":
+        if value is None:
+            return json.dumps({"blocked": True, "error": "value is required"}, indent=2)
+        cmd = build_step_in_fade(value)
+    else:  # step_out_fade
+        if value is None:
+            return json.dumps({"blocked": True, "error": "value is required"}, indent=2)
+        cmd = build_step_out_fade(value)
+
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+# ============================================================
+# P8 — Preview Mode Tool
+# ============================================================
+
+
+@mcp.tool()
+@require_scope(OAuthScope.DISCOVER)
+@_handle_errors
+async def preview_executor_content(
+    action: str,
+    executor_id: int | None = None,
+) -> str:
+    """
+    Enter preview mode for a console executor (SAFE_WRITE).
+
+    Preview mode lets you inspect what a cue will output without
+    affecting the live rig. Use preview_edit to open the editor
+    in preview mode for non-destructive cue adjustments.
+
+    Actions:
+      "preview"        → Preview [Executor N]
+      "preview_edit"   → PreviewEdit [Executor N]
+      "preview_exec"   → PreviewExecutor N (executor_id required)
+
+    Args:
+        action: One of "preview", "preview_edit", "preview_exec".
+        executor_id: Executor number (optional for preview/preview_edit,
+            required for preview_exec).
+
+    Returns:
+        str: JSON with command_sent, raw_response, risk_tier.
+    """
+    valid_actions = frozenset({"preview", "preview_edit", "preview_exec"})
+    if action not in valid_actions:
+        return json.dumps({
+            "blocked": True,
+            "error": f"action must be one of {sorted(valid_actions)}",
+        }, indent=2)
+
+    if action == "preview_exec" and executor_id is None:
+        return json.dumps({
+            "blocked": True,
+            "error": "executor_id is required for action='preview_exec'",
+        }, indent=2)
+
+    if action == "preview":
+        cmd = build_preview(executor_id)
+    elif action == "preview_edit":
+        cmd = build_preview_edit(executor_id)
+    else:  # preview_exec
+        cmd = build_preview_executor(executor_id)
+
+    client = await get_client()
+    raw = await client.send_command_with_response(cmd)
+    return json.dumps({
+        "command_sent": cmd,
+        "raw_response": raw,
+        "risk_tier": "SAFE_WRITE",
+    }, indent=2)
+
+
+# ============================================================
+# P5 — Reference Resources (Effects, Timecode, Macro)
+# ============================================================
+
+
+@mcp.resource("ma2://docs/effects-reference")
+def effects_reference() -> str:
+    """Effects programmer reference — parameters, forms, shapes, phase, stagger."""
+    return """# grandMA2 Effects Reference
+
+## Overview
+
+Effects in grandMA2 run continuously on top of playback values. They are
+programmed in the Programmer via effect keywords and stored in cues or
+the Effect pool.
+
+## MCP Tool
+
+`set_effect_param(param, value)` — set any effect parameter for the current selection.
+
+## Parameter Table
+
+| Parameter | MA2 Keyword | Value Range | Description |
+|-----------|-------------|-------------|-------------|
+| `bpm` | EffectBPM | 0–600 | Speed in beats per minute |
+| `hz` | EffectHZ | 0–10 | Speed in cycles per second |
+| `high` | EffectHigh | 0–100 | Upper value limit (%) |
+| `low` | EffectLow | 0–100 | Lower value limit (%) |
+| `phase` | EffectPhase | 0–359 | Phase offset in degrees (used for stagger) |
+| `width` | EffectWidth | 0–100 | Duty cycle — proportion of cycle at high value |
+| `attack` | EffectAttack | 0–100 | Rise time within the cycle (%) |
+| `decay` | EffectDecay | 0–100 | Fall time within the cycle (%) |
+| `delay` | EffectDelay | 0–100 | Delay before effect starts each cycle (%) |
+| `fade` | EffectFade | 0–100 | Fade in/out at start and end of effect (%) |
+
+## EffectBPM vs EffectHZ
+
+- Use `bpm` for tempo-based synchronisation (e.g. 120 BPM = 2 Hz).
+- Use `hz` for continuous frequency control.
+- Setting one resets the other — they are mutually exclusive speed modes.
+
+## Effect Forms / Shapes
+
+grandMA2 includes predefined effect forms accessible via the Effect library:
+Sinus, Cosinus, Square, Ramp Up, Ramp Down, Random.
+Retrieve with `browse_effect_library()`.
+
+## Phase Stagger Pattern
+
+To create a wave across fixtures, select them in order and fan the phase:
+1. Select all fixtures in desired order (e.g. `SelFix Fixture 1 Thru 10`)
+2. Set a base effect: `set_effect_param("bpm", 60)`
+3. Apply phase spread: `set_effect_param("phase", 0)` on first, through to 359 on last.
+   grandMA2 auto-fans phase across a selection when you type a start and end value
+   in the Phase column of the programmer.
+
+## Storing Effects
+
+Effects in the programmer are stored with cues automatically when you call
+`store_current_cue()` or `store_cue()`. To store an independent Effect pool
+object, use the Effect pool editor (Setup → Show → Effects).
+
+## Key Constraints
+
+- Effects only run on fixtures that are in the current selection when stored.
+- Effect speed masters (EffectMaster) can override BPM globally.
+- Phase is per-fixture — it is stored in cue data, not in the Effect pool object.
+"""
+
+
+@mcp.resource("ma2://docs/timecode-reference")
+def timecode_reference() -> str:
+    """SMPTE timecode show reference — pool setup, cue triggers, slot management."""
+    return """# grandMA2 SMPTE Timecode Reference
+
+## Overview
+
+grandMA2 supports SMPTE timecode for cue-accurate show automation.
+Timecode events map specific SMPTE positions to cue/macro triggers.
+
+## MCP Tools
+
+- `store_timecode_event(...)` — store a cue trigger at a SMPTE position
+- `control_timecode(action, ...)` — start/stop/goto timecode playback
+
+## Timecode Pool Object
+
+A Timecode pool object represents one timecode track.
+Each track maps SMPTE addresses to triggered commands.
+
+Create via: `Store Timecode N`
+List via: `List Timecode`
+Info via: `Info Timecode N`
+
+## SMPTE Address Format
+
+`HH:MM:SS:FF` — hours:minutes:seconds:frames
+Frame rates: 24, 25, 29.97 drop/non-drop, 30 fps.
+Set frame rate in Timecode pool properties.
+
+## Event Trigger Syntax
+
+Events are stored as lines inside a Timecode object:
+`Store Timecode N "HH:MM:SS:FF" [command]`
+
+Example:
+`Store Timecode 1 "00:00:05:00" Go Executor 1`
+`Store Timecode 1 "00:00:10:00" Go Executor 2`
+
+## Playback
+
+- `Go Timecode N` — start playback from current position
+- `GoTo Timecode N "HH:MM:SS:FF"` — jump to a SMPTE position
+- `Stop Timecode N` — stop timecode playback
+- Timecode can be driven by internal clock or external LTC input.
+
+## LTC Input Configuration
+
+1. Open Setup → Console → Global Settings → Timecode
+2. Select LTC input source (Audio in / USB MIDI / MA-Net)
+3. Assign input to Timecode pool slot
+
+## Slot Management
+
+- Each Timecode pool slot (1–N) holds one track.
+- Tracks are independent — multiple tracks can run simultaneously.
+- To delete events: `Delete Timecode N "HH:MM:SS:FF"`
+- To clear all events in a track: `Delete Timecode N`
+
+## Integration with Sequences
+
+Timecode events typically trigger executor Go commands:
+`Store Timecode 1 "00:01:00:00" Go Executor 1.203`
+
+Use page-qualified executor addresses for reliable targeting.
+"""
+
+
+@mcp.resource("ma2://docs/macro-reference")
+def macro_reference() -> str:
+    """Macro scripting reference — SetVar/AddVar, conditionals, jump targets, CmdDelay."""
+    return """# grandMA2 Macro Reference
+
+## Overview
+
+Macros are sequences of MA2 command lines stored in the Macro pool.
+They support variables, conditionals, loops, and jump targets for
+complex automation.
+
+## MCP Builders
+
+- `macro_condition_line(var_name, operator, value, command)` — build a conditional line
+- `record_macro(macro_id)` — start key-capture recording
+- `macro_with_input_after(command)` — add `@` placeholder at end
+- `macro_with_input_before(command)` — add `@` placeholder at beginning
+
+## Line Structure
+
+Each macro line is a plain MA2 command string.
+Lines execute sequentially unless a jump redirects.
+
+## Variables
+
+| Command | Syntax | Description |
+|---------|--------|-------------|
+| SetVar | `SetVar $name = value` | Assign a value to a user variable |
+| AddVar | `AddVar $name + value` | Add to a user variable |
+| GetVar | `GetVar $name` | Read a variable value |
+| ListVar | `ListVar` | List all user variables |
+
+Variable names must start with `$`.
+
+## Conditional Syntax
+
+Conditionals use `[$var op value]` prefix syntax:
+
+```
+[$mode == 1] Go Executor 1
+[$counter < 10] AddVar $counter + 1
+```
+
+Valid operators: `==`, `!=`, `<`, `>`
+IMPORTANT: Use `==` for equality, NOT `=`. Single `=` is for SetVar assignment.
+
+Use `macro_condition_line(var_name, operator, value, command)` builder.
+
+## EndIf
+
+`EndIf` closes a conditional block. Required to end multi-line If/While blocks.
+
+## CmdDelay
+
+`CmdDelay N` — pause execution for N tenths of a second.
+Example: `CmdDelay 5` = 0.5 seconds delay.
+
+## Jump Targets
+
+Jump to a specific macro line:
+`Go Macro N."name".LINE`
+
+Where LINE is 1-based line number (= XML index + 1).
+
+When inserting lines into a macro, update all jump target line numbers.
+
+## Interactive @ Placeholder
+
+`@` in a macro line inserts user input at that position:
+- `Load @` — user types show name after executing
+- `@ Fade 20` — user input is prepended (CLI must be disabled)
+
+## Popup Macro Pattern
+
+To chain macros and ask for confirmation:
+1. Macro A: sets up context, then `Go Macro B`
+2. Macro B: validates via `[$var == expected]`, continues or aborts
+
+## Example: Counter Loop
+
+```
+SetVar $i = 0
+[$i < 5] Go Executor 1
+[$i < 5] AddVar $i + 1
+[$i < 5] Go Macro 1."loop".2
+```
+"""
+
+
+@mcp.resource("ma2://docs/network-session")
+def resource_network_session() -> str:
+    """MA-Net2 multi-console session management — TakeControl, IP setup, station invite/disconnect."""
+    return """\
+# grandMA2 Network Session Reference
+
+## Overview
+Multiple grandMA2 consoles and onPC stations can share a single MA-Net2 session.
+One station holds Control; others are Members. The session shares show data,
+universe output, and command execution across all stations.
+
+## Important Note for MCP Users
+
+Network session keywords (JoinSession, TakeControl, SetIP, etc.) do **not** have
+command builder or MCP tool coverage in this project (P9 gap — low priority for
+Telnet-only single-station use). Use this resource for reference only.
+
+## Session Topology
+
+- **Session Master**: station that created the session; holds Control by default
+- **Members**: stations that joined; can request Control
+- **Control holder**: only one station can hold Control at a time
+- **Output**: all stations contribute to universe output unless in No Output mode
+
+## Keyword Reference (no builders yet — P9)
+
+| Keyword | Syntax | Purpose |
+|---------|--------|---------|
+| JoinSession | JoinSession "SessionName" | Join an existing MA-Net2 session |
+| LeaveSession | LeaveSession | Leave the current session |
+| EndSession | EndSession | Terminate the session (master only) |
+| TakeControl | TakeControl | Request control of the session |
+| DropControl | DropControl | Release control back to the master |
+| InviteStation | InviteStation "StationName" | Invite a station to join |
+| DisconnectStation | DisconnectStation "StationName" | Disconnect a member station |
+| SetIP | SetIP "interface" "address" | Set a network interface IP address |
+| SetHostname | SetHostname "name" | Set the station hostname |
+
+## TakeControl Workflow
+
+1. Check current state: list_system_variables() → read $SESSION and $CONTROLHOLDER
+2. Send: TakeControl
+3. Confirm: $CONTROLHOLDER should update to your station name
+
+## IP Configuration
+
+SetIP requires the interface name (e.g. "eth0", "Ethernet 2") and IP in dotted
+notation (e.g. "192.168.0.10"). Requires Admin rights. Changes take effect
+immediately — the Telnet session may need to reconnect on the new IP.
+
+## Safety Notes
+
+- EndSession disconnects ALL member stations immediately — coordinate before use
+- TakeControl during a live show transfers output control to your station — warn operators
+- SetIP may interrupt the active Telnet connection if the local IP changes
+- DropControl before leaving a session to avoid leaving other stations without control
+
+## System Variables
+
+| Variable | Value |
+|----------|-------|
+| $SESSION | Current session name, or "(none)" if not in a session |
+| $CONTROLHOLDER | Name of the station currently holding Control |
+
+## Network Details
+
+- MA-Net2 runs on UDP port 6549 by default
+- Maximum 8 stations per MA-Net2 session
+- All stations must run compatible grandMA2 software versions
+"""
+
+
+# ============================================================
+# P6 — Prompts (program_effect, build_timecode_show)
+# ============================================================
+
+
+@mcp.prompt()
+def program_effect(
+    fixture_group: str,
+    effect_type: str,
+    speed_bpm: float = 60.0,
+) -> str:
+    """
+    Guided effect programming on a fixture group (SAFE_WRITE workflow).
+
+    Generates a step-by-step plan to create an effect in the programmer,
+    apply it to a fixture group, and store it in a cue.
+
+    Args:
+        fixture_group: Group number or name to apply the effect to
+                       (e.g. "5" or "All Movers").
+        effect_type: Type of effect — "dimmer", "color", "position", "gobo", or "custom".
+        speed_bpm: Effect speed in BPM (default 60 = 1 Hz).
+    """
+    preset_type_map = {
+        "dimmer": "Dimmer (PresetType 1)",
+        "color": "Color (PresetType 4)",
+        "position": "Position (PresetType 2)",
+        "gobo": "Gobo (PresetType 3)",
+        "custom": "custom attribute (set manually)",
+    }
+    preset_hint = preset_type_map.get(effect_type.lower(), f"{effect_type} (set manually)")
+
+    return f"""Program a {effect_type} effect on fixture group {fixture_group} at {speed_bpm} BPM.
+
+## Pre-flight
+
+1. Call list_system_variables() — confirm $USERRIGHTS has Programmer or higher.
+2. Call query_object_list for Group — verify Group {fixture_group} exists.
+
+## Select fixtures
+
+3. Call select_group(group_id={fixture_group!r}) to select the target fixtures.
+   Confirm $SELECTEDFIXTURESCOUNT > 0.
+
+## Enter effect in programmer
+
+4. In the Effect programmer, set the following parameters using set_effect_param():
+   - param="bpm", value={speed_bpm}   → sets speed to {speed_bpm} BPM
+   - param="high", value=100          → full high value
+   - param="low", value=0             → zero low value
+   - param="phase", value=0           → start phase (fan across fixtures for wave look)
+   - param="width", value=50          → 50% duty cycle
+
+5. Effect type: {preset_hint}
+   - For dimmer: use EffectBPM on the Dim attribute — produces a chase/strobe.
+   - For color: use set_effect_param on a color attribute (e.g. ColorRgb1).
+   - For position: use on Pan and Tilt simultaneously with phase offset.
+   - For custom: set the attribute first via attribute_at(), then apply effect params.
+
+## Phase stagger (optional, for wave look)
+
+6. To fan the phase across fixtures:
+   - Open the programmer and select the Phase column.
+   - Enter "0 Thru 359" to distribute phase 0°–359° across all selected fixtures.
+   This creates a chasing wave effect rather than all fixtures firing together.
+
+## Store
+
+7. Review the programmer content: call list_system_variables() to confirm fixture count.
+8. Call store_current_cue() or store_cue(sequence_id, cue_number, confirm_destructive=True)
+   to record the effect.
+
+## Verify
+
+9. Trigger the cue and observe the effect running.
+   Call set_effect_param("bpm", {speed_bpm}) again if speed needs adjustment live.
+
+## Notes
+
+- Effects only run on fixtures that had programmer values when stored.
+- Use filter_fixture_selection("programmer") to confirm which fixtures are programmed.
+- EffectBPM and EffectHZ are mutually exclusive speed modes.
+"""
+
+
+@mcp.prompt()
+def build_timecode_show(
+    sequence_ids: str,
+    smpte_start: str = "00:00:00:00",
+) -> str:
+    """
+    Guided SMPTE timecode show builder — map sequences to timecode triggers.
+
+    Generates a step-by-step plan for creating a timecode track and
+    mapping cue triggers to SMPTE positions.
+
+    Args:
+        sequence_ids: Comma-separated sequence IDs to include in the show
+                      (e.g. "1,2,3" or "1").
+        smpte_start: SMPTE start address for the first cue trigger
+                     (format HH:MM:SS:FF, default "00:00:00:00").
+    """
+    seq_list = [s.strip() for s in sequence_ids.split(",") if s.strip()]
+    seq_display = ", ".join(f"Sequence {s}" for s in seq_list) if seq_list else "(none specified)"
+
+    return f"""Build a SMPTE timecode show mapping sequences to cue triggers.
+
+Sequences: {seq_display}
+Starting SMPTE position: {smpte_start}
+
+## Pre-flight
+
+1. Call list_system_variables() — confirm $USERRIGHTS has Programmer or higher.
+2. Call query_object_list for Timecode — list existing timecode pool objects.
+   Choose a free slot (e.g. Timecode 1 if empty).
+3. Confirm all target sequences exist:
+   For each sequence ID in [{', '.join(seq_list) if seq_list else 'none'}]:
+   - Call query_object_list for Sequence and verify the ID is present.
+   - Call list_cue(sequence_id) to record the cue numbers.
+
+## Create the timecode pool object
+
+4. Call store_timecode(timecode_id=1, confirm_destructive=True) to create Timecode 1.
+   (Or use the next free slot identified in step 2.)
+
+## Map cue triggers to SMPTE positions
+
+5. For each cue across all sequences, calculate the SMPTE trigger time.
+   Starting from {smpte_start}, add the expected cue duration to each successive position.
+
+6. Store each trigger using store_timecode_event():
+   Example mapping:
+   - {smpte_start} → Go Executor 1.201  (first cue of {seq_list[0] if seq_list else 'Sequence 1'})
+   - 00:00:XX:00   → Go Executor 1.202  (second cue)
+   Continue for all cues across all sequences.
+
+## Configure playback
+
+7. Assign the timecode track to a playback executor if using external LTC input.
+8. Test with internal clock first:
+   - Call control_timecode(action="goto", timecode_id=1, position="{smpte_start}") to reset.
+   - Call control_timecode(action="go", timecode_id=1) to start.
+   - Observe that cues fire at the expected SMPTE positions.
+
+## Verify
+
+9. Check each executor fires at the correct time.
+10. If timing drifts, adjust the SMPTE positions and re-store the affected events.
+
+## Notes
+
+- SMPTE frame rate must match your timecode source — check Setup → Console → Timecode.
+- For live LTC input, switch the timecode source AFTER testing with internal clock.
+- Use page-qualified executor addresses (e.g. Executor 1.201) for reliable targeting.
+- Oops is available if timecode events are stored incorrectly.
+"""
 
 
 # ============================================================

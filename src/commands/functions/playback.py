@@ -1116,3 +1116,169 @@ def half_speed(*, executor: int | None = None) -> str:
     if executor is not None:
         return f"HalfSpeed Executor {executor}"
     return "HalfSpeed"
+
+
+# ============================================================================
+# FLASH-GO / FLASH-ON / SWOP-GO / SWOP-ON FUNCTION KEYWORDS
+# ============================================================================
+# These combine a trigger mode (Flash/Swop) with an execution mode (Go/On).
+# FlashGo: fire executor as Go while key is held (releases on key-up).
+# FlashOn: fire executor as On while key is held (releases on key-up).
+# SwopGo: as Go but also mutes all other executors while key is held.
+# SwopOn: as On but also mutes all other executors while key is held.
+# ============================================================================
+
+
+def flash_go(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Construct a FlashGo command to Go an executor as a flash (key-held).
+
+    FlashGo fires the executor as Go while the button is held; it releases
+    when the button is released. Useful for bump buttons on wing pages.
+
+    Args:
+        executor_id: Executor ID (1-999)
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> flash_go(3)
+        'FlashGo Executor 3'
+        >>> flash_go(5, page=2)
+        'FlashGo Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"FlashGo Executor {ref}"
+
+
+def flash_on(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Construct a FlashOn command to On an executor as a flash (key-held).
+
+    FlashOn activates the executor as On while the button is held; it
+    deactivates when the button is released.
+
+    Args:
+        executor_id: Executor ID (1-999)
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> flash_on(3)
+        'FlashOn Executor 3'
+        >>> flash_on(5, page=2)
+        'FlashOn Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"FlashOn Executor {ref}"
+
+
+def swop_go(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Construct a SwopGo command to Go an executor as a swop (key-held).
+
+    SwopGo fires the executor as Go while also muting all other active
+    executors while the button is held.
+
+    Args:
+        executor_id: Executor ID (1-999)
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> swop_go(3)
+        'SwopGo Executor 3'
+        >>> swop_go(5, page=2)
+        'SwopGo Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"SwopGo Executor {ref}"
+
+
+def swop_on(executor_id: int, *, page: int | None = None) -> str:
+    """
+    Construct a SwopOn command to On an executor as a swop (key-held).
+
+    SwopOn activates the executor as On while also muting all other active
+    executors while the button is held.
+
+    Args:
+        executor_id: Executor ID (1-999)
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> swop_on(3)
+        'SwopOn Executor 3'
+        >>> swop_on(5, page=2)
+        'SwopOn Executor 2.5'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"SwopOn Executor {ref}"
+
+
+# ============================================================================
+# MANUAL XFADE / SNAP PERCENT FUNCTION KEYWORDS
+# ============================================================================
+
+
+def manual_xfade(
+    executor_id: int,
+    value: float | int,
+    *,
+    page: int | None = None,
+) -> str:
+    """
+    Construct a ManualXFade command to drive a crossfader to a position.
+
+    ManualXFade moves the crossfader of the given executor to the specified
+    position (0–100 percent) without triggering an automatic go.
+
+    Args:
+        executor_id: Executor ID (1-999)
+        value: Crossfade position as a percentage (0–100)
+        page: Page number for page-qualified addressing (optional)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> manual_xfade(3, 50)
+        'ManualXFade Executor 3 50'
+        >>> manual_xfade(5, 100, page=2)
+        'ManualXFade Executor 2.5 100'
+    """
+    ref = f"{page}.{executor_id}" if page is not None else str(executor_id)
+    return f"ManualXFade Executor {ref} {value}"
+
+
+def snap_percent(value: float | int) -> str:
+    """
+    Construct a SnapPercent command to snap the crossfade to a percentage.
+
+    SnapPercent immediately positions the crossfader at the given percentage
+    of the current cue (no smooth fade). Mapped to MA+Top hardkey.
+
+    Args:
+        value: Target crossfade position as a percentage (0–100)
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> snap_percent(50)
+        'SnapPercent 50'
+        >>> snap_percent(0)
+        'SnapPercent 0'
+        >>> snap_percent(100)
+        'SnapPercent 100'
+    """
+    return f"SnapPercent {value}"

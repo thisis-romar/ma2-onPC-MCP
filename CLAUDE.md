@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.8.0
+version: 4.8.1
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-01T00:25:43Z
+last_updated: 2026-04-02T05:30:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **189 tools**, **13 resources**, **10 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
+MCP server exposing **197 tools**, **18 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,15 +22,15 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server — 150 tools + 13 MCP resources + 10 MCP prompts, safety gate |
-| `src/server_orchestration_tools.py` | Registers tools 110-144 (agentic layer) onto FastMCP |
+| `src/server.py` | FastMCP server — 163 tools + 18 MCP resources + 13 MCP prompts, safety gate |
+| `src/server_orchestration_tools.py` | Registers 34 agentic tools onto FastMCP |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
 | `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 198 pure command-builder functions (206 exports incl. 8 constants), grouped by keyword type |
+| `src/commands/` | 222 pure command-builder functions (231 exports incl. 9 constants), grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
 | `src/vocab.py` | 157 keyword vocab entries (90 function + 56 object + 5 helping + 6 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()` + `check_showfile()` |
@@ -125,7 +125,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-04-01): **2355 tests** (unit + live integration).
+- Current counts (2026-04-02): **2841 tests** (unit + live integration).
 
 ---
 

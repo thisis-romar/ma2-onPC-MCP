@@ -64,6 +64,7 @@ from .functions import (
     add_user_var,
     add_var,
     # Align / Invert / Fix / Locate
+    alert,
     align,
     # MAtricks Command Keywords
     all_rows_sub_selection,
@@ -85,7 +86,9 @@ from .functions import (
     attribute_at,
     # Blackout
     blackout,
+    black_screen,
     blind,
+    blind_edit,
     # Block / Unblock (generic + sequence-scoped)
     block,
     block_cue,
@@ -124,6 +127,20 @@ from .functions import (
     restart_console,
     shutdown_console,
     send_chat,
+    crash_log_copy,
+    crash_log_delete,
+    crash_log_list,
+    update_firmware,
+    update_software,
+    join_session,
+    leave_session,
+    end_session,
+    invite_station,
+    disconnect_station,
+    take_control,
+    drop_control,
+    set_ip,
+    set_hostname,
     SPECIAL_MASTER_NAMES,
     # Call Function Keywords
     call,
@@ -158,16 +175,21 @@ from .functions import (
     # Edit Function Keyword
     edit,
     empty,
+    end_if,
     executor_at,
     # Import/Export Function Keywords
     export_object,
     fix_fixture,
     fixture_at,
     flash_executor,
+    flash_go,
+    flash_on,
     extract,
+    fade_path,
     flip,
     freeze,
     freeze_executor,
+    full_highlight,
     get_user_var,
     go,
     go_back,
@@ -182,7 +204,10 @@ from .functions import (
     goto_timecode,
     group_at,
     highlight,
+    if_active,
     if_condition,
+    if_output,
+    if_prog,
     import_fixture_type_cmd,
     import_layer_cmd,
     import_object,
@@ -217,6 +242,9 @@ from .functions import (
     load_next,
     load_prev,
     load_show,
+    psr,
+    psr_list,
+    psr_prepare,
     locate,
     # Macro Placeholder / Condition
     macro_with_input_after,
@@ -243,15 +271,21 @@ from .functions import (
     new_show,
     next_row_sub_selection,
     next_sub_selection,
+    manual_xfade,
     off_executor,
     on_executor,
     oops,
+    out_delay,
+    out_fade,
     page_next,
     page_previous,
     # Park Function Keywords
     park,
     # Paste Function Keyword
     paste,
+    preview,
+    preview_edit,
+    preview_executor,
     pause_sequence,
     preset_type_at,
     previous_sub_selection,
@@ -266,6 +300,11 @@ from .functions import (
     remove_selection,
     save_show,
     select_fixture,
+    shuffle_selection,
+    shuffle_values,
+    step_fade,
+    step_in_fade,
+    step_out_fade,
     select_group,
     # Variable Function Keywords
     set_user_var,
@@ -280,7 +319,10 @@ from .functions import (
     store_look,
     store_matricks,
     store_preset,
+    snap_percent,
     swop_executor,
+    swop_go,
+    swop_on,
     temp_fader,
     top_executor,
     unblock,
@@ -342,6 +384,9 @@ __all__ = [
     "timecode",
     "timecode_slot",
     "timer",
+    # Alert / display
+    "alert",
+    "black_screen",
     # Blackout
     "blackout",
     # Import/Export Function Keywords
@@ -482,7 +527,11 @@ __all__ = [
     "on_executor",
     "off_executor",
     "flash_executor",
+    "flash_go",
+    "flash_on",
     "swop_executor",
+    "swop_go",
+    "swop_on",
     "top_executor",
     "stomp_executor",
     "solo",
@@ -491,6 +540,9 @@ __all__ = [
     # Load next/prev cue
     "load_next",
     "load_prev",
+    # Manual crossfade / snap
+    "manual_xfade",
+    "snap_percent",
     # Blind / Freeze
     "blind",
     "freeze",
@@ -590,6 +642,17 @@ __all__ = [
     "store_look",
     # Edit — extract
     "extract",
+    # Advanced timing
+    "fade_path",
+    "out_fade",
+    "out_delay",
+    "step_fade",
+    "step_in_fade",
+    "step_out_fade",
+    # Preview mode
+    "preview",
+    "preview_edit",
+    "preview_executor",
     # Macro — conditional / record
     "VALID_CONDITION_OPERATORS",
     "macro_condition_line",
@@ -601,6 +664,23 @@ __all__ = [
     "send_chat",
     # Lua alias
     "lua_execute",
+    # Network / Session
+    "join_session",
+    "leave_session",
+    "end_session",
+    "invite_station",
+    "disconnect_station",
+    "take_control",
+    "drop_control",
+    "set_ip",
+    "set_hostname",
+    # System — crash log
+    "crash_log_copy",
+    "crash_log_delete",
+    "crash_log_list",
+    # System — firmware / software update
+    "update_firmware",
+    "update_software",
     # Busking / Performance Layer
     "assign_effect_to_executor",
     "set_effect_rate",
