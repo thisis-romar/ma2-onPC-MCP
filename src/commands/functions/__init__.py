@@ -157,13 +157,33 @@ from .navigation import (
     changedest,
 )
 
+# PSR (Partial Show Read) Function Keywords
+from .psr import (
+    psr,
+    psr_list,
+    psr_prepare,
+)
+
+# Network / Session Function Keywords
+from .session import (
+    join_session,
+    leave_session,
+    end_session,
+    invite_station,
+    disconnect_station,
+    take_control,
+    drop_control,
+    set_ip,
+    set_hostname,
+)
+
 # Park Function Keywords (Park, Unpark)
 from .park import (
     park,
     unpark,
 )
 
-# Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo, Swop, Top, Stomp, Load)
+# Playback Function Keywords (Go, Pause, Goto, GoFast, DefGo, Swop, Top, Stomp, Load, FlashGo, SwopGo, ManualXFade)
 from .playback import (
     blackout,
     blind,
@@ -174,6 +194,8 @@ from .playback import (
     double_rate,
     double_speed,
     flash_executor,
+    flash_go,
+    flash_on,
     freeze,
     freeze_executor,
     go,
@@ -193,32 +215,47 @@ from .playback import (
     learn_executor,
     load_next,
     load_prev,
+    manual_xfade,
     off_executor,
     on_executor,
     pause_sequence,
     release_executor,
+    snap_percent,
     solo,
     solo_executor,
     stomp_executor,
     swop_executor,
+    swop_go,
+    swop_on,
     toggle_executor,
     top_executor,
     unblock_cue,
 )
 
-# Selection Function Keywords (SelFix, Clear, Fix, Locate, Invert, Align, Flip)
+# Selection Function Keywords (SelFix, Clear, Fix, Locate, Invert, Align, Flip, If*, Shuffle, BlindEdit, Preview)
 from .selection import (
     align,
+    blind_edit,
     clear,
     clear_active,
     clear_all,
     clear_selection,
+    end_if,
     fix_fixture,
     flip,
+    full_highlight,
     highlight,
+    if_active,
+    if_output,
+    if_prog,
     invert,
     locate,
+    preview,
+    preview_edit,
+    preview_executor,
     select_fixture,
+    shuffle_selection,
+    shuffle_values,
 )
 from .store import (
     delete_show,
@@ -248,6 +285,8 @@ from .users import (
 
 # System / Console / RDM / Chaser / Effect parameter builders
 from .system import (
+    alert,
+    black_screen,
     lock_console,
     unlock_console,
     call_plugin,
@@ -271,6 +310,21 @@ from .system import (
     chaser_skip,
     chaser_xfade,
     set_effect_parameter,
+    crash_log_copy,
+    crash_log_delete,
+    crash_log_list,
+    update_firmware,
+    update_software,
+)
+
+# Advanced Timing Function Keywords (FadePath, OutFade, OutDelay, StepFade, StepInFade, StepOutFade)
+from .timing import (
+    fade_path,
+    out_delay,
+    out_fade,
+    step_fade,
+    step_in_fade,
+    step_out_fade,
 )
 
 # Values Function Keywords (At)
@@ -367,7 +421,11 @@ __all__ = [
     "on_executor",
     "off_executor",
     "flash_executor",
+    "flash_go",
+    "flash_on",
     "swop_executor",
+    "swop_go",
+    "swop_on",
     "top_executor",
     "stomp_executor",
     "solo",
@@ -376,6 +434,9 @@ __all__ = [
     # Load next/prev cue
     "load_next",
     "load_prev",
+    # Manual crossfade / snap
+    "manual_xfade",
+    "snap_percent",
     # Blackout
     "blackout",
     # Blind / Freeze (universal toggles)
@@ -541,6 +602,10 @@ __all__ = [
     "half_speed",
     # Selection — flip
     "flip",
+    # Selection — preview mode
+    "preview",
+    "preview_edit",
+    "preview_executor",
     # Store — look
     "store_look",
     # Edit — extract
@@ -555,4 +620,31 @@ __all__ = [
     "restart_console",
     "shutdown_console",
     "send_chat",
+    # System — display / alert
+    "black_screen",
+    "alert",
+    # System — crash log
+    "crash_log_copy",
+    "crash_log_delete",
+    "crash_log_list",
+    # System — firmware / software update
+    "update_firmware",
+    "update_software",
+    # Network / Session
+    "join_session",
+    "leave_session",
+    "end_session",
+    "invite_station",
+    "disconnect_station",
+    "take_control",
+    "drop_control",
+    "set_ip",
+    "set_hostname",
+    # Advanced timing
+    "fade_path",
+    "out_fade",
+    "out_delay",
+    "step_fade",
+    "step_in_fade",
+    "step_out_fade",
 ]

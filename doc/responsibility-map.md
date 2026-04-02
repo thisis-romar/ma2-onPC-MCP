@@ -1,9 +1,9 @@
 ---
 title: Responsibility Map
 description: File-by-file module role matrix with smell detection for the ma2-onPC-MCP architecture
-version: 1.2.0
+version: 1.2.1
 created: 2026-03-29T21:44:45Z
-last_updated: 2026-03-31T23:56:48Z
+last_updated: 2026-04-02T05:30:00Z
 ---
 
 # Responsibility Map
@@ -72,9 +72,9 @@ artifact in the Phase 1 architecture refactor based on the transcript's central 
 **Problem:** Executes tool calls in the same Python process. No fresh LLM context window.
 **Fix:** Wire a real subagent spawner via `sub_agent_fn` parameter. Requires Claude API / Agent SDK — out of MCP server scope. Document pattern for integrators.
 
-### S2 — Planner sees all 176 tools (Medium)
+### S2 — Planner sees all 197 tools (Medium)
 **Location:** `src/server.py` — all tools always registered at startup
-**Problem:** All 176 tools consume instruction budget in every session.
+**Problem:** All 197 tools consume instruction budget in every session.
 **Fix:** Use `suggest_tool_for_task` for pre-session retrieval. Long-term: FastMCP dynamic tool registration. See `doc/tool-surface-tiers.md`.
 
 ### S3 — TaskDecomposer has 3 hardcoded rules (Low)

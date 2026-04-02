@@ -1,16 +1,16 @@
 ---
 title: Monetization Strategy Audit
 description: Comprehensive audit of IP valuation, licensing posture, and monetization pathways for the GMA2 MCP project
-version: 2.1.0
+version: 2.1.1
 created: 2026-03-12T02:10:00Z
-last_updated: 2026-03-25T00:00:00Z
+last_updated: 2026-04-02T05:30:00Z
 ---
 
 # Monetization Strategy Audit
 
 ## Executive Summary
 
-The **GMA2 MCP** project is an MCP server exposing 90 tools that allow AI assistants to control grandMA2 lighting consoles via Telnet. It represents **8–12 weeks of specialized engineering** and encodes reverse-engineered protocol knowledge that is not publicly documented.
+The **GMA2 MCP** project is an MCP server exposing 197 tools that allow AI assistants to control grandMA2 lighting consoles via Telnet. It represents **8–12 weeks of specialized engineering** and encodes reverse-engineered protocol knowledge that is not publicly documented.
 
 **Current posture:** The repository is licensed under **Apache 2.0** with no monetization infrastructure — no paywall, no license keys, no usage tracking. Anyone can legally fork, modify, and commercialize the code today.
 
@@ -28,7 +28,7 @@ The **GMA2 MCP** project is an MCP server exposing 90 tools that allow AI assist
 
 | Metric | Value |
 |--------|-------|
-| MCP tools | 90 |
+| MCP tools | 197 |
 | Command builder functions | 150 |
 | Keyword vocabulary entries | 152 |
 | Unit tests | 1,498 |
@@ -233,7 +233,7 @@ The git history shows **5 commits attributed to "Claude"** (AI assistant). This 
 
 **Private tier (paid access):**
 
-- All 90 MCP tools
+- All 197 MCP tools
 - RAG semantic search pipeline
 - Web doc ingestion (1,043 MA2 help pages)
 - ML tool categorization
@@ -339,7 +339,7 @@ Two VC-backed design-to-code tools launched in 2024–2025 with native MCP serve
 
 | Dimension | Pencil.dev | Paper.design | GMA2 MCP (this project) |
 |-----------|-----------|-------------|------------------------|
-| **MCP tools** | Built-in, auto-starts | 24 tools, local desktop app | 90 tools, Telnet bridge |
+| **MCP tools** | Built-in, auto-starts | 24 tools, local desktop app | 197 tools, Telnet bridge |
 | **Pricing** | Free (VC-subsidized) | Free 100 calls/wk → $16–20/mo Pro | None (currently) |
 | **Revenue model** | Parasitic (piggybacks on AI subs) | MCP call metering | N/A |
 | **Users** | 100,000 (Feb 2026) | 40,000+ early access | Unknown |
@@ -409,7 +409,7 @@ The project has one primary contributor. For an acquirer, this means:
 
 ### 4.6 Strategic Positioning: "Reverse MA Lighting Philosophy"
 
-MA Lighting gives away software (onPC, MA3D) and sells hardware ($5,000–$92,000 consoles). The GMA2 MCP project should invert this: **give away basic functionality** (knowledge skills, reference documentation, perhaps basic MCP connectivity) and **charge for the AI automation layer** (full 90-tool suite, RAG pipeline, advanced features).
+MA Lighting gives away software (onPC, MA3D) and sells hardware ($5,000–$92,000 consoles). The GMA2 MCP project should invert this: **give away basic functionality** (knowledge skills, reference documentation, perhaps basic MCP connectivity) and **charge for the AI automation layer** (full 197-tool suite, RAG pipeline, advanced features).
 
 This framing solves three positioning problems:
 

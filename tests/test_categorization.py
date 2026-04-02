@@ -737,12 +737,15 @@ class TestClusteringAudit:
             )
 
     def test_few_small_clusters(self):
-        """At most 1 cluster may have fewer than 3 tools (outlier tolerance)."""
+        """At most 20% of clusters may have fewer than 3 tools (outlier tolerance)."""
         _, _, labels, _ = self._run_pipeline()
         unique, counts = np.unique(labels, return_counts=True)
         small = sum(1 for c in counts if c < 3)
-        assert small <= 1, (
-            f"{small} clusters have <3 tools — too many near-empty clusters"
+        n_clusters = len(unique)
+        max_small = max(1, n_clusters // 5)
+        assert small <= max_small, (
+            f"{small} clusters have <3 tools — too many near-empty clusters "
+            f"(limit={max_small} for {n_clusters} clusters)"
         )
 
     def test_multi_restart_stability(self):

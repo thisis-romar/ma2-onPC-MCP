@@ -423,14 +423,20 @@ def chaser_xfade(
 
 _EFFECT_PARAM_KEYWORDS = frozenset({
     "bpm", "hz", "high", "low", "phase", "width", "attack", "decay",
+    "delay", "fade",
 })
+# Derived display string — keep in sync by reading from the frozenset above.
+# Used in docstrings and error messages; update _EFFECT_PARAM_KEYWORDS to add params.
+_EFFECT_PARAMS_DISPLAY: str = ", ".join(sorted(_EFFECT_PARAM_KEYWORDS))
 
 
 def set_effect_parameter(param: str, value: float) -> str:
     """
     Set an effect parameter in the programmer for the current selection.
 
-    Valid parameters: bpm, hz, high, low, phase, width, attack, decay.
+    Valid parameters are defined by _EFFECT_PARAM_KEYWORDS. On error the ValueError
+    message lists valid values. Current set: bpm, hz, high, low, phase, width,
+    attack, decay, delay, fade.
 
     Args:
         param: Parameter name (case-insensitive).
@@ -454,7 +460,7 @@ def set_effect_parameter(param: str, value: float) -> str:
     if key not in _EFFECT_PARAM_KEYWORDS:
         raise ValueError(
             f"Unknown effect parameter {param!r}. "
-            f"Valid: {sorted(_EFFECT_PARAM_KEYWORDS)}"
+            f"Valid: {_EFFECT_PARAMS_DISPLAY}"
         )
     keyword = f"Effect{key.capitalize()}" if key not in ("bpm", "hz") else f"Effect{key.upper()}"
     return f"{keyword} {value}"
@@ -551,3 +557,143 @@ def send_chat(message: str) -> str:
         'Chat "Hello from onPC"'
     """
     return f'Chat "{message}"'
+
+
+# ============================================================================
+# DISPLAY / ALERT KEYWORDS
+# ============================================================================
+
+
+def black_screen() -> str:
+    """
+    Construct a BlackScreen command to blank the console display.
+
+    BlackScreen turns off the console's output screens (useful during
+    setup or to protect content from audience view).
+
+    Keyboard shortcut: MA + B.O.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> black_screen()
+        'BlackScreen'
+    """
+    return "BlackScreen"
+
+
+def alert(message: str) -> str:
+    """
+    Construct an Alert command to send a message to all connected stations.
+
+    Alert broadcasts a pop-up message to every station in the MA-Net2
+    session. Useful for operator-to-operator communication without
+    switching to the Chat panel.
+
+    Args:
+        message: Alert message text.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> alert("Doors open in 5 minutes")
+        'Alert "Doors open in 5 minutes"'
+    """
+    return f'Alert "{message}"'
+
+
+# ============================================================================
+# CRASH LOG FUNCTION KEYWORDS
+# ============================================================================
+
+
+def crash_log_copy(dest: str) -> str:
+    """
+    Construct a CrashLogCopy command to copy crash logs to a destination path.
+
+    Args:
+        dest: Destination directory path. Use 8.3 short paths on Windows
+              to avoid space-related parse errors on the MA2 CLI.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> crash_log_copy("/tmp/logs")
+        'CrashLogCopy "/tmp/logs"'
+        >>> crash_log_copy("C:/CRASHL~1")
+        'CrashLogCopy "C:/CRASHL~1"'
+    """
+    return f'CrashLogCopy "{dest}"'
+
+
+def crash_log_delete() -> str:
+    """
+    Construct a CrashLogDelete command to delete all crash logs.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> crash_log_delete()
+        'CrashLogDelete'
+    """
+    return "CrashLogDelete"
+
+
+def crash_log_list() -> str:
+    """
+    Construct a CrashLogList command to list available crash logs.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> crash_log_list()
+        'CrashLogList'
+    """
+    return "CrashLogList"
+
+
+# ============================================================================
+# FIRMWARE / SOFTWARE UPDATE KEYWORDS
+# ============================================================================
+
+
+def update_firmware(path: str) -> str:
+    """
+    Construct an UpdateFirmware command to flash new console firmware.
+
+    Use 8.3 short paths on Windows to avoid space-related command parse
+    errors on the MA2 CLI.
+
+    Args:
+        path: File path to the firmware image (forward slashes, no spaces).
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> update_firmware("/path/firmware.bin")
+        'UpdateFirmware "/path/firmware.bin"'
+    """
+    return f'UpdateFirmware "{path}"'
+
+
+def update_software(path: str) -> str:
+    """
+    Construct an UpdateSoftware command to update the console software.
+
+    Args:
+        path: File path to the software update package.
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> update_software("/path/update.pkg")
+        'UpdateSoftware "/path/update.pkg"'
+    """
+    return f'UpdateSoftware "{path}"'

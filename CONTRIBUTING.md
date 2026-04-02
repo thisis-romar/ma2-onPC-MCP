@@ -1,9 +1,9 @@
 ---
 title: Contributing to ma2-onPC-MCP
 description: Development setup, branch model, code conventions, test requirements, and skill contribution guide
-version: 1.0.0
+version: 1.0.1
 created: 2026-04-01T00:00:00Z
-last_updated: 2026-04-01T00:00:00Z
+last_updated: 2026-04-02T05:30:00Z
 ---
 
 # Contributing to ma2-onPC-MCP
@@ -88,7 +88,7 @@ All PRs must pass the full test suite before review:
 uv run python -m pytest -v
 ```
 
-Current baseline: **2355 tests** (unit + live integration). Live integration tests are skipped by default (`tests/test_live_integration.py` requires `RUN_LIVE_TESTS=1`).
+Current baseline: **2841 tests** (unit + live integration). Live integration tests are skipped by default (`tests/test_live_integration.py` requires `RUN_LIVE_TESTS=1`).
 
 - Add tests for every new command builder in `tests/test_<feature>.py`.
 - Add tests for every new MCP tool in `tests/test_tools.py` or a feature-specific file.
