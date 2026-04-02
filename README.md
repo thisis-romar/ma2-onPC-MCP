@@ -1282,3 +1282,9 @@ python scripts/main.py
 ## License
 
 [Apache License 2.0](LICENSE)
+
+## Community Forks
+
+| Fork | Maintainer | Focus |
+|------|-----------|-------|
+| [grandma2-mcp](https://github.com/drohi-r/grandma2-mcp) | [@drohi-r](https://github.com/drohi-r) | Hardened fork (MA2 Agent) — security fixes, rights enforcement, new tools |
