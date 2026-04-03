@@ -7,6 +7,7 @@ All tests are pure — no console connection required.
 """
 
 import pytest
+
 from src.commands import (
     fade_path,
     out_delay,
@@ -17,6 +18,8 @@ from src.commands import (
 )
 from src.commands.functions.timing import (
     _VALID_FADE_PATHS,
+)
+from src.commands.functions.timing import (
     fade_path as _fade_path_direct,
 )
 

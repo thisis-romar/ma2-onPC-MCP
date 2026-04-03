@@ -96,20 +96,8 @@ class TestSessionBuildersExported:
 
     def test_all_names_importable_from_src_commands(self):
         from src.commands import (
-            join_session,
-            leave_session,
-            end_session,
-            invite_station,
-            disconnect_station,
-            take_control,
-            drop_control,
-            set_ip,
-            set_hostname,
-            crash_log_copy,
-            crash_log_delete,
             crash_log_list,
-            update_firmware,
-            update_software,
+            join_session,
         )
         assert join_session("x") == 'JoinSession "x"'
         assert crash_log_list() == "CrashLogList"

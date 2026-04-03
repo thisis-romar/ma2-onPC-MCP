@@ -7,7 +7,6 @@ flash_go, flash_on, swop_go, swop_on, manual_xfade, snap_percent.
 All tests are pure — no console connection required.
 """
 
-import pytest
 from src.commands import (
     flash_go,
     flash_on,
@@ -18,6 +17,8 @@ from src.commands import (
 )
 from src.commands.functions.playback import (
     flash_go as _flash_go_direct,
+)
+from src.commands.functions.playback import (
     swop_go as _swop_go_direct,
 )
 

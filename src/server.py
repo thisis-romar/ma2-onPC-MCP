@@ -27,8 +27,25 @@ from mcp.server.fastmcp import FastMCP
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, has_scope, require_scope
-from src.license import get_license_tier, has_tier
-from src.license_tiers import TOOL_LICENSE_TIERS
+from src.commands import (
+    SPECIAL_MASTER_NAMES,
+    attribute_at,
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_store_user,
+    call,
+    channel_at,
+    fixture_at,
+    go_macro,
+    go_sequence,
+    goto_cue,
+    group_at,
+    label_group,
+    pause_sequence,
+    select_fixture,
+    store_group,
+)
 from src.commands import (
     add_to_selection as build_add_to_selection,
 )
@@ -67,28 +84,34 @@ from src.commands import (
     at_relative as build_at_relative,
 )
 from src.commands import (
-    attribute_at,
-    build_assign_world_to_user_profile,
-    build_delete_user,
-    build_list_users,
-    build_store_user,
-    call,
-    channel_at,
-    fixture_at,
-    go_macro,
-    go_sequence,
-    goto_cue,
-    group_at,
-    label_group,
-    pause_sequence,
-    select_fixture,
-    store_group,
-)
-from src.commands import (
     blackout as build_blackout,
 )
 from src.commands import (
+    blind_edit as build_blind_edit,
+)
+from src.commands import (
     block as build_block,
+)
+from src.commands import (
+    build_login as build_console_login,
+)
+from src.commands import (
+    build_logout as build_console_logout,
+)
+from src.commands import (
+    call_plugin as build_call_plugin,
+)
+from src.commands import (
+    chaser_rate as build_chaser_rate,
+)
+from src.commands import (
+    chaser_skip as build_chaser_skip,
+)
+from src.commands import (
+    chaser_speed as build_chaser_speed,
+)
+from src.commands import (
+    chaser_xfade as build_chaser_xfade,
 )
 from src.commands import (
     clear as build_clear,
@@ -143,10 +166,22 @@ from src.commands import (
     export_object as build_export_object,
 )
 from src.commands import (
+    fade_path as build_fade_path,
+)
+from src.commands import (
     fix_fixture as build_fix_fixture,
 )
 from src.commands import (
     flash_executor as build_flash_executor,
+)
+from src.commands import (
+    flash_go as build_flash_go,
+)
+from src.commands import (
+    flash_on as build_flash_on,
+)
+from src.commands import (
+    full_highlight as build_full_highlight,
 )
 from src.commands import (
     get_user_var as build_get_user_var,
@@ -172,6 +207,15 @@ from src.commands import (
 )
 from src.commands import (
     highlight as build_highlight,
+)
+from src.commands import (
+    if_active as build_if_active,
+)
+from src.commands import (
+    if_output as build_if_output,
+)
+from src.commands import (
+    if_prog as build_if_prog,
 )
 from src.commands import (
     import_fixture_type_cmd as build_import_fixture_type_cmd,
@@ -248,37 +292,6 @@ from src.commands import (
     load_next as build_load_next,
 )
 from src.commands import (
-    psr as build_psr,
-    psr_list as build_psr_list,
-    psr_prepare as build_psr_prepare,
-)
-from src.commands import (
-    blind_edit as build_blind_edit,
-    full_highlight as build_full_highlight,
-    if_active as build_if_active,
-    if_output as build_if_output,
-    if_prog as build_if_prog,
-    shuffle_selection as build_shuffle_selection,
-    shuffle_values as build_shuffle_values,
-)
-from src.commands import (
-    fade_path as build_fade_path,
-    flash_go as build_flash_go,
-    flash_on as build_flash_on,
-    manual_xfade as build_manual_xfade,
-    out_delay as build_out_delay,
-    out_fade as build_out_fade,
-    preview as build_preview,
-    preview_edit as build_preview_edit,
-    preview_executor as build_preview_executor,
-    snap_percent as build_snap_percent,
-    step_fade as build_step_fade,
-    step_in_fade as build_step_in_fade,
-    step_out_fade as build_step_out_fade,
-    swop_go as build_swop_go,
-    swop_on as build_swop_on,
-)
-from src.commands import (
     load_prev as build_load_prev,
 )
 from src.commands import (
@@ -286,6 +299,12 @@ from src.commands import (
 )
 from src.commands import (
     locate as build_locate,
+)
+from src.commands import (
+    lock_console as build_lock_console,
+)
+from src.commands import (
+    manual_xfade as build_manual_xfade,
 )
 from src.commands import (
     move as build_move,
@@ -300,6 +319,12 @@ from src.commands import (
     on_executor as build_on_executor,
 )
 from src.commands import (
+    out_delay as build_out_delay,
+)
+from src.commands import (
+    out_fade as build_out_fade,
+)
+from src.commands import (
     page_next as build_page_next,
 )
 from src.commands import (
@@ -312,10 +337,49 @@ from src.commands import (
     paste as build_paste,
 )
 from src.commands import (
+    preview as build_preview,
+)
+from src.commands import (
+    preview_edit as build_preview_edit,
+)
+from src.commands import (
+    preview_executor as build_preview_executor,
+)
+from src.commands import (
+    psr as build_psr,
+)
+from src.commands import (
+    psr_list as build_psr_list,
+)
+from src.commands import (
+    psr_prepare as build_psr_prepare,
+)
+from src.commands import (
+    rdm_automatch as build_rdm_automatch,
+)
+from src.commands import (
+    rdm_autopatch as build_rdm_autopatch,
+)
+from src.commands import (
+    rdm_info as build_rdm_info,
+)
+from src.commands import (
+    rdm_list as build_rdm_list,
+)
+from src.commands import (
+    rdm_setpatch as build_rdm_setpatch,
+)
+from src.commands import (
+    rdm_unmatch as build_rdm_unmatch,
+)
+from src.commands import (
     release_effects_on_page as build_release_effects_on_page,
 )
 from src.commands import (
     release_executor as build_release_executor,
+)
+from src.commands import (
+    reload_plugins as build_reload_plugins,
 )
 from src.commands import (
     # remove_content
@@ -337,10 +401,19 @@ from src.commands import (
     remove_selection as build_remove_selection,
 )
 from src.commands import (
+    run_lua as build_run_lua,
+)
+from src.commands import (
+    set_effect_parameter as build_set_effect_parameter,
+)
+from src.commands import (
     set_effect_rate as build_set_effect_rate,
 )
 from src.commands import (
     set_effect_speed as build_set_effect_speed,
+)
+from src.commands import (
+    set_special_master as build_set_special_master,
 )
 from src.commands import (
     set_user_var as build_set_user_var,
@@ -350,7 +423,25 @@ from src.commands import (
     set_var as build_set_var,
 )
 from src.commands import (
+    shuffle_selection as build_shuffle_selection,
+)
+from src.commands import (
+    shuffle_values as build_shuffle_values,
+)
+from src.commands import (
+    snap_percent as build_snap_percent,
+)
+from src.commands import (
     solo_executor as build_solo_executor,
+)
+from src.commands import (
+    step_fade as build_step_fade,
+)
+from src.commands import (
+    step_in_fade as build_step_in_fade,
+)
+from src.commands import (
+    step_out_fade as build_step_out_fade,
 )
 from src.commands import (
     stomp_executor as build_stomp_executor,
@@ -372,6 +463,12 @@ from src.commands import (
     swop_executor as build_swop_executor,
 )
 from src.commands import (
+    swop_go as build_swop_go,
+)
+from src.commands import (
+    swop_on as build_swop_on,
+)
+from src.commands import (
     temp_fader as build_temp_fader,
 )
 from src.commands import (
@@ -379,6 +476,9 @@ from src.commands import (
 )
 from src.commands import (
     unblock as build_unblock,
+)
+from src.commands import (
+    unlock_console as build_unlock_console,
 )
 from src.commands import (
     unpark as build_unpark,
@@ -389,50 +489,10 @@ from src.commands import (
 from src.commands import (
     zero_page_faders as build_zero_page_faders,
 )
-from src.commands import (
-    build_login as build_console_login,
-)
-from src.commands import (
-    build_logout as build_console_logout,
-)
-from src.commands import (
-    lock_console as build_lock_console,
-)
-from src.commands import (
-    unlock_console as build_unlock_console,
-)
-from src.commands import (
-    call_plugin as build_call_plugin,
-)
-from src.commands import (
-    run_lua as build_run_lua,
-)
-from src.commands import (
-    reload_plugins as build_reload_plugins,
-)
-from src.commands import (
-    set_special_master as build_set_special_master,
-    SPECIAL_MASTER_NAMES,
-)
-from src.commands import (
-    rdm_automatch as build_rdm_automatch,
-    rdm_autopatch as build_rdm_autopatch,
-    rdm_list as build_rdm_list,
-    rdm_info as build_rdm_info,
-    rdm_setpatch as build_rdm_setpatch,
-    rdm_unmatch as build_rdm_unmatch,
-)
-from src.commands import (
-    chaser_rate as build_chaser_rate,
-    chaser_speed as build_chaser_speed,
-    chaser_skip as build_chaser_skip,
-    chaser_xfade as build_chaser_xfade,
-)
-from src.commands import (
-    set_effect_parameter as build_set_effect_parameter,
-)
 from src.context import _current_session_id
 from src.credentials import get_operator_identity, resolve_console_credentials
+from src.license import get_license_tier, has_tier
+from src.license_tiers import TOOL_LICENSE_TIERS
 from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
 from src.orchestrator import Orchestrator
 from src.server_orchestration_tools import register_orchestration_tools
@@ -4442,6 +4502,7 @@ async def scan_page_executor_layout(
           - free_slots: slot IDs in range with no assignment
     """
     import asyncio
+
     from src.prompt_parser import parse_executor_list
 
     client = await get_client()
@@ -9450,7 +9511,7 @@ async def detect_dmx_address_conflicts(universe_id: int | None = None) -> str:
     client = await get_client()
     # Get all fixture data
     raw_fixtures = await client.send_command_with_response("List Fixture")
-    raw_universes = await client.send_command_with_response("List Universe")
+    _raw_universes = await client.send_command_with_response("List Universe")
 
     # Build occupancy map: universe -> {channel: fixture_id}
     occupancy: dict[int, dict[int, dict]] = {}
@@ -9535,7 +9596,8 @@ async def update_object(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
-    from src.commands import update as build_update, update_cue as build_update_cue
+    from src.commands import update as build_update
+    from src.commands import update_cue as build_update_cue
     if object_type.lower() == "cue":
         cmd = build_update_cue(
             object_id, sequence_id=sequence_id,
@@ -9602,13 +9664,29 @@ async def programming_action(
     """
     from src.commands import (
         align as build_align,
+    )
+    from src.commands import (
         block_cue as build_block_cue,
+    )
+    from src.commands import (
         extract as build_extract,
+    )
+    from src.commands import (
         flip as build_flip,
+    )
+    from src.commands import (
         learn_executor as build_learn_executor,
+    )
+    from src.commands import (
         locate as build_locate,
+    )
+    from src.commands import (
         record_macro as build_record_macro,
+    )
+    from src.commands import (
         store_look as build_store_look,
+    )
+    from src.commands import (
         unblock_cue as build_unblock_cue,
     )
 
@@ -9701,9 +9779,13 @@ async def master_control(
         str: JSON with command_sent, raw_response, risk_tier
     """
     from src.commands import (
-        master_at as build_master_at,
-        special_master_at as build_special_master_at,
         list_masters as build_list_masters,
+    )
+    from src.commands import (
+        master_at as build_master_at,
+    )
+    from src.commands import (
+        special_master_at as build_special_master_at,
     )
 
     valid_actions = ("set", "set_special", "list")
@@ -9765,13 +9847,27 @@ async def system_admin(
     from src.commands import (
         build_login,
         build_logout,
+    )
+    from src.commands import (
         lock_console as build_lock,
-        unlock_console as build_unlock,
+    )
+    from src.commands import (
         lua_execute as build_lua,
+    )
+    from src.commands import (
         reboot_console as build_reboot,
+    )
+    from src.commands import (
         restart_console as build_restart,
+    )
+    from src.commands import (
         send_chat as build_chat,
+    )
+    from src.commands import (
         shutdown_console as build_shutdown,
+    )
+    from src.commands import (
+        unlock_console as build_unlock,
     )
 
     valid_actions = {"login", "logout", "lock", "unlock", "lua", "chat", "reboot", "restart", "shutdown"}
@@ -9844,6 +9940,8 @@ async def plugin_management(action: str) -> str:
     """
     from src.commands import (
         list_plugin_library as build_list_plugins,
+    )
+    from src.commands import (
         reload_plugins as build_reload_plugins,
     )
 
@@ -9896,9 +9994,9 @@ async def get_telemetry_report(
     - error_log: any operations that returned errors
     - timeline: ordered list of all operations
     """
-    import time as _time
     import datetime
     import sqlite3
+    import time as _time
 
     cutoff_ts = _time.time() - (days * 86400)
 
@@ -9942,7 +10040,7 @@ async def get_telemetry_report(
 
         entry = {
             "ts": inv.get("ts"),
-            "ts_human": datetime.datetime.fromtimestamp(inv.get("ts", 0), tz=datetime.timezone.utc).isoformat(),
+            "ts_human": datetime.datetime.fromtimestamp(inv.get("ts", 0), tz=datetime.UTC).isoformat(),
             "tool": inv.get("tool_name"),
             "tier": tier,
             "latency_ms": inv.get("latency_ms"),
@@ -9964,7 +10062,7 @@ async def get_telemetry_report(
 
     report = {
         "report_type": "GrandPA2-Buddy Telemetry Audit Report",
-        "generated_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
+        "generated_at": datetime.datetime.now(tz=datetime.UTC).isoformat(),
         "filter": {
             "session_id": session_id,
             "days": days,
@@ -10040,9 +10138,9 @@ async def generate_compliance_report(
 
     Returns a markdown compliance report ready for inclusion in safety documentation.
     """
-    import time as _time
     import datetime
     import sqlite3
+    import time as _time
 
     cutoff_ts = _time.time() - (days * 86400)
 
@@ -10078,7 +10176,7 @@ async def generate_compliance_report(
         tier = inv.get("risk_tier", "SAFE_READ")
         risk_counts[tier] = risk_counts.get(tier, 0) + 1
         ts_human = datetime.datetime.fromtimestamp(
-            inv.get("ts", 0), tz=datetime.timezone.utc
+            inv.get("ts", 0), tz=datetime.UTC
         ).strftime("%Y-%m-%d %H:%M:%S UTC")
 
         if tier == "DESTRUCTIVE":
@@ -10090,7 +10188,7 @@ async def generate_compliance_report(
                 f"  - `{ts_human}` — **{inv.get('tool_name')}** — Error: {inv.get('error_class')}"
             )
 
-    now = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
+    now = datetime.datetime.now(tz=datetime.UTC).isoformat()
     safe_read = risk_counts.get("SAFE_READ", 0)
     safe_write = risk_counts.get("SAFE_WRITE", 0)
     destructive = risk_counts.get("DESTRUCTIVE", 0)
@@ -10754,9 +10852,7 @@ def _build_tool_registry() -> dict:
         import inspect
 
         for name, obj in globals().items():
-            if callable(obj) and hasattr(obj, "__wrapped__"):
-                registry[name] = obj
-            elif inspect.iscoroutinefunction(obj) and not name.startswith("_"):
+            if callable(obj) and hasattr(obj, "__wrapped__") or inspect.iscoroutinefunction(obj) and not name.startswith("_"):
                 registry[name] = obj
     return registry
 

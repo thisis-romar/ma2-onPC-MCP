@@ -3,7 +3,6 @@
 
 """Tests for the keyword-overlap reranker."""
 
-import pytest
 
 from rag.retrieve.rerank import _extract_terms, _keyword_overlap, rerank
 from rag.types import RagHit

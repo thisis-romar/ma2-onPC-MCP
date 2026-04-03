@@ -15,8 +15,11 @@ import uuid
 import pytest
 
 from src.skill import (
-    Skill, SkillRegistry, _slugify,
-    _load_filesystem_skill, _list_filesystem_skills,
+    Skill,
+    SkillRegistry,
+    _list_filesystem_skills,
+    _load_filesystem_skill,
+    _slugify,
 )
 
 # ---------------------------------------------------------------------------

@@ -28,8 +28,8 @@ from src.categorization.clustering import (
     silhouette_score,
 )
 from src.categorization.features import (
-    ALL_MODULES,
     ACTION_VERBS,
+    ALL_MODULES,
     FUNCTION_MODULES,
     OBJECT_MODULES,
     ToolFeatures,
@@ -734,7 +734,7 @@ class TestClusteringAudit:
         tools, _, labels, _ = self._run_pipeline()
         n = len(tools)
         unique, counts = np.unique(labels, return_counts=True)
-        for cid, count in zip(unique, counts):
+        for cid, count in zip(unique, counts, strict=False):
             assert count <= n * 0.5, (
                 f"Cluster {cid} has {count}/{n} tools (>{50}%) — mega-cluster"
             )
@@ -780,7 +780,7 @@ class TestClusteringAudit:
         tools, _, labels, _ = self._run_pipeline()
         cluster_labels = generate_labels(tools, labels)
 
-        destructive = [(t, int(lbl)) for t, lbl in zip(tools, labels)
+        destructive = [(t, int(lbl)) for t, lbl in zip(tools, labels, strict=False)
                        if t.risk_tier == "DESTRUCTIVE"]
         misassigned = [
             t.name for t, cid in destructive
