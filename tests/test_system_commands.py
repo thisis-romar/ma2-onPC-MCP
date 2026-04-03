@@ -36,7 +36,6 @@ from src.commands.functions.system import (
     unlock_console,
 )
 
-
 # ============================================================
 # Console lock / unlock
 # ============================================================

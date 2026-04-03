@@ -4,7 +4,6 @@
 """Tests for the RAG chunker (Python AST, markdown, line-based)."""
 
 from rag.ingest.chunk import _split_range, chunk_file
-from rag.config import CHARS_PER_TOKEN, DEFAULT_CHUNK_MAX_TOKENS
 from rag.types import RepoFile
 from rag.utils.hash import sha256
 

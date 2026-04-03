@@ -5,16 +5,35 @@
 Tests for new command builders added in Phase 1.
 """
 import pytest
+
 from src.commands import (
-    master_at, special_master_at, list_masters,
-    block_cue, unblock_cue, learn_executor, kill_executor,
-    toggle_executor, freeze_executor,
-    double_rate, half_rate, double_speed, half_speed,
-    align, locate, flip,
-    store_look, extract,
-    macro_condition_line, record_macro, VALID_CONDITION_OPERATORS,
-    lua_execute, reboot_console, restart_console, shutdown_console,
-    send_chat, lock_console,
+    VALID_CONDITION_OPERATORS,
+    align,
+    block_cue,
+    double_rate,
+    double_speed,
+    extract,
+    flip,
+    freeze_executor,
+    half_rate,
+    half_speed,
+    kill_executor,
+    learn_executor,
+    list_masters,
+    locate,
+    lock_console,
+    lua_execute,
+    macro_condition_line,
+    master_at,
+    reboot_console,
+    record_macro,
+    restart_console,
+    send_chat,
+    shutdown_console,
+    special_master_at,
+    store_look,
+    toggle_executor,
+    unblock_cue,
 )
 
 
@@ -125,15 +144,20 @@ class TestMacroConditionLine:
     def test_inequality(self):
         assert macro_condition_line("$mode", "!=", 0, "Kill Executor 1") == "[$mode != 0] Kill Executor 1"
     def test_raises_on_missing_dollar(self):
-        with pytest.raises(ValueError): macro_condition_line("mymode", "==", 1, "Go Executor 1")
+        with pytest.raises(ValueError):
+            macro_condition_line("mymode", "==", 1, "Go Executor 1")
     def test_raises_on_single_equals(self):
-        with pytest.raises(ValueError): macro_condition_line("$mymode", "=", 1, "Go Executor 1")
+        with pytest.raises(ValueError):
+            macro_condition_line("$mymode", "=", 1, "Go Executor 1")
     def test_raises_on_invalid_operator(self):
-        with pytest.raises(ValueError): macro_condition_line("$mymode", ">=", 1, "Go Executor 1")
+        with pytest.raises(ValueError):
+            macro_condition_line("$mymode", ">=", 1, "Go Executor 1")
     def test_raises_on_empty_command(self):
-        with pytest.raises(ValueError): macro_condition_line("$mymode", "==", 1, "")
+        with pytest.raises(ValueError):
+            macro_condition_line("$mymode", "==", 1, "")
     def test_raises_on_whitespace_command(self):
-        with pytest.raises(ValueError): macro_condition_line("$mymode", "==", 1, "   ")
+        with pytest.raises(ValueError):
+            macro_condition_line("$mymode", "==", 1, "   ")
 
 class TestRecordMacro:
     def test_basic(self): assert record_macro(1) == "Record Macro 1"

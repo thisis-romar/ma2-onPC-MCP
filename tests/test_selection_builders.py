@@ -6,7 +6,6 @@ Unit tests for the 8 new selection/filtering command builders.
 All tests are pure — no console connection required.
 """
 
-import pytest
 from src.commands import (
     blind_edit,
     end_if,
@@ -19,6 +18,8 @@ from src.commands import (
 )
 from src.commands.functions.selection import (
     blind_edit as _blind_edit_direct,
+)
+from src.commands.functions.selection import (
     if_active as _if_active_direct,
 )
 

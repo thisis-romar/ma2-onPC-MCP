@@ -29,7 +29,7 @@ class RagStore:
 
     # -- Context manager --------------------------------------------------
 
-    def __enter__(self) -> "RagStore":
+    def __enter__(self) -> RagStore:
         self.init_db()
         return self
 

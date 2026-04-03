@@ -252,10 +252,9 @@ class TestContextManager:
     def test_context_manager_closes_on_exception(self):
         """Connection should be closed even if an exception occurs."""
         store_ref = None
-        with pytest.raises(ValueError):
-            with RagStore(":memory:") as store:
-                store_ref = store
-                raise ValueError("test error")
+        with pytest.raises(ValueError), RagStore(":memory:") as store:
+            store_ref = store
+            raise ValueError("test error")
         assert store_ref._conn is None
 
 

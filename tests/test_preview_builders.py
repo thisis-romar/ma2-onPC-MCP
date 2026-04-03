@@ -15,11 +15,17 @@ from src.commands import (
 )
 from src.commands.functions.selection import (
     preview as _preview_direct,
+)
+from src.commands.functions.selection import (
     preview_edit as _preview_edit_direct,
+)
+from src.commands.functions.selection import (
     preview_executor as _preview_executor_direct,
 )
 from src.commands.functions.system import (
     alert as _alert_direct,
+)
+from src.commands.functions.system import (
     black_screen as _black_screen_direct,
 )
 

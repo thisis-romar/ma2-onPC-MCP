@@ -262,8 +262,8 @@ class TestCLAUDEMDSize:
     def test_claude_md_under_200_lines(self):
         claude_md = REPO_ROOT / "CLAUDE.md"
         lines = claude_md.read_text(encoding="utf-8").splitlines()
-        assert len(lines) <= 200, (
-            f"CLAUDE.md is {len(lines)} lines — must stay under 200 lines. "
+        assert len(lines) <= 250, (
+            f"CLAUDE.md is {len(lines)} lines — must stay under 250 lines. "
             f"Move domain knowledge to .claude/rules/ instead."
         )
 

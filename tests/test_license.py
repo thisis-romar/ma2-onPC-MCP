@@ -13,7 +13,6 @@ import json
 
 import pytest
 
-
 # ============================================================================
 # LicenseTier enum
 # ============================================================================
@@ -38,7 +37,7 @@ class TestLicenseTierEnum:
         assert len(LicenseTier) == 3
 
     def test_tier_rank_ordering(self):
-        from src.license import LicenseTier, _TIER_RANK
+        from src.license import _TIER_RANK, LicenseTier
         assert _TIER_RANK[LicenseTier.COMMUNITY] < _TIER_RANK[LicenseTier.PROFESSIONAL]
         assert _TIER_RANK[LicenseTier.PROFESSIONAL] < _TIER_RANK[LicenseTier.ENTERPRISE]
 
