@@ -201,7 +201,7 @@ wheels = [
 
 [[package]]
 name = "grandpa2-buddy"
-version = "0.1.0"
+version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "beautifulsoup4" },
