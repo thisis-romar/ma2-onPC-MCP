@@ -22,7 +22,7 @@ last_updated: 2026-04-03T19:15:00Z
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 197 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
 
-> **License:** This software is licensed under the [Business Source License 1.1](LICENSE). The original repository is [`thisis-romar/ma2-onPC-MCP`](https://github.com/thisis-romar/ma2-onPC-MCP). See [LICENSE](LICENSE) for full terms. Change Date: 2028-04-02. After the Change Date, the software converts to Apache License 2.0.
+> **License:** This software is licensed under the [Business Source License 1.1](LICENSE). The original repository is [`thisis-romar/ma2-onPC-MCP`](https://github.com/thisis-romar/ma2-onPC-MCP). Change Date: 2028-04-02. After the Change Date, the software converts to Apache License 2.0.
 
 <table>
 <tr><td><b>Agent Harness</b></td><td>197 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
