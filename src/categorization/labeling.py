@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Auto-generate human-readable category labels from cluster contents.
 
 Inspects the dominant structural features of each cluster and maps them

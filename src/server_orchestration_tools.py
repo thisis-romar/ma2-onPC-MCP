@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 server_orchestration_tools.py — Register 35 agentic MCP tools (110-144) onto the FastMCP instance.
 

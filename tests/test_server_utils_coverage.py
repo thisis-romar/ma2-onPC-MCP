@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Tests for server utility MCP tools with no existing coverage:
   - set_executor_priority
   - get_similar_tools

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Common workflow building blocks — label, verify, discover.
 
 Shared step builders used across patch, preset, and playback workflows.

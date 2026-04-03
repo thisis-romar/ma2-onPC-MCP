@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 New MCP Tool Tests — swop/top/stomp, load_cue, cut_paste_object,
 clone_object, fix_locate_fixture, manipulate_selection, block_unblock_cue.

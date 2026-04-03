@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Tests for the RAG ignore filter."""
 
 from rag.ignore import IgnoreFilter, load_gitignore_patterns

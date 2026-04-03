@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Tests for src/agent/planner.py — goal classification and plan generation."""
 
 from src.agent.planner import DomainPlanner

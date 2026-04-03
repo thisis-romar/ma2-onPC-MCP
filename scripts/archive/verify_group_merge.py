@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Verify MA2 behaviors needed for v6 macro: cd index, MAtricks Next, /merge, + operator, preset recall."""
 import asyncio
 import re

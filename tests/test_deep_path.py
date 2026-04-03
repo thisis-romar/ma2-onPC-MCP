@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Quick validation: login, cd 23.3.1.1 deep path, full list output at each level."""
 
 import asyncio

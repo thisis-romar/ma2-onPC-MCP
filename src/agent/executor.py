@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Step executor — calls MCP tool functions, handles retries and confirmations.
 
 The executor imports tool functions from src/server.py and calls them directly

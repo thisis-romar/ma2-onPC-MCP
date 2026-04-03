@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """AST-based feature extraction from MCP tool definitions.
 
 Parses ``src/server.py`` without importing it (avoids Telnet side-effects)

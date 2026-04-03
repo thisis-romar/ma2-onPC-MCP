@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Tests for the RAG chunker (Python AST, markdown, line-based)."""
 
 from rag.ingest.chunk import _split_range, chunk_file

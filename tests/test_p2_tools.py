@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 MCP tool tests for P2 extensions:
 - control_executor new actions: flash_go, flash_on, swop_go, swop_on, manual_xfade

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 Sprint 6 tests — P3 effects-reference resource content fix + P2 record_macro dispatch verification.
 

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Export all v5 FT groups to discover fixture ID patterns across all FTs."""
 import asyncio
 import re

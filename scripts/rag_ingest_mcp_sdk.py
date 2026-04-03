@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Ingest the installed MCP SDK source into the RAG index.
 
 Adds a third repo_ref ("mcp-sdk") alongside "worktree" and "ma2-help-docs".

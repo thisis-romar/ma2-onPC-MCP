@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Phase 2 — CD Tree ↔ MCP Tool Validation Tests.
 
 These tests validate that MCP tool operations produce verifiable changes

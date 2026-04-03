@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Tests for busking MCP tools: modulate_effect, clear_effects_on_page,
 normalize_page_faders, classify_show_mode.
 """

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Rule-based domain planner — decomposes goals into PlanStep sequences.
 
 No LLM dependency. Uses keyword matching to classify goals and dispatch

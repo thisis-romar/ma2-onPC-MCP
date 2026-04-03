@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Test user's approach: select each instance, MAtricks single-x through, store/merge in order."""
 import asyncio
 import re

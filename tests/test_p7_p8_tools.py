@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 MCP tool tests for set_advanced_timing (P7) and preview_executor_content (P8).
 """
