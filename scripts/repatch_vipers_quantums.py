@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 Repatch: remove wrong Mac 700 extras, import Mac Viper Profile + Mac Quantum Wash,
 patch 6 Vipers (IDs 120-125) on Universe 3 and 20 Quantums (IDs 201-220) on Universe 4,

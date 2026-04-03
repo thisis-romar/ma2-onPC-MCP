@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Audit ALL presets created by v7 macro — verify all values are release-only."""
 import asyncio
 import re

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 scripts/demo_skills_live.py -- Execute a .claude/skills/ instruction module against
 the live grandMA2 console via Telnet, printing each step with real tool output.

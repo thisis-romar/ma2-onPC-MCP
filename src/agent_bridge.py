@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 agent_bridge.py — Adapters between the orchestrator's SubTask model and the
 agent harness's PlanStep model.

@@ -1,9 +1,9 @@
 ---
 title: Terms of Use
 description: Hardware safety disclaimers, liability limitations, acceptable use policy, and network security warnings for ma2-onPC-MCP
-version: 1.0.0
+version: 3.25.1
 created: 2026-04-01T00:00:00Z
-last_updated: 2026-04-01T00:00:00Z
+last_updated: 2026-04-03T00:00:00Z
 ---
 
 # Terms of Use
@@ -42,7 +42,7 @@ The authors and contributors make no representations or warranties of any kind, 
 
 You assume all risk associated with the use, operation, and results of this software. This disclaimer applies whether or not the authors were advised of the possibility of such damages.
 
-This plain-language disclaimer supplements — and does not replace — the warranty disclaimer in the Apache License 2.0 (Section 7), which governs all use of this software.
+This plain-language disclaimer supplements — and does not replace — the warranty disclaimer in the Business Source License 1.1 (BSL 1.1), which governs all use of this software.
 
 ---
 
@@ -112,4 +112,4 @@ The authors accept no liability for unauthorized access to a console resulting f
 
 ## 7. Governing Law
 
-These terms are provided for informational purposes. The binding license for this software is the Apache License 2.0, included in the `LICENSE` file at the root of this repository. In the event of any conflict between these terms and the Apache License 2.0, the Apache License 2.0 governs.
+These terms are provided for informational purposes. The binding license for this software is the Business Source License 1.1 (BSL 1.1), included in the `LICENSE` file at the root of this repository. In the event of any conflict between these terms and the BSL 1.1, the BSL 1.1 governs.

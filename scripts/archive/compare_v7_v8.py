@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Compare v7 vs v8 macro output: counts, fixture order, and appearance colors."""
 import asyncio
 import re

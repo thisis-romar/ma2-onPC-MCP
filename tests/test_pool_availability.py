@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Tests for pool availability checker (tool #91 + _check_pool_slots helper)."""
 
 import json

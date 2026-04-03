@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Agent harness state model — RunContext, PlanStep, Checkpoint.
 
 These dataclasses track the full lifecycle of an agent run:

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 #!/usr/bin/env python3
 """CLI: extract features from MCP tools, embed, cluster, and write taxonomy.
 

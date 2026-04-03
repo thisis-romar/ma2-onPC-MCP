@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Debug v7 macro execution — capture all output and errors, audit fixture order."""
 import asyncio
 import re

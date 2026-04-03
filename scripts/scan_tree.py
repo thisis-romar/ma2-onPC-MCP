@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 scan_tree.py -- Recursive grandMA2 object-tree scanner via Telnet.
 

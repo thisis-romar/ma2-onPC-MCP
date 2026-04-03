@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 Create presets and color sequences for Mac Viper Profiles (120-125)
 and Mac Quantum Washes (201-220) -- matching the Mac 700 content set.

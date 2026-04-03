@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Agent runtime — top-level orchestrator wiring planner, executor, policy, and memory.
 
 This is the entry point for the agent harness. It accepts a high-level goal,

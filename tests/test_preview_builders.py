@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 Unit tests for the 3 preview mode builders and 2 P10 system builders.
 All tests are pure — no console connection required.

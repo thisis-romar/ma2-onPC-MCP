@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Insert BlindEdit On line at index 0 and reindex all macro jump targets.
 
 One-shot transformation script for -Create FT_Pools-.xml.
