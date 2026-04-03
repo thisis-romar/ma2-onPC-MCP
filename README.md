@@ -18,6 +18,10 @@ last_updated: 2026-04-03T19:15:00Z
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
   <img src="https://img.shields.io/badge/Version-3.26.0-purple?style=for-the-badge" alt="Version 3.26.0">
+  <br>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
+  <img src="https://img.shields.io/badge/MCP%20SDK-%E2%89%A5%201.21-blue?style=for-the-badge" alt="MCP SDK >= 1.21">
+  <img src="https://img.shields.io/badge/Linting-Ruff-brightgreen?style=for-the-badge" alt="Ruff">
 </p>
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 197 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
