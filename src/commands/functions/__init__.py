@@ -125,18 +125,18 @@ from .labeling import (
 
 # Macro Placeholder / Condition Function Keywords
 from .macro import (
+    VALID_CONDITION_OPERATORS,
+    macro_condition_line,
     macro_with_input_after,
     macro_with_input_before,
-    macro_condition_line,
     record_macro,
-    VALID_CONDITION_OPERATORS,
 )
 
 # Master Function Keywords
 from .masters import (
+    list_masters,
     master_at,
     special_master_at,
-    list_masters,
 )
 
 # MAtricks Command Keywords
@@ -158,26 +158,6 @@ from .matricks import (
 # Navigation Function Keywords (ChangeDest / cd)
 from .navigation import (
     changedest,
-)
-
-# PSR (Partial Show Read) Function Keywords
-from .psr import (
-    psr,
-    psr_list,
-    psr_prepare,
-)
-
-# Network / Session Function Keywords
-from .session import (
-    join_session,
-    leave_session,
-    end_session,
-    invite_station,
-    disconnect_station,
-    take_control,
-    drop_control,
-    set_ip,
-    set_hostname,
 )
 
 # Park Function Keywords (Park, Unpark)
@@ -235,30 +215,50 @@ from .playback import (
     unblock_cue,
 )
 
+# PSR (Partial Show Read) Function Keywords
+from .psr import (
+    psr,  # noqa: F401
+    psr_list,  # noqa: F401
+    psr_prepare,  # noqa: F401
+)
+
 # Selection Function Keywords (SelFix, Clear, Fix, Locate, Invert, Align, Flip, If*, Shuffle, BlindEdit, Preview)
 from .selection import (
     align,
-    blind_edit,
+    blind_edit,  # noqa: F401
     clear,
     clear_active,
     clear_all,
     clear_selection,
-    end_if,
+    end_if,  # noqa: F401
     fix_fixture,
     flip,
-    full_highlight,
+    full_highlight,  # noqa: F401
     highlight,
-    if_active,
-    if_output,
-    if_prog,
+    if_active,  # noqa: F401
+    if_output,  # noqa: F401
+    if_prog,  # noqa: F401
     invert,
     locate,
     preview,
     preview_edit,
     preview_executor,
     select_fixture,
-    shuffle_selection,
-    shuffle_values,
+    shuffle_selection,  # noqa: F401
+    shuffle_values,  # noqa: F401
+)
+
+# Network / Session Function Keywords
+from .session import (
+    disconnect_station,
+    drop_control,
+    end_session,
+    invite_station,
+    join_session,
+    leave_session,
+    set_hostname,
+    set_ip,
+    take_control,
 )
 from .store import (
     delete_show,
@@ -276,46 +276,36 @@ from .store import (
     update_cue,
 )
 
-# User Management Function Keywords (Login, Logout, Store/Delete User)
-from .users import (
-    build_assign_world_to_user_profile,
-    build_delete_user,
-    build_list_users,
-    build_login,
-    build_logout,
-    build_store_user,
-)
-
 # System / Console / RDM / Chaser / Effect parameter builders
 from .system import (
+    SPECIAL_MASTER_NAMES,
     alert,
     black_screen,
-    lock_console,
-    unlock_console,
     call_plugin,
-    run_lua,
-    lua_execute,
-    reload_plugins,
-    reboot_console,
-    restart_console,
-    shutdown_console,
-    send_chat,
-    set_special_master,
-    SPECIAL_MASTER_NAMES,
-    rdm_automatch,
-    rdm_autopatch,
-    rdm_list,
-    rdm_info,
-    rdm_setpatch,
-    rdm_unmatch,
     chaser_rate,
-    chaser_speed,
     chaser_skip,
+    chaser_speed,
     chaser_xfade,
-    set_effect_parameter,
     crash_log_copy,
     crash_log_delete,
     crash_log_list,
+    lock_console,
+    lua_execute,
+    rdm_automatch,
+    rdm_autopatch,
+    rdm_info,
+    rdm_list,
+    rdm_setpatch,
+    rdm_unmatch,
+    reboot_console,
+    reload_plugins,
+    restart_console,
+    run_lua,
+    send_chat,
+    set_effect_parameter,
+    set_special_master,
+    shutdown_console,
+    unlock_console,
     update_firmware,
     update_software,
 )
@@ -328,6 +318,16 @@ from .timing import (
     step_fade,
     step_in_fade,
     step_out_fade,
+)
+
+# User Management Function Keywords (Login, Logout, Store/Delete User)
+from .users import (
+    build_assign_world_to_user_profile,
+    build_delete_user,
+    build_list_users,
+    build_login,
+    build_logout,
+    build_store_user,
 )
 
 # Values Function Keywords (At)

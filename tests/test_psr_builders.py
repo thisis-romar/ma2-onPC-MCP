@@ -7,10 +7,8 @@ Unit tests for PSR (Partial Show Read) command builders.
 All tests are pure — no console connection required.
 """
 
-import pytest
 from src.commands import psr, psr_list, psr_prepare
 from src.commands.functions.psr import psr as _psr_direct
-
 
 # ============================================================================
 # psr_prepare

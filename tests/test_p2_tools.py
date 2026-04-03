@@ -180,7 +180,7 @@ class TestSetAdvancedTimingSnapPercent:
         mock_get_client.return_value = mock_client
 
         result = await set_advanced_timing(action="snap_percent", value=33.3)
-        data = json.loads(result)
+        _data = json.loads(result)
 
         mock_client.send_command_with_response.assert_called_once_with("SnapPercent 33.3")
 
@@ -234,8 +234,9 @@ class TestSetEffectParameterP3Extension:
         assert set_effect_parameter("low", 20) == "EffectLow 20"
 
     def test_invalid_param_still_raises(self):
-        from src.commands.functions.system import set_effect_parameter
         import pytest
+
+        from src.commands.functions.system import set_effect_parameter
 
         with pytest.raises(ValueError, match="Unknown effect parameter"):
             set_effect_parameter("speed_foo", 1.0)
