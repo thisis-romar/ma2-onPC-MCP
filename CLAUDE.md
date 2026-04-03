@@ -34,7 +34,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
 | `src/commands/` | 264 pure command-builder functions (272 exports incl. 8 constants), grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
-| `src/vocab.py` | 156 keyword vocab entries (90 function + 56 object + 5 helping + 5 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
+| `src/vocab.py` | 156 keyword vocab entries (90 function + 56 object + 5 helping + 6 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()` + `check_showfile()` |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache; showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
