@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 Unit tests for the 6 new P2 playback command builders:
 flash_go, flash_on, swop_go, swop_on, manual_xfade, snap_percent.

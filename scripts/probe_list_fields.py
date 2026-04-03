@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 scripts/probe_list_fields.py -- Discover List output fields for all major MA2 object types.
 

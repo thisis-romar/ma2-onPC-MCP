@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Build condensed tree: collapse leaf-only flat branches, show structure."""
 import re
 

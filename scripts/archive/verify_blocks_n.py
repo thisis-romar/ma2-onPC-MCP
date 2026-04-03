@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Verify MAtricksBlocks N + Store /merge captures full block of subs.
 
 Tests the core assumption for v7 macro optimization:

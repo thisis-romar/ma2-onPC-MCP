@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 Unit tests for the 6 advanced timing command builders in src/commands/functions/timing.py.
 All tests are pure — no console connection required.

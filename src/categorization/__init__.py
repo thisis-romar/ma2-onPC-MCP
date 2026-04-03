@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """ML-based unsupervised tool categorization system.
 
 Extracts structural + semantic features from MCP tool definitions,

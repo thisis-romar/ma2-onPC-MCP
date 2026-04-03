@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Compare v3 vs v5 macro output: clean → run → audit → clean → run → audit → compare."""
 import asyncio
 import re

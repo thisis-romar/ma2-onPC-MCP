@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Load, save, and query the tool taxonomy JSON file.
 
 The taxonomy stores clustering results + per-tool feature vectors so that

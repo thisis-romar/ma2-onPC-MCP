@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Identify the 2 fixtures in Group 14 and check FT 4 sub-types."""
 import asyncio
 import re

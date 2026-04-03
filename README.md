@@ -3,24 +3,26 @@ title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
 version: 3.25.1
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-02T05:30:00Z
+last_updated: 2026-04-03T17:59:00Z
 ---
 
 <p align="center">
-  <img src="assets/banner.svg" alt="GrandPA2-Buddy" width="100%">
+  <img src="assets/header.jpeg" alt="GrandPA2-Buddy — grandMA2 Console Agent" width="100%">
 </p>
 
 # GrandPA2-Buddy 👨‍🎨
 
 <p align="center">
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-orange?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP_Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
   <img src="https://img.shields.io/badge/Tests-2841-brightgreen?style=for-the-badge" alt="2841 Tests">
 </p>
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 197 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
+
+> **License:** This software is licensed under the [Business Source License 1.1](LICENSE). The original repository is [`thisis-romar/ma2-onPC-MCP`](https://github.com/thisis-romar/ma2-onPC-MCP). See [LICENSE](LICENSE) for full terms. Change Date: 2028-04-02. After the Change Date, the software converts to Apache License 2.0.
 
 <table>
 <tr><td><b>Agent Harness</b></td><td>197 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>

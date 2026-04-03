@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Workflow memory — SQLite-backed operational memory for reusable patterns.
 
 Separate from the RAG doc search pipeline. Stores:

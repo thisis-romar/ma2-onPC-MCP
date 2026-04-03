@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 strategic_scan.py -- 4-phase strategic validation scan for grandMA2 cd tree.
 

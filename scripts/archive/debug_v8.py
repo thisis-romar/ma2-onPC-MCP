@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Debug v8 macro execution — trace, fixture order audit, and appearance color audit."""
 import asyncio
 import re

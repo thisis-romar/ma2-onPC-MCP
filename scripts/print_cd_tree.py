@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Generate a full MA2 cd tree document from scan_output.json.
 
 Reads the recursive tree scan and writes a readable markdown document

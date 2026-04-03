@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Compare v6 vs v7 macro output: counts + fixture ORDER validation."""
 import asyncio
 import re

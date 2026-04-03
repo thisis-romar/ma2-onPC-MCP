@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Post-mutation verification — checks that tool calls achieved intended state.
 
 Uses existing MCP inspection tools (query_object_list, get_object_info,

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """
 Live telnet validation: Navigate FT tree, capture ChannelType data per Module,
 validate CD index order vs DMX Coarse channel order.

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Plan-level policy engine — extends command-level safety to full plans.
 
 Builds on src/vocab.py RiskTier classification to enforce governance rules
