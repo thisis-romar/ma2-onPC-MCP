@@ -1,16 +1,16 @@
 [project]
 name = "grandpa2-buddy"
-version = "0.1.0"
-description = "AI agent for grandMA2 lighting consoles — 148 MCP tools via Telnet"
+version = "1.0.0"
+description = "AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet"
 readme = "README.md"
 requires-python = ">=3.12"
-license = "Apache-2.0"
+license = "BSL-1.1"
 authors = [{ name = "romar" }]
 keywords = ["grandma2", "mcp", "lighting", "telnet", "dmx"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: Other/Proprietary License",
     "Topic :: System :: Networking",
 ]
 dependencies = [
