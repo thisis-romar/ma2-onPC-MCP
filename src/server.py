@@ -24,6 +24,8 @@ from mcp.server.fastmcp import FastMCP
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, has_scope, require_scope
+from src.license import get_license_tier, has_tier
+from src.license_tiers import TOOL_LICENSE_TIERS
 from src.commands import (
     add_to_selection as build_add_to_selection,
 )
@@ -532,11 +534,25 @@ def _handle_errors(func):
     Also records every invocation to the ``tool_invocations`` telemetry table
     (controlled by the ``GMA_TELEMETRY`` env var; default enabled).
     Risk tier and operator identity are inferred once at decoration time.
+    License tier is resolved from ``TOOL_LICENSE_TIERS`` at decoration time.
     """
     _risk_tier = infer_risk_tier(func)
+    _required_tier = TOOL_LICENSE_TIERS.get(func.__name__)
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs) -> str:
+        # --- License tier gate (before any console I/O) ---
+        if _required_tier and not has_tier(_required_tier):
+            return json.dumps({
+                "blocked": True,
+                "error": (
+                    f"Tool '{func.__name__}' requires the '{_required_tier}' "
+                    f"license tier. Current tier: '{get_license_tier()}'."
+                ),
+                "license_required": str(_required_tier),
+                "current_tier": str(get_license_tier()),
+            }, indent=2)
+
         t0 = time.monotonic()
         result: str = ""
         error_class: str | None = None
