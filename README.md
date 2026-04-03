@@ -13,11 +13,11 @@ last_updated: 2026-04-03T19:15:00Z
 # GrandPA2-Buddy 👨‍🎨
 
 <p align="center">
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/thisis-romar/ma2-onPC-MCP/test.yml?style=for-the-badge&label=Tests" alt="Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
-  <img src="https://img.shields.io/badge/MCP_Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-2876-brightgreen?style=for-the-badge" alt="2876 Tests">
+  <img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
+  <img src="https://img.shields.io/badge/Version-3.26.0-purple?style=for-the-badge" alt="Version 3.26.0">
 </p>
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 197 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
