@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.25.1
+version: 3.26.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-03T17:59:00Z
+last_updated: 2026-04-03T19:15:00Z
 ---
 
 <p align="center">
@@ -17,7 +17,7 @@ last_updated: 2026-04-03T17:59:00Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP_Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-2841-brightgreen?style=for-the-badge" alt="2841 Tests">
+  <img src="https://img.shields.io/badge/Tests-2876-brightgreen?style=for-the-badge" alt="2876 Tests">
 </p>
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 197 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
@@ -66,13 +66,13 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```mermaid
 graph TD
     H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>34 tools (110–144) · orchestrator · skills"] --> A
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>143 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>163 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>222 pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>264 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
-    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>157 keywords · risk tiers"] -.-> A
+    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>156 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
     I["🧠 Memory & Planning<br/><code>src/agent_memory.py · src/orchestrator.py</code><br/>WorkingMemory · LTM · TaskDecomposer"] -.-> H
     J["📊 OpenSpace<br/><code>src/telemetry.py · src/skill.py · src/skill_improver.py</code><br/>invocation recorder · skill registry · improvement loop"] -.-> H
@@ -97,7 +97,7 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 
 | Layer | What it is | Key files |
 |-------|-----------|-----------|
-| **Bottom 143 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | `src/server.py` |
+| **Bottom 163 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | `src/server.py` |
 | **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | `src/server_orchestration_tools.py`, `src/orchestrator.py` |
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
@@ -106,7 +106,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 143 interactive tools, safety gate, env config |
+| `src/server.py` | FastMCP server, 163 interactive tools, safety gate, env config |
 | `src/server_orchestration_tools.py` | 34 agentic tools (110–144) registered onto FastMCP |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
@@ -119,13 +119,16 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/navigation.py` | cd + list + scan orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/vocab.py` | 157 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
-| `src/commands/` | 222 exported command-builder functions, grouped by keyword type |
+| `src/vocab.py` | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| `src/commands/` | 264 exported command-builder functions, grouped by keyword type |
 | `src/commands/busking.py` | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
 | `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
+| `src/license.py` | `LicenseTier` enum, `get_license_tier()`, `has_tier()`, `require_tier()` |
+| `src/license_tiers.py` | `TOOL_LICENSE_TIERS` dict — maps tool names → `LicenseTier` |
+| `src/agent/` | Agent harness: runtime, domain planner, step executor, policy, verification, memory, trace |
 | `src/tools.py` | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 
 ## Configuration
@@ -141,6 +144,15 @@ GMA_PORT=30000             # default: 30000 (30001 = read-only)
 GMA_SAFETY_LEVEL=standard  # standard (default), admin, or read-only
 LOG_LEVEL=INFO             # default: INFO
 
+# OAuth & License
+GMA_SCOPE=tier:3           # OAuth tier (tier:0–tier:5) or explicit scopes
+GMA_AUTH_BYPASS=            # set "1" to bypass scope checks (dev only)
+GMA_LICENSE_TIER=community  # community (default), professional, enterprise
+GMA_LICENSE_BYPASS=         # set "1" to bypass tier checks (dev only)
+
+# Transport
+GMA_TRANSPORT=stdio        # stdio (default), sse, or streamable-http
+
 # RAG Pipeline (optional)
 GITHUB_MODELS_TOKEN=                          # GitHub PAT with models:read scope
 RAG_EMBED_MODEL=openai/text-embedding-3-small # embedding model
@@ -155,6 +167,23 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 | `read-only` | Only `SAFE_READ` commands allowed (`list`, `info`, `cd`) |
 | `standard` | `SAFE_READ` + `SAFE_WRITE` allowed; `DESTRUCTIVE` requires `confirm_destructive=True` |
 | `admin` | All commands allowed without confirmation |
+
+## License Tiers
+
+All 197 MCP tools are classified into three license tiers:
+
+| Tier | Cost | Tools | Examples |
+|------|------|-------|----------|
+| `COMMUNITY` | Free | ~10 | `navigate_console`, `get_object_info`, `playback_action`, `set_intensity` |
+| `PROFESSIONAL` | Paid | ~133 | Store/copy/delete, presets, sequences, macros, effects, patch, show mgmt |
+| `ENTERPRISE` | Premium | ~54 | RAG search, orchestration, skill system, agent harness, ML categorisation |
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `GMA_LICENSE_TIER` | `community` | Active tier: `community`, `professional`, `enterprise` |
+| `GMA_LICENSE_BYPASS` | `0` | Set `1` to bypass tier checks (dev/test only) |
+
+Tools not in the tier map default to COMMUNITY. When a tool's required tier exceeds the active tier, it returns `{"blocked": true, "license_required": "...", "current_tier": "..."}`.
 
 ## MCP Tools
 
@@ -373,7 +402,7 @@ select_executor(executor_id=1, deselect=True)
 </details>
 
 <details>
-<summary><strong>🔗 Assignment & Layout</strong> — 9 tools</summary>
+<summary><strong>🔗 Assignment & Layout</strong> — 12 tools</summary>
 
 | Tool | Description |
 |------|-------------|
@@ -572,7 +601,7 @@ python -m scripts.create_matricks_library --color-only
 </details>
 
 <details>
-<summary><strong>🤖 Orchestration & Console State</strong> — 33 tools</summary>
+<summary><strong>🤖 Orchestration & Console State</strong> — 34 tools</summary>
 
 These tools form the **agentic layer** (`src/server_orchestration_tools.py`). They enable
 multi-step task execution with memory, risk-tier isolation, and zero-telnet state queries
@@ -669,12 +698,12 @@ Read from the cached snapshot — **no telnet round-trips required**.
 
 ## MCP Resources
 
-Thirteen read-only resources exposable to any MCP client. Use them for zero-telnet context before calling tools.
+Eighteen read-only resources exposable to any MCP client. Use them for zero-telnet context before calling tools.
 
 | URI | Description |
 |-----|-------------|
 | `ma2://docs/rights-matrix` | OAuth scope → MA2Right mapping matrix (JSON) |
-| `ma2://docs/vocab-summary` | All 157 keywords with RiskTier and category (JSON) |
+| `ma2://docs/vocab-summary` | All 156 keywords with RiskTier and category (JSON) |
 | `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 150 base tools clustered into 14 categories (JSON) |
 | `ma2://docs/responsibility-map` | Module responsibility map for architectural decisions (Markdown) |
 | `ma2://docs/tool-surface-tiers` | Tier A/B/C classification for every tool (Markdown) |
@@ -686,12 +715,17 @@ Thirteen read-only resources exposable to any MCP client. Use them for zero-teln
 | `ma2://busking/patterns` | Best-practice busking patterns: fader model, song macro protocol, live recovery |
 | `ma2://busking/effect-design` | Effect-to-executor assignment patterns, rate vs speed, MAtricks layering |
 | `ma2://busking/color-design` | HSB palette strategy, preset numbering, monochromatic constraint, color lock |
+| `ma2://docs/psr-guide` | PSR (Partial Show Read) workflow guide and best practices |
+| `ma2://docs/effects-reference` | Effects parameter reference: all 10 effect parameters with ranges |
+| `ma2://docs/timecode-reference` | Timecode show programming reference: SMPTE, events, tracks |
+| `ma2://docs/macro-reference` | Macro scripting reference: SetVar, conditionals, jump targets |
+| `ma2://docs/network-session` | Network session reference: JoinSession, TakeControl, SetIP |
 
 All resources are read-only — no console side-effects.
 
 ## MCP Prompts
 
-Ten workflow prompts that orchestrate tools into guided multi-step procedures.
+Thirteen workflow prompts that orchestrate tools into guided multi-step procedures.
 
 | Prompt | Args | Description |
 |--------|------|-------------|
@@ -705,6 +739,9 @@ Ten workflow prompts that orchestrate tools into guided multi-step procedures.
 | `generate_busking_template` | `target_page`, `fixture_strategy` | Build a complete busking template from current patch — groups, presets, effects, executor layout |
 | `pre_show_health_check` | `sequence_ids`, `strict` | Full show health audit — showfile, presets, executors, cues, parks, and DMX with scored findings |
 | `adapt_show_to_venue` | `source_show_description`, `new_venue_notes` | Cross-venue show adaptation — patch comparison, group remapping, preset verification |
+| `migrate_show_via_psr` | `source_show`, `target_objects` | PSR-based cross-show content migration with slot conflict detection |
+| `program_effect` | `fixture_group`, `effect_type`, `speed_bpm` | Guided effect programming workflow with fixture selection and parameter setting |
+| `build_timecode_show` | `sequence_ids`, `smpte_start` | Build a SMPTE timecode show with cue-to-timestamp mapping |
 
 ## Agent Skills
 
@@ -847,7 +884,7 @@ In addition to the 3-layer model, every keyword is classified into one of three 
 
 ### Keyword Classification
 
-The vocabulary classifies all **157 grandMA2 keywords** into categories:
+The vocabulary classifies all **156 grandMA2 keywords** into categories:
 
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
@@ -1056,7 +1093,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. **222 exported functions** (231 exports including 9 constants) covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. **264 exported functions** (272 exports including 8 constants) covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -1188,7 +1225,7 @@ The command builder layer (`src/commands/`) generates grandMA2 command strings a
 ```
 ma2-onPC-MCP/
 ├── src/
-│   ├── server.py                           # FastMCP server (143 interactive tools)
+│   ├── server.py                           # FastMCP server (163 interactive tools)
 │   ├── server_orchestration_tools.py       # Agentic layer (tools 110–144)
 │   │
 │   │   # Orchestration & Memory
@@ -1211,10 +1248,10 @@ ma2-onPC-MCP/
 │   ├── telnet_client.py                    # Async Telnet (telnetlib3, injection prevention)
 │   ├── navigation.py                       # cd + list + scan orchestration
 │   ├── prompt_parser.py                    # Telnet prompt & tabular list parser
-│   ├── vocab.py                            # 157 keywords, risk tiers, functional domains
+│   ├── vocab.py                            # 156 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
-│   ├── commands/                           # 222 exported command-builder functions
+│   ├── commands/                           # 264 exported command-builder functions
 │   │   ├── busking.py                      # Busking/performance builders (6 functions)
 │   │   ├── objects/                        # Object keywords (9 modules)
 │   │   └── functions/                      # Function keywords (17 modules)
@@ -1283,4 +1320,4 @@ python scripts/main.py
 
 ## License
 
-[Apache License 2.0](LICENSE)
+[Business Source License 1.1](LICENSE)
