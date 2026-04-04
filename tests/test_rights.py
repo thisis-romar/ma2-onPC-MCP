@@ -14,16 +14,13 @@ Covers:
   - _handle_errors MA2Right gate integration
 """
 
-import os
 import re
-
-import pytest
 
 from src.commands.constants import MA2Right
 from src.rights import (
+    _OPERATION_MIN_RIGHT,
     FeedbackClass,
     RightsContext,
-    _OPERATION_MIN_RIGHT,
     get_session_ma2_right,
     is_permitted,
     min_right_for_tool,

@@ -27,7 +27,6 @@ from mcp.server.fastmcp import FastMCP
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, has_scope, require_scope
-from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
 from src.commands import (
     SPECIAL_MASTER_NAMES,
     attribute_at,
@@ -496,6 +495,7 @@ from src.license import get_license_tier, has_tier
 from src.license_tiers import TOOL_LICENSE_TIERS
 from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
 from src.orchestrator import Orchestrator
+from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
 from src.server_orchestration_tools import register_orchestration_tools
 from src.session_manager import SessionManager
 from src.telemetry import ToolTelemetry, infer_risk_tier
