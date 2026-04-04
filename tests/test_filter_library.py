@@ -173,9 +173,10 @@ class TestCreateFilterLibraryTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server.get_client")
-    async def test_creates_all_filters(self, mock_get_client, mock_check):
+    async def test_creates_all_filters(self, mock_get_client, mock_check, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -197,8 +198,9 @@ class TestCreateFilterLibraryTool:
         assert mock_client.send_command_with_response.call_count == 21 * 3
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_no_combos_no_exclusions(self, mock_get_client, tmp_path):
+    async def test_no_combos_no_exclusions(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -216,8 +218,9 @@ class TestCreateFilterLibraryTool:
         assert data["last_slot"] == 9
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_custom_start_slot(self, mock_get_client):
+    async def test_custom_start_slot(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -235,8 +238,9 @@ class TestCreateFilterLibraryTool:
         assert data["last_slot"] == 16  # 7 single filters starting at 10
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_import_commands_sent(self, mock_get_client):
+    async def test_import_commands_sent(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -263,8 +267,9 @@ class TestCreateFilterLibraryTool:
         assert len(appearance_calls) == 7
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_color_scheme_in_result(self, mock_get_client):
+    async def test_color_scheme_in_result(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -278,8 +283,9 @@ class TestCreateFilterLibraryTool:
         assert "FFCC00" in data["color_scheme"]["dimmer"]
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_filter_categories_in_results(self, mock_get_client):
+    async def test_filter_categories_in_results(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -466,8 +472,9 @@ class TestCreateFilterLibraryVTE:
     """Tests for create_filter_library with include_vte=True."""
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_vte_creates_all_variants(self, mock_get_client):
+    async def test_vte_creates_all_variants(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -484,8 +491,9 @@ class TestCreateFilterLibraryVTE:
         assert data["vte_variants"] == 147
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_vte_single_type_only(self, mock_get_client):
+    async def test_vte_single_type_only(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -505,8 +513,9 @@ class TestCreateFilterLibraryVTE:
         assert data["vte_variants"] == 49
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_vte_false_no_variants(self, mock_get_client):
+    async def test_vte_false_no_variants(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -521,8 +530,9 @@ class TestCreateFilterLibraryVTE:
         assert data["vte_variants"] == 0
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_vte_filter_names(self, mock_get_client):
+    async def test_vte_filter_names(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -542,8 +552,9 @@ class TestCreateFilterLibraryVTE:
         assert "Control V+VT+E" in names
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_vte_has_vte_field(self, mock_get_client):
+    async def test_vte_has_vte_field(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()
@@ -565,8 +576,9 @@ class TestCreateFilterLibraryVTE:
         assert dimv["vte"] == "V=on VT=off E=off"
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server.get_client")
-    async def test_vte_slot_continuity(self, mock_get_client):
+    async def test_vte_slot_continuity(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
         mock_client = MagicMock()

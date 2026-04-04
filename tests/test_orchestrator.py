@@ -518,11 +518,12 @@ class TestSnapshotWiring:
         assert snap.matricks.interleave == 5
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server._orchestrator")
     @patch("src.server._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server.get_client")
     async def test_create_filter_library_updates_vte(
-        self, mock_get_client, mock_check, mock_orch
+        self, mock_get_client, mock_check, mock_orch, mock_write
     ):
         from src.server import create_filter_library
 
@@ -540,11 +541,12 @@ class TestSnapshotWiring:
         assert snap.filter_vte == {"value": True, "value_timing": True, "effect": True}
 
     @pytest.mark.asyncio
+    @patch("pathlib.Path.write_text")
     @patch("src.server._orchestrator")
     @patch("src.server._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server.get_client")
     async def test_create_filter_library_no_snapshot_ok(
-        self, mock_get_client, mock_check, mock_orch
+        self, mock_get_client, mock_check, mock_orch, mock_write
     ):
         from src.server import create_filter_library
 
