@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.11.0
+version: 4.11.1
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-04T19:25:59Z
+last_updated: 2026-04-04T19:32:14Z
 ---
 
 # Project Rules
@@ -32,9 +32,9 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/license_tiers.py` | `TOOL_LICENSE_TIERS` dict — maps tool function names → `LicenseTier` (COMMUNITY/PROFESSIONAL/ENTERPRISE) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
 | `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/commands/` | 264 pure command-builder functions (272 exports incl. 8 constants), grouped by keyword type |
+| `src/commands/` | 254 pure command-builder functions (262 exports incl. 8 constants), grouped by keyword type |
 | `src/commands/helpers.py` | `quote_name()` wildcard spec, `_build_store_options()` flag assembly |
-| `src/vocab.py` | 156 keyword vocab entries (90 function + 56 object + 5 helping + 6 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
+| `src/vocab.py` | 158 keyword vocab entries (89 function + 56 object + 7 helping + 6 special), `KeywordCategory`, `RiskTier`, `classify_token()` |
 | `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()` + `check_showfile()` |
 | `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache; showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
@@ -104,6 +104,10 @@ uv run python scripts/rag_ingest.py --root . --provider zero
 
 # Install git hooks
 make install-hooks
+
+# Audit MD counts (auto-runs in pre-push; use --fix to auto-repair)
+uv run python scripts/audit_md_counts.py
+uv run python scripts/audit_md_counts.py --fix
 ```
 
 ---

@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 # .githooks/pre-push
-# Runs the test suite before pushing. Prevents broken code from reaching remote.
+# Runs the test suite and MD count audit before pushing.
+# Prevents broken code and stale documentation from reaching remote.
 # Install with: make install-hooks
 
 set -euo pipefail
 
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
 echo "[pre-push] Running test suite..."
 uv run python -m pytest -x -q
 
-echo "[pre-push] All tests passed."
+echo "[pre-push] Auditing CLAUDE.md / README.md counts..."
+uv run python scripts/audit_md_counts.py
+
+echo "[pre-push] All checks passed."

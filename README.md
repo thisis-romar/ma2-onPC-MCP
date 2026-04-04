@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.31.0
+version: 3.31.1
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-04T19:25:59Z
+last_updated: 2026-04-04T19:32:14Z
 ---
 
 <p align="center">
@@ -73,11 +73,11 @@ graph TD
     H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>34 tools (110–144) · orchestrator · skills"] --> A
     A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>163 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
-    C["🔧 Command Builders<br/><code>src/commands/</code><br/>264 pure functions → strings"] --> D
+    C["🔧 Command Builders<br/><code>src/commands/</code><br/>254 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
 
     E["📖 Prompt Parser<br/><code>src/prompt_parser.py</code><br/>prompt detection · list parsing"] -.-> B
-    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>156 keywords · risk tiers"] -.-> A
+    F["🛡️ Vocabulary & Safety<br/><code>src/vocab.py</code><br/>158 keywords · risk tiers"] -.-> A
     G["🔍 RAG Pipeline<br/><code>rag/</code><br/>crawl → chunk → embed → query"] -.-> A
     I["🧠 Memory & Planning<br/><code>src/agent_memory.py · src/orchestrator.py</code><br/>WorkingMemory · LTM · TaskDecomposer"] -.-> H
     J["📊 OpenSpace<br/><code>src/telemetry.py · src/skill.py · src/skill_improver.py</code><br/>invocation recorder · skill registry · improvement loop"] -.-> H
@@ -124,8 +124,8 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/session_manager.py`](src/session_manager.py) | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | [`src/navigation.py`](src/navigation.py) | cd + list + scan orchestration |
 | [`src/prompt_parser.py`](src/prompt_parser.py) | Parse console prompts and `list` tabular output |
-| [`src/vocab.py`](src/vocab.py) | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
-| [`src/commands/`](src/commands/) | 264 exported command-builder functions, grouped by keyword type |
+| [`src/vocab.py`](src/vocab.py) | 158 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| [`src/commands/`](src/commands/) | 262 exported command-builder functions, grouped by keyword type |
 | [`src/commands/busking.py`](src/commands/busking.py) | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | [`src/categorization/`](src/categorization/) | ML tool categorization: K-Means clustering + auto-labeling |
 | [`src/telemetry.py`](src/telemetry.py) | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
@@ -708,7 +708,7 @@ Eighteen read-only resources exposable to any MCP client. Use them for zero-teln
 | URI | Description |
 |-----|-------------|
 | [`ma2://docs/rights-matrix`](src/server.py) | OAuth scope → MA2Right mapping matrix (JSON) |
-| [`ma2://docs/vocab-summary`](src/server.py) | All 156 keywords with RiskTier and category (JSON) |
+| [`ma2://docs/vocab-summary`](src/server.py) | All 158 keywords with RiskTier and category (JSON) |
 | [`ma2://docs/tool-taxonomy`](src/server.py) | ML-clustered tool taxonomy — 150 base tools clustered into 14 categories (JSON) |
 | [`ma2://docs/responsibility-map`](src/server.py) | Module responsibility map for architectural decisions (Markdown) |
 | [`ma2://docs/tool-surface-tiers`](src/server.py) | Tier A/B/C classification for every tool (Markdown) |
@@ -1253,10 +1253,10 @@ ma2-onPC-MCP/
 │   ├── telnet_client.py                    # Async Telnet (telnetlib3, injection prevention)
 │   ├── navigation.py                       # cd + list + scan orchestration
 │   ├── prompt_parser.py                    # Telnet prompt & tabular list parser
-│   ├── vocab.py                            # 156 keywords, risk tiers, functional domains
+│   ├── vocab.py                            # 158 keywords, risk tiers, functional domains
 │   │
 │   │   # Command Builders & ML
-│   ├── commands/                           # 264 exported command-builder functions
+│   ├── commands/                           # 262 exported command-builder functions
 │   │   ├── busking.py                      # Busking/performance builders (6 functions)
 │   │   ├── objects/                        # Object keywords (9 modules)
 │   │   └── functions/                      # Function keywords (17 modules)
