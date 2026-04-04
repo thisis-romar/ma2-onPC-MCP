@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.32.0
+version: 3.33.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-04T20:12:50Z
+last_updated: 2026-04-04T20:31:56Z
 ---
 
 <p align="center">
@@ -1346,6 +1346,10 @@ The stop hook is configured in `.claude/settings.json` (project-level) so all co
 | Command not working | Verify syntax against MA2 User Manual, ensure objects exist |
 | RAG ingest 401 | Verify `GITHUB_MODELS_TOKEN` has `models:read` scope |
 | RAG query empty | Run [`scripts/rag_ingest.py`](scripts/rag_ingest.py) first, check `rag/store/rag.db` exists |
+
+## Acknowledgments
+
+This project is derived from [gma2-mcp](https://github.com/chienchuanw/gma2-mcp) by **chienchuanw**, whose foundation work (Nov–Dec 2025) provided the initial grandMA2 Telnet integration that this project builds upon.
 
 ## License
 

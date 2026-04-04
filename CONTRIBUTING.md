@@ -1,9 +1,9 @@
 ---
 title: Contributing to ma2-onPC-MCP
 description: Development setup, branch model, code conventions, test requirements, and skill contribution guide
-version: 3.25.1
+version: 3.26.0
 created: 2026-04-01T00:00:00Z
-last_updated: 2026-04-03T00:00:00Z
+last_updated: 2026-04-04T20:31:56Z
 ---
 
 # Contributing to ma2-onPC-MCP
