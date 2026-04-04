@@ -42,6 +42,20 @@ def _rights_bypass(monkeypatch):
     """Set GMA_RIGHTS_BYPASS=1 for every test unless it opts out via monkeypatch."""
     monkeypatch.setenv("GMA_RIGHTS_BYPASS", "1")
 
+
+# ---------------------------------------------------------------------------
+# License tier bypass — enable for all unit/integration tests
+# ---------------------------------------------------------------------------
+# Same pattern as auth/rights bypass above. Tests that exercise license
+# enforcement opt out via ``monkeypatch.delenv("GMA_LICENSE_BYPASS", raising=False)``.
+
+
+@pytest.fixture(autouse=True)
+def _license_bypass(monkeypatch):
+    """Set GMA_LICENSE_BYPASS=1 for every test unless it opts out via monkeypatch."""
+    monkeypatch.setenv("GMA_LICENSE_BYPASS", "1")
+
+
 # ---------------------------------------------------------------------------
 # Live-test pacing — prevent overwhelming grandMA2 onPC with rapid commands
 # ---------------------------------------------------------------------------
