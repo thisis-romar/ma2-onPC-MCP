@@ -231,6 +231,8 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not auto-promote Skills from `SkillImprover` output — promotion is operator-initiated via Tool 141.
 - Do not make MCP resources perform console side-effects — resources are read-only context.
 - Do not put MA2 operating knowledge into tool docstrings — put it in `.claude/skills/` instead.
+- Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_197_tools_mapped` will fail.
+- Do not set `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, or `GMA_LICENSE_BYPASS=1` in production — dev/test only.
 
 ---
 
