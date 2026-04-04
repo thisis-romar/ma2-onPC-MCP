@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.28.0
+version: 3.29.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-04T15:00:00Z
+last_updated: 2026-04-04T16:17:00Z
 ---
 
 <p align="center">
@@ -32,7 +32,7 @@ last_updated: 2026-04-04T15:00:00Z
 <table>
 <tr><td><b>Agent Harness</b></td><td>197 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
 <tr><td><b>Embedded Agent Core</b></td><td>Orchestrator, task decomposer, working + long-term memory, and a skill registry with self-improvement suggestions. Inject a real LLM client and it becomes a fully autonomous lighting agent that plans, executes, remembers, and learns.</td></tr>
-<tr><td><b>Layered safety gate</b></td><td>Three risk tiers enforced before any command reaches the console: <code>SAFE_READ</code> (always allowed), <code>SAFE_WRITE</code> (standard mode), <code>DESTRUCTIVE</code> (blocked until <code>confirm_destructive=True</code>). Line-break injection rejected at the transport layer.</td></tr>
+<tr><td><b>3-layer permission model</b></td><td>OAuth scope ∩ MA2 native rights ∩ console floor — all three must agree. 197 tools mapped to a minimum <code>MA2Right</code> tier, three risk tiers (<code>SAFE_READ</code> / <code>SAFE_WRITE</code> / <code>DESTRUCTIVE</code>), and line-break injection rejected at the transport layer.</td></tr>
 <tr><td><b>A closed learning loop</b></td><td>Every tool call recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Skills are versioned playbooks with full lineage tracking.</td></tr>
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
 </table>
@@ -118,8 +118,8 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/agent_memory.py`](src/agent_memory.py) | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
 | [`src/console_state.py`](src/console_state.py) | ConsoleStateSnapshot: hydrates 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | [`src/pool_name_index.py`](src/pool_name_index.py) | In-memory pool name/ID registry — zero-cost object resolution |
-| [`src/rights.py`](src/rights.py) | MA2 native rights enforcement + telnet feedback classification |
-| [`src/auth.py`](src/auth.py) | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
+| [`src/rights.py`](src/rights.py) | MA2 native rights enforcement (`_OPERATION_MIN_RIGHT`, `get_session_ma2_right`, `is_permitted`) + telnet feedback classification |
+| [`src/auth.py`](src/auth.py) | OAuth 2.1 scope enforcement (`@require_scope`), scope tier resolution, `GMA_AUTH_BYPASS` |
 | [`src/credentials.py`](src/credentials.py) | OAuth tier → console user credential resolver |
 | [`src/session_manager.py`](src/session_manager.py) | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | [`src/navigation.py`](src/navigation.py) | cd + list + scan orchestration |
@@ -833,18 +833,18 @@ See [`vscode-mcp-provider/README.md`](vscode-mcp-provider/README.md) for full de
 
 ## Safety System
 
-GrandPA2-Buddy enforces a **3-layer model** where effective permissions are the intersection of all three — no single layer can expand privileges:
+GrandPA2-Buddy enforces a **3-layer permission model** — effective permissions are the intersection of all three layers, so no single layer can expand privileges beyond what the others allow:
 
 ```
 scope ∩ ma2_rights ∩ console_floor = FINAL AUTHORITY
 ```
 
-### Layer 1 — OAuth Scope Gate ([`src/auth.py`](src/auth.py))
+### Layer 1 — OAuth Scope ([`src/auth.py`](src/auth.py))
 
-Every tool is decorated with `@require_scope(OAuthScope.*)` (161 decorators across `src/server.py`). Six scope tiers map to console users created by [`scripts/bootstrap_console_users.py`](scripts/bootstrap_console_users.py):
+Every MCP tool is decorated with `@require_scope(OAuthScope.*)`. The OAuth layer maps six cumulative scope tiers to grandMA2 console users, each with a fixed native rights level. Set `GMA_SCOPE` to control which tier the session operates at:
 
-| `GMA_SCOPE` | Console user | MA2 Rights | Can do |
-|-------------|-------------|-----------|--------|
+| `GMA_SCOPE` | Console user | MA2 Rights | Permitted operations |
+|-------------|-------------|-----------|---------------------|
 | `tier:0` | `guest` | None (0) | Read-only — list, info, cd |
 | `tier:1` | `operator` | Playback (1) | Go, Flash, Off, timecode |
 | `tier:2` | `presets_editor` | Presets (2) | Set attributes, apply/store presets |
@@ -852,25 +852,21 @@ Every tool is decorated with `@require_scope(OAuthScope.*)` (161 decorators acro
 | `tier:4` | `tech_director` | Setup (4) | Patch, fixture import, console setup |
 | `tier:5` | `administrator` | Admin (5) | User management, show load/delete |
 
-### Layer 2 — MA2 Native Rights Gate ([`src/rights.py`](src/rights.py))
+Bootstrap the six console users on a fresh show with `python scripts/bootstrap_console_users.py` (only `Administrator` and `Guest` exist natively).
 
-All 197 tools are mapped in `_OPERATION_MIN_RIGHT` ([`src/rights.py`](src/rights.py)) to a minimum `MA2Right` tier (NONE through ADMIN). The `_handle_errors` decorator checks `is_permitted(tool_name, session_right)` at runtime — derived from the OAuth scope tier via `get_session_ma2_right()` — before any Telnet command is sent. Tools below the session's rights level return `{"blocked": True, "required_ma2_right": "..."}`.
+### Layer 2 — MA2 Native Rights ([`src/rights.py`](src/rights.py))
 
-The `check_permission()` utility provides a unified gate combining both scope and rights checks. See [`doc/ma2-rights-matrix.json`](doc/ma2-rights-matrix.json) for the full tool-to-right mapping.
+All 197 tools are mapped in `_OPERATION_MIN_RIGHT` to a minimum `MA2Right` tier (NONE through ADMIN). At runtime, `_handle_errors` derives the session's `MA2Right` from the OAuth scope tier via `get_session_ma2_right()` and calls `is_permitted()` before any Telnet command is sent. A tool whose required right exceeds the session right returns `{"blocked": True, "required_ma2_right": "..."}`.
 
-| Env var | Default | Effect |
-|---------|---------|--------|
-| `GMA_RIGHTS_BYPASS` | `0` | Set `1` to bypass rights checks (dev/test only) |
+The `check_permission()` utility provides a unified gate combining scope and rights checks in a single call. The full tool-to-right mapping is published in [`doc/ma2-rights-matrix.json`](doc/ma2-rights-matrix.json).
 
-### Layer 3 — Console Floor (passive enforcement)
+### Layer 3 — Console Floor (grandMA2 enforcement)
 
-The Telnet session runs as a console user whose native rights are enforced by grandMA2 itself. Commands beyond that user's rights level are rejected with `Error #72` — an irrevocable floor that exists regardless of what Layer 1 or 2 permit.
+The Telnet session authenticates as a console user whose native rights grandMA2 enforces independently. Commands that exceed that user's rights are rejected with `Error #72` — an irrevocable floor that applies regardless of what Layer 1 or 2 permit.
 
-> Bootstrap required: On a fresh show, run `python scripts/bootstrap_console_users.py` as Administrator to create the 5 intermediate users. Only `Administrator` and `Guest` exist natively.
+### Risk Tiers
 
-### Risk Tiers (server-side gate)
-
-In addition to the 3-layer model, every keyword is classified into one of three risk tiers enforced by `_handle_errors`:
+Every grandMA2 keyword is classified into one of three risk tiers. The `_handle_errors` decorator infers the tier at decoration time for telemetry, and `DESTRUCTIVE` tools require an explicit `confirm_destructive=True` parameter:
 
 | Tier | Description | Examples |
 |------|-------------|----------|
@@ -878,11 +874,18 @@ In addition to the 3-layer model, every keyword is classified into one of three 
 | `SAFE_WRITE` | Reversible state changes | `Go`, `At`, `Clear`, `Park`, `SelFix` |
 | `DESTRUCTIVE` | Data mutation or loss | `Delete`, `Store`, `Copy`, `Move`, `Shutdown` |
 
-`DESTRUCTIVE` tools require `confirm_destructive=True` in addition to OAuth scope.
+### Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `GMA_SCOPE` | `gma2:discover gma2:state:read` | Granted OAuth scopes (space-separated or `tier:N`) |
+| `GMA_AUTH_BYPASS` | `0` | Set `1` to bypass scope checks (dev/test only) |
+| `GMA_RIGHTS_BYPASS` | `0` | Set `1` to bypass rights checks (dev/test only) |
+| `GMA_LICENSE_TIER` | `community` | Active license tier: `community`, `professional`, `enterprise` |
+| `GMA_LICENSE_BYPASS` | `0` | Set `1` to bypass tier checks (dev/test only) |
 
 > [!IMPORTANT]
-> **Command injection prevention:** Line breaks (`\r`, `\n`) are rejected before any command reaches the console.
-> The telnet client also strips them as a defense-in-depth measure.
+> **Command injection prevention:** Line breaks (`\r`, `\n`) are rejected before any command reaches the console. The telnet client strips them as a defense-in-depth measure.
 
 ### Keyword Classification
 
