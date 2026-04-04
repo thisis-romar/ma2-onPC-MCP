@@ -1,9 +1,9 @@
 ---
 title: Terms of Use
 description: Hardware safety disclaimers, liability limitations, acceptable use policy, and network security warnings for ma2-onPC-MCP
-version: 3.25.1
+version: 3.26.0
 created: 2026-04-01T00:00:00Z
-last_updated: 2026-04-03T00:00:00Z
+last_updated: 2026-04-04T20:12:50Z
 ---
 
 # Terms of Use
@@ -97,14 +97,26 @@ ma2-onPC-MCP provides telemetry logging (`tool_invocations` table, `generate_com
 
 **grandMA2 consoles ship with Telnet (port 30000) unauthenticated by default.**
 
-Anyone with network access to port 30000 on your MA2 console can issue any console command without authentication. ma2-onPC-MCP does not add authentication to the Telnet connection itself; it adds an OAuth scope layer in the MCP server that governs which AI-issued commands are permitted.
+Anyone with network access to port 30000 on your MA2 console can issue any console command without authentication. ma2-onPC-MCP does not add authentication to the Telnet connection itself; it adds a 3-layer permission model (OAuth scope, MA2 native rights, license tier) in the MCP server that governs which AI-issued commands are permitted. **These layers can be bypassed entirely by anyone with direct network access to the Telnet port.**
 
-**Operator responsibilities:**
+### 6.1 Supported Deployment: Co-Located Topology
 
-1. **Isolate the MA2 console network.** Place the console on a dedicated VLAN or air-gapped network segment. Do not expose port 30000 to the internet or untrusted networks.
+The only topology where the MCP server's permission model provides meaningful security:
+
+1. The MCP server runs on the **same machine** as grandMA2 onPC.
+2. The host firewall restricts TCP port 30000 to **loopback only** (127.0.0.1).
+3. MA-Net2 multicast traffic (UDP, separate ports) is unaffected.
+4. The MCP server becomes the **sole gateway** to Telnet — its OAuth/rights/license enforcement becomes the effective access control.
+
+See [`doc/network-topology.md`](doc/network-topology.md) for the full deployment diagram and firewall configuration.
+
+### 6.2 Operator Responsibilities
+
+1. **Lock down the Telnet port.** Run `sudo bash scripts/lockdown_firewall.sh --apply` to restrict TCP 30000 to loopback. On MA-Net2 shared networks, this is **critical** — without it, any station on the network can bypass all MCP-layer protections.
 2. **Enable MA2 Telnet login.** In MA2 Setup → Console → Global Settings, enable "Login" for the Telnet service and set a strong password.
-3. **Use `GMA_AUTH_BYPASS=0`** in all production deployments. Never set `GMA_AUTH_BYPASS=1` in a production environment.
-4. **Rotate credentials.** Change the `GMA_OPERATOR_PASSWORD`, `GMA_PROGRAMMER_PASSWORD`, and `GMA_ADMIN_PASSWORD` environment variables from their default values before deployment.
+3. **Rotate credentials.** Change `GMA_OPERATOR_PASSWORD`, `GMA_PROGRAMMER_PASSWORD`, and `GMA_ADMIN_PASSWORD` from their factory defaults before deployment.
+4. **Never enable bypass variables in production.** `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, and `GMA_LICENSE_BYPASS=1` each disable an entire permission layer. The MCP server logs a warning at startup if any are enabled.
+5. **Review startup warnings.** The MCP server checks for non-loopback `GMA_HOST`, active bypass variables, and factory-default credentials at launch. Act on any warnings before going live.
 
 The authors accept no liability for unauthorized access to a console resulting from misconfigured network security.
 

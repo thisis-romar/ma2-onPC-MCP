@@ -11906,18 +11906,59 @@ Starting SMPTE position: {smpte_start}
 _VALID_TRANSPORTS = ("stdio", "sse", "streamable-http")
 
 
-def main():
-    """MCP Server entry point."""
-    logger.info("Starting grandMA2 MCP Server...")
-    logger.info(f"Connecting to grandMA2: {_GMA_HOST}:{_GMA_PORT}")
+_LOOPBACK_ADDRESSES = frozenset({"127.0.0.1", "::1", "localhost"})
 
-    # Warn if using factory-default credentials
+
+def _check_network_security() -> None:
+    """Emit startup warnings for insecure network configurations.
+
+    Checks three conditions (non-fatal — all warnings, not errors):
+    1. GMA_HOST is not loopback → Telnet credentials travel in cleartext
+       over the network; the 3-layer permission model can be bypassed by
+       anyone who can reach port 30000 directly.
+    2. Any security-bypass env var is enabled → an entire permission layer
+       is disabled.
+    3. Factory-default credentials are still in use.
+    """
+    # --- Remote host check ---
+    if _GMA_HOST not in _LOOPBACK_ADDRESSES:
+        logger.warning(
+            "GMA_HOST=%s is not loopback. Telnet credentials travel in "
+            "cleartext and port %d is reachable from the network — the "
+            "OAuth/rights/license permission layers can be bypassed by "
+            "anyone with direct network access. See "
+            "doc/network-topology.md for the recommended co-located "
+            "deployment.",
+            _GMA_HOST, _GMA_PORT,
+        )
+
+    # --- Bypass env var check ---
+    _bypass_vars = {
+        "GMA_AUTH_BYPASS": "OAuth scope enforcement",
+        "GMA_RIGHTS_BYPASS": "MA2 native rights enforcement",
+        "GMA_LICENSE_BYPASS": "license tier gating",
+    }
+    for var, description in _bypass_vars.items():
+        if os.getenv(var, "0") == "1":
+            logger.warning(
+                "%s=1 — %s is DISABLED. Do not use in production.", var, description,
+            )
+
+    # --- Factory-default credential check ---
     if _GMA_USER == "administrator" and _GMA_PASSWORD == "admin":
         logger.warning(
             "Using factory-default credentials (administrator/admin). "
             "Set GMA_USER and GMA_PASSWORD environment variables for "
             "network deployments."
         )
+
+
+def main():
+    """MCP Server entry point."""
+    logger.info("Starting grandMA2 MCP Server...")
+    logger.info(f"Connecting to grandMA2: {_GMA_HOST}:{_GMA_PORT}")
+
+    _check_network_security()
 
     # Select transport from environment (default: stdio for Claude Code / Claude Desktop)
     transport = os.environ.get("GMA_TRANSPORT", "stdio").lower()

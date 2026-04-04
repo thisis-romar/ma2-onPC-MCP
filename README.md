@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.31.1
+version: 3.32.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-04T19:32:14Z
+last_updated: 2026-04-04T20:12:50Z
 ---
 
 <p align="center">
@@ -887,15 +887,26 @@ Every grandMA2 keyword is classified into one of three risk tiers. The `_handle_
 > [!IMPORTANT]
 > **Command injection prevention:** Line breaks (`\r`, `\n`) are rejected before any command reaches the console. The telnet client strips them as a defense-in-depth measure.
 
+### Network Hardening
+
+The 3-layer model protects against the AI agent but **not** against direct network access to port 30000. The supported deployment co-locates the MCP server on the same machine as grandMA2 onPC with a host firewall restricting Telnet to loopback:
+
+```bash
+# Lock down TCP 30000 to localhost (MA-Net2 multicast unaffected)
+sudo bash scripts/lockdown_firewall.sh --apply
+```
+
+The server's `_check_network_security()` function warns at startup if `GMA_HOST` is not loopback, any bypass variable is enabled, or factory-default credentials are in use. See [`doc/network-topology.md`](doc/network-topology.md) for the full deployment diagram.
+
 ### Keyword Classification
 
-The vocabulary classifies all **156 grandMA2 keywords** into categories:
+The vocabulary classifies all **158 grandMA2 keywords** into categories:
 
 | Category | Count | Description | Examples |
 |----------|-------|-------------|----------|
 | `OBJECT` | 56 | Console objects (nouns) | Channel, Fixture, Group, Preset, Executor |
-| `FUNCTION` | 90 | Actions (verbs) | Store, Delete, Go, At, Kill, List, Info |
-| `HELPING` | 5 | Syntax connectors | And, Thru, Fade, Delay, If |
+| `FUNCTION` | 89 | Actions (verbs) | Store, Delete, Go, At, Kill, List, Info |
+| `HELPING` | 7 | Syntax connectors | And, Thru, Fade, Delay, If |
 | `SPECIAL_CHAR` | 6 | Operator symbols | Plus `+`, Minus `-`, Dot `.`, Slash `/` |
 
 <details>

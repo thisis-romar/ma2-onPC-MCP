@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.11.1
+version: 4.12.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-04T19:32:14Z
+last_updated: 2026-04-04T20:12:50Z
 ---
 
 # Project Rules
@@ -90,24 +90,13 @@ date -u +%Y-%m-%dT%H:%M:%SZ
 ## Development Commands
 
 ```bash
-# Run all tests
-uv run python -m pytest -v
-
-# Run a subset
-uv run python -m pytest tests/test_vocab.py
-
-# Start MCP server
-uv run python -m src.server
-
-# Ingest repo into RAG (zero-vector, no API key — runs on every commit)
-uv run python scripts/rag_ingest.py --root . --provider zero
-
-# Install git hooks
-make install-hooks
-
-# Audit MD counts (auto-runs in pre-push; use --fix to auto-repair)
-uv run python scripts/audit_md_counts.py
-uv run python scripts/audit_md_counts.py --fix
+uv run python -m pytest -v                                    # all tests
+uv run python -m pytest tests/test_vocab.py                   # subset
+uv run python -m src.server                                   # start MCP server
+uv run python scripts/rag_ingest.py --root . --provider zero  # RAG ingest (zero-vector)
+make install-hooks                                             # git hooks (pre-commit/pre-push/stop)
+uv run python scripts/audit_md_counts.py                      # audit MD counts (runs in pre-push)
+uv run python scripts/audit_md_counts.py --fix                # auto-fix stale counts
 ```
 
 ---
@@ -171,6 +160,13 @@ uv run python scripts/audit_md_counts.py --fix
 - **`new_show` without `/globalsettings` disables Telnet** — always keep `preserve_connectivity=True`.
 - **New tools must be added to `_OPERATION_MIN_RIGHT`** in `src/rights.py` — omission defaults to `MA2Right.NONE` (read-only).
 
+**Network hardening** — the 3-layer model protects against the AI agent, NOT against direct network access to port 30000:
+
+- The MCP server must run **co-located** with grandMA2 onPC (same machine).
+- Host firewall must restrict TCP 30000 to loopback: `sudo bash scripts/lockdown_firewall.sh --apply`.
+- `_check_network_security()` in `src/server.py` warns at startup if `GMA_HOST` is not loopback, any bypass var is enabled, or factory credentials are in use.
+- See `doc/network-topology.md` for the full deployment diagram.
+
 ---
 
 ## License Tier Feature Gating
@@ -227,6 +223,7 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 | `.claude/rules/openspace-layer.md` | Telemetry, skills, SkillImprover, LTM compression |
 | `.claude/rules/rag-pipeline.md` | RAG ingest scripts, embedding providers, web docs |
 | `.claude/rules/markdown-frontmatter.md` | Front matter requirements for new/edited .md files |
+| `.claude/rules/content-filter-avoidance.md` | Workarounds for writing LICENSE/legal text files |
 
 ---
 
@@ -248,27 +245,3 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_197_tools_mapped` will fail.
 - Do not set `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, or `GMA_LICENSE_BYPASS=1` in production — dev/test only.
 
----
-
-## Content Filter Avoidance
-
-Anthropic's API content filter may block output containing large blocks of legal/license text (e.g. the full BSL 1.1 or Apache 2.0 license body). This manifests as:
-
-```
-API Error: 400 {"type":"error","error":{"type":"invalid_request_error",
-"message":"Output blocked by content filtering policy"}}
-```
-
-**Workarounds when writing or editing LICENSE-type files:**
-
-1. **Use Bash heredocs** instead of the `Write` tool — shell output bypasses the content filter:
-   ```bash
-   cat > LICENSE << 'ENDOFLICENSE'
-   ... license text ...
-   ENDOFLICENSE
-   ```
-2. **Split into small chunks** — write the file in 2-3 parts (header, terms, footer) using `Edit` or multiple `Bash` calls.
-3. **Reference instead of inline** — for LICENSE files, write only the parameter block (Licensor, Change Date, etc.) and reference the canonical BSL 1.1 text by URL.
-4. **Avoid the `Write` tool for full license rewrites** — the content filter evaluates the entire tool output payload; large legal text blocks are most likely to trigger it.
-
-This applies to any file containing restrictive legal language (LICENSE, TERMS.md, EULA, etc.).
