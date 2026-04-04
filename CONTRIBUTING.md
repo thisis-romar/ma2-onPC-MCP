@@ -144,4 +144,4 @@ last_updated: YYYY-MM-DDTHH:MM:SSZ
 
 ## No CLA Required
 
-Contributions are accepted under the terms of the Apache License 2.0. By submitting a pull request, you confirm that you have the right to license your contribution under the Apache License 2.0 and that you do so. No separate Contributor License Agreement is required.
+Contributions are accepted under the terms of the Business Source License 1.1 (BSL 1.1). By submitting a pull request, you confirm that you have the right to license your contribution under the BSL 1.1 and that you do so. No separate Contributor License Agreement is required.

@@ -28,4 +28,4 @@ This extension registers your ma2 onPC MCP server for AI assistants in VS Code u
 - Your Python environment and dependencies set up for the MCP server
 
 ---
-Apache 2.0 License
+BSL 1.1 License — see [LICENSE](LICENSE)
