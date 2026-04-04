@@ -11,11 +11,16 @@ Provides:
   - parse_telnet_feedback(): classify any tool response string
   - is_permitted(): check if a tool is allowed at a given rights level
   - min_right_for_tool(): lookup minimum MA2Right for a named tool
+  - get_session_ma2_right(): derive MA2Right from OAuth scope tier
+  - check_permission(): unified scope ∩ MA2Right gate
 
-NOTE: check_permission(), _OPERATION_MIN_RIGHT, and @require_ma2_right (in
-src/auth.py) are defined but NOT yet wired into the tool decorator stack in
-src/server.py.  All 161 tools currently use @require_scope(OAuthScope.*) only.
-This infrastructure is ready for future 3-layer enforcement activation.
+All 197 tools are mapped in ``_OPERATION_MIN_RIGHT``.  The ``_handle_errors``
+decorator in ``src/server.py`` calls ``is_permitted()`` at runtime before any
+Telnet I/O, enforcing Layer 2 of the 3-layer permission model.
+
+Environment variables:
+    GMA_RIGHTS_BYPASS: Set to "1" to bypass rights checks (dev/test only).
+                       WARNING: never set in production.
 """
 
 from __future__ import annotations
@@ -48,6 +53,47 @@ _RIGHT_ORDER: dict[str, int] = {
 
 def _right_tier(right: MA2Right) -> int:
     return _RIGHT_ORDER.get(right, 0)
+
+
+# Scope-tier → MA2Right mapping (mirrors OAUTH_TIER_SCOPES → MA2Right ladder)
+_TIER_TO_RIGHT: dict[int, MA2Right] = {
+    0: MA2Right.NONE,
+    1: MA2Right.PLAYBACK,
+    2: MA2Right.PRESETS,
+    3: MA2Right.PROGRAM,
+    4: MA2Right.SETUP,
+    5: MA2Right.ADMIN,
+}
+
+
+def get_session_ma2_right() -> MA2Right:
+    """Derive the current session's MA2Right from the OAuth scope tier.
+
+    The mapping is deterministic: the credential resolver
+    (``src/credentials.py``) already maps scope tier → console user →
+    MA2Right, so we can infer the right without a Telnet round-trip.
+
+    Respects ``GMA_RIGHTS_BYPASS=1`` (returns ADMIN, same as
+    ``GMA_AUTH_BYPASS`` for scopes).
+
+    Returns:
+        MA2Right matching the highest scope tier granted by ``GMA_SCOPE``.
+    """
+    import os
+    if os.getenv("GMA_RIGHTS_BYPASS", "0") == "1":
+        return MA2Right.ADMIN
+
+    from src.auth import get_granted_scopes  # deferred to avoid circular import
+    from src.commands.constants import OAUTH_TIER_SCOPES
+
+    granted = get_granted_scopes()
+    highest_tier = 0
+    for tier_num in range(5, -1, -1):
+        tier_scopes = {str(s) for s in OAUTH_TIER_SCOPES.get(tier_num, [])}
+        if tier_scopes and tier_scopes <= granted:
+            highest_tier = tier_num
+            break
+    return _TIER_TO_RIGHT.get(highest_tier, MA2Right.NONE)
 
 
 # ---------------------------------------------------------------------------
@@ -179,6 +225,92 @@ _OPERATION_MIN_RIGHT: dict[str, MA2Right] = {
     "inspect_sessions":           MA2Right.ADMIN,
     "delete_user":                MA2Right.ADMIN,
     "register_decomposition_rule": MA2Right.ADMIN,
+    # ── none (0) — read-only / query tools ───────────────────────
+    "check_pool_slot_availability": MA2Right.NONE,
+    "classify_show_mode":         MA2Right.NONE,
+    "detect_dmx_address_conflicts": MA2Right.NONE,
+    "discover_fixture_type_attributes": MA2Right.NONE,
+    "generate_compliance_report": MA2Right.NONE,
+    "get_executor_state":         MA2Right.NONE,
+    "get_telemetry_report":       MA2Right.NONE,
+    "list_agenda_events":         MA2Right.NONE,
+    "list_effects_pool":          MA2Right.NONE,
+    "list_filters":               MA2Right.NONE,
+    "list_forms":                 MA2Right.NONE,
+    "list_images":                MA2Right.NONE,
+    "list_layouts":               MA2Right.NONE,
+    "list_macro_jump_targets":    MA2Right.NONE,
+    "list_psr_objects":           MA2Right.NONE,
+    "list_timecode_events":       MA2Right.NONE,
+    "list_timers":                MA2Right.NONE,
+    "list_worlds":                MA2Right.NONE,
+    "preview_executor_content":   MA2Right.NONE,
+    "rdm_get_info":               MA2Right.NONE,
+    "scan_page_executor_layout":  MA2Right.NONE,
+    "validate_preset_references": MA2Right.NONE,
+    "plugin_management":          MA2Right.NONE,
+    # ── none (0) — orchestration read-only tools ─────────────────
+    "get_console_state":          MA2Right.NONE,
+    "get_park_ledger":            MA2Right.NONE,
+    "get_filter_state":           MA2Right.NONE,
+    "get_world_state":            MA2Right.NONE,
+    "get_matricks_state":         MA2Right.NONE,
+    "get_programmer_selection":   MA2Right.NONE,
+    "hydrate_sequences":          MA2Right.NONE,
+    "get_sequence_memory":        MA2Right.NONE,
+    "assert_selection_count":     MA2Right.NONE,
+    "assert_preset_exists":       MA2Right.NONE,
+    "get_executor_detail":        MA2Right.NONE,
+    "diff_console_state":         MA2Right.NONE,
+    "get_showfile_info":          MA2Right.NONE,
+    "watch_system_var":           MA2Right.NONE,
+    "assert_fixture_exists":      MA2Right.NONE,
+    "get_tool_metrics":           MA2Right.NONE,
+    "list_skills":                MA2Right.NONE,
+    "get_skill":                  MA2Right.NONE,
+    "get_improvement_suggestions": MA2Right.NONE,
+    "assert_showfile_unchanged":  MA2Right.NONE,
+    "plan_agent_goal":            MA2Right.NONE,
+    # ── playback (1) — executor control tools ────────────────────
+    "clear_effects_on_page":      MA2Right.PLAYBACK,
+    "control_chaser":             MA2Right.PLAYBACK,
+    "control_special_master":     MA2Right.PLAYBACK,
+    "master_control":             MA2Right.PLAYBACK,
+    "modulate_effect":            MA2Right.PLAYBACK,
+    "normalize_page_faders":      MA2Right.PLAYBACK,
+    # ── presets (2) — programmer / attribute tools ────────────────
+    "filter_fixture_selection":   MA2Right.PRESETS,
+    "programming_action":         MA2Right.PRESETS,
+    "remap_fixture_ids":          MA2Right.PRESETS,
+    "set_effect_param":           MA2Right.PRESETS,
+    "update_object":              MA2Right.PRESETS,
+    "promote_session_to_skill":   MA2Right.PRESETS,
+    # ── program (3) — store / edit / agent execution tools ────────
+    "assign_effect_to_executor":  MA2Right.PROGRAM,
+    "call_plugin_tool":           MA2Right.PROGRAM,
+    "reload_all_plugins":         MA2Right.PROGRAM,
+    "run_lua_script":             MA2Right.PROGRAM,
+    "set_advanced_timing":        MA2Right.PROGRAM,
+    "set_executor_priority":      MA2Right.PROGRAM,
+    "store_agenda":               MA2Right.PROGRAM,
+    "confirm_destructive_steps":  MA2Right.PROGRAM,
+    "abort_task":                 MA2Right.PROGRAM,
+    "retry_failed_steps":         MA2Right.PROGRAM,
+    "run_agent_goal":             MA2Right.PROGRAM,
+    # ── setup (4) — console config / RDM / world tools ───────────
+    "label_world":                MA2Right.SETUP,
+    "lock_console_ui":            MA2Right.SETUP,
+    "rdm_discover":               MA2Right.SETUP,
+    "rdm_patch":                  MA2Right.SETUP,
+    "store_world":                MA2Right.SETUP,
+    "unlock_console_ui":          MA2Right.SETUP,
+    # ── admin (5) — login / PSR / system tools ───────────────────
+    "console_login":              MA2Right.ADMIN,
+    "console_logout":             MA2Right.ADMIN,
+    "partial_show_read":          MA2Right.ADMIN,
+    "prepare_partial_show_read":  MA2Right.ADMIN,
+    "system_admin":               MA2Right.ADMIN,
+    "approve_skill":              MA2Right.ADMIN,
 }
 
 # MA2 console error code for rights denial
@@ -351,9 +483,6 @@ def check_permission(
 ) -> PermissionResult:
     """
     Unified pre-execution permission gate: scope ∩ MA2Right = FINAL AUTHORITY.
-
-    NOTE: This function is defined but NOT yet called by any tool decorator.
-    It is infrastructure for future 3-layer enforcement activation.
 
     Enforces that BOTH layers agree before a tool is allowed to proceed:
       - Layer 1 (OAuth scope): the caller's granted scopes cover the required scope

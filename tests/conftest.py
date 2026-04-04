@@ -29,6 +29,19 @@ def _auth_bypass(monkeypatch):
     """Set GMA_AUTH_BYPASS=1 for every test unless it opts out via monkeypatch."""
     monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
 
+
+# ---------------------------------------------------------------------------
+# MA2 native rights bypass — enable for all unit/integration tests
+# ---------------------------------------------------------------------------
+# Same pattern as auth bypass above. Tests that exercise rights enforcement
+# opt out via ``monkeypatch.delenv("GMA_RIGHTS_BYPASS", raising=False)``.
+
+
+@pytest.fixture(autouse=True)
+def _rights_bypass(monkeypatch):
+    """Set GMA_RIGHTS_BYPASS=1 for every test unless it opts out via monkeypatch."""
+    monkeypatch.setenv("GMA_RIGHTS_BYPASS", "1")
+
 # ---------------------------------------------------------------------------
 # Live-test pacing — prevent overwhelming grandMA2 onPC with rapid commands
 # ---------------------------------------------------------------------------

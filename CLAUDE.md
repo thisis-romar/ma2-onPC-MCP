@@ -27,7 +27,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
-| `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`; `@require_ma2_right` defined, not yet applied to tools) |
+| `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
 | `src/license.py` | BSL 1.1 license tier enforcement (`LicenseTier`, `require_tier`, `has_tier`, `get_license_tier`) |
 | `src/license_tiers.py` | `TOOL_LICENSE_TIERS` dict — maps tool function names → `LicenseTier` (COMMUNITY/PROFESSIONAL/ENTERPRISE) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |
@@ -104,10 +104,11 @@ make install-hooks
 1. Add command builder in `src/commands/` — pure, returns `str`, no I/O.
 2. Export from `src/commands/__init__.py`.
 3. Register in `src/server.py` with `@mcp.tool()` and `@_handle_errors`.
-4. Apply `@require_ma2_right(MA2Right.X)` — see `doc/ma2-rights-matrix.json`.
-5. If DESTRUCTIVE, accept `confirm_destructive: bool = False` and gate on it.
-6. Assign a license tier in `src/license_tiers.py` (omit for COMMUNITY / free).
-7. Add tests in `tests/test_<feature>.py`.
+4. Apply `@require_scope(OAuthScope.X)` — see `doc/ma2-rights-matrix.json`.
+5. Add an entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` mapping the tool function name → `MA2Right` tier. This is **required** — `_handle_errors` enforces it at runtime.
+6. If DESTRUCTIVE, accept `confirm_destructive: bool = False` and gate on it.
+7. Assign a license tier in `src/license_tiers.py` (omit for COMMUNITY / free).
+8. Add tests in `tests/test_<feature>.py`.
 
 ### Adding a new MCP resource
 - Use `@mcp.resource("ma2://category/name")` for static docs or URI-addressable state.
@@ -134,7 +135,15 @@ make install-hooks
 
 ## Safety Rules
 
-Three tiers enforced before any command reaches the console:
+**3-layer permission model:** `scope ∩ ma2_rights ∩ console_floor = FINAL AUTHORITY`
+
+| Layer | Enforcement | Bypass |
+|-------|-------------|--------|
+| OAuth scope | `@require_scope` decorator (src/auth.py) | `GMA_AUTH_BYPASS=1` |
+| MA2 native rights | `is_permitted()` in `_handle_errors` (src/rights.py) | `GMA_RIGHTS_BYPASS=1` |
+| Console floor | grandMA2 Error #72 (passive, irrevocable) | None |
+
+**Risk tiers** enforced before any command reaches the console:
 
 | Tier | Examples | Policy |
 |------|----------|--------|
@@ -146,6 +155,7 @@ Three tiers enforced before any command reaches the console:
 - Never pass `confirm_destructive=True` automatically.
 - Line breaks (`\r`, `\n`) in command strings are rejected by the safety gate.
 - **`new_show` without `/globalsettings` disables Telnet** — always keep `preserve_connectivity=True`.
+- **New tools must be added to `_OPERATION_MIN_RIGHT`** in `src/rights.py` — omission defaults to `MA2Right.NONE` (read-only).
 
 ---
 

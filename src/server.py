@@ -27,6 +27,7 @@ from mcp.server.fastmcp import FastMCP
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, has_scope, require_scope
+from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
 from src.commands import (
     SPECIAL_MASTER_NAMES,
     attribute_at,
@@ -598,9 +599,11 @@ def _handle_errors(func):
     (controlled by the ``GMA_TELEMETRY`` env var; default enabled).
     Risk tier and operator identity are inferred once at decoration time.
     License tier is resolved from ``TOOL_LICENSE_TIERS`` at decoration time.
+    MA2 native rights are checked at runtime via ``_OPERATION_MIN_RIGHT``.
     """
     _risk_tier = infer_risk_tier(func)
     _required_tier = TOOL_LICENSE_TIERS.get(func.__name__)
+    _required_right = min_right_for_tool(func.__name__)
 
     @functools.wraps(func)
     async def wrapper(*args, **kwargs) -> str:
@@ -614,6 +617,19 @@ def _handle_errors(func):
                 ),
                 "license_required": str(_required_tier),
                 "current_tier": str(get_license_tier()),
+            }, indent=2)
+
+        # --- MA2 native rights gate (before any console I/O) ---
+        session_right = get_session_ma2_right()
+        if not is_permitted(func.__name__, session_right):
+            return json.dumps({
+                "blocked": True,
+                "error": (
+                    f"Tool '{func.__name__}' requires MA2 rights "
+                    f"'{_required_right.value}' (current: '{session_right.value}')."
+                ),
+                "required_ma2_right": _required_right.value,
+                "current_ma2_right": session_right.value,
             }, indent=2)
 
         t0 = time.monotonic()

@@ -9,12 +9,22 @@ Covers:
   - parse_telnet_feedback() classification paths
   - RightsContext helpers
   - min_right_for_tool() / is_permitted()
+  - get_session_ma2_right() derivation from scope tier
+  - _OPERATION_MIN_RIGHT completeness (all 197 tools)
+  - _handle_errors MA2Right gate integration
 """
+
+import os
+import re
+
+import pytest
 
 from src.commands.constants import MA2Right
 from src.rights import (
     FeedbackClass,
     RightsContext,
+    _OPERATION_MIN_RIGHT,
+    get_session_ma2_right,
     is_permitted,
     min_right_for_tool,
     parse_telnet_feedback,
@@ -146,3 +156,86 @@ class TestRightsContext:
     def test_default_rights_is_none(self):
         rc = RightsContext()
         assert rc.user_right == MA2Right.NONE
+
+
+# ── get_session_ma2_right() ────────���───────────────────────────────────────
+
+class TestGetSessionMa2Right:
+    def test_tier0_returns_none(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.delenv("GMA_RIGHTS_BYPASS", raising=False)
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        assert get_session_ma2_right() == MA2Right.NONE
+
+    def test_tier1_returns_playback(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:1")
+        monkeypatch.delenv("GMA_RIGHTS_BYPASS", raising=False)
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        assert get_session_ma2_right() == MA2Right.PLAYBACK
+
+    def test_tier3_returns_program(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:3")
+        monkeypatch.delenv("GMA_RIGHTS_BYPASS", raising=False)
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        assert get_session_ma2_right() == MA2Right.PROGRAM
+
+    def test_tier5_returns_admin(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:5")
+        monkeypatch.delenv("GMA_RIGHTS_BYPASS", raising=False)
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        assert get_session_ma2_right() == MA2Right.ADMIN
+
+    def test_bypass_returns_admin(self, monkeypatch):
+        monkeypatch.setenv("GMA_SCOPE", "tier:0")
+        monkeypatch.setenv("GMA_RIGHTS_BYPASS", "1")
+        assert get_session_ma2_right() == MA2Right.ADMIN
+
+    def test_default_scope_returns_none(self, monkeypatch):
+        monkeypatch.delenv("GMA_SCOPE", raising=False)
+        monkeypatch.delenv("GMA_RIGHTS_BYPASS", raising=False)
+        monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
+        assert get_session_ma2_right() == MA2Right.NONE
+
+
+# ── _OPERATION_MIN_RIGHT completeness ───��──────────────────────────────────
+
+class TestOperationMinRightCompleteness:
+    @staticmethod
+    def _get_all_tool_names() -> set[str]:
+        """Extract all @mcp.tool() function names from server.py and orchestration."""
+        tool_names = set()
+        for path in ("src/server.py", "src/server_orchestration_tools.py"):
+            with open(path) as f:
+                lines = f.readlines()
+            for i, line in enumerate(lines):
+                if "@mcp.tool()" in line:
+                    for j in range(i + 1, min(i + 5, len(lines))):
+                        m = re.match(r"\s*async def (\w+)\(", lines[j])
+                        if m:
+                            tool_names.add(m.group(1))
+                            break
+        return tool_names
+
+    def test_all_197_tools_mapped(self):
+        """Every registered MCP tool must have an entry in _OPERATION_MIN_RIGHT."""
+        all_tools = self._get_all_tool_names()
+        assert len(all_tools) == 197, f"Expected 197 tools, found {len(all_tools)}"
+        unmapped = all_tools - set(_OPERATION_MIN_RIGHT)
+        assert unmapped == set(), (
+            f"{len(unmapped)} tools missing from _OPERATION_MIN_RIGHT: "
+            f"{sorted(unmapped)}"
+        )
+
+    def test_no_orphan_entries(self):
+        """Every entry in _OPERATION_MIN_RIGHT must correspond to a real tool."""
+        all_tools = self._get_all_tool_names()
+        orphans = set(_OPERATION_MIN_RIGHT) - all_tools
+        assert orphans == set(), (
+            f"{len(orphans)} orphan entries in _OPERATION_MIN_RIGHT: "
+            f"{sorted(orphans)}"
+        )
+
+    def test_all_values_are_valid_ma2right(self):
+        valid = set(MA2Right)
+        for tool_name, right in _OPERATION_MIN_RIGHT.items():
+            assert right in valid, f"{tool_name} has invalid MA2Right: {right}"
