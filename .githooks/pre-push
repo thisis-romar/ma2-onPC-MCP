@@ -1,13 +1,71 @@
 #!/usr/bin/env bash
 # .githooks/pre-push
-# Runs the test suite and MD count audit before pushing.
-# Prevents broken code and stale documentation from reaching remote.
+# IP protection checks + test suite + MD count audit before pushing.
+# Prevents broken code, stale docs, and IP leaks from reaching remote.
 # Install with: make install-hooks
 
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
+
+FAIL=0
+
+# ── IP Protection Checks ────────────────────────────────────────────────
+
+echo "[pre-push] Running IP protection checks..."
+
+# 1. BSL 1.1 badge in README
+if [ -f "README.md" ] && ! grep -q "BSL_1.1" README.md; then
+    echo "ERROR: README.md is missing the BSL 1.1 license badge"
+    FAIL=1
+fi
+
+# 2. LICENSE file presence and content
+if [ ! -f "LICENSE" ]; then
+    echo "ERROR: LICENSE file is missing"
+    FAIL=1
+elif ! grep -q "Business Source License" LICENSE; then
+    echo "ERROR: LICENSE file does not contain Business Source License text"
+    FAIL=1
+fi
+
+# 3. Feature gating file presence
+if [ ! -f "src/license_tiers.py" ]; then
+    echo "ERROR: src/license_tiers.py (feature gating) is missing"
+    FAIL=1
+fi
+
+# 4. NOTICE file presence
+if [ ! -f "NOTICE" ]; then
+    echo "ERROR: NOTICE file is missing"
+    FAIL=1
+fi
+
+# 5. Copyright header spot-check — src/server.py
+if [ -f "src/server.py" ] && ! head -3 "src/server.py" | grep -q "Copyright"; then
+    echo "ERROR: src/server.py is missing copyright header"
+    FAIL=1
+fi
+
+# 6. Version consistency — pyproject.toml vs src/__init__.py
+if [ -f "pyproject.toml" ] && [ -f "src/__init__.py" ]; then
+    V_PYPROJECT=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+    V_INIT=$(grep -oP '__version__\s*=\s*"\K[^"]+' src/__init__.py | head -1)
+    if [ -n "$V_PYPROJECT" ] && [ -n "$V_INIT" ] && [ "$V_PYPROJECT" != "$V_INIT" ]; then
+        echo "ERROR: Version mismatch — pyproject.toml=$V_PYPROJECT vs src/__init__.py=$V_INIT"
+        FAIL=1
+    fi
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+    echo "[pre-push] IP protection checks FAILED. Push blocked."
+    exit 1
+fi
+
+echo "[pre-push] IP protection checks passed."
+
+# ── Test Suite ───────────────────────────────────────────────────────────
 
 echo "[pre-push] Running test suite..."
 uv run python -m pytest -x -q

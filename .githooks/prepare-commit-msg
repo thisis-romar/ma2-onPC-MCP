@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# .githooks/prepare-commit-msg
+# Blocks trade secret language from commit messages.
+# Install with: make install-hooks
+
+COMMIT_MSG_FILE="$1"
+
+# 12 trade secret patterns that must never appear in commit messages
+PATTERNS=(
+    "monetization"
+    "pricing tier"
+    "revenue projection"
+    "marketplace funnel"
+    "IP valuation"
+    "commercial strategy"
+    "subscription model"
+    "freemium"
+    "conversion rate"
+    "paywall"
+    "license revenue"
+    "SaaS pricing"
+)
+
+for pattern in "${PATTERNS[@]}"; do
+    if grep -iq "$pattern" "$COMMIT_MSG_FILE"; then
+        echo "ERROR: Commit message contains trade secret language: '$pattern'"
+        echo "Remove this language before committing."
+        exit 1
+    fi
+done

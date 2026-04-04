@@ -12,5 +12,6 @@ install-hooks:
 	git config core.hooksPath .githooks
 	chmod +x .githooks/pre-commit
 	chmod +x .githooks/pre-push
+	chmod +x .githooks/prepare-commit-msg
 	chmod +x .githooks/stop-git-check.sh
-	@echo "Git hooks installed. Pre-commit: RAG index. Pre-push: test suite. Stop: git check."
+	@echo "Git hooks installed. Pre-commit: IP checks + RAG index. Pre-push: IP checks + test suite. Prepare-commit-msg: trade secret filter. Stop: git check."
