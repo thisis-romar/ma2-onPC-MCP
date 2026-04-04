@@ -1,7 +1,7 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.10.0
+version: 4.10.1
 created: 2026-03-01T23:37:51Z
 last_updated: 2026-04-04T00:00:00Z
 ---
@@ -74,6 +74,12 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `time` | `npx -y @modelcontextprotocol/server-time` | Accurate timestamps for `.md` front matter |
 
 When writing or editing any `.md` file, call `get_current_time` first and use the returned `datetime` value for `created` / `last_updated` front matter fields.
+
+**Fallback:** If the MCP time server is unavailable (connection refused, tool not found, or `npx` missing), get the current time from the system instead:
+
+```bash
+date -u +%Y-%m-%dT%H:%M:%SZ
+```
 
 ---
 

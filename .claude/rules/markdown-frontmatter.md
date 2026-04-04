@@ -1,7 +1,7 @@
 ---
 title: Markdown Front Matter Rules
 description: Required YAML front matter fields and conventions for all .md files in this repo
-version: 1.1.0
+version: 1.2.0
 created: 2026-03-29T21:44:45Z
 last_updated: 2026-04-04T00:00:00Z
 ---
@@ -25,6 +25,14 @@ All `.md` files in this repository **must** include YAML front matter (`---` fen
 1. **New `.md` files** — add front matter before writing any content.
 2. **Editing existing `.md` files** — update `last_updated`. Bump `version` for non-trivial changes.
 3. **Do not** backfill `created` dates — use the actual date the file was created.
+
+## Timestamp sourcing
+
+Use `get_current_time` from the MCP time server (`.mcp.json`) for all `created` / `last_updated` values. If the time server is unavailable, fall back to the system clock:
+
+```bash
+date -u +%Y-%m-%dT%H:%M:%SZ
+```
 
 ## Version discipline
 
