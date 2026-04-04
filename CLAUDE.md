@@ -27,7 +27,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
-| `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
+| `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`; `@require_ma2_right` defined, not yet applied to tools) |
 | `src/license.py` | BSL 1.1 license tier enforcement (`LicenseTier`, `require_tier`, `has_tier`, `get_license_tier`) |
 | `src/license_tiers.py` | `TOOL_LICENSE_TIERS` dict — maps tool function names → `LicenseTier` (COMMUNITY/PROFESSIONAL/ENTERPRISE) |
 | `src/navigation.py` | cd + list + prompt parsing orchestration |

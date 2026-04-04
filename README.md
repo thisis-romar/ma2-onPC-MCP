@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.26.0
+version: 3.27.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-04T12:00:00Z
+last_updated: 2026-04-04T14:00:00Z
 ---
 
 <p align="center">
@@ -833,15 +833,15 @@ See [`vscode-mcp-provider/README.md`](vscode-mcp-provider/README.md) for full de
 
 ## Safety System
 
-GrandPA2-Buddy enforces a **3-layer model** where effective permissions are the intersection of all three — no single layer can expand privileges:
+GrandPA2-Buddy enforces a **2-layer active model** with a passive console floor. No single layer can expand privileges beyond what the others allow:
 
 ```
-scope ∩ policy ∩ ma2_rights = FINAL AUTHORITY
+oauth_scope ∩ confirm_destructive_gate → Telnet → ma2_native_rights (passive floor)
 ```
 
-### Layer 1 — OAuth Identity ([`src/auth.py`](src/auth.py))
+### Layer 1 — OAuth Scope Gate ([`src/auth.py`](src/auth.py))
 
-Six scope tiers map to console users created by [`scripts/bootstrap_console_users.py`](scripts/bootstrap_console_users.py):
+Every tool is decorated with `@require_scope(OAuthScope.*)` (161 decorators across `src/server.py`). Six scope tiers map to console users created by [`scripts/bootstrap_console_users.py`](scripts/bootstrap_console_users.py):
 
 | `GMA_SCOPE` | Console user | MA2 Rights | Can do |
 |-------------|-------------|-----------|--------|
@@ -852,28 +852,23 @@ Six scope tiers map to console users created by [`scripts/bootstrap_console_user
 | `tier:4` | `tech_director` | Setup (4) | Patch, fixture import, console setup |
 | `tier:5` | `administrator` | Admin (5) | User management, show load/delete |
 
-### Layer 2 — Policy Gate ([`src/rights.py`](src/rights.py))
+### Layer 2 — DESTRUCTIVE Confirmation Gate ([`src/server.py`](src/server.py))
 
-Every tool is annotated with `@require_ma2_right(MA2Right.X)` which enforces the OAuth scope requirement before any Telnet command is sent. The `check_permission()` utility provides a unified gate combining scope and rights checks:
+Tools that mutate or destroy show data require `confirm_destructive=True` as an explicit parameter. The `_handle_errors` decorator infers risk tier at decoration time and records it to telemetry. Without `confirm_destructive=True`, destructive tools return a `{"blocked": True}` response before any Telnet command is sent.
 
-```python
-result = check_permission("store_current_cue", granted_scopes, user_right)
-# scope ∩ MA2Right — both must pass
-if not result.allowed:
-    return result.as_block_response()
-```
+### Console Floor — MA2 Native Rights (passive enforcement)
 
-All 109 tools are mapped in [`doc/ma2-rights-matrix.json`](doc/ma2-rights-matrix.json).
-
-### Layer 3 — MA2 Native Rights (console enforcement)
-
-The Telnet session runs as a console user whose native rights are enforced by grandMA2 itself. Commands beyond that user's rights level are rejected with `Error #72` — an irrevocable floor that exists regardless of what Layer 1 or 2 permit.
+The Telnet session runs as a console user whose native rights are enforced by grandMA2 itself. Commands beyond that user's rights level are rejected with `Error #72` — an irrevocable floor that exists regardless of what Layer 1 or 2 permit. This is not checked by the MCP server; it is enforced by the console hardware/software.
 
 > Bootstrap required: On a fresh show, run `python scripts/bootstrap_console_users.py` as Administrator to create the 5 intermediate users. Only `Administrator` and `Guest` exist natively.
 
-### Risk Tiers (server-side gate)
+### Future: 3-Layer Enforcement (infrastructure ready)
 
-In addition to the 3-layer model, every keyword is classified into one of three risk tiers enforced by `_handle_errors`:
+[`src/rights.py`](src/rights.py) contains infrastructure for a third active layer: `@require_ma2_right` (decorator), `check_permission()` (unified gate), and `_OPERATION_MIN_RIGHT` (197-tool lookup table). These are defined but **not yet wired into the tool decorator stack**. When activated, the model becomes `scope ∩ policy ∩ ma2_rights`. See [`doc/ma2-rights-matrix.json`](doc/ma2-rights-matrix.json) for the full tool-to-right mapping.
+
+### Risk Tiers (server-side classification)
+
+Every keyword is classified into one of three risk tiers. `_handle_errors` infers the tier at decoration time for telemetry; `confirm_destructive` provides the active gate:
 
 | Tier | Description | Examples |
 |------|-------------|----------|

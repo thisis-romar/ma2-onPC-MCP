@@ -11,6 +11,11 @@ Provides:
   - parse_telnet_feedback(): classify any tool response string
   - is_permitted(): check if a tool is allowed at a given rights level
   - min_right_for_tool(): lookup minimum MA2Right for a named tool
+
+NOTE: check_permission(), _OPERATION_MIN_RIGHT, and @require_ma2_right (in
+src/auth.py) are defined but NOT yet wired into the tool decorator stack in
+src/server.py.  All 161 tools currently use @require_scope(OAuthScope.*) only.
+This infrastructure is ready for future 3-layer enforcement activation.
 """
 
 from __future__ import annotations
@@ -346,6 +351,9 @@ def check_permission(
 ) -> PermissionResult:
     """
     Unified pre-execution permission gate: scope ∩ MA2Right = FINAL AUTHORITY.
+
+    NOTE: This function is defined but NOT yet called by any tool decorator.
+    It is infrastructure for future 3-layer enforcement activation.
 
     Enforces that BOTH layers agree before a tool is allowed to proceed:
       - Layer 1 (OAuth scope): the caller's granted scopes cover the required scope
