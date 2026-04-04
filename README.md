@@ -3,7 +3,7 @@ title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
 version: 3.26.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-03T19:15:00Z
+last_updated: 2026-04-04T12:00:00Z
 ---
 
 <p align="center">
@@ -707,24 +707,24 @@ Eighteen read-only resources exposable to any MCP client. Use them for zero-teln
 
 | URI | Description |
 |-----|-------------|
-| `ma2://docs/rights-matrix` | OAuth scope → MA2Right mapping matrix (JSON) |
-| `ma2://docs/vocab-summary` | All 156 keywords with RiskTier and category (JSON) |
-| `ma2://docs/tool-taxonomy` | ML-clustered tool taxonomy — 150 base tools clustered into 14 categories (JSON) |
-| `ma2://docs/responsibility-map` | Module responsibility map for architectural decisions (Markdown) |
-| `ma2://docs/tool-surface-tiers` | Tier A/B/C classification for every tool (Markdown) |
-| `ma2://docs/volunteer-guide` | Plain-language volunteer operator guide: three-tier access model + Sunday preflight |
-| `ma2://docs/sb132-compliance` | SB 132 / CA Film Tax Credit safety documentation mapped to telemetry fields |
-| `ma2://docs/rdm-workflow` | RDM discovery, autopatch, and device info best practices |
-| `ma2://docs/lua-scripting` | grandMA2 Lua 5.2 scripting reference: `gma.*` namespace + common patterns |
-| `ma2://skills/{skill_id}` | Skill injection payload by ID — returns formatted user message ready for agent injection |
-| `ma2://busking/patterns` | Best-practice busking patterns: fader model, song macro protocol, live recovery |
-| `ma2://busking/effect-design` | Effect-to-executor assignment patterns, rate vs speed, MAtricks layering |
-| `ma2://busking/color-design` | HSB palette strategy, preset numbering, monochromatic constraint, color lock |
-| `ma2://docs/psr-guide` | PSR (Partial Show Read) workflow guide and best practices |
-| `ma2://docs/effects-reference` | Effects parameter reference: all 10 effect parameters with ranges |
-| `ma2://docs/timecode-reference` | Timecode show programming reference: SMPTE, events, tracks |
-| `ma2://docs/macro-reference` | Macro scripting reference: SetVar, conditionals, jump targets |
-| `ma2://docs/network-session` | Network session reference: JoinSession, TakeControl, SetIP |
+| [`ma2://docs/rights-matrix`](src/server.py) | OAuth scope → MA2Right mapping matrix (JSON) |
+| [`ma2://docs/vocab-summary`](src/server.py) | All 156 keywords with RiskTier and category (JSON) |
+| [`ma2://docs/tool-taxonomy`](src/server.py) | ML-clustered tool taxonomy — 150 base tools clustered into 14 categories (JSON) |
+| [`ma2://docs/responsibility-map`](src/server.py) | Module responsibility map for architectural decisions (Markdown) |
+| [`ma2://docs/tool-surface-tiers`](src/server.py) | Tier A/B/C classification for every tool (Markdown) |
+| [`ma2://docs/volunteer-guide`](src/server.py) | Plain-language volunteer operator guide: three-tier access model + Sunday preflight |
+| [`ma2://docs/sb132-compliance`](src/server.py) | SB 132 / CA Film Tax Credit safety documentation mapped to telemetry fields |
+| [`ma2://docs/rdm-workflow`](src/server.py) | RDM discovery, autopatch, and device info best practices |
+| [`ma2://docs/lua-scripting`](src/server.py) | grandMA2 Lua 5.2 scripting reference: `gma.*` namespace + common patterns |
+| [`ma2://skills/{skill_id}`](src/server.py) | Skill injection payload by ID — returns formatted user message ready for agent injection |
+| [`ma2://busking/patterns`](src/server.py) | Best-practice busking patterns: fader model, song macro protocol, live recovery |
+| [`ma2://busking/effect-design`](src/server.py) | Effect-to-executor assignment patterns, rate vs speed, MAtricks layering |
+| [`ma2://busking/color-design`](src/server.py) | HSB palette strategy, preset numbering, monochromatic constraint, color lock |
+| [`ma2://docs/psr-guide`](src/server.py) | PSR (Partial Show Read) workflow guide and best practices |
+| [`ma2://docs/effects-reference`](src/server.py) | Effects parameter reference: all 10 effect parameters with ranges |
+| [`ma2://docs/timecode-reference`](src/server.py) | Timecode show programming reference: SMPTE, events, tracks |
+| [`ma2://docs/macro-reference`](src/server.py) | Macro scripting reference: SetVar, conditionals, jump targets |
+| [`ma2://docs/network-session`](src/server.py) | Network session reference: JoinSession, TakeControl, SetIP |
 
 All resources are read-only — no console side-effects.
 
@@ -734,19 +734,19 @@ Thirteen workflow prompts that orchestrate tools into guided multi-step procedur
 
 | Prompt | Args | Description |
 |--------|------|-------------|
-| `preflight_destructive_change` | `operation`, `target`, `reason` | Safety pre-flight checklist before any DESTRUCTIVE tool call — checks rights, target existence, blind mode, and executor state |
-| `inspect_console` | `focus` | Guided read-only console state inspection — `full`, `playback`, `fixtures`, `show`, or `rights` |
-| `plan_cue_store` | `sequence_id`, `cue_number`, `fixture_selection`, `preset_or_values` | Plan a cue store operation with pre-flight and verification steps — does not execute |
-| `diagnose_playback_failure` | `executor_id`, `symptom` | Structured playback failure diagnosis — returns `fault_class`, `root_cause`, `recommended_actions` |
-| `load_show_safely` | `show_name` | Safe show loading checklist — prevents accidental Telnet disconnection via missing `/globalsettings` |
-| `bootstrap_rights_users` | *(none)* | Guided provisioning of the six-tier MA2 rights user accounts |
-| `volunteer_sunday_preflight` | `show_name`, `campus_name` | SAFE_READ preflight for volunteer operators — GREEN/AMBER/RED show verification before service |
-| `generate_busking_template` | `target_page`, `fixture_strategy` | Build a complete busking template from current patch — groups, presets, effects, executor layout |
-| `pre_show_health_check` | `sequence_ids`, `strict` | Full show health audit — showfile, presets, executors, cues, parks, and DMX with scored findings |
-| `adapt_show_to_venue` | `source_show_description`, `new_venue_notes` | Cross-venue show adaptation — patch comparison, group remapping, preset verification |
-| `migrate_show_via_psr` | `source_show`, `target_objects` | PSR-based cross-show content migration with slot conflict detection |
-| `program_effect` | `fixture_group`, `effect_type`, `speed_bpm` | Guided effect programming workflow with fixture selection and parameter setting |
-| `build_timecode_show` | `sequence_ids`, `smpte_start` | Build a SMPTE timecode show with cue-to-timestamp mapping |
+| [`preflight_destructive_change`](src/server.py) | `operation`, `target`, `reason` | Safety pre-flight checklist before any DESTRUCTIVE tool call — checks rights, target existence, blind mode, and executor state |
+| [`inspect_console`](src/server.py) | `focus` | Guided read-only console state inspection — `full`, `playback`, `fixtures`, `show`, or `rights` |
+| [`plan_cue_store`](src/server.py) | `sequence_id`, `cue_number`, `fixture_selection`, `preset_or_values` | Plan a cue store operation with pre-flight and verification steps — does not execute |
+| [`diagnose_playback_failure`](src/server.py) | `executor_id`, `symptom` | Structured playback failure diagnosis — returns `fault_class`, `root_cause`, `recommended_actions` |
+| [`load_show_safely`](src/server.py) | `show_name` | Safe show loading checklist — prevents accidental Telnet disconnection via missing `/globalsettings` |
+| [`bootstrap_rights_users`](src/server.py) | *(none)* | Guided provisioning of the six-tier MA2 rights user accounts |
+| [`volunteer_sunday_preflight`](src/server.py) | `show_name`, `campus_name` | SAFE_READ preflight for volunteer operators — GREEN/AMBER/RED show verification before service |
+| [`generate_busking_template`](src/server.py) | `target_page`, `fixture_strategy` | Build a complete busking template from current patch — groups, presets, effects, executor layout |
+| [`pre_show_health_check`](src/server.py) | `sequence_ids`, `strict` | Full show health audit — showfile, presets, executors, cues, parks, and DMX with scored findings |
+| [`adapt_show_to_venue`](src/server.py) | `source_show_description`, `new_venue_notes` | Cross-venue show adaptation — patch comparison, group remapping, preset verification |
+| [`migrate_show_via_psr`](src/server.py) | `source_show`, `target_objects` | PSR-based cross-show content migration with slot conflict detection |
+| [`program_effect`](src/server.py) | `fixture_group`, `effect_type`, `speed_bpm` | Guided effect programming workflow with fixture selection and parameter setting |
+| [`build_timecode_show`](src/server.py) | `sequence_ids`, `smpte_start` | Build a SMPTE timecode show with cue-to-timestamp mapping |
 
 ## Agent Skills
 
@@ -754,40 +754,40 @@ Instruction modules ([`.claude/skills/`](.claude/skills/)) that are injected as 
 
 | Skill | Description |
 |-------|-------------|
-| `ma2-command-rules` | MA2 command construction, object resolution, quoting rules, and safety escalation |
-| `telnet-feedback-triage` | Classify and summarise grandMA2 Telnet feedback using the `FeedbackClass` enum |
-| `feedback-investigator` | Worker playbook: classify and investigate Telnet feedback failures |
-| `cue-list-auditor` | Worker playbook: audit cue list gaps, labels, timing, and health |
-| `busking-lighting-performance` | Live busking — fader-per-effect model, executor layout, effect layering, live recovery |
-| `song-macro-page-design` | Song macro pages — first-button protocol, executor column layout, jump target safety |
-| `constrained-color-design` | Monochromatic HSB palette design — preset numbering, color lock, song-to-palette mapping |
-| `preset-library-architect` | Build full dimmer/position/color/gobo preset pools from raw attribute values |
-| `patch-and-group-builder` | Patch fixtures, build groups by type/position, and verify selection counts |
-| `chaser-builder` | Step-based chasers, running lights via MAtricks, strobes — speed/rate/direction control |
-| `cue-tracking-and-timing` | Tracking vs non-tracking, Block/Unblock, MIB, timing layers, trigger types, Update vs Store |
-| `executor-configuration` | Executor priority, trigger types, fader functions, speed masters, protect options |
-| `show-management-and-psr` | Save/Load/New show (connectivity preservation), PSR workflow, Export/Import XML |
-| `macro-advanced` | SetVar/SetUserVar, conditionals, CmdDelay, jump targets, XML authoring, Store Group timing |
-| `clone-and-data-transfer` | Clone fixture with `/selective`, copy/move pool objects, cue-range copy, cross-show PSR |
-| `effect-programmer` | Build effects from scratch, layer rate/speed/phase, assign to executors |
-| `world-filter-designer` | Create worlds, assign fixtures, configure filter objects, control visibility |
-| `timecode-show-programmer` | Build timecode shows, assign events to cues, enable/disable tracks |
-| `color-preset-creator` | Store universal color presets from RGB values — builds the preset pool |
-| `color-palette-sequence-builder` | Build a cue sequence where each cue references a universal color preset |
-| `hue-palette-creator` | Store 96 universal hue presets (4.101–4.196) using the HSB color model |
-| `hue-sequence-builder` | Build a 16-cue sequence from an adjacent hue pair — 8 saturation variants per hue |
-| `sequence-executor-assigner` | Assign a sequence to a free executor so it appears as a playback fader |
-| `rdm-workflow` | RDM discovery → device info → autopatch workflow via MCP |
-| `lua-and-plugins` | Lua 5.2 scripting with `gma.*` namespace, plugin invocation, and reload lifecycle |
-| `psr-show-migration` | PSR with pre-flight slot check, fixture ID verification, and post-import diff |
-| `compliance-documentation` | Generate SB 132 / insurance audit reports from session telemetry — SAFE_READ only |
-| `volunteer-operations` | Three-tier access model, Sunday morning preflight, and incident response for non-programmers |
-| `view-and-layout-designer` | Custom console views, executor button placement, image assignment, sheet recall |
-| `show-health-check` | Pre-show audit — showfile, presets, executors, cues, parks, DMX. Returns GREEN/AMBER/RED |
-| `busking-template-generator` | Build a complete busking template from any patched rig — groups, presets, effects, executor page |
-| `cross-venue-adaptation` | Adapt show to a new venue rig — patch comparison, group remapping, preset scope verification |
-| `training-mode` | Annotated SAFE_READ console tour for students, church volunteers, and IATSE training programs |
-| `remote-monitoring` | Continuous SAFE_READ polling — show change detection, alert conditions, broadcast and architectural protocols |
+| [`ma2-command-rules`](.claude/skills/ma2-command-rules/SKILL.md) | MA2 command construction, object resolution, quoting rules, and safety escalation |
+| [`telnet-feedback-triage`](.claude/skills/telnet-feedback-triage/SKILL.md) | Classify and summarise grandMA2 Telnet feedback using the `FeedbackClass` enum |
+| [`feedback-investigator`](.claude/skills/feedback-investigator/SKILL.md) | Worker playbook: classify and investigate Telnet feedback failures |
+| [`cue-list-auditor`](.claude/skills/cue-list-auditor/SKILL.md) | Worker playbook: audit cue list gaps, labels, timing, and health |
+| [`busking-lighting-performance`](.claude/skills/busking-lighting-performance/SKILL.md) | Live busking — fader-per-effect model, executor layout, effect layering, live recovery |
+| [`song-macro-page-design`](.claude/skills/song-macro-page-design/SKILL.md) | Song macro pages — first-button protocol, executor column layout, jump target safety |
+| [`constrained-color-design`](.claude/skills/constrained-color-design/SKILL.md) | Monochromatic HSB palette design — preset numbering, color lock, song-to-palette mapping |
+| [`preset-library-architect`](.claude/skills/preset-library-architect/SKILL.md) | Build full dimmer/position/color/gobo preset pools from raw attribute values |
+| [`patch-and-group-builder`](.claude/skills/patch-and-group-builder/SKILL.md) | Patch fixtures, build groups by type/position, and verify selection counts |
+| [`chaser-builder`](.claude/skills/chaser-builder/SKILL.md) | Step-based chasers, running lights via MAtricks, strobes — speed/rate/direction control |
+| [`cue-tracking-and-timing`](.claude/skills/cue-tracking-and-timing/SKILL.md) | Tracking vs non-tracking, Block/Unblock, MIB, timing layers, trigger types, Update vs Store |
+| [`executor-configuration`](.claude/skills/executor-configuration/SKILL.md) | Executor priority, trigger types, fader functions, speed masters, protect options |
+| [`show-management-and-psr`](.claude/skills/show-management-and-psr/SKILL.md) | Save/Load/New show (connectivity preservation), PSR workflow, Export/Import XML |
+| [`macro-advanced`](.claude/skills/macro-advanced/SKILL.md) | SetVar/SetUserVar, conditionals, CmdDelay, jump targets, XML authoring, Store Group timing |
+| [`clone-and-data-transfer`](.claude/skills/clone-and-data-transfer/SKILL.md) | Clone fixture with `/selective`, copy/move pool objects, cue-range copy, cross-show PSR |
+| [`effect-programmer`](.claude/skills/effect-programmer/SKILL.md) | Build effects from scratch, layer rate/speed/phase, assign to executors |
+| [`world-filter-designer`](.claude/skills/world-filter-designer/SKILL.md) | Create worlds, assign fixtures, configure filter objects, control visibility |
+| [`timecode-show-programmer`](.claude/skills/timecode-show-programmer/SKILL.md) | Build timecode shows, assign events to cues, enable/disable tracks |
+| [`color-preset-creator`](.claude/skills/color-preset-creator/SKILL.md) | Store universal color presets from RGB values — builds the preset pool |
+| [`color-palette-sequence-builder`](.claude/skills/color-palette-sequence-builder/SKILL.md) | Build a cue sequence where each cue references a universal color preset |
+| [`hue-palette-creator`](.claude/skills/hue-palette-creator/SKILL.md) | Store 96 universal hue presets (4.101–4.196) using the HSB color model |
+| [`hue-sequence-builder`](.claude/skills/hue-sequence-builder/SKILL.md) | Build a 16-cue sequence from an adjacent hue pair — 8 saturation variants per hue |
+| [`sequence-executor-assigner`](.claude/skills/sequence-executor-assigner/SKILL.md) | Assign a sequence to a free executor so it appears as a playback fader |
+| [`rdm-workflow`](.claude/skills/rdm-workflow/SKILL.md) | RDM discovery → device info → autopatch workflow via MCP |
+| [`lua-and-plugins`](.claude/skills/lua-and-plugins/SKILL.md) | Lua 5.2 scripting with `gma.*` namespace, plugin invocation, and reload lifecycle |
+| [`psr-show-migration`](.claude/skills/psr-show-migration/SKILL.md) | PSR with pre-flight slot check, fixture ID verification, and post-import diff |
+| [`compliance-documentation`](.claude/skills/compliance-documentation/SKILL.md) | Generate SB 132 / insurance audit reports from session telemetry — SAFE_READ only |
+| [`volunteer-operations`](.claude/skills/volunteer-operations/SKILL.md) | Three-tier access model, Sunday morning preflight, and incident response for non-programmers |
+| [`view-and-layout-designer`](.claude/skills/view-and-layout-designer/SKILL.md) | Custom console views, executor button placement, image assignment, sheet recall |
+| [`show-health-check`](.claude/skills/show-health-check/SKILL.md) | Pre-show audit — showfile, presets, executors, cues, parks, DMX. Returns GREEN/AMBER/RED |
+| [`busking-template-generator`](.claude/skills/busking-template-generator/SKILL.md) | Build a complete busking template from any patched rig — groups, presets, effects, executor page |
+| [`cross-venue-adaptation`](.claude/skills/cross-venue-adaptation/SKILL.md) | Adapt show to a new venue rig — patch comparison, group remapping, preset scope verification |
+| [`training-mode`](.claude/skills/training-mode/SKILL.md) | Annotated SAFE_READ console tour for students, church volunteers, and IATSE training programs |
+| [`remote-monitoring`](.claude/skills/remote-monitoring/SKILL.md) | Continuous SAFE_READ polling — show change detection, alert conditions, broadcast and architectural protocols |
 
 Skills are loaded on demand via `ma2://skills/{skill_id}` resource or injected by the orchestrator. Use `list_skills` / `get_skill` tools to browse and inspect them at runtime.
 
