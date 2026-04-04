@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# .githooks/pre-push
+# Runs the test suite before pushing. Prevents broken code from reaching remote.
+# Install with: make install-hooks
+
+set -euo pipefail
+
+echo "[pre-push] Running test suite..."
+uv run python -m pytest -x -q
+
+echo "[pre-push] All tests passed."
