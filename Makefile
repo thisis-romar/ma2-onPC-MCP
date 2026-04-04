@@ -11,4 +11,6 @@ test:
 install-hooks:
 	git config core.hooksPath .githooks
 	chmod +x .githooks/pre-commit
-	@echo "Git hooks installed. Pre-commit will auto-update the RAG index."
+	chmod +x .githooks/pre-push
+	chmod +x .githooks/stop-git-check.sh
+	@echo "Git hooks installed. Pre-commit: RAG index. Pre-push: test suite. Stop: git check."
