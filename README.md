@@ -93,7 +93,7 @@ graph TD
     style J fill:#0f3460,stroke:#0f3460,color:#fff
 ```
 
-> All network I/O is isolated in `telnet_client.py`. Command builders are pure functions that return strings. The navigation layer orchestrates cd/list workflows with parsed telnet feedback.
+> All network I/O is isolated in [`telnet_client.py`](src/telnet_client.py). Command builders are pure functions that return strings. The navigation layer orchestrates cd/list workflows with parsed telnet feedback.
 
 ### Agent Harness vs. Agent Core
 
@@ -101,8 +101,8 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 
 | Layer | What it is | Key files |
 |-------|-----------|-----------|
-| **Bottom 163 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | `src/server.py` |
-| **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | `src/server_orchestration_tools.py`, `src/orchestrator.py` |
+| **Bottom 163 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | [`src/server.py`](src/server.py) |
+| **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | [`src/server_orchestration_tools.py`](src/server_orchestration_tools.py), [`src/orchestrator.py`](src/orchestrator.py) |
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
 
@@ -110,34 +110,34 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server, 163 interactive tools, safety gate, env config |
-| `src/server_orchestration_tools.py` | 34 agentic tools (110–144) registered onto FastMCP |
-| `src/orchestrator.py` | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
-| `src/task_decomposer.py` | Natural-language goal → ordered SubTask plan (rule-based) |
-| `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
-| `src/console_state.py` | ConsoleStateSnapshot: hydrates 19 show-memory gaps; `parse_showfile_from_listvar()` |
-| `src/pool_name_index.py` | In-memory pool name/ID registry — zero-cost object resolution |
-| `src/rights.py` | MA2 native rights enforcement + telnet feedback classification |
-| `src/auth.py` | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
-| `src/credentials.py` | OAuth tier → console user credential resolver |
-| `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
-| `src/navigation.py` | cd + list + scan orchestration |
-| `src/prompt_parser.py` | Parse console prompts and `list` tabular output |
-| `src/vocab.py` | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
-| `src/commands/` | 264 exported command-builder functions, grouped by keyword type |
-| `src/commands/busking.py` | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
-| `src/categorization/` | ML tool categorization: K-Means clustering + auto-labeling |
-| `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
-| `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
-| `src/skill_improver.py` | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
-| `src/license.py` | `LicenseTier` enum, `get_license_tier()`, `has_tier()`, `require_tier()` |
-| `src/license_tiers.py` | `TOOL_LICENSE_TIERS` dict — maps tool names → `LicenseTier` |
-| `src/agent/` | Agent harness: runtime, domain planner, step executor, policy, verification, memory, trace |
-| `src/tools.py` | Global GMA2 telnet client accessor — `get_client()` used by all tools |
+| [`src/server.py`](src/server.py) | FastMCP server, 163 interactive tools, safety gate, env config |
+| [`src/server_orchestration_tools.py`](src/server_orchestration_tools.py) | 34 agentic tools (110–144) registered onto FastMCP |
+| [`src/orchestrator.py`](src/orchestrator.py) | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
+| [`src/task_decomposer.py`](src/task_decomposer.py) | Natural-language goal → ordered SubTask plan (rule-based) |
+| [`src/agent_memory.py`](src/agent_memory.py) | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
+| [`src/console_state.py`](src/console_state.py) | ConsoleStateSnapshot: hydrates 19 show-memory gaps; `parse_showfile_from_listvar()` |
+| [`src/pool_name_index.py`](src/pool_name_index.py) | In-memory pool name/ID registry — zero-cost object resolution |
+| [`src/rights.py`](src/rights.py) | MA2 native rights enforcement + telnet feedback classification |
+| [`src/auth.py`](src/auth.py) | OAuth 2.1 scope enforcement (`@require_scope`, `@require_ma2_right`) |
+| [`src/credentials.py`](src/credentials.py) | OAuth tier → console user credential resolver |
+| [`src/session_manager.py`](src/session_manager.py) | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
+| [`src/navigation.py`](src/navigation.py) | cd + list + scan orchestration |
+| [`src/prompt_parser.py`](src/prompt_parser.py) | Parse console prompts and `list` tabular output |
+| [`src/vocab.py`](src/vocab.py) | 156 keywords, `RiskTier`, `FunctionalDomain`, safety classification |
+| [`src/commands/`](src/commands/) | 264 exported command-builder functions, grouped by keyword type |
+| [`src/commands/busking.py`](src/commands/busking.py) | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
+| [`src/categorization/`](src/categorization/) | ML tool categorization: K-Means clustering + auto-labeling |
+| [`src/telemetry.py`](src/telemetry.py) | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
+| [`src/skill.py`](src/skill.py) | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
+| [`src/skill_improver.py`](src/skill_improver.py) | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
+| [`src/license.py`](src/license.py) | `LicenseTier` enum, `get_license_tier()`, `has_tier()`, `require_tier()` |
+| [`src/license_tiers.py`](src/license_tiers.py) | `TOOL_LICENSE_TIERS` dict — maps tool names → `LicenseTier` |
+| [`src/agent/`](src/agent/) | Agent harness: runtime, domain planner, step executor, policy, verification, memory, trace |
+| [`src/tools.py`](src/tools.py) | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 
 ## Configuration
 
-Create a `.env` file (see `.env.template`):
+Create a `.env` file (see [`.env.template`](.env.template)):
 
 ```env
 # grandMA2 Console
@@ -607,7 +607,7 @@ python -m scripts.create_matricks_library --color-only
 <details>
 <summary><strong>🤖 Orchestration & Console State</strong> — 34 tools</summary>
 
-These tools form the **agentic layer** (`src/server_orchestration_tools.py`). They enable
+These tools form the **agentic layer** ([`src/server_orchestration_tools.py`](src/server_orchestration_tools.py)). They enable
 multi-step task execution with memory, risk-tier isolation, and zero-telnet state queries
 via a `ConsoleStateSnapshot` cache that closes 19 show-memory gaps.
 
@@ -749,7 +749,7 @@ Thirteen workflow prompts that orchestrate tools into guided multi-step procedur
 
 ## Agent Skills
 
-Instruction modules (`.claude/skills/`) that are injected as user messages into agent conversations. They teach agents domain-specific workflows without embedding knowledge in tool docstrings.
+Instruction modules ([`.claude/skills/`](.claude/skills/)) that are injected as user messages into agent conversations. They teach agents domain-specific workflows without embedding knowledge in tool docstrings.
 
 | Skill | Description |
 |-------|-------------|
@@ -816,7 +816,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
-The `time` server provides accurate ISO 8601 timestamps for markdown front matter — required by `.claude/rules/markdown-frontmatter.md`. It is also registered automatically for Claude Code CLI via `.mcp.json` and for VS Code via `vscode-mcp-provider/`.
+The `time` server provides accurate ISO 8601 timestamps for markdown front matter — required by [`.claude/rules/markdown-frontmatter.md`](.claude/rules/markdown-frontmatter.md). It is also registered automatically for Claude Code CLI via `.mcp.json` and for VS Code via `vscode-mcp-provider/`.
 
 ### VS Code
 
@@ -838,9 +838,9 @@ GrandPA2-Buddy enforces a **3-layer model** where effective permissions are the 
 scope ∩ policy ∩ ma2_rights = FINAL AUTHORITY
 ```
 
-### Layer 1 — OAuth Identity (`src/auth.py`)
+### Layer 1 — OAuth Identity ([`src/auth.py`](src/auth.py))
 
-Six scope tiers map to console users created by `scripts/bootstrap_console_users.py`:
+Six scope tiers map to console users created by [`scripts/bootstrap_console_users.py`](scripts/bootstrap_console_users.py):
 
 | `GMA_SCOPE` | Console user | MA2 Rights | Can do |
 |-------------|-------------|-----------|--------|
@@ -851,7 +851,7 @@ Six scope tiers map to console users created by `scripts/bootstrap_console_users
 | `tier:4` | `tech_director` | Setup (4) | Patch, fixture import, console setup |
 | `tier:5` | `administrator` | Admin (5) | User management, show load/delete |
 
-### Layer 2 — Policy Gate (`src/rights.py`)
+### Layer 2 — Policy Gate ([`src/rights.py`](src/rights.py))
 
 Every tool is annotated with `@require_ma2_right(MA2Right.X)` which enforces the OAuth scope requirement before any Telnet command is sent. The `check_permission()` utility provides a unified gate combining scope and rights checks:
 
@@ -862,7 +862,7 @@ if not result.allowed:
     return result.as_block_response()
 ```
 
-All 109 tools are mapped in `doc/ma2-rights-matrix.json`.
+All 109 tools are mapped in [`doc/ma2-rights-matrix.json`](doc/ma2-rights-matrix.json).
 
 ### Layer 3 — MA2 Native Rights (console enforcement)
 
@@ -982,18 +982,18 @@ uv run python scripts/rag_query.py "store cue with fade"
 
 | Stage | Module | Description |
 |-------|--------|-------------|
-| Crawl | `rag/ingest/crawl_repo.py` | Walk repo files, respect ignore patterns |
-| Chunk | `rag/ingest/chunk.py` | Split into overlapping token-bounded chunks |
-| Extract | `rag/ingest/extract.py` | Extract symbol names (functions, classes, headings) |
-| Embed | `rag/ingest/embed.py` | Generate vectors via GitHub Models API |
-| Store | `rag/store/sqlite.py` | Write chunks + vectors to SQLite |
+| Crawl | [`rag/ingest/crawl_repo.py`](rag/ingest/crawl_repo.py) | Walk repo files, respect ignore patterns |
+| Chunk | [`rag/ingest/chunk.py`](rag/ingest/chunk.py) | Split into overlapping token-bounded chunks |
+| Extract | [`rag/ingest/extract.py`](rag/ingest/extract.py) | Extract symbol names (functions, classes, headings) |
+| Embed | [`rag/ingest/embed.py`](rag/ingest/embed.py) | Generate vectors via GitHub Models API |
+| Store | [`rag/store/sqlite.py`](rag/store/sqlite.py) | Write chunks + vectors to SQLite |
 
 **Retrieve**
 
 | Stage | Module | Description |
 |-------|--------|-------------|
-| Query | `rag/retrieve/query.py` | Embed query, cosine similarity search |
-| Rerank | `rag/retrieve/rerank.py` | Sort and filter results by relevance |
+| Query | [`rag/retrieve/query.py`](rag/retrieve/query.py) | Embed query, cosine similarity search |
+| Rerank | [`rag/retrieve/rerank.py`](rag/retrieve/rerank.py) | Sort and filter results by relevance |
 
 </details>
 
@@ -1006,7 +1006,7 @@ uv run python scripts/rag_query.py "store cue with fade"
 | Markdown | Heading-based | `#` heading lines |
 | Other | Line-based | Fixed-size line windows with overlap |
 
-Defaults: max 1200 tokens/chunk, 20-line overlap. Configured in `rag/config.py`.
+Defaults: max 1200 tokens/chunk, 20-line overlap. Configured in [`rag/config.py`](rag/config.py).
 
 </details>
 
@@ -1048,7 +1048,7 @@ After cd-ing into a destination, `list` returns tabular output. The parser autom
 
 ## Tree Scanner
 
-`scripts/scan_tree.py` recursively walks the grandMA2 object tree via Telnet, building a complete JSON map of every node.
+[`scripts/scan_tree.py`](scripts/scan_tree.py) recursively walks the grandMA2 object tree via Telnet, building a complete JSON map of every node.
 
 ```bash
 # Quick scan (depth 4)
@@ -1097,7 +1097,7 @@ uv run python scripts/scan_tree.py --max-depth 20 --output scan_full.json --resu
 
 ## Command Builders
 
-The command builder layer (`src/commands/`) generates grandMA2 command strings as pure functions — no network I/O. **264 exported functions** (272 exports including 8 constants) covering navigation, selection, playback, values, store, delete, assign, label, and more.
+The command builder layer ([`src/commands/`](src/commands/)) generates grandMA2 command strings as pure functions — no network I/O. **264 exported functions** (272 exports including 8 constants) covering navigation, selection, playback, values, store, delete, assign, label, and more.
 
 > grandMA2 syntax: `[Function] [Object]` — keywords are **Function** (verbs), **Object** (nouns), or **Helping** (prepositions).
 
@@ -1320,7 +1320,7 @@ python scripts/main.py
 | Authentication errors | Confirm username/password, check user exists on console |
 | Command not working | Verify syntax against MA2 User Manual, ensure objects exist |
 | RAG ingest 401 | Verify `GITHUB_MODELS_TOKEN` has `models:read` scope |
-| RAG query empty | Run `scripts/rag_ingest.py` first, check `rag/store/rag.db` exists |
+| RAG query empty | Run [`scripts/rag_ingest.py`](scripts/rag_ingest.py) first, check `rag/store/rag.db` exists |
 
 ## License
 
