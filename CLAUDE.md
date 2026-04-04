@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.10.1
+version: 4.11.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-04T00:00:00Z
+last_updated: 2026-04-04T19:25:59Z
 ---
 
 # Project Rules
@@ -49,6 +49,10 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `rag/` | crawl → chunk → embed → store → retrieve pipeline |
 | `.claude/rules/` | Scoped rule files (loaded on demand, not at startup) |
 | `.claude/skills/` | Instruction modules (playbooks injected as user messages) |
+| `.claude/settings.json` | Project-level Claude Code config — Stop hook (commit/push guard) |
+| `.githooks/pre-commit` | RAG zero-vector ingest on every commit |
+| `.githooks/pre-push` | Runs `pytest -x -q` before every push |
+| `.githooks/stop-git-check.sh` | Stop hook — flags uncommitted/unpushed work when Claude stops |
 | `src/agent/runtime.py` | Agent harness: goal → plan → execute → verify → trace |
 | `src/agent/planner.py` | Rule-based domain planner, goal classification |
 | `src/agent/executor.py` | Step executor with retries, confirmation flow |
@@ -135,7 +139,7 @@ make install-hooks
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-04-03): **2876 tests** (unit + live integration).
+- Current counts (2026-04-04): **3027 tests** (unit + live integration).
 
 ---
 
