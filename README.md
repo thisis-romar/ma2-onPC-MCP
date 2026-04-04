@@ -17,6 +17,7 @@ last_updated: 2026-04-03T19:15:00Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
+  <img src="https://img.shields.io/badge/Tests-2876-brightgreen?style=for-the-badge" alt="2876 Tests">
   <img src="https://img.shields.io/badge/Version-3.26.0-purple?style=for-the-badge" alt="Version 3.26.0">
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
