@@ -60,6 +60,26 @@ if [ -f "pyproject.toml" ] && [ -f "src/__init__.py" ]; then
     fi
 fi
 
+# 4b. LICENSE version must match pyproject.toml
+if [ -f "LICENSE" ] && [ -f "pyproject.toml" ]; then
+    V_PYPROJECT=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+    V_LICENSE=$(grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' LICENSE | head -1)
+    if [ -n "$V_PYPROJECT" ] && [ -n "$V_LICENSE" ] && [ "$V_PYPROJECT" != "$V_LICENSE" ]; then
+        echo "ERROR: LICENSE version v$V_LICENSE does not match pyproject.toml=$V_PYPROJECT"
+        FAIL=1
+    fi
+fi
+
+# 4c. README badge version must match pyproject.toml
+if [ -f "README.md" ] && [ -f "pyproject.toml" ]; then
+    V_PYPROJECT=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+    V_BADGE=$(grep -oP 'Version-\K[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1)
+    if [ -n "$V_PYPROJECT" ] && [ -n "$V_BADGE" ] && [ "$V_PYPROJECT" != "$V_BADGE" ]; then
+        echo "ERROR: README badge version $V_BADGE does not match pyproject.toml=$V_PYPROJECT"
+        FAIL=1
+    fi
+fi
+
 # 5. BSL 1.1 license guard — LICENSE must contain BSL 1.1 identifier
 if [ -f "LICENSE" ] && ! grep -q "Business Source License 1.1" LICENSE; then
     echo "ERROR: LICENSE file does not contain 'Business Source License 1.1'"

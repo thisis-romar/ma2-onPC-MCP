@@ -18,7 +18,7 @@ last_updated: 2026-04-06T21:47:03Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-198-brightgreen?style=for-the-badge" alt="198 MCP Tools"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3141-brightgreen?style=for-the-badge" alt="3141 Tests"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.34.2-purple?style=for-the-badge" alt="Version 3.34.2"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.35.2-purple?style=for-the-badge" alt="Version 3.35.2"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/uv.lock"><img src="https://img.shields.io/badge/MCP%20SDK-%E2%89%A5%201.21-blue?style=for-the-badge" alt="MCP SDK >= 1.21"></a>

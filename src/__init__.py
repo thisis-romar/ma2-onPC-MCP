@@ -5,4 +5,4 @@
 grandMA2 MCP Server
 """
 
-__version__ = "3.34.2"
+__version__ = "3.35.2"
