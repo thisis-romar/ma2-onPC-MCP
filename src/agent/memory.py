@@ -7,6 +7,7 @@ Separate from the RAG doc search pipeline. Stores:
 - Conventions (naming standards, patch templates, venue practices)
 - Recipes (reusable multi-step workflows)
 - Run history (past execution traces for reference)
+- Step checkpoints (per-step persistence for crash recovery)
 """
 
 from __future__ import annotations
@@ -52,6 +53,23 @@ CREATE TABLE IF NOT EXISTS run_history (
     trace_json TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS step_checkpoints (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id       TEXT NOT NULL,
+    step_id      TEXT NOT NULL,
+    step_index   INTEGER NOT NULL,
+    tool_name    TEXT NOT NULL,
+    status       TEXT NOT NULL,
+    result       TEXT,
+    error        TEXT,
+    started_at   TEXT,
+    completed_at TEXT,
+    retry_count  INTEGER DEFAULT 0,
+    created_at   TEXT NOT NULL,
+    UNIQUE(run_id, step_id)
+);
+CREATE INDEX IF NOT EXISTS idx_sc_run ON step_checkpoints(run_id);
 """
 
 
@@ -243,3 +261,70 @@ class WorkflowMemory:
             }
             for r in rows
         ]
+
+    # --------------------------------------------------------- step checkpoints
+
+    def save_step_checkpoint(
+        self, run_id: str, step_index: int, step_dict: dict[str, Any]
+    ) -> None:
+        """Persist a step's execution state for crash recovery.
+
+        ``step_dict`` must contain at minimum: ``id``, ``tool_name``, ``status``.
+        Optional: ``result``, ``error``, ``started_at``, ``completed_at``,
+        ``retry_count``.
+        """
+        now = datetime.now(UTC).isoformat()
+        self._conn.execute(
+            """\
+            INSERT OR REPLACE INTO step_checkpoints
+                (run_id, step_id, step_index, tool_name, status,
+                 result, error, started_at, completed_at, retry_count, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                step_dict["id"],
+                step_index,
+                step_dict.get("tool_name", ""),
+                step_dict.get("status", ""),
+                step_dict.get("result"),
+                step_dict.get("error"),
+                step_dict.get("started_at", ""),
+                step_dict.get("completed_at", ""),
+                step_dict.get("retry_count", 0),
+                now,
+            ),
+        )
+        self._conn.commit()
+
+    def load_run_checkpoints(self, run_id: str) -> list[dict[str, Any]]:
+        """Load all step checkpoints for a run, ordered by step_index."""
+        rows = self._conn.execute(
+            "SELECT step_id, step_index, tool_name, status, result, error, "
+            "started_at, completed_at, retry_count, created_at "
+            "FROM step_checkpoints WHERE run_id = ? ORDER BY step_index",
+            (run_id,),
+        ).fetchall()
+        return [
+            {
+                "step_id": r["step_id"],
+                "step_index": r["step_index"],
+                "tool_name": r["tool_name"],
+                "status": r["status"],
+                "result": r["result"],
+                "error": r["error"],
+                "started_at": r["started_at"],
+                "completed_at": r["completed_at"],
+                "retry_count": r["retry_count"],
+                "created_at": r["created_at"],
+            }
+            for r in rows
+        ]
+
+    def delete_run_checkpoints(self, run_id: str) -> int:
+        """Remove all step checkpoints for a run.  Returns rows deleted."""
+        cur = self._conn.execute(
+            "DELETE FROM step_checkpoints WHERE run_id = ?", (run_id,)
+        )
+        self._conn.commit()
+        return cur.rowcount

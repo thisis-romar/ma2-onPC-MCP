@@ -3,8 +3,13 @@
 
 """tests/test_agent_bridge.py — Unit tests for src/agent_bridge.py."""
 
-from src.agent.state import PlanStep, StepStatus
+import json
+
+import pytest
+
+from src.agent.state import PlanStep, RunContext, RunStatus, StepStatus
 from src.agent_bridge import (
+    execute_subtasks_via_agent,
     planstep_to_subtask,
     plansteps_from_subtasks,
     subtask_to_planstep,
@@ -214,3 +219,110 @@ class TestBulkHelpers:
     def test_empty_list_returns_empty(self):
         assert plansteps_from_subtasks([]) == []
         assert subtasks_from_plansteps([]) == []
+
+
+# ── Dependency resolution tests ──────────────────────────────────────────
+
+
+class TestDependencyResolution:
+    """Tests that bulk converters resolve name↔UUID dependencies."""
+
+    def test_plansteps_from_subtasks_resolves_dependencies(self):
+        s1 = SubTask(
+            name="step_a", agent_role="A", description="first",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_a"],
+        )
+        s2 = SubTask(
+            name="step_b", agent_role="B", description="second",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_b"],
+            depends_on=["step_a"],
+        )
+        plan_steps = plansteps_from_subtasks([s1, s2])
+        # s2's depends_on should now contain s1's UUID, not "step_a"
+        assert len(plan_steps[1].depends_on) == 1
+        assert plan_steps[1].depends_on[0] == plan_steps[0].id
+        # s1 has no dependencies
+        assert plan_steps[0].depends_on == []
+
+    def test_subtasks_from_plansteps_resolves_dependencies(self):
+        ps1 = PlanStep(
+            tool_name="tool_a", tool_args={}, description="first",
+            risk_tier=RiskTier.SAFE_READ,
+        )
+        ps2 = PlanStep(
+            tool_name="tool_b", tool_args={}, description="second",
+            risk_tier=RiskTier.SAFE_READ,
+            depends_on=[ps1.id],
+        )
+        subtasks = subtasks_from_plansteps([ps1, ps2])
+        # s2's depends_on should be resolved to s1's name (which is ps1.id)
+        assert len(subtasks[1].depends_on) == 1
+        assert subtasks[1].depends_on[0] == subtasks[0].name
+
+    def test_round_trip_preserves_dependency_order(self):
+        """SubTask→PlanStep→SubTask preserves dependency graph structure."""
+        s1 = SubTask(
+            name="select", agent_role="A", description="select fixtures",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["select_tool"],
+        )
+        s2 = SubTask(
+            name="store", agent_role="B", description="store preset",
+            allowed_risk=RiskTier.DESTRUCTIVE, mcp_tools=["store_tool"],
+            depends_on=["select"],
+        )
+        s3 = SubTask(
+            name="verify", agent_role="C", description="verify",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["verify_tool"],
+            depends_on=["store"],
+        )
+        plan_steps = plansteps_from_subtasks([s1, s2, s3])
+        # Check chain: s3 depends on s2 depends on s1
+        assert plan_steps[1].depends_on == [plan_steps[0].id]
+        assert plan_steps[2].depends_on == [plan_steps[1].id]
+
+    def test_unknown_dependency_is_dropped(self):
+        """Dependencies referencing unknown step names are silently dropped."""
+        s1 = SubTask(
+            name="step_a", agent_role="A", description="first",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_a"],
+            depends_on=["nonexistent_step"],
+        )
+        plan_steps = plansteps_from_subtasks([s1])
+        assert plan_steps[0].depends_on == []
+
+
+# ── execute_subtasks_via_agent tests ─────────────────────────────────────
+
+
+async def _mock_success(**kwargs) -> str:
+    return json.dumps({"ok": True})
+
+
+@pytest.mark.asyncio
+class TestExecuteSubtasksViaAgent:
+    """Tests for the bridge execution function."""
+
+    async def test_runs_subtasks_through_executor(self):
+        from src.agent.executor import StepExecutor
+        from src.agent.policy import PolicyEngine
+        from src.agent.verification import Verifier
+
+        executor = StepExecutor(
+            tool_registry={"tool_a": _mock_success, "tool_b": _mock_success},
+            policy=PolicyEngine(),
+            verifier=Verifier(tool_dispatch={}),
+        )
+        s1 = SubTask(
+            name="step_a", agent_role="A", description="first",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_a"],
+        )
+        s2 = SubTask(
+            name="step_b", agent_role="B", description="second",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_b"],
+            depends_on=["step_a"],
+        )
+        context = await execute_subtasks_via_agent(
+            [s1, s2], executor, goal="bridge test"
+        )
+        assert context.status == RunStatus.COMPLETED
+        assert len(context.completed_steps()) == 2

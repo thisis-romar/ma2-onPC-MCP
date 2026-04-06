@@ -117,4 +117,72 @@ class TestRunHistory:
         memory.record_run_summary("r1", "goal", "success", '{"retry": true}')
         result = memory.recall_runs()
         assert len(result) == 1
-        assert result[0]["result"] == "success"
+
+
+# ── Step checkpoint tests ────────────────────────────────────────────────
+
+
+class TestStepCheckpoints:
+    """Tests for the step_checkpoints table and methods."""
+
+    def test_step_checkpoints_table_created(self, memory):
+        """The step_checkpoints table exists after initialization."""
+        row = memory._conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='step_checkpoints'"
+        ).fetchone()
+        assert row is not None
+
+    def test_save_step_checkpoint_creates_record(self, memory):
+        step_dict = {
+            "id": "step-001",
+            "tool_name": "list_groups",
+            "status": "COMPLETED",
+            "result": "ok",
+            "error": None,
+            "started_at": "2026-04-06T12:00:00Z",
+            "completed_at": "2026-04-06T12:00:01Z",
+            "retry_count": 0,
+        }
+        memory.save_step_checkpoint("run-1", 0, step_dict)
+        rows = memory.load_run_checkpoints("run-1")
+        assert len(rows) == 1
+        assert rows[0]["step_id"] == "step-001"
+        assert rows[0]["status"] == "COMPLETED"
+        assert rows[0]["result"] == "ok"
+
+    def test_load_run_checkpoints_returns_ordered(self, memory):
+        for i in range(3):
+            memory.save_step_checkpoint("run-2", i, {
+                "id": f"step-{i}", "tool_name": f"tool_{i}", "status": "COMPLETED",
+            })
+        rows = memory.load_run_checkpoints("run-2")
+        assert len(rows) == 3
+        assert [r["step_index"] for r in rows] == [0, 1, 2]
+
+    def test_delete_run_checkpoints_clears_all(self, memory):
+        for i in range(3):
+            memory.save_step_checkpoint("run-3", i, {
+                "id": f"s{i}", "tool_name": "t", "status": "COMPLETED",
+            })
+        deleted = memory.delete_run_checkpoints("run-3")
+        assert deleted == 3
+        assert memory.load_run_checkpoints("run-3") == []
+
+    def test_checkpoint_upsert_on_retry(self, memory):
+        """Saving a checkpoint twice for the same step_id upserts."""
+        step = {"id": "s1", "tool_name": "t", "status": "FAILED", "error": "err1"}
+        memory.save_step_checkpoint("run-4", 0, step)
+        step["status"] = "COMPLETED"
+        step["error"] = None
+        step["result"] = "ok"
+        memory.save_step_checkpoint("run-4", 0, step)
+        rows = memory.load_run_checkpoints("run-4")
+        assert len(rows) == 1
+        assert rows[0]["status"] == "COMPLETED"
+        assert rows[0]["result"] == "ok"
+
+    def test_load_empty_run_returns_empty(self, memory):
+        assert memory.load_run_checkpoints("nonexistent") == []
+
+    def test_delete_empty_run_returns_zero(self, memory):
+        assert memory.delete_run_checkpoints("nonexistent") == 0

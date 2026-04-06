@@ -250,3 +250,89 @@ class TestProgressMonitor:
         # Each step has 1 failure, not 2
         assert m.track("s1", "err", success=False) == ProgressStatus.STALLED
         assert m.track("s2", "ok", success=True) == ProgressStatus.PROGRESSING
+
+
+# ── Checkpoint callback tests ────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+class TestCheckpointCallback:
+    """Tests for the checkpoint_fn integration in StepExecutor."""
+
+    async def test_checkpoint_fn_called_after_each_step(self):
+        calls: list[tuple[str, int, dict]] = []
+
+        def _checkpoint(run_id: str, step_index: int, step_dict: dict) -> None:
+            calls.append((run_id, step_index, step_dict))
+
+        policy = PolicyEngine()
+        verifier = Verifier(tool_dispatch={})
+        executor = StepExecutor(
+            tool_registry={"mock_tool": _mock_success},
+            policy=policy,
+            verifier=verifier,
+            max_retries=0,
+            checkpoint_fn=_checkpoint,
+        )
+        s1 = _make_step()
+        s2 = _make_step()
+        ctx = RunContext(goal="test", plan=[s1, s2])
+        await executor.execute_plan(ctx)
+        assert len(calls) == 2
+        assert calls[0][1] == 0  # step_index
+        assert calls[1][1] == 1
+        assert calls[0][2]["status"] == "completed"
+        assert calls[1][2]["status"] == "completed"
+
+    async def test_checkpoint_fn_called_on_failure(self):
+        calls: list[tuple[str, int, dict]] = []
+
+        def _checkpoint(run_id: str, step_index: int, step_dict: dict) -> None:
+            calls.append((run_id, step_index, step_dict))
+
+        policy = PolicyEngine()
+        verifier = Verifier(tool_dispatch={})
+        executor = StepExecutor(
+            tool_registry={"fail_tool": _mock_raise},
+            policy=policy,
+            verifier=verifier,
+            max_retries=0,
+            checkpoint_fn=_checkpoint,
+        )
+        s1 = _make_step(tool_name="fail_tool")
+        ctx = RunContext(goal="test", plan=[s1])
+        await executor.execute_plan(ctx)
+        assert len(calls) == 1
+        assert calls[0][2]["status"] == "failed"
+
+    async def test_checkpoint_fn_not_called_when_none(self):
+        """When checkpoint_fn is None, execution still works normally."""
+        executor = _make_executor()
+        s1 = _make_step()
+        ctx = RunContext(goal="test", plan=[s1])
+        result = await executor.execute_plan(ctx)
+        assert result.status == RunStatus.COMPLETED
+
+    async def test_executor_skips_completed_steps(self):
+        """Steps already marked COMPLETED are skipped (resume scenario)."""
+        calls: list[tuple[str, int, dict]] = []
+
+        def _checkpoint(run_id: str, step_index: int, step_dict: dict) -> None:
+            calls.append((run_id, step_index, step_dict))
+
+        policy = PolicyEngine()
+        verifier = Verifier(tool_dispatch={})
+        executor = StepExecutor(
+            tool_registry={"mock_tool": _mock_success},
+            policy=policy,
+            verifier=verifier,
+            checkpoint_fn=_checkpoint,
+        )
+        s1 = _make_step()
+        s1.status = StepStatus.COMPLETED  # already done
+        s2 = _make_step()
+        ctx = RunContext(goal="resume test", plan=[s1, s2])
+        await executor.execute_plan(ctx)
+        # Only s2 should trigger a checkpoint
+        assert len(calls) == 1
+        assert calls[0][1] == 1  # step_index 1 (s2)

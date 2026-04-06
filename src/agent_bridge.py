@@ -77,10 +77,59 @@ def planstep_to_subtask(planstep: PlanStep) -> SubTask:
 
 
 def plansteps_from_subtasks(subtasks: list[SubTask]) -> list[PlanStep]:
-    """Bulk convert an ordered SubTask list to PlanSteps."""
-    return [subtask_to_planstep(st) for st in subtasks]
+    """Bulk convert an ordered SubTask list to PlanSteps.
+
+    Resolves name-based dependencies (SubTask.depends_on) to UUID-based
+    (PlanStep.depends_on) using a mapping table built from the conversion.
+    """
+    steps = [subtask_to_planstep(st) for st in subtasks]
+    # Build name → UUID mapping
+    name_to_id: dict[str, str] = {}
+    for st, ps in zip(subtasks, steps, strict=True):
+        name_to_id[st.name] = ps.id
+    # Resolve depends_on from names to UUIDs
+    for ps, st in zip(steps, subtasks, strict=True):
+        ps.depends_on = [
+            name_to_id[dep] for dep in st.depends_on if dep in name_to_id
+        ]
+    return steps
 
 
 def subtasks_from_plansteps(plansteps: list[PlanStep]) -> list[SubTask]:
-    """Bulk convert a PlanStep list to SubTasks."""
-    return [planstep_to_subtask(ps) for ps in plansteps]
+    """Bulk convert a PlanStep list to SubTasks.
+
+    Resolves UUID-based dependencies (PlanStep.depends_on) to name-based
+    (SubTask.depends_on) using each PlanStep's UUID as the SubTask name.
+    """
+    subtasks = [planstep_to_subtask(ps) for ps in plansteps]
+    # Build UUID → name mapping
+    id_to_name: dict[str, str] = {}
+    for ps, st in zip(plansteps, subtasks, strict=True):
+        id_to_name[ps.id] = st.name
+    # Resolve depends_on from UUIDs to names
+    for st, ps in zip(subtasks, plansteps, strict=True):
+        st.depends_on = [
+            id_to_name[dep] for dep in ps.depends_on if dep in id_to_name
+        ]
+    return subtasks
+
+
+async def execute_subtasks_via_agent(
+    subtasks: list[SubTask],
+    executor: "StepExecutor",
+    goal: str = "",
+    on_confirm: "ConfirmCallback | None" = None,
+) -> "RunContext":
+    """Convert SubTasks to PlanSteps and execute via StepExecutor.
+
+    This bridges System A plans (TaskDecomposer output) into System B
+    execution (with verification, rollback, and progress monitoring).
+
+    Returns:
+        RunContext with fully populated plan steps (status, result, error).
+    """
+    plan_steps = plansteps_from_subtasks(subtasks)
+    from src.agent.state import RunContext  # deferred to avoid circular import
+
+    context = RunContext(goal=goal, plan=plan_steps)
+    return await executor.execute_plan(context, on_confirm=on_confirm)

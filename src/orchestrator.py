@@ -296,6 +296,7 @@ class Orchestrator:
         sub_agent_fn: Callable | None = None,
         parallel: bool = False,
         auto_hydrate: bool = True,
+        agent_executor: Any | None = None,
     ) -> None:
         self._call = tool_caller
         self._send = telnet_send
@@ -305,6 +306,7 @@ class Orchestrator:
         self._parallel = parallel
         self._auto_hydrate = auto_hydrate and telnet_send is not None
         self._last_snapshot: ConsoleStateSnapshot | None = None
+        self._agent_executor = agent_executor
 
     # ── Public properties ─────────────────────────────────────────────
 
@@ -466,6 +468,10 @@ class Orchestrator:
     # ── Execution strategies ─────────────────────────────────────────
 
     async def _run_sequential(self, plan: TaskPlan, wm: WorkingMemory) -> list[StepResult]:
+        # Bridge: delegate to AgentRuntime's StepExecutor if configured
+        if self._agent_executor is not None:
+            return await self._run_via_agent_bridge(plan, wm)
+
         results: list[StepResult] = []
         completed: set[str] = set()
 
@@ -496,6 +502,39 @@ class Orchestrator:
             elif not step.retryable:
                 logger.warning("Non-retryable step '%s' failed — aborting", step.name)
                 break
+
+        return results
+
+    async def _run_via_agent_bridge(
+        self, plan: TaskPlan, wm: WorkingMemory
+    ) -> list[StepResult]:
+        """Execute a TaskPlan through the AgentRuntime's StepExecutor.
+
+        Converts SubTasks → PlanSteps, runs via the bridge executor
+        (gaining verification, rollback, and progress monitoring), then
+        maps results back to StepResult + WorkingMemory tracking.
+        """
+        from src.agent_bridge import execute_subtasks_via_agent
+
+        subtasks = plan.ordered_steps()
+        context = await execute_subtasks_via_agent(
+            subtasks, self._agent_executor, goal=wm.task_description,
+        )
+
+        results: list[StepResult] = []
+        for step in context.plan:
+            success = step.status.value in ("completed", "COMPLETED")
+            sr = StepResult(
+                step_name=step.description,
+                success=success,
+                output=step.result or "",
+                error=step.error or "",
+            )
+            results.append(sr)
+            if success:
+                wm.mark_done(step.description)
+            else:
+                wm.mark_failed(step.description, step.error or "")
 
         return results
 

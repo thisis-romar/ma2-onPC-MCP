@@ -9,6 +9,7 @@ generates a plan, validates it, executes steps, and produces a trace.
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
@@ -18,7 +19,7 @@ from src.agent.executor import ConfirmCallback, StepExecutor
 from src.agent.memory import WorkflowMemory
 from src.agent.planner import DomainPlanner
 from src.agent.policy import PolicyEngine
-from src.agent.state import ParsedGoal, PlanStep, RunContext, RunStatus
+from src.agent.state import ParsedGoal, PlanStep, RunContext, RunStatus, StepStatus
 from src.agent.trace import ExecutionTrace, build_trace
 from src.agent.verification import Verifier
 
@@ -39,16 +40,24 @@ class AgentRuntime:
         self.planner = DomainPlanner()
         self.policy = PolicyEngine(batch_limit=batch_limit)
         self.verifier = Verifier(tool_dispatch=tool_registry)
+        if memory_db_path:
+            self.memory = WorkflowMemory(db_path=memory_db_path)
+        else:
+            self.memory = WorkflowMemory()
         self.executor = StepExecutor(
             tool_registry=tool_registry,
             policy=self.policy,
             verifier=self.verifier,
             max_retries=max_retries,
+            checkpoint_fn=self._checkpoint,
         )
-        if memory_db_path:
-            self.memory = WorkflowMemory(db_path=memory_db_path)
-        else:
-            self.memory = WorkflowMemory()
+
+    def _checkpoint(self, run_id: str, step_index: int, step_dict: dict) -> None:
+        """Persist a step's state for crash recovery."""
+        try:
+            self.memory.save_step_checkpoint(run_id, step_index, step_dict)
+        except Exception as e:
+            logger.warning("Failed to persist step checkpoint: %s", e)
 
     async def run(
         self,
@@ -105,13 +114,24 @@ class AgentRuntime:
         context = RunContext(goal=goal, plan=plan)
         logger.info("Run %s started: %s", context.run_id, goal)
 
+        # 5b. Persist plan so resume_run can reconstruct the DAG on crash
+        try:
+            self.memory.record_run_summary(
+                run_id=context.run_id,
+                goal=goal,
+                result="in_progress",
+                trace_json=json.dumps({"plan": [s.to_dict() for s in plan]}),
+            )
+        except Exception as e:
+            logger.warning("Failed to persist plan before execution: %s", e)
+
         # 6. Execute
         context = await self.executor.execute_plan(context, on_confirm=on_confirm)
 
         # 7. Build trace
         trace = build_trace(context, started_at, policy_warnings=policy_warnings)
 
-        # 8. Store in memory
+        # 8. Store in memory (overwrites the "in_progress" record)
         try:
             self.memory.record_run_summary(
                 run_id=trace.run_id,
@@ -119,6 +139,8 @@ class AgentRuntime:
                 result=trace.result,
                 trace_json=trace.to_json(),
             )
+            # Clean up step checkpoints — run completed successfully
+            self.memory.delete_run_checkpoints(trace.run_id)
         except Exception as e:
             logger.warning("Failed to store run in memory: %s", e)
 
@@ -148,6 +170,86 @@ class AgentRuntime:
         plan = self.planner.plan(parsed_goal)
         policy_result = self.policy.validate_plan(plan, confidence=parsed_goal.confidence)
         return parsed_goal, plan, policy_result.warnings
+
+    async def resume_run(
+        self,
+        run_id: str,
+        on_confirm: ConfirmCallback | None = None,
+    ) -> ExecutionTrace | None:
+        """Resume a previously interrupted run from its last checkpoint.
+
+        Returns None if the run_id is not found or has no saved plan.
+        """
+        # Load the original plan from run_history
+        runs = self.memory.recall_runs(limit=200)
+        run_record = next((r for r in runs if r["run_id"] == run_id), None)
+        if not run_record:
+            logger.warning("Cannot resume run %s — not found in history", run_id)
+            return None
+
+        trace_data = run_record.get("trace", {})
+        plan_dicts = trace_data.get("plan", [])
+        if not plan_dicts:
+            logger.warning("Cannot resume run %s — no plan data stored", run_id)
+            return None
+
+        # Reconstruct PlanStep list from stored plan
+        plan: list[PlanStep] = []
+        for d in plan_dicts:
+            step = PlanStep(
+                tool_name=d["tool_name"],
+                tool_args=d.get("tool_args", {}),
+                description=d.get("description", ""),
+                risk_tier=d.get("risk_tier", "SAFE_READ"),
+            )
+            step.id = d.get("id", step.id)
+            step.depends_on = d.get("depends_on", [])
+            plan.append(step)
+
+        # Load checkpoints and mark completed steps
+        checkpoints = self.memory.load_run_checkpoints(run_id)
+        checkpoint_map = {cp["step_id"]: cp for cp in checkpoints}
+
+        for step in plan:
+            cp = checkpoint_map.get(step.id)
+            if cp and cp["status"] in ("completed", "COMPLETED"):
+                step.status = StepStatus.COMPLETED
+                step.result = cp.get("result")
+            elif cp and cp["status"] in ("failed", "FAILED"):
+                step.status = StepStatus.FAILED
+                step.error = cp.get("error")
+            elif cp and cp["status"] in ("skipped", "SKIPPED"):
+                step.status = StepStatus.SKIPPED
+                step.error = cp.get("error")
+            # else: remains PENDING — will be re-executed
+
+        # Build context and execute remaining steps
+        context = RunContext(goal=run_record["goal"], plan=plan)
+        context.run_id = run_id
+        logger.info(
+            "Resuming run %s — %d steps total, %d already completed",
+            run_id,
+            len(plan),
+            sum(1 for s in plan if s.status == StepStatus.COMPLETED),
+        )
+
+        started_at = datetime.now(UTC)
+        context = await self.executor.execute_plan(context, on_confirm=on_confirm)
+        trace = build_trace(context, started_at)
+
+        # Store final result
+        try:
+            self.memory.record_run_summary(
+                run_id=run_id,
+                goal=trace.goal,
+                result=trace.result,
+                trace_json=trace.to_json(),
+            )
+            self.memory.delete_run_checkpoints(run_id)
+        except Exception as e:
+            logger.warning("Failed to store resumed run: %s", e)
+
+        return trace
 
     def _find_matching_recipe(self, goal: ParsedGoal) -> dict[str, Any] | None:
         """Check workflow memory for a matching recipe."""

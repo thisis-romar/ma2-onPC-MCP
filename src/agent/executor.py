@@ -97,6 +97,9 @@ class ProgressMonitor:
 class StepExecutor:
     """Executes PlanSteps by calling MCP tool functions."""
 
+    # Type for a checkpoint callback: receives (run_id, step_index, step_dict)
+    CheckpointFn = Callable[[str, int, dict], None]
+
     def __init__(
         self,
         tool_registry: dict[str, Callable[..., Awaitable[str]]],
@@ -104,6 +107,7 @@ class StepExecutor:
         verifier: Verifier,
         max_retries: int = DEFAULT_MAX_RETRIES,
         rollback: RollbackExecutor | None = None,
+        checkpoint_fn: CheckpointFn | None = None,
     ):
         self._tools = tool_registry
         self._policy = policy
@@ -111,6 +115,7 @@ class StepExecutor:
         self._max_retries = max_retries
         self._rollback = rollback or RollbackExecutor(tool_registry)
         self._monitor = ProgressMonitor()
+        self._checkpoint_fn = checkpoint_fn
 
     async def execute_plan(
         self,
@@ -124,6 +129,13 @@ class StepExecutor:
         for i, step in enumerate(context.plan):
             context.current_step_index = i
 
+            # Skip steps already completed/failed/skipped (resume scenario)
+            if step.status in (
+                StepStatus.COMPLETED, StepStatus.FAILED,
+                StepStatus.SKIPPED, StepStatus.ROLLED_BACK,
+            ):
+                continue
+
             # Policy gate
             decision = self._policy.gate_step(step, context)
 
@@ -131,6 +143,7 @@ class StepExecutor:
                 logger.warning("Step blocked by policy: %s — %s", step.description, decision.reason)
                 step.status = StepStatus.SKIPPED
                 step.error = f"Blocked: {decision.reason}"
+                self._save_checkpoint(context.run_id, i, step)
                 self._skip_dependents(step, context)
                 continue
 
@@ -165,6 +178,9 @@ class StepExecutor:
             # Execute with retries
             await self._execute_with_retries(step, context)
 
+            # Persist step checkpoint for crash recovery
+            self._save_checkpoint(context.run_id, i, step)
+
             # If step failed, decide whether to continue or abort
             if step.status == StepStatus.FAILED:
                 # Skip dependents
@@ -188,6 +204,15 @@ class StepExecutor:
 
         context.updated_at = datetime.now(UTC)
         return context
+
+    def _save_checkpoint(self, run_id: str, step_index: int, step: PlanStep) -> None:
+        """Persist a step's state via the checkpoint callback (if configured)."""
+        if self._checkpoint_fn is None:
+            return
+        try:
+            self._checkpoint_fn(run_id, step_index, step.to_dict())
+        except Exception as e:
+            logger.warning("Checkpoint save failed for step %s: %s", step.id, e)
 
     async def _execute_with_retries(
         self, step: PlanStep, context: RunContext
