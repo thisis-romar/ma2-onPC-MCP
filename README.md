@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.33.5
+version: 3.34.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-06T13:49:50Z
+last_updated: 2026-04-06T14:00:50Z
 ---
 
 <p align="center">
@@ -18,7 +18,7 @@ last_updated: 2026-04-06T13:49:50Z
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
   <img src="https://img.shields.io/badge/Tests-3104-brightgreen?style=for-the-badge" alt="3104 Tests">
-  <img src="https://img.shields.io/badge/Version-3.26.0-purple?style=for-the-badge" alt="Version 3.26.0">
+  <img src="https://img.shields.io/badge/Version-3.34.0-purple?style=for-the-badge" alt="Version 3.34.0">
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
   <img src="https://img.shields.io/badge/MCP%20SDK-%E2%89%A5%201.21-blue?style=for-the-badge" alt="MCP SDK >= 1.21">
@@ -134,7 +134,26 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/license.py`](src/license.py) | `LicenseTier` enum, `get_license_tier()`, `has_tier()`, `require_tier()` |
 | [`src/license_tiers.py`](src/license_tiers.py) | `TOOL_LICENSE_TIERS` dict — maps tool names → `LicenseTier` |
 | [`src/agent/`](src/agent/) | Agent harness: runtime, domain planner, step executor, policy, verification, memory, trace |
+| [`src/agent/rollback.py`](src/agent/rollback.py) | `RollbackExecutor`: OOPS/DELETE compensation after verification failures |
+| [`src/agent_bridge.py`](src/agent_bridge.py) | SubTask↔PlanStep converters + `execute_subtasks_via_agent()` bridge |
 | [`src/tools.py`](src/tools.py) | Global GMA2 telnet client accessor — `get_client()` used by all tools |
+
+### Advanced Features (Phases 1–6)
+
+| Feature | Module | Description |
+|---------|--------|-------------|
+| **Circuit breaker** | `src/telnet_client.py` | 3-state breaker (CLOSED→OPEN→HALF_OPEN) prevents cascading telnet timeouts |
+| **Policy strictness** | `src/agent/policy.py` | `GMA_POLICY_STRICTNESS` env var: WARN (default) or BLOCK mode for policy rules |
+| **Rollback executor** | `src/agent/rollback.py` | Post-verification OOPS/DELETE compensation strategies |
+| **Progress monitor** | `src/agent/executor.py` | Detects stalled (consecutive failures) and looping (identical outputs) execution |
+| **Incremental hydration** | `src/console_state.py` | `pool_types` parameter + `pools_for_gaps()` for selective console hydration |
+| **Risk-weighted scoring** | `src/skill_improver.py` | Quality scoring weighted by risk tier (DESTRUCTIVE failures count 3x) |
+| **Semantic skill search** | `src/skill.py` | Embedding-based `search_semantic()` via RAG `EmbeddingProvider`, LIKE fallback |
+| **DAG checkpoints** | `src/agent/memory.py` | `step_checkpoints` table for crash recovery; `resume_run()` in AgentRuntime |
+| **Bridge activation** | `src/agent_bridge.py` | System A (Orchestrator) plans execute through System B (StepExecutor) |
+| **Hybrid retrieval** | `src/server.py` | Reciprocal Rank Fusion (RRF) combining keyword + semantic scores |
+| **Metadata filters** | `src/server.py` | `filter_risk_tier` + `filter_license_tier` in `suggest_tool_for_task` |
+| **Tool body reranking** | `rag/retrieve/rerank.py` | Second-stage `rerank_tools()` scoring against full docstrings |
 
 ## Configuration
 
@@ -1285,11 +1304,11 @@ ma2-onPC-MCP/
 │   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
 │   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
 │   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
-├── tests/                                  # 2187 tests (2026-03-30)
+├── tests/                                  # 3104 tests (2026-04-06)
 ├── doc/                                    # Command builders ref + cd-tree docs
 ├── vscode-mcp-provider/                    # VS Code MCP extension
 └── .claude/                                # Skills (playbooks) + scoped rules
-    ├── skills/                             # 7 agent instruction modules
+    ├── skills/                             # 34 agent instruction modules
     └── rules/                              # 5 scoped rule files (loaded on demand)
 ```
 
