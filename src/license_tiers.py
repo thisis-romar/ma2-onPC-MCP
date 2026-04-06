@@ -56,10 +56,6 @@ TOOL_LICENSE_TIERS: dict[str, LicenseTier] = {
 
     # --- Assignment -------------------------------------------------------
     "assign_object": PRO,
-    "assign_delay": PRO,
-    "assign_fade": PRO,
-    "assign_function": PRO,
-    "assign_to_layout": PRO,
     "assign_cue_trigger": PRO,
     "assign_executor_property": PRO,
     "set_executor_priority": PRO,
@@ -72,8 +68,6 @@ TOOL_LICENSE_TIERS: dict[str, LicenseTier] = {
     "label_or_appearance": PRO,
     "label_world": PRO,
     "set_node_property": PRO,
-    "apply_appearance": PRO,
-
     # --- Sequence / Cue management ----------------------------------------
     "update_cue_data": PRO,
     "set_cue_timing": PRO,
@@ -95,18 +89,12 @@ TOOL_LICENSE_TIERS: dict[str, LicenseTier] = {
     "filter_fixture_selection": PRO,
     "set_advanced_timing": PRO,
 
-    # --- Color tools ------------------------------------------------------
-    "set_color_rgb": PRO,
-    "set_color_hsb": PRO,
-    "set_color_hex": PRO,
-
     # --- Macro / Variable / Scripting -------------------------------------
     "run_macro": PRO,
     "manage_variable": PRO,
     "programming_action": PRO,
 
     # --- Effects / MAtricks -----------------------------------------------
-    "manage_effects": PRO,
     "manage_matricks": PRO,
     "modulate_effect": PRO,
     "set_effect_param": PRO,
@@ -228,7 +216,6 @@ TOOL_LICENSE_TIERS: dict[str, LicenseTier] = {
     "search_codebase": ENT,
 
     # --- Orchestration (server.py) ----------------------------------------
-    "run_orchestrated_task": ENT,
     "scan_console_indexes": ENT,
     "classify_show_mode": ENT,
     "get_telemetry_report": ENT,

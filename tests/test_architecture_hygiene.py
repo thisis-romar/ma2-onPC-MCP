@@ -351,25 +351,8 @@ class TestSubTaskWorkflowHygiene:
 class TestLicenseTierValidation:
     """Validate that TOOL_LICENSE_TIERS entries correspond to actual tools."""
 
-    # Known phantom entries: command builder names in TOOL_LICENSE_TIERS that
-    # are NOT registered as @mcp.tool() functions.  These are builder functions
-    # from src/commands/ that were incorrectly added to the tier map.
-    # TODO: Remove these from license_tiers.py in a future cleanup.
-    _KNOWN_PHANTOM_TIERS = {
-        "apply_appearance",
-        "assign_delay",
-        "assign_fade",
-        "assign_function",
-        "assign_to_layout",
-        "manage_effects",
-        "run_orchestrated_task",
-        "set_color_hex",
-        "set_color_hsb",
-        "set_color_rgb",
-    }
-
-    def test_no_new_phantom_tier_entries(self):
-        """No NEW phantom entries should be added to TOOL_LICENSE_TIERS."""
+    def test_all_tier_entries_reference_actual_tools(self):
+        """Every entry in TOOL_LICENSE_TIERS must be a real @mcp.tool() function."""
         import ast
         from pathlib import Path
 
@@ -391,18 +374,7 @@ class TestLicenseTierValidation:
                             tool_names.add(node.name)
 
         phantom_entries = set(TOOL_LICENSE_TIERS.keys()) - tool_names
-        new_phantoms = phantom_entries - self._KNOWN_PHANTOM_TIERS
-        assert new_phantoms == set(), (
-            f"NEW phantom entries in TOOL_LICENSE_TIERS (not registered as @mcp.tool): "
-            f"{sorted(new_phantoms)}"
+        assert phantom_entries == set(), (
+            f"TOOL_LICENSE_TIERS has entries for non-existent tools: "
+            f"{sorted(phantom_entries)}"
         )
-
-    def test_known_phantoms_still_exist(self):
-        """Verify the known phantom list is up to date (remove entries when cleaned up)."""
-        from src.license_tiers import TOOL_LICENSE_TIERS
-
-        for name in self._KNOWN_PHANTOM_TIERS:
-            assert name in TOOL_LICENSE_TIERS, (
-                f"'{name}' is in _KNOWN_PHANTOM_TIERS but no longer in TOOL_LICENSE_TIERS — "
-                f"remove it from the known list"
-            )
