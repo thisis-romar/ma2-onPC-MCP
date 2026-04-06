@@ -15,14 +15,14 @@ last_updated: 2026-04-06T14:00:50Z
 <p align="center">
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/thisis-romar/ma2-onPC-MCP/test.yml?style=for-the-badge&label=Tests" alt="Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
-  <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
-  <img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-3104-brightgreen?style=for-the-badge" alt="3104 Tests">
-  <img src="https://img.shields.io/badge/Version-3.34.0-purple?style=for-the-badge" alt="Version 3.34.0">
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3104-brightgreen?style=for-the-badge" alt="3104 Tests"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.34.0-purple?style=for-the-badge" alt="Version 3.34.0"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
-  <img src="https://img.shields.io/badge/MCP%20SDK-%E2%89%A5%201.21-blue?style=for-the-badge" alt="MCP SDK >= 1.21">
-  <img src="https://img.shields.io/badge/Linting-Ruff-brightgreen?style=for-the-badge" alt="Ruff">
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/uv.lock"><img src="https://img.shields.io/badge/MCP%20SDK-%E2%89%A5%201.21-blue?style=for-the-badge" alt="MCP SDK >= 1.21"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Linting-Ruff-brightgreen?style=for-the-badge" alt="Ruff"></a>
 </p>
 
 **An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 197 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
