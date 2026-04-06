@@ -202,9 +202,10 @@ class TestCrawlDeduplication:
         mock_resp.raise_for_status = MagicMock()
         mock_client.get.return_value = mock_resp
 
+        mock_resp.status_code = 200  # needed for robots.txt check
         pages = crawl_web(["https://example.com/docs/"], max_pages=5, delay=0)
-        # Should only fetch once despite the self-link
-        assert mock_client.get.call_count == 1
+        # Should fetch robots.txt + page once (2 total) despite the self-link
+        assert mock_client.get.call_count == 2
         assert len(pages) == 1
 
 

@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Web crawler for HTML documentation sites.
 
 Crawls from start URLs using BFS, extracts clean text from HTML pages,
@@ -12,6 +15,7 @@ import re
 import time
 from collections import deque
 from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.robotparser import RobotFileParser
 
 import httpx
 from bs4 import BeautifulSoup, Tag
@@ -90,15 +94,47 @@ def crawl_web(
             visited.add(normalized)
             queue.append(normalized)
 
+    user_agent = "grandpa2-buddy-rag-crawler/1.0 (documentation indexer)"
     client = httpx.Client(
         timeout=30.0,
         follow_redirects=True,
-        headers={"User-Agent": "grandpa2-buddy-rag-crawler/1.0 (documentation indexer)"},
+        headers={"User-Agent": user_agent},
     )
+
+    # Load robots.txt for each domain (best-effort — skip if unavailable)
+    robots_parsers: dict[str, RobotFileParser] = {}
+    for url in start_urls:
+        parsed = urlparse(url)
+        domain = f"{parsed.scheme}://{parsed.netloc}"
+        if domain not in robots_parsers:
+            rp = RobotFileParser()
+            robots_url = f"{domain}/robots.txt"
+            try:
+                r = client.get(robots_url)
+                if r.status_code == 200:
+                    rp.parse(r.text.splitlines())
+                    logger.info("Loaded robots.txt from %s", robots_url)
+                else:
+                    rp.allow_all = True
+            except Exception:
+                rp.allow_all = True  # can't fetch → assume allowed
+            robots_parsers[domain] = rp
+
+    def _robots_allowed(check_url: str) -> bool:
+        parsed = urlparse(check_url)
+        domain = f"{parsed.scheme}://{parsed.netloc}"
+        rp = robots_parsers.get(domain)
+        if rp is None or getattr(rp, "allow_all", False):
+            return True
+        return rp.can_fetch(user_agent, check_url)
 
     try:
         while queue and len(files) < max_pages:
             url = queue.popleft()
+
+            if not _robots_allowed(url):
+                logger.info("Blocked by robots.txt: %s", url)
+                continue
 
             try:
                 resp = client.get(url)

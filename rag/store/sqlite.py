@@ -1,3 +1,6 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """SQLite storage backend for the RAG pipeline."""
 
 from __future__ import annotations
@@ -162,15 +165,38 @@ class RagStore:
     # Search
     # ------------------------------------------------------------------
 
-    def search_by_embedding(self, query_embedding: list[float], top_k: int = 12) -> list[RagHit]:
-        """Brute-force cosine similarity search over all chunks with embeddings.
+    def search_by_embedding(
+        self,
+        query_embedding: list[float],
+        top_k: int = 12,
+        repo_ref: str | None = None,
+        kind: str | None = None,
+    ) -> list[RagHit]:
+        """Cosine similarity search over chunks with embeddings.
+
+        Pre-filters by ``repo_ref`` and/or ``kind`` when provided, reducing
+        the number of chunks scanned.  Without filters, scans all chunks
+        (brute-force).
 
         Raises ``ValueError`` if the query embedding dimension doesn't match
         the stored embeddings (checked against the first stored chunk).
         """
-        rows = self.conn.execute(
-            "SELECT chunk_id, path, kind, start_line, end_line, text, embedding FROM chunks WHERE embedding IS NOT NULL"
-        ).fetchall()
+        sql = (
+            "SELECT c.chunk_id, c.path, c.kind, c.start_line, c.end_line, "
+            "c.text, c.embedding FROM chunks c"
+        )
+        conditions = ["c.embedding IS NOT NULL"]
+        params: list[str] = []
+
+        if repo_ref is not None:
+            conditions.append("c.doc_id IN (SELECT doc_id FROM documents WHERE repo_ref = ?)")
+            params.append(repo_ref)
+        if kind is not None:
+            conditions.append("c.kind = ?")
+            params.append(kind)
+
+        sql += " WHERE " + " AND ".join(conditions)
+        rows = self.conn.execute(sql, params).fetchall()
 
         query_dim = len(query_embedding)
         scored: list[RagHit] = []

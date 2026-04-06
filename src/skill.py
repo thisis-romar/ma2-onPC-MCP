@@ -66,6 +66,7 @@ class Skill:
     updated_at: float              # Unix timestamp
     source_session_id: str | None  # session that generated this skill
     approved: bool                 # DESTRUCTIVE skills require True before use
+    deprecated: bool = False       # True to hide from search/suggestions
 
     # ── Convenience ────────────────────────────────────────────────────
 
@@ -153,9 +154,13 @@ class SkillRegistry:
             CREATE INDEX IF NOT EXISTS idx_skills_scope  ON skills(safety_scope);
             CREATE INDEX IF NOT EXISTS idx_skills_src    ON skills(source_session_id);
         """)
-        # Migration: add embedding column for semantic search (idempotent)
+        # Migrations (idempotent — suppress "duplicate column" errors)
         with contextlib.suppress(sqlite3.OperationalError):
             self._conn.execute("ALTER TABLE skills ADD COLUMN embedding BLOB")
+        with contextlib.suppress(sqlite3.OperationalError):
+            self._conn.execute(
+                "ALTER TABLE skills ADD COLUMN deprecated INTEGER NOT NULL DEFAULT 0"
+            )
         self._conn.commit()
 
     # ------------------------------------------------------------------ #
@@ -193,6 +198,15 @@ class SkillRegistry:
         """Set approved=True for a DESTRUCTIVE skill.  Returns False if not found."""
         cur = self._conn.execute(
             "UPDATE skills SET approved=1, updated_at=? WHERE id=?",
+            (time.time(), skill_id),
+        )
+        self._conn.commit()
+        return cur.rowcount > 0
+
+    def deprecate(self, skill_id: str) -> bool:
+        """Mark a skill as deprecated.  Returns False if not found."""
+        cur = self._conn.execute(
+            "UPDATE skills SET deprecated=1, updated_at=? WHERE id=?",
             (time.time(), skill_id),
         )
         self._conn.commit()
@@ -322,13 +336,17 @@ class SkillRegistry:
         return skill
 
     def search(self, query: str, limit: int = 10) -> list[Skill]:
-        """Full-text search across name, description, and applicable_context."""
+        """Full-text search across name, description, and applicable_context.
+
+        Deprecated skills are excluded from results.
+        """
         pat = f"%{query}%"
         rows = self._conn.execute(
             "SELECT id,version,parent_id,name,description,body,quality_score,"
             "safety_scope,applicable_context,created_at,updated_at,"
             "source_session_id,approved FROM skills "
-            "WHERE name LIKE ? OR description LIKE ? OR applicable_context LIKE ? "
+            "WHERE (name LIKE ? OR description LIKE ? OR applicable_context LIKE ?) "
+            "AND COALESCE(deprecated, 0) = 0 "
             "ORDER BY updated_at DESC LIMIT ?",
             (pat, pat, pat, limit),
         ).fetchall()
@@ -407,11 +425,12 @@ class SkillRegistry:
         return results
 
     def list_all(self, limit: int = 50) -> list[Skill]:
-        """Return all skills: DB skills first (most recent), then filesystem skills."""
+        """Return all non-deprecated skills: DB skills first, then filesystem skills."""
         rows = self._conn.execute(
             "SELECT id,version,parent_id,name,description,body,quality_score,"
             "safety_scope,applicable_context,created_at,updated_at,"
             "source_session_id,approved FROM skills "
+            "WHERE COALESCE(deprecated, 0) = 0 "
             "ORDER BY updated_at DESC LIMIT ?",
             (limit,),
         ).fetchall()
