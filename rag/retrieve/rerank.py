@@ -1,8 +1,14 @@
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Keyword-overlap reranker for RAG retrieval results.
 
 Reranks hits by combining their original score with a keyword-overlap
 bonus — the fraction of query terms appearing in the chunk text.
 No external dependencies required.
+
+Also provides ``rerank_tools()`` for second-stage reranking of tool
+suggestions against their full docstrings/bodies.
 """
 
 from __future__ import annotations
@@ -60,3 +66,48 @@ def _keyword_overlap(query_terms: list[str], chunk_text: str) -> float:
     chunk_lower = chunk_text.lower()
     matches = sum(1 for term in query_terms if term in chunk_lower)
     return matches / len(query_terms)
+
+
+# ── Tool-body reranker ────────────────────────────────────────────────────
+
+
+def rerank_tools(
+    candidates: list[tuple[str, float]],
+    query: str,
+    tool_bodies: dict[str, str],
+) -> list[tuple[str, float]]:
+    """Rerank tool suggestions by keyword overlap against full tool bodies.
+
+    This is the second stage in a retrieve-then-rerank pipeline:
+    first-pass retrieval produces ``candidates`` (name, score); this function
+    re-scores each candidate by computing keyword overlap between the query
+    and the tool's full docstring/body text, then combines with the original
+    score.
+
+    Args:
+        candidates: First-pass results as ``(tool_name, score)`` tuples.
+        query: The original task description.
+        tool_bodies: Mapping of ``tool_name → full_docstring_text``.
+
+    Returns:
+        Re-sorted ``(tool_name, combined_score)`` list, descending.
+    """
+    if not candidates or not query.strip():
+        return candidates
+
+    query_terms = _extract_terms(query)
+    if not query_terms:
+        return candidates
+
+    reranked: list[tuple[str, float]] = []
+    for name, score in candidates:
+        body = tool_bodies.get(name, "")
+        if body:
+            overlap = _keyword_overlap(query_terms, body)
+            combined = score + overlap * 0.5  # half-weight body overlap bonus
+        else:
+            combined = score
+        reranked.append((name, combined))
+
+    reranked.sort(key=lambda x: -x[1])
+    return reranked

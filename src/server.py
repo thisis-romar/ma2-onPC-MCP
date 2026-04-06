@@ -7377,14 +7377,15 @@ async def suggest_tool_for_task(
     top_n: int = 3,
     provider: str = "zero",
     prefer_semantic: bool = True,
+    filter_risk_tier: str = "",
+    filter_license_tier: str = "",
 ) -> str:
     """
     Suggest MCP tools for a natural-language task description (SAFE_READ).
 
-    Embeds the task description and finds the closest tools by cosine
-    similarity against stored docstring embeddings.  Falls back to keyword
-    matching when using the zero-vector provider or when no embedding token
-    is available.
+    Uses hybrid retrieval: keyword matching + embedding-based cosine similarity,
+    fused via Reciprocal Rank Fusion (RRF).  Falls back to keyword-only when no
+    embedding token is available.
 
     Args:
         task_description: What you want to accomplish (e.g. "fade out all fixtures").
@@ -7395,6 +7396,10 @@ async def suggest_tool_for_task(
             search if GITHUB_MODELS_TOKEN is set in the environment.  Falls back
             to keyword matching with a ``warning`` field when no token is present.
             Set to False to force keyword matching regardless of token availability.
+        filter_risk_tier: Only return tools with this risk tier
+            ("SAFE_READ", "SAFE_WRITE", "DESTRUCTIVE").  Empty = no filter.
+        filter_license_tier: Only return tools at or below this license tier
+            ("community", "professional", "enterprise").  Empty = no filter.
 
     Returns:
         str: JSON array of suggested tools with scores and descriptions.
@@ -7441,14 +7446,14 @@ async def suggest_tool_for_task(
         result.sort(key=lambda x: -x[1])
         return result
 
-    if effective_provider == "zero":
-        scores: list[tuple[str, float]] = _keyword_scores()
-    else:
-        # Embed task and compare via cosine similarity
+    # ── Keyword scoring (always computed for hybrid fusion) ─────────
+    keyword_scores: list[tuple[str, float]] = _keyword_scores()
+
+    # ── Semantic scoring (when embedding provider available) ──────
+    semantic_scores: list[tuple[str, float]] = []
+    if effective_provider != "zero":
         names, emb_matrix = get_embedding_matrix(taxonomy)
         if emb_matrix.size == 0 or np.allclose(emb_matrix, 0.0):
-            # Fall back to keyword matching
-            scores = _keyword_scores()
             semantic_warning = (
                 (semantic_warning or "")
                 + " Embedding matrix is empty (zero-vector store); using keyword matching."
@@ -7465,13 +7470,66 @@ async def suggest_tool_for_task(
             emb_provider = GitHubModelsProvider(token=token)
             task_vec = np.array(emb_provider.embed_one(task_description), dtype=np.float64)
 
-            scores = []
             for i, name in enumerate(names):
                 sim = cosine_similarity(task_vec, emb_matrix[i])
-                scores.append((name, sim))
-            scores.sort(key=lambda x: -x[1])
+                semantic_scores.append((name, sim))
+            semantic_scores.sort(key=lambda x: -x[1])
 
-    top = scores[:top_n]
+    # ── Hybrid fusion via Reciprocal Rank Fusion (RRF) ───────────
+    if semantic_scores:
+        # RRF: score(d) = sum over lists L of 1/(k + rank_L(d))
+        rrf_k = 60  # standard RRF constant
+        fused: dict[str, float] = {}
+        for rank, (name, _) in enumerate(keyword_scores):
+            fused[name] = fused.get(name, 0.0) + 1.0 / (rrf_k + rank + 1)
+        for rank, (name, _) in enumerate(semantic_scores):
+            fused[name] = fused.get(name, 0.0) + 1.0 / (rrf_k + rank + 1)
+        scores = sorted(fused.items(), key=lambda x: -x[1])
+    else:
+        scores = keyword_scores
+
+    # ── Second-stage reranking against full tool docstrings ────────
+    from rag.retrieve.rerank import rerank_tools
+
+    # Get full docstrings for body-level reranking
+    full_docstrings = get_docstring_map(taxonomy)
+    scores = rerank_tools(scores, task_description, full_docstrings)
+
+    # ── Metadata filtering ────────────────────────────────────────
+    from src.license_tiers import TOOL_LICENSE_TIERS
+
+    tier_order = {"community": 0, "professional": 1, "enterprise": 2}
+    max_tier_val = tier_order.get(filter_license_tier.lower(), 999)
+
+    # Build risk-tier lookup from taxonomy tool_features
+    tool_risk: dict[str, str] = {}
+    tf = taxonomy.get("tool_features", {})
+    for tname, feat in tf.items():
+        # Prefer enriched risk_tier field; fall back to structural vector
+        if "risk_tier" in feat:
+            tool_risk[tname] = feat["risk_tier"]
+        else:
+            structural = feat.get("structural", [])
+            if len(structural) >= 3:
+                if structural[0] > 0:
+                    tool_risk[tname] = "SAFE_READ"
+                elif structural[2] > 0:
+                    tool_risk[tname] = "DESTRUCTIVE"
+                else:
+                    tool_risk[tname] = "SAFE_WRITE"
+
+    filtered_scores: list[tuple[str, float]] = []
+    for name, score in scores:
+        if filter_risk_tier and tool_risk.get(name, "SAFE_WRITE") != filter_risk_tier.upper():
+            continue
+        if filter_license_tier:
+            tool_tier = TOOL_LICENSE_TIERS.get(name)
+            tool_tier_name = tool_tier.value if tool_tier else "community"
+            if tier_order.get(tool_tier_name, 0) > max_tier_val:
+                continue
+        filtered_scores.append((name, score))
+
+    top = filtered_scores[:top_n]
     result: dict = {
         "suggestions": [
             {
@@ -7479,12 +7537,35 @@ async def suggest_tool_for_task(
                 "score": round(score, 4),
                 "category": tool_to_category.get(name, "unknown"),
                 "description": docstrings.get(name, ""),
+                "risk_tier": tool_risk.get(name, "SAFE_WRITE"),
             }
             for name, score in top
         ]
     }
     if semantic_warning:
         result["warning"] = semantic_warning
+
+    # ── Skill context suggestions (optional) ─────────────────────
+    # Search skills' applicable_context for related playbooks
+    try:
+        from src.skill import SkillRegistry
+
+        skill_reg = SkillRegistry()
+        skill_matches = skill_reg.search(task_description, limit=2)
+        if skill_matches:
+            result["related_skills"] = [
+                {
+                    "name": s.name,
+                    "description": s.description,
+                    "applicable_context": s.applicable_context,
+                }
+                for s in skill_matches
+                if s.is_usable()
+            ]
+        skill_reg.close()
+    except Exception:
+        pass  # skill registry unavailable — degrade gracefully
+
     return json.dumps(result, indent=2)
 
 

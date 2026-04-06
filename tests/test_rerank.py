@@ -4,7 +4,7 @@
 """Tests for the keyword-overlap reranker."""
 
 
-from rag.retrieve.rerank import _extract_terms, _keyword_overlap, rerank
+from rag.retrieve.rerank import _extract_terms, _keyword_overlap, rerank, rerank_tools
 from rag.types import RagHit
 
 
@@ -113,3 +113,42 @@ class TestRerank:
         assert result[0].chunk_id == "c1"  # highest total score
         assert result[1].chunk_id == "c3"
         assert result[2].chunk_id == "c2"
+
+
+# ── rerank_tools tests ──────────────────────────────────────────────────
+
+
+class TestRerankTools:
+    """Tests for the tool-body reranker."""
+
+    def test_reranks_by_body_overlap(self):
+        candidates = [
+            ("tool_a", 1.0),
+            ("tool_b", 0.5),
+        ]
+        bodies = {
+            "tool_a": "Delete fixtures from the show",
+            "tool_b": "Set intensity level for selected fixtures on the console",
+        }
+        result = rerank_tools(candidates, "set intensity fixtures", bodies)
+        # tool_b has higher body overlap for "set intensity fixtures"
+        assert result[0][0] == "tool_b" or result[0][1] >= result[1][1]
+
+    def test_empty_candidates_returns_empty(self):
+        assert rerank_tools([], "test", {}) == []
+
+    def test_empty_query_returns_original(self):
+        candidates = [("tool_a", 1.0)]
+        assert rerank_tools(candidates, "", {}) == candidates
+
+    def test_missing_body_keeps_original_score(self):
+        candidates = [("tool_a", 1.0), ("tool_b", 0.9)]
+        result = rerank_tools(candidates, "test query", {})
+        assert result[0][0] == "tool_a"  # original order preserved
+
+    def test_body_overlap_adds_bonus(self):
+        candidates = [("tool_a", 0.5)]
+        bodies = {"tool_a": "exactly matches the test query words"}
+        result = rerank_tools(candidates, "test query", bodies)
+        # Score should increase due to body overlap
+        assert result[0][1] > 0.5

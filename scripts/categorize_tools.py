@@ -145,13 +145,17 @@ def run(
             ],
         }
 
-    # Build tool_features dict
+    # Build tool_features dict (enriched with metadata for filtering/reranking)
     tool_features_dict: dict[str, dict] = {}
     for i, t in enumerate(tools):
         tool_features_dict[t.name] = {
             "structural": [round(v, 6) for v in structural_norm[i].tolist()],
             "embedding": [round(v, 6) for v in embeddings[i].tolist()],
             "docstring_summary": t.docstring.split("\n")[0][:200] if t.docstring else "",
+            "risk_tier": t.risk_tier,
+            "param_names": t.param_names,
+            "action_verbs": t.action_verbs,
+            "command_modules": t.command_modules,
         }
 
     save_taxonomy(
