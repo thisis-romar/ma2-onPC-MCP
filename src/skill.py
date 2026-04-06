@@ -20,12 +20,20 @@ the full ancestor chain.
 
 from __future__ import annotations
 
+import logging
 import re
 import sqlite3
+import struct
 import time
 import uuid
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from rag.ingest.embed import EmbeddingProvider
+
+logger = logging.getLogger(__name__)
 
 _DEFAULT_DB = Path(__file__).parent.parent / "rag" / "store" / "agent_memory.db"
 
@@ -109,9 +117,14 @@ class SkillRegistry:
     All mutating methods call ``_conn.commit()`` before returning.
     """
 
-    def __init__(self, db_path: Path = _DEFAULT_DB) -> None:
+    def __init__(
+        self,
+        db_path: Path = _DEFAULT_DB,
+        embedding_provider: EmbeddingProvider | None = None,
+    ) -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        self._embedder = embedding_provider
         self._init_schema()
 
     # ------------------------------------------------------------------ #
@@ -139,6 +152,11 @@ class SkillRegistry:
             CREATE INDEX IF NOT EXISTS idx_skills_scope  ON skills(safety_scope);
             CREATE INDEX IF NOT EXISTS idx_skills_src    ON skills(source_session_id);
         """)
+        # Migration: add embedding column for semantic search (idempotent)
+        try:
+            self._conn.execute("ALTER TABLE skills ADD COLUMN embedding BLOB")
+        except sqlite3.OperationalError:
+            pass  # column already exists
         self._conn.commit()
 
     # ------------------------------------------------------------------ #
@@ -162,6 +180,7 @@ class SkillRegistry:
             ),
         )
         self._conn.commit()
+        self._embed_skill(skill)
 
     def update_quality(self, skill_id: str, score: float) -> None:
         """Update the quality_score and updated_at for an existing skill."""
@@ -245,6 +264,27 @@ class SkillRegistry:
         return new_skill
 
     # ------------------------------------------------------------------ #
+    # Embedding                                                            #
+    # ------------------------------------------------------------------ #
+
+    def _embed_skill(self, skill: Skill) -> None:
+        """Compute and store an embedding for the skill if a provider is configured."""
+        if self._embedder is None:
+            return
+        text = f"{skill.name} {skill.description} {skill.applicable_context}".strip()
+        if not text:
+            return
+        try:
+            vec = self._embedder.embed_one(text)
+            blob = struct.pack(f"{len(vec)}f", *vec)
+            self._conn.execute(
+                "UPDATE skills SET embedding=? WHERE id=?", (blob, skill.id),
+            )
+            self._conn.commit()
+        except Exception as e:
+            logger.warning("Failed to embed skill %s: %s", skill.id, e)
+
+    # ------------------------------------------------------------------ #
     # Read                                                                 #
     # ------------------------------------------------------------------ #
 
@@ -303,6 +343,69 @@ class SkillRegistry:
             )
         ]
         return (db_skills + fs_matches)[:limit]
+
+    def search_semantic(self, query: str, limit: int = 10) -> list[Skill]:
+        """Embedding-based semantic search across skills.
+
+        Falls back to :meth:`search` (SQL LIKE) when no embedding provider is
+        configured or when no skills have embeddings stored.
+        """
+        if self._embedder is None:
+            return self.search(query, limit)
+
+        try:
+            query_vec = self._embedder.embed_one(query)
+        except Exception as e:
+            logger.warning("Embedding query failed, falling back to LIKE: %s", e)
+            return self.search(query, limit)
+
+        rows = self._conn.execute(
+            "SELECT id,version,parent_id,name,description,body,quality_score,"
+            "safety_scope,applicable_context,created_at,updated_at,"
+            "source_session_id,approved,embedding FROM skills "
+            "WHERE embedding IS NOT NULL"
+        ).fetchall()
+
+        if not rows:
+            return self.search(query, limit)
+
+        import numpy as np
+
+        q_arr = np.array(query_vec, dtype=np.float32)
+        q_norm = float(np.linalg.norm(q_arr))
+        if q_norm == 0:
+            return self.search(query, limit)
+
+        scored: list[tuple[float, Skill]] = []
+        for row in rows:
+            *skill_cols, emb_blob = row
+            if emb_blob is None:
+                continue
+            emb = np.frombuffer(emb_blob, dtype=np.float32).copy()
+            if len(emb) != len(q_arr):
+                continue  # dimension mismatch
+            e_norm = float(np.linalg.norm(emb))
+            if e_norm == 0:
+                continue
+            cos_sim = float(np.dot(q_arr, emb) / (q_norm * e_norm))
+            skill = _row_to_skill(tuple(skill_cols))
+            scored.append((cos_sim, skill))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+
+        # Also include filesystem skill matches (LIKE-based)
+        db_ids = {s.id for _, s in scored}
+        q_lower = query.lower()
+        fs_matches = [
+            s for s in _list_filesystem_skills()
+            if s.id not in db_ids and q_lower in s.name.lower()
+        ]
+
+        results = [s for _, s in scored[:limit]]
+        remaining = limit - len(results)
+        if remaining > 0:
+            results.extend(fs_matches[:remaining])
+        return results
 
     def list_all(self, limit: int = 50) -> list[Skill]:
         """Return all skills: DB skills first (most recent), then filesystem skills."""
