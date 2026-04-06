@@ -85,6 +85,17 @@ fi
 
 echo "[pre-commit] IP protection checks passed."
 
+# ── Ruff Lint Check ──────────────────────────────────────────────────────
+
+if [ -n "$STAGED_PY" ]; then
+    echo "[pre-commit] Running ruff lint check..."
+    if ! uv run ruff check src/ tests/ rag/ 2>&1; then
+        echo "[pre-commit] Ruff lint check FAILED. Fix with: uv run ruff check --fix src/ tests/ rag/"
+        exit 1
+    fi
+    echo "[pre-commit] Ruff lint check passed."
+fi
+
 # ── RAG Re-index ─────────────────────────────────────────────────────────
 
 echo "[RAG] Re-indexing changed files..."
