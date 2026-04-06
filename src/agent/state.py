@@ -27,6 +27,7 @@ class StepStatus(StrEnum):
     FAILED = "failed"
     SKIPPED = "skipped"
     AWAITING_CONFIRMATION = "awaiting_confirmation"
+    ROLLED_BACK = "rolled_back"
 
 
 class RunStatus(StrEnum):

@@ -3,7 +3,7 @@
 
 """Tests for src/agent/policy.py — plan-level governance rules."""
 
-from src.agent.policy import PolicyEngine, StepDecision
+from src.agent.policy import PolicyEngine, PolicyStrictness, StepDecision
 from src.agent.state import PlanStep, RunContext, StepStatus
 from src.vocab import RiskTier
 
@@ -166,3 +166,77 @@ class TestGateStep:
         ctx = RunContext(goal="test", plan=[s1, s2])
         decision = engine.gate_step(s2, ctx)
         assert decision.action == StepDecision.EXECUTE
+
+
+class TestPolicyStrictness:
+    """Tests for BLOCK mode — rules 1-3 become blocking errors."""
+
+    def test_strictness_enum_values(self):
+        assert PolicyStrictness.WARN == "warn"
+        assert PolicyStrictness.BLOCK == "block"
+
+    def test_default_strictness_is_warn(self):
+        engine = PolicyEngine()
+        assert engine.strictness == PolicyStrictness.WARN
+
+    def test_explicit_block_strictness(self):
+        engine = PolicyEngine(strictness=PolicyStrictness.BLOCK)
+        assert engine.strictness == PolicyStrictness.BLOCK
+
+    def test_env_var_sets_block(self, monkeypatch):
+        monkeypatch.setenv("GMA_POLICY_STRICTNESS", "block")
+        engine = PolicyEngine()
+        assert engine.strictness == PolicyStrictness.BLOCK
+
+    def test_env_var_case_insensitive(self, monkeypatch):
+        monkeypatch.setenv("GMA_POLICY_STRICTNESS", "BLOCK")
+        engine = PolicyEngine()
+        assert engine.strictness == PolicyStrictness.BLOCK
+
+    def test_block_staging_rejects_read_after_destructive(self):
+        engine = PolicyEngine(strictness=PolicyStrictness.BLOCK)
+        plan = [
+            _step(risk=RiskTier.DESTRUCTIVE, description="store cue"),
+            _step(risk=RiskTier.SAFE_READ, description="list fixtures"),
+        ]
+        result = engine.validate_plan(plan)
+        assert result.approved is False
+        assert any(v.rule == "staging" and v.severity == "error" for v in result.violations)
+
+    def test_warn_staging_approves_read_after_destructive(self):
+        engine = PolicyEngine(strictness=PolicyStrictness.WARN)
+        plan = [
+            _step(risk=RiskTier.DESTRUCTIVE, description="store cue"),
+            _step(risk=RiskTier.SAFE_READ, description="list fixtures"),
+        ]
+        result = engine.validate_plan(plan)
+        assert result.approved is True  # warning only
+
+    def test_block_verification_rejects_unverified_destructive(self):
+        engine = PolicyEngine(strictness=PolicyStrictness.BLOCK)
+        plan = [
+            _step(risk=RiskTier.DESTRUCTIVE, description="store preset"),
+            _step(risk=RiskTier.DESTRUCTIVE, description="assign executor"),
+        ]
+        result = engine.validate_plan(plan)
+        assert result.approved is False
+        assert any(v.rule == "verification" and v.severity == "error" for v in result.violations)
+
+    def test_block_discovery_first_rejects_mutation_start(self):
+        engine = PolicyEngine(strictness=PolicyStrictness.BLOCK)
+        plan = [
+            _step(risk=RiskTier.SAFE_WRITE, description="set intensity"),
+        ]
+        result = engine.validate_plan(plan)
+        assert result.approved is False
+        assert any(v.rule == "discovery_first" and v.severity == "error" for v in result.violations)
+
+    def test_block_still_allows_clean_plan(self):
+        engine = PolicyEngine(strictness=PolicyStrictness.BLOCK)
+        plan = [
+            _step(risk=RiskTier.SAFE_READ, description="list groups"),
+            _step(risk=RiskTier.DESTRUCTIVE, description="store cue"),
+            _step(risk=RiskTier.SAFE_READ, description="Verify: cue stored"),
+        ]
+        result = engine.validate_plan(plan)
+        assert result.approved is True

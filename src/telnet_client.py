@@ -20,12 +20,104 @@ Uses telnetlib3 (based on asyncio) to replace the deprecated telnetlib module.
 import asyncio
 import contextlib
 import logging
+import time
+from enum import StrEnum
 from typing import Any
 
 import telnetlib3
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+
+# ── Circuit Breaker ──────────────────────────────────────────────────────
+
+
+class CircuitState(StrEnum):
+    """Three-state circuit breaker: CLOSED (healthy), OPEN (failing), HALF_OPEN (probing)."""
+
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
+
+
+class CircuitOpenError(ConnectionError):
+    """Raised when the circuit breaker is OPEN and a request is attempted."""
+
+
+class CircuitBreaker:
+    """Fail-fast circuit breaker for the telnet connection.
+
+    Transitions:
+      CLOSED  → OPEN       after *failure_threshold* consecutive failures
+      OPEN    → HALF_OPEN  after *recovery_timeout_s* seconds
+      HALF_OPEN → CLOSED   on first success (probe passed)
+      HALF_OPEN → OPEN     on first failure (probe failed)
+
+    Usage::
+
+        if not breaker.allow_request():
+            raise CircuitOpenError(...)
+        try:
+            result = await send(...)
+            breaker.record_success()
+        except Exception:
+            breaker.record_failure()
+            raise
+    """
+
+    def __init__(
+        self,
+        failure_threshold: int = 5,
+        recovery_timeout_s: float = 30.0,
+    ):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout_s = recovery_timeout_s
+        self._state = CircuitState.CLOSED
+        self._consecutive_failures = 0
+        self._last_failure_time: float = 0.0
+
+    @property
+    def state(self) -> CircuitState:
+        """Current circuit state (may transition OPEN → HALF_OPEN on read)."""
+        if (
+            self._state == CircuitState.OPEN
+            and time.monotonic() - self._last_failure_time >= self.recovery_timeout_s
+        ):
+            self._state = CircuitState.HALF_OPEN
+            logger.info("Circuit breaker → HALF_OPEN (recovery timeout elapsed)")
+        return self._state
+
+    def allow_request(self) -> bool:
+        """Return True if a request should be attempted."""
+        return self.state != CircuitState.OPEN
+
+    def record_success(self) -> None:
+        """Record a successful request — close the circuit."""
+        if self._state in (CircuitState.HALF_OPEN, CircuitState.OPEN):
+            logger.info("Circuit breaker → CLOSED (success)")
+        self._consecutive_failures = 0
+        self._state = CircuitState.CLOSED
+
+    def record_failure(self) -> None:
+        """Record a failed request — may open the circuit."""
+        self._consecutive_failures += 1
+        self._last_failure_time = time.monotonic()
+        if self._state == CircuitState.HALF_OPEN:
+            self._state = CircuitState.OPEN
+            logger.warning("Circuit breaker → OPEN (probe failed)")
+        elif self._consecutive_failures >= self.failure_threshold:
+            self._state = CircuitState.OPEN
+            logger.warning(
+                "Circuit breaker → OPEN (%d consecutive failures)",
+                self._consecutive_failures,
+            )
+
+    def reset(self) -> None:
+        """Manually reset the breaker to CLOSED."""
+        self._state = CircuitState.CLOSED
+        self._consecutive_failures = 0
+        self._last_failure_time = 0.0
 
 
 class GMA2TelnetClient:
@@ -86,6 +178,7 @@ class GMA2TelnetClient:
         self._reader: Any | None = None
         self._writer: Any | None = None
         self._connection: Any | None = None  # Kept for compatibility checks
+        self._breaker = CircuitBreaker()
 
         logger.debug(
             f"GMA2TelnetClient initialized: host={host}, port={port}, user={user}"
@@ -198,18 +291,33 @@ class GMA2TelnetClient:
         if self._writer is None:
             raise RuntimeError("Connection not established, call connect() first")
 
+        # Circuit breaker — fail fast when console is unreachable
+        if not self._breaker.allow_request():
+            raise CircuitOpenError(
+                f"Circuit breaker OPEN — {self.host}:{self.port} unreachable "
+                f"(will probe after {self._breaker.recovery_timeout_s}s)"
+            )
+
         # Sanitize: strip embedded line breaks to prevent command injection
         command = command.replace("\r", "").replace("\n", "")
 
         logger.debug(f"Sending command: {command}")
 
-        # Send command (automatically add newline)
-        full_command = f"{command}\r\n"
-        self._writer.write(full_command)
+        try:
+            # Send command (automatically add newline)
+            full_command = f"{command}\r\n"
+            self._writer.write(full_command)
 
-        # Wait for grandMA2 to process command
-        await asyncio.sleep(delay)
-        logger.debug(f"Command sent, waiting {delay} seconds")
+            # Wait for grandMA2 to process command
+            await asyncio.sleep(delay)
+            logger.debug(f"Command sent, waiting {delay} seconds")
+        except CircuitOpenError:
+            raise
+        except Exception:
+            self._breaker.record_failure()
+            raise
+        else:
+            self._breaker.record_success()
 
     async def send_command_with_response(
         self, command: str, timeout: float = 2.0, delay: float = 0.3,
@@ -236,44 +344,59 @@ class GMA2TelnetClient:
         if self._writer is None or self._reader is None:
             raise RuntimeError("Connection not established, call connect() first")
 
+        # Circuit breaker — fail fast when console is unreachable
+        if not self._breaker.allow_request():
+            raise CircuitOpenError(
+                f"Circuit breaker OPEN — {self.host}:{self.port} unreachable "
+                f"(will probe after {self._breaker.recovery_timeout_s}s)"
+            )
+
         # Sanitize: strip embedded line breaks to prevent command injection
         command = command.replace("\r", "").replace("\n", "")
 
         logger.debug(f"Sending command with response: {command}")
 
-        # Clear any pending data
-        with contextlib.suppress(TimeoutError):
-            await asyncio.wait_for(self._reader.read(4096), timeout=0.1)
-
-        # Send command
-        full_command = f"{command}\r\n"
-        self._writer.write(full_command)
-
-        # Wait for grandMA2 to process
-        await asyncio.sleep(delay)
-
-        # Read response
-        response_parts = []
         try:
-            # Continue reading until no more data
-            while True:
-                try:
-                    chunk = await asyncio.wait_for(
-                        self._reader.read(4096), timeout=timeout
-                    )
-                    if chunk:
-                        response_parts.append(chunk)
-                        # Shorten timeout for subsequent reads
-                        timeout = subsequent_timeout
-                    else:
-                        break
-                except TimeoutError:
-                    break
-        except Exception as e:
-            logger.warning(f"Error reading response: {e}")
+            # Clear any pending data
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(self._reader.read(4096), timeout=0.1)
 
-        response = "".join(response_parts)
-        logger.debug(f"Response received: {len(response)} characters")
+            # Send command
+            full_command = f"{command}\r\n"
+            self._writer.write(full_command)
+
+            # Wait for grandMA2 to process
+            await asyncio.sleep(delay)
+
+            # Read response
+            response_parts = []
+            try:
+                # Continue reading until no more data
+                while True:
+                    try:
+                        chunk = await asyncio.wait_for(
+                            self._reader.read(4096), timeout=timeout
+                        )
+                        if chunk:
+                            response_parts.append(chunk)
+                            # Shorten timeout for subsequent reads
+                            timeout = subsequent_timeout
+                        else:
+                            break
+                    except TimeoutError:
+                        break
+            except Exception as e:
+                logger.warning(f"Error reading response: {e}")
+
+            response = "".join(response_parts)
+            logger.debug(f"Response received: {len(response)} characters")
+        except CircuitOpenError:
+            raise
+        except Exception:
+            self._breaker.record_failure()
+            raise
+        else:
+            self._breaker.record_success()
         return response
 
     async def disconnect(self) -> None:

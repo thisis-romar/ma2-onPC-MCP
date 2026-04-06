@@ -27,6 +27,7 @@ class TestStepStatus:
         assert StepStatus.FAILED == "failed"
         assert StepStatus.SKIPPED == "skipped"
         assert StepStatus.AWAITING_CONFIRMATION == "awaiting_confirmation"
+        assert StepStatus.ROLLED_BACK == "rolled_back"
 
 
 class TestRunStatus:

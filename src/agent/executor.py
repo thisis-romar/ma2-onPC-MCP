@@ -16,8 +16,10 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 
 from src.agent.policy import PolicyEngine, StepDecision
+from src.agent.rollback import RollbackExecutor, RollbackResult
 from src.agent.state import (
     PlanStep,
+    RollbackStrategy,
     RunContext,
     RunStatus,
     StepStatus,
@@ -42,11 +44,13 @@ class StepExecutor:
         policy: PolicyEngine,
         verifier: Verifier,
         max_retries: int = DEFAULT_MAX_RETRIES,
+        rollback: RollbackExecutor | None = None,
     ):
         self._tools = tool_registry
         self._policy = policy
         self._verifier = verifier
         self._max_retries = max_retries
+        self._rollback = rollback or RollbackExecutor(tool_registry)
 
     async def execute_plan(
         self,
@@ -157,6 +161,24 @@ class StepExecutor:
                             step.description,
                             verification.details,
                         )
+                        # Attempt rollback if a strategy is available
+                        rollback_strategy = self._verifier.suggest_rollback(step)
+                        if rollback_strategy != RollbackStrategy.NONE:
+                            rb_result = await self._rollback.execute(
+                                rollback_strategy, step, context,
+                            )
+                            if rb_result.success:
+                                step.status = StepStatus.ROLLED_BACK
+                                step.error = (
+                                    f"Verification failed, rolled back via "
+                                    f"{rollback_strategy.value}: {rb_result.response}"
+                                )
+                                logger.info(
+                                    "Rolled back step '%s' via %s",
+                                    step.description,
+                                    rollback_strategy.value,
+                                )
+                                return  # rolled back — don't retry
 
                 return  # Success
 

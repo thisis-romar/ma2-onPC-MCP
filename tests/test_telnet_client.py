@@ -11,9 +11,142 @@ Uses pytest-asyncio for async testing.
 """
 
 
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+
+# ── Circuit Breaker Tests ────────────────────────────────────────────────
+
+
+class TestCircuitBreaker:
+    """Tests for the telnet circuit breaker."""
+
+    def test_initial_state_is_closed(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker()
+        assert cb.state == CircuitState.CLOSED
+
+    def test_stays_closed_on_success(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker(failure_threshold=3)
+        cb.record_success()
+        assert cb.state == CircuitState.CLOSED
+
+    def test_opens_after_threshold_failures(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker(failure_threshold=3)
+        cb.record_failure()
+        cb.record_failure()
+        assert cb.state == CircuitState.CLOSED
+        cb.record_failure()
+        assert cb.state == CircuitState.OPEN
+
+    def test_open_rejects_requests(self):
+        from src.telnet_client import CircuitBreaker
+
+        cb = CircuitBreaker(failure_threshold=2)
+        cb.record_failure()
+        cb.record_failure()
+        assert cb.allow_request() is False
+
+    def test_open_transitions_to_half_open_after_timeout(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker(failure_threshold=1, recovery_timeout_s=0.01)
+        cb.record_failure()
+        assert cb.state == CircuitState.OPEN
+        time.sleep(0.02)
+        assert cb.state == CircuitState.HALF_OPEN
+        assert cb.allow_request() is True
+
+    def test_half_open_closes_on_success(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker(failure_threshold=1, recovery_timeout_s=0.01)
+        cb.record_failure()
+        time.sleep(0.02)
+        assert cb.state == CircuitState.HALF_OPEN
+        cb.record_success()
+        assert cb.state == CircuitState.CLOSED
+
+    def test_half_open_reopens_on_failure(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker(failure_threshold=1, recovery_timeout_s=0.01)
+        cb.record_failure()
+        time.sleep(0.02)
+        assert cb.state == CircuitState.HALF_OPEN
+        cb.record_failure()
+        assert cb.state == CircuitState.OPEN
+
+    def test_success_resets_failure_count(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker(failure_threshold=3)
+        cb.record_failure()
+        cb.record_failure()
+        cb.record_success()  # resets counter
+        cb.record_failure()
+        cb.record_failure()
+        assert cb.state == CircuitState.CLOSED  # not yet at 3
+
+    def test_reset_returns_to_closed(self):
+        from src.telnet_client import CircuitBreaker, CircuitState
+
+        cb = CircuitBreaker(failure_threshold=1)
+        cb.record_failure()
+        assert cb.state == CircuitState.OPEN
+        cb.reset()
+        assert cb.state == CircuitState.CLOSED
+        assert cb.allow_request() is True
+
+
+class TestCircuitBreakerIntegration:
+    """Tests for circuit breaker wired into GMA2TelnetClient."""
+
+    @pytest.mark.asyncio
+    @patch("src.telnet_client.telnetlib3.open_connection")
+    async def test_send_command_raises_circuit_open_error(self, mock_open_connection):
+        from src.telnet_client import CircuitOpenError, GMA2TelnetClient
+
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        mock_open_connection.return_value = (mock_reader, mock_writer)
+
+        client = GMA2TelnetClient(host="127.0.0.1")
+        await client.connect()
+        # Force breaker open
+        client._breaker._state = "open"
+        client._breaker._last_failure_time = time.monotonic()
+
+        with pytest.raises(CircuitOpenError):
+            await client.send_command("list")
+
+    @pytest.mark.asyncio
+    @patch("src.telnet_client.telnetlib3.open_connection")
+    async def test_send_with_response_raises_circuit_open_error(self, mock_open_connection):
+        from src.telnet_client import CircuitOpenError, GMA2TelnetClient
+
+        mock_reader = MagicMock()
+        mock_writer = MagicMock()
+        mock_reader.read = AsyncMock(return_value="OK")
+        mock_open_connection.return_value = (mock_reader, mock_writer)
+
+        client = GMA2TelnetClient(host="127.0.0.1")
+        await client.connect()
+        client._breaker._state = "open"
+        client._breaker._last_failure_time = time.monotonic()
+
+        with pytest.raises(CircuitOpenError):
+            await client.send_command_with_response("list")
+
+
+# ── Original Tests ───────────────────────────────────────────────────────
 
 
 class TestGMA2TelnetClientInit:

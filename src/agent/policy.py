@@ -17,7 +17,9 @@ across multi-step agent plans. Six rules:
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass, field
+from enum import StrEnum
 
 from src.agent.state import PlanStep, RunContext, StepStatus
 from src.vocab import RiskTier
@@ -26,6 +28,20 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BATCH_LIMIT = 10
 CONFIDENCE_THRESHOLD = 0.5
+
+
+class PolicyStrictness(StrEnum):
+    """Controls whether advisory rules produce warnings or blocking errors.
+
+    WARN (default): rules 1-3 emit warnings — existing behaviour.
+    BLOCK: rules 1-3 emit errors, rejecting plans that violate staging,
+           verification, or discovery-first ordering.
+
+    Set via ``GMA_POLICY_STRICTNESS`` env var (``warn`` or ``block``).
+    """
+
+    WARN = "warn"
+    BLOCK = "block"
 
 
 @dataclass
@@ -64,8 +80,19 @@ class PolicyResult:
 class PolicyEngine:
     """Plan-level governance extending vocab.py command safety."""
 
-    def __init__(self, batch_limit: int = DEFAULT_BATCH_LIMIT):
+    def __init__(
+        self,
+        batch_limit: int = DEFAULT_BATCH_LIMIT,
+        strictness: PolicyStrictness | None = None,
+    ):
         self.batch_limit = batch_limit
+        if strictness is not None:
+            self.strictness = strictness
+        else:
+            raw = os.getenv("GMA_POLICY_STRICTNESS", "warn").lower()
+            self.strictness = (
+                PolicyStrictness.BLOCK if raw == "block" else PolicyStrictness.WARN
+            )
 
     def validate_plan(self, plan: list[PlanStep], confidence: float = 1.0) -> PolicyResult:
         """Check entire plan before execution begins. Returns PolicyResult."""
@@ -140,10 +167,16 @@ class PolicyEngine:
                 # A read after a destructive is acceptable if it's a verification step
                 if "verify" in step.description.lower():
                     continue
-                warnings.append(
-                    f"Staging advisory: SAFE_READ step '{step.description}' "
+                msg = (
+                    f"Staging: SAFE_READ step '{step.description}' "
                     f"follows a DESTRUCTIVE step — consider reordering"
                 )
+                if self.strictness == PolicyStrictness.BLOCK:
+                    violations.append(PolicyViolation(
+                        rule="staging", severity="error", message=msg, step_id=step.id,
+                    ))
+                else:
+                    warnings.append(msg)
 
     def _check_verification(
         self,
@@ -163,10 +196,16 @@ class PolicyEngine:
                 if "verify" in next_step.description.lower():
                     has_verify = True
             if not has_verify:
-                warnings.append(
+                msg = (
                     f"No verification after DESTRUCTIVE step '{step.description}' — "
                     f"consider adding a verification step"
                 )
+                if self.strictness == PolicyStrictness.BLOCK:
+                    violations.append(PolicyViolation(
+                        rule="verification", severity="error", message=msg, step_id=step.id,
+                    ))
+                else:
+                    warnings.append(msg)
         return missing_verification
 
     def _check_discovery_first(
@@ -178,10 +217,17 @@ class PolicyEngine:
         """Rule 3: Plan should start with inspection, not mutation."""
         injected: list[PlanStep] = []
         if plan and plan[0].risk_tier in (RiskTier.SAFE_WRITE, RiskTier.DESTRUCTIVE):
-            warnings.append(
+            msg = (
                 "Plan starts with a mutation — consider prepending discovery steps "
                 "to inspect current console state first"
             )
+            if self.strictness == PolicyStrictness.BLOCK:
+                violations.append(PolicyViolation(
+                    rule="discovery_first", severity="error", message=msg,
+                    step_id=plan[0].id,
+                ))
+            else:
+                warnings.append(msg)
         return injected
 
     def _check_confidence(
