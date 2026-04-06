@@ -159,6 +159,11 @@ class RagStore:
         """Delete all documents and their chunks for a given repo_ref."""
         self.conn.execute("DELETE FROM chunks WHERE repo_ref = ?", (repo_ref,))
         self.conn.execute("DELETE FROM documents WHERE repo_ref = ?", (repo_ref,))
+        # Rebuild FTS5 index in one pass (faster than row-by-row trigger deletes)
+        import contextlib
+
+        with contextlib.suppress(Exception):
+            self.conn.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')")
         self.conn.commit()
 
     # ------------------------------------------------------------------

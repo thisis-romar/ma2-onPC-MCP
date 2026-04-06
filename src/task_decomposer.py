@@ -489,6 +489,254 @@ def _build_patch_fixtures_workflow(goal: str, params: dict) -> TaskPlan:
     ])
 
 
+def _build_effect_workflow(goal: str, params: dict) -> TaskPlan:
+    """Build an effect programming workflow."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="inspect_effects",
+            agent_role="InspectionAgent",
+            description="List existing effects and available fixtures",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "list_console_destination"],
+            eval_criteria="Effect pool and fixture list returned",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="select_fixtures",
+            agent_role="SelectionAgent",
+            description="Select target fixtures for the effect",
+            allowed_risk=RiskTier.SAFE_WRITE,
+            mcp_tools=["select_fixtures", "set_fixture_selection"],
+            depends_on=["inspect_effects"],
+            eval_criteria="Fixtures selected in programmer",
+            workflow="execute",
+        ),
+        SubTask(
+            name="configure_effect",
+            agent_role="EffectAgent",
+            description="Create and configure effect parameters (form, speed, phase)",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["manage_effects", "store_object"],
+            depends_on=["select_fixtures"],
+            eval_criteria="Effect running on selected fixtures",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_effect",
+            agent_role="ValidationAgent",
+            description="Verify effect is stored and running",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["get_object_info", "query_object_list"],
+            depends_on=["configure_effect"],
+            eval_criteria="Effect appears in pool with correct parameters",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_chaser_workflow(goal: str, params: dict) -> TaskPlan:
+    """Build a chaser sequence workflow."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="inspect_sequences",
+            agent_role="InspectionAgent",
+            description="List existing sequences to find free slot",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "list_console_destination"],
+            eval_criteria="Free sequence slot identified",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="create_chaser",
+            agent_role="ChaserAgent",
+            description="Create sequence and add chaser steps with cues",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_object", "store_current_cue"],
+            depends_on=["inspect_sequences"],
+            eval_criteria="Sequence with multiple cues created",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="set_chaser_timing",
+            agent_role="ChaserAgent",
+            description="Configure chaser speed, crossfade, and direction",
+            allowed_risk=RiskTier.SAFE_WRITE,
+            mcp_tools=["playback_action", "set_executor_level"],
+            depends_on=["create_chaser"],
+            eval_criteria="Chaser timing parameters applied",
+            workflow="execute",
+        ),
+        SubTask(
+            name="assign_executor",
+            agent_role="AssignmentAgent",
+            description="Assign chaser sequence to a free executor",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["assign_object_to_executor"],
+            depends_on=["set_chaser_timing"],
+            eval_criteria="Chaser running on executor fader",
+            confirmed=False,
+            workflow="execute",
+        ),
+    ])
+
+
+def _build_macro_workflow(goal: str, params: dict) -> TaskPlan:
+    """Build a macro creation workflow."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="inspect_macros",
+            agent_role="InspectionAgent",
+            description="List existing macros to find free pool slot",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "list_console_destination"],
+            eval_criteria="Free macro slot identified",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="create_macro",
+            agent_role="MacroAgent",
+            description="Create macro and add command lines",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_object", "label_or_appearance"],
+            depends_on=["inspect_macros"],
+            eval_criteria="Macro created with correct lines",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_macro",
+            agent_role="ValidationAgent",
+            description="Verify macro contents and test with dry run",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["get_object_info", "query_object_list"],
+            depends_on=["create_macro"],
+            eval_criteria="Macro lines match expected commands",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_timecode_workflow(goal: str, params: dict) -> TaskPlan:
+    """Build a timecode show programming workflow."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="inspect_timecode",
+            agent_role="InspectionAgent",
+            description="List existing timecode objects and sequences",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "list_console_destination"],
+            eval_criteria="Timecode pool and sequence list returned",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="create_timecode",
+            agent_role="TimecodeAgent",
+            description="Create timecode pool object and configure source",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_object", "label_or_appearance"],
+            depends_on=["inspect_timecode"],
+            eval_criteria="Timecode object created in pool",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="map_cue_triggers",
+            agent_role="TimecodeAgent",
+            description="Map cue triggers to SMPTE timecode positions",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_current_cue", "playback_action"],
+            depends_on=["create_timecode"],
+            eval_criteria="Cues mapped to timecode positions",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_timecode",
+            agent_role="ValidationAgent",
+            description="Verify timecode object and cue mapping",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["get_object_info", "query_object_list"],
+            depends_on=["map_cue_triggers"],
+            eval_criteria="Timecode show playback verified",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_import_workflow(goal: str, params: dict) -> TaskPlan:
+    """Build an import/PSR workflow."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="list_available_files",
+            agent_role="InspectionAgent",
+            description="List available import files and show content",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["list_console_destination", "query_object_list"],
+            eval_criteria="Import file list returned",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="import_content",
+            agent_role="ImportAgent",
+            description="Import selected content with merge/overwrite options",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["import_objects"],
+            depends_on=["list_available_files"],
+            eval_criteria="Content imported successfully",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_import",
+            agent_role="ValidationAgent",
+            description="Verify imported content appears in show",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "get_object_info"],
+            depends_on=["import_content"],
+            eval_criteria="Imported objects visible in pool",
+            workflow="inspect",
+        ),
+    ])
+
+
+def _build_view_layout_workflow(goal: str, params: dict) -> TaskPlan:
+    """Build a view/layout design workflow."""
+    return TaskPlan(goal=goal, steps=[
+        SubTask(
+            name="inspect_views",
+            agent_role="InspectionAgent",
+            description="List existing views and layouts",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["query_object_list", "list_console_destination"],
+            eval_criteria="View pool and layout list returned",
+            workflow="inspect",
+        ),
+        SubTask(
+            name="create_layout",
+            agent_role="LayoutAgent",
+            description="Create or modify view layout with button assignments",
+            allowed_risk=RiskTier.DESTRUCTIVE,
+            mcp_tools=["store_object", "label_or_appearance"],
+            depends_on=["inspect_views"],
+            eval_criteria="Layout created with correct buttons",
+            confirmed=False,
+            workflow="execute",
+        ),
+        SubTask(
+            name="verify_layout",
+            agent_role="ValidationAgent",
+            description="Verify view layout and button assignments",
+            allowed_risk=RiskTier.SAFE_READ,
+            mcp_tools=["get_object_info", "query_object_list"],
+            depends_on=["create_layout"],
+            eval_criteria="Layout buttons reference correct executors",
+            workflow="inspect",
+        ),
+    ])
+
+
 _RULES: list[Rule] = [
     (r"color palette|hue sequence|hue pair|palette sequence|color cue list",
                                                                    _build_color_sequence_workflow),
@@ -497,6 +745,12 @@ _RULES: list[Rule] = [
     (r"preset library|build presets|store presets|preset layout",      _build_preset_library_workflow),
     (r"patch fixture|repatch|fixture type|dmx address|new fixture",    _build_patch_fixtures_workflow),
     (r"group.*preset|library|rig setup",                               _build_group_preset_library),
+    (r"effect|matricks|fx",                                            _build_effect_workflow),
+    (r"chaser|chase|speed sequence",                                   _build_chaser_workflow),
+    (r"macro|script|automate",                                         _build_macro_workflow),
+    (r"timecode|smpte|sync|clock",                                     _build_timecode_workflow),
+    (r"import|psr|merge show|partial show",                            _build_import_workflow),
+    (r"view|layout|screen|button",                                     _build_view_layout_workflow),
     (r"inspect|check|show state|what is|status|list|query|how many",   _build_inspect_only),
     (r"plan|draft|propose|what would|what should|design",              _build_plan_only),
 ]

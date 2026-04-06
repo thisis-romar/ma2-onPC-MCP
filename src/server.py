@@ -11993,6 +11993,31 @@ _VALID_TRANSPORTS = ("stdio", "sse", "streamable-http")
 _LOOPBACK_ADDRESSES = frozenset({"127.0.0.1", "::1", "localhost"})
 
 
+def _validate_license_tiers() -> None:
+    """Warn about tools that look destructive but are not in TOOL_LICENSE_TIERS.
+
+    Tools not in the map default to COMMUNITY (free tier). This check
+    flags tools whose names suggest they should be gated but are missing
+    from the map — catching typos and oversight.
+    """
+    from src.license_tiers import TOOL_LICENSE_TIERS
+
+    _DESTRUCTIVE_HINTS = {"store", "delete", "copy", "move", "assign",
+                          "import", "export", "create", "remove"}
+    try:
+        for tool_name in mcp._tool_manager._tools:
+            if tool_name not in TOOL_LICENSE_TIERS and any(
+                hint in tool_name for hint in _DESTRUCTIVE_HINTS
+            ):
+                    logger.warning(
+                        "Tool '%s' looks destructive but is not in "
+                        "TOOL_LICENSE_TIERS (defaulting to COMMUNITY).",
+                        tool_name,
+                    )
+    except Exception:
+        pass  # mcp._tool_manager may not be initialized during tests
+
+
 def _check_network_security() -> None:
     """Emit startup warnings for insecure network configurations.
 
@@ -12035,6 +12060,9 @@ def _check_network_security() -> None:
             "Set GMA_USER and GMA_PASSWORD environment variables for "
             "network deployments."
         )
+
+    # --- License tier coverage check ---
+    _validate_license_tiers()
 
 
 def main():

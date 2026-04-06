@@ -413,3 +413,106 @@ class TestDecomposePatchFixturesRule:
         plan = self.d.decompose("repatch")
         ordered = plan.ordered_steps()
         assert ordered[-1].name == "verify_patch"
+
+
+# ── New workflow rule tests ──────────────────────────────────────────────
+
+
+class TestEffectWorkflow:
+    d = TaskDecomposer()
+
+    def test_matches_effect(self):
+        plan = self.d.decompose("create an effect on the movers")
+        assert any(s.name == "configure_effect" for s in plan.steps)
+
+    def test_matches_fx(self):
+        plan = self.d.decompose("add fx to the rig")
+        assert any(s.name == "inspect_effects" for s in plan.steps)
+
+    def test_inspect_before_configure(self):
+        plan = self.d.decompose("build a dimmer effect")
+        ordered = plan.ordered_steps()
+        names = [s.name for s in ordered]
+        assert names.index("inspect_effects") < names.index("configure_effect")
+
+
+class TestChaserWorkflow:
+    d = TaskDecomposer()
+
+    def test_matches_chaser(self):
+        plan = self.d.decompose("create a chaser on blinders")
+        assert any(s.name == "create_chaser" for s in plan.steps)
+
+    def test_matches_chase(self):
+        plan = self.d.decompose("build a color chase sequence")
+        assert any(s.name == "set_chaser_timing" for s in plan.steps)
+
+    def test_has_executor_assignment(self):
+        plan = self.d.decompose("make a chaser")
+        assert any(s.name == "assign_executor" for s in plan.steps)
+
+
+class TestMacroWorkflow:
+    d = TaskDecomposer()
+
+    def test_matches_macro(self):
+        plan = self.d.decompose("create a macro for the show opener")
+        assert any(s.name == "create_macro" for s in plan.steps)
+
+    def test_matches_automate(self):
+        plan = self.d.decompose("automate the dimmer channel reset")
+        assert any(s.name == "inspect_macros" for s in plan.steps)
+
+    def test_verify_step_present(self):
+        plan = self.d.decompose("write a macro")
+        assert any(s.name == "verify_macro" for s in plan.steps)
+
+
+class TestTimecodeWorkflow:
+    d = TaskDecomposer()
+
+    def test_matches_timecode(self):
+        plan = self.d.decompose("program a timecode show")
+        assert any(s.name == "create_timecode" for s in plan.steps)
+
+    def test_matches_smpte(self):
+        plan = self.d.decompose("set up SMPTE sync for the concert")
+        assert any(s.name == "map_cue_triggers" for s in plan.steps)
+
+    def test_has_verify(self):
+        plan = self.d.decompose("create timecode")
+        assert any(s.name == "verify_timecode" for s in plan.steps)
+
+
+class TestImportWorkflow:
+    d = TaskDecomposer()
+
+    def test_matches_import(self):
+        plan = self.d.decompose("import presets from another show")
+        assert any(s.name == "import_content" for s in plan.steps)
+
+    def test_matches_psr(self):
+        plan = self.d.decompose("do a PSR merge from the backup")
+        assert any(s.name == "list_available_files" for s in plan.steps)
+
+    def test_import_is_destructive(self):
+        plan = self.d.decompose("import presets from file")
+        step = next(s for s in plan.steps if s.name == "import_content")
+        assert step.allowed_risk == RiskTier.DESTRUCTIVE
+        assert step.confirmed is False
+
+
+class TestViewLayoutWorkflow:
+    d = TaskDecomposer()
+
+    def test_matches_view(self):
+        plan = self.d.decompose("create a custom view for busking")
+        assert any(s.name == "create_layout" for s in plan.steps)
+
+    def test_matches_layout(self):
+        plan = self.d.decompose("design a layout for the fader page")
+        assert any(s.name == "inspect_views" for s in plan.steps)
+
+    def test_verify_present(self):
+        plan = self.d.decompose("build a button layout")
+        assert any(s.name == "verify_layout" for s in plan.steps)
