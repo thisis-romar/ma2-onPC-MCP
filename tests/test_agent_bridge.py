@@ -326,3 +326,71 @@ class TestExecuteSubtasksViaAgent:
         )
         assert context.status == RunStatus.COMPLETED
         assert len(context.completed_steps()) == 2
+
+    async def test_bridge_preserves_dependency_chain(self):
+        """Verify that name-based deps are resolved and enforced by the executor."""
+        from src.agent.executor import StepExecutor
+        from src.agent.policy import PolicyEngine
+        from src.agent.verification import Verifier
+
+        call_order: list[str] = []
+
+        async def _track_a(**kwargs) -> str:
+            call_order.append("a")
+            return json.dumps({"ok": True})
+
+        async def _track_b(**kwargs) -> str:
+            call_order.append("b")
+            return json.dumps({"ok": True})
+
+        executor = StepExecutor(
+            tool_registry={"tool_a": _track_a, "tool_b": _track_b},
+            policy=PolicyEngine(),
+            verifier=Verifier(tool_dispatch={}),
+        )
+        s1 = SubTask(
+            name="first", agent_role="A", description="runs first",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_a"],
+        )
+        s2 = SubTask(
+            name="second", agent_role="B", description="depends on first",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_b"],
+            depends_on=["first"],
+        )
+        context = await execute_subtasks_via_agent(
+            [s1, s2], executor, goal="dependency test"
+        )
+        assert context.status == RunStatus.COMPLETED
+        assert call_order == ["a", "b"]
+
+    async def test_bridge_with_failed_step_skips_dependents(self):
+        """When a step fails, its dependents should be skipped."""
+        from src.agent.executor import StepExecutor
+        from src.agent.policy import PolicyEngine
+        from src.agent.verification import Verifier
+
+        async def _fail(**kwargs) -> str:
+            raise RuntimeError("intentional failure")
+
+        executor = StepExecutor(
+            tool_registry={"fail_tool": _fail, "tool_b": _mock_success},
+            policy=PolicyEngine(),
+            verifier=Verifier(tool_dispatch={}),
+            max_retries=0,
+        )
+        s1 = SubTask(
+            name="will_fail", agent_role="A", description="fails",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["fail_tool"],
+        )
+        s2 = SubTask(
+            name="depends_on_fail", agent_role="B", description="should skip",
+            allowed_risk=RiskTier.SAFE_READ, mcp_tools=["tool_b"],
+            depends_on=["will_fail"],
+        )
+        context = await execute_subtasks_via_agent(
+            [s1, s2], executor, goal="failure test"
+        )
+        assert len(context.failed_steps()) >= 1
+        # s2 should be skipped since s1 failed
+        skipped = [s for s in context.plan if s.status == StepStatus.SKIPPED]
+        assert len(skipped) >= 1

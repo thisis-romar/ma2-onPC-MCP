@@ -343,3 +343,66 @@ class TestSubTaskWorkflowHygiene:
         assert st.workflow in ("inspect", "plan", "execute"), (
             f"workflow must be 'inspect', 'plan', or 'execute', got {st.workflow!r}"
         )
+
+
+# ── License tier validation ──────────────────────────────────────────────
+
+
+class TestLicenseTierValidation:
+    """Validate that TOOL_LICENSE_TIERS entries correspond to actual tools."""
+
+    # Known phantom entries: command builder names in TOOL_LICENSE_TIERS that
+    # are NOT registered as @mcp.tool() functions.  These are builder functions
+    # from src/commands/ that were incorrectly added to the tier map.
+    # TODO: Remove these from license_tiers.py in a future cleanup.
+    _KNOWN_PHANTOM_TIERS = {
+        "apply_appearance",
+        "assign_delay",
+        "assign_fade",
+        "assign_function",
+        "assign_to_layout",
+        "manage_effects",
+        "run_orchestrated_task",
+        "set_color_hex",
+        "set_color_hsb",
+        "set_color_rgb",
+    }
+
+    def test_no_new_phantom_tier_entries(self):
+        """No NEW phantom entries should be added to TOOL_LICENSE_TIERS."""
+        import ast
+        from pathlib import Path
+
+        from src.license_tiers import TOOL_LICENSE_TIERS
+
+        server_path = Path("src/server.py")
+        orch_path = Path("src/server_orchestration_tools.py")
+
+        tool_names: set[str] = set()
+        for path in (server_path, orch_path):
+            tree = ast.parse(path.read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.AsyncFunctionDef):
+                    for dec in node.decorator_list:
+                        if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
+                            if dec.func.attr == "tool":
+                                tool_names.add(node.name)
+                        elif isinstance(dec, ast.Attribute) and dec.attr == "tool":
+                            tool_names.add(node.name)
+
+        phantom_entries = set(TOOL_LICENSE_TIERS.keys()) - tool_names
+        new_phantoms = phantom_entries - self._KNOWN_PHANTOM_TIERS
+        assert new_phantoms == set(), (
+            f"NEW phantom entries in TOOL_LICENSE_TIERS (not registered as @mcp.tool): "
+            f"{sorted(new_phantoms)}"
+        )
+
+    def test_known_phantoms_still_exist(self):
+        """Verify the known phantom list is up to date (remove entries when cleaned up)."""
+        from src.license_tiers import TOOL_LICENSE_TIERS
+
+        for name in self._KNOWN_PHANTOM_TIERS:
+            assert name in TOOL_LICENSE_TIERS, (
+                f"'{name}' is in _KNOWN_PHANTOM_TIERS but no longer in TOOL_LICENSE_TIERS — "
+                f"remove it from the known list"
+            )

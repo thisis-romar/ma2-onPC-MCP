@@ -526,18 +526,21 @@ _vocab_spec = build_v39_spec()
 # Create MCP server
 mcp = FastMCP(
     name="grandMA2-MCP",
-    instructions="""grandMA2 MCP server — 173 tools, 9 resources, 6 prompts.
+    instructions="""grandMA2 MCP server — 197 tools, 18 resources, 13 prompts.
 
 Use suggest_tool_for_task(task_description) to find the right tool for any task.
-Use ma2://docs/tool-taxonomy resource to browse all 173 tools by category.
+It supports hybrid retrieval (keyword + semantic), metadata filtering by risk_tier
+and license_tier, and returns related skills from the skill registry.
 
 Core workflows:
   Inspect  → navigate_console, list_console_destination, query_object_list, get_object_info
   Plan     → inspect + list_system_variables + suggest_tool_for_task
   Execute  → run_orchestrated_task (handles preflight, execution, verification)
+  Agent    → run_agent_goal (autonomous: plan → policy → execute → verify → trace)
 
 SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
 Rights: read ma2://docs/rights-matrix before any mutating operation.
+License tiers: COMMUNITY (free), PROFESSIONAL, ENTERPRISE — check with suggest_tool_for_task.
 """,
 )
 
