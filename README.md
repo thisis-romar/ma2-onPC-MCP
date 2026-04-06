@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.33.1
+version: 3.33.2
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-06T10:31:55Z
+last_updated: 2026-04-06T12:50:22Z
 ---
 
 <p align="center">
@@ -17,7 +17,7 @@ last_updated: 2026-04-06T10:31:55Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+">
   <img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools">
-  <img src="https://img.shields.io/badge/Tests-3057-brightgreen?style=for-the-badge" alt="3057 Tests">
+  <img src="https://img.shields.io/badge/Tests-3076-brightgreen?style=for-the-badge" alt="3076 Tests">
   <img src="https://img.shields.io/badge/Version-3.26.0-purple?style=for-the-badge" alt="Version 3.26.0">
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
