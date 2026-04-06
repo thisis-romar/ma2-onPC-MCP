@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 
 from src.agent.policy import PolicyEngine, StepDecision
-from src.agent.rollback import RollbackExecutor, RollbackResult
+from src.agent.rollback import RollbackExecutor
 from src.agent.state import (
     PlanStep,
     RollbackStrategy,

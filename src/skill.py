@@ -20,6 +20,7 @@ the full ancestor chain.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import re
 import sqlite3
@@ -153,10 +154,8 @@ class SkillRegistry:
             CREATE INDEX IF NOT EXISTS idx_skills_src    ON skills(source_session_id);
         """)
         # Migration: add embedding column for semantic search (idempotent)
-        try:
+        with contextlib.suppress(sqlite3.OperationalError):
             self._conn.execute("ALTER TABLE skills ADD COLUMN embedding BLOB")
-        except sqlite3.OperationalError:
-            pass  # column already exists
         self._conn.commit()
 
     # ------------------------------------------------------------------ #

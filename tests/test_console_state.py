@@ -321,7 +321,7 @@ class TestGapPoolMap:
         assert len(GAP_POOL_MAP) >= 9
 
     def test_all_mapped_types_are_valid(self):
-        from src.console_state import GAP_POOL_MAP, _POOL_TYPES_TO_INDEX
+        from src.console_state import _POOL_TYPES_TO_INDEX, GAP_POOL_MAP
 
         valid = set(_POOL_TYPES_TO_INDEX)
         for gap_id, types in GAP_POOL_MAP.items():

@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from src.agent.state import PlanStep, RunContext, RunStatus, StepStatus
+from src.agent.state import PlanStep, RunStatus, StepStatus
 from src.agent_bridge import (
     execute_subtasks_via_agent,
     planstep_to_subtask,

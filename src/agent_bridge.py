@@ -31,8 +31,13 @@ PlanStep → SubTask
 
 from __future__ import annotations
 
-from src.agent.state import PlanStep
+from typing import TYPE_CHECKING
+
+from src.agent.state import PlanStep, RunContext
 from src.task_decomposer import SubTask
+
+if TYPE_CHECKING:
+    from src.agent.executor import ConfirmCallback, StepExecutor
 
 
 def subtask_to_planstep(subtask: SubTask) -> PlanStep:
@@ -116,10 +121,10 @@ def subtasks_from_plansteps(plansteps: list[PlanStep]) -> list[SubTask]:
 
 async def execute_subtasks_via_agent(
     subtasks: list[SubTask],
-    executor: "StepExecutor",
+    executor: StepExecutor,
     goal: str = "",
-    on_confirm: "ConfirmCallback | None" = None,
-) -> "RunContext":
+    on_confirm: ConfirmCallback | None = None,
+) -> RunContext:
     """Convert SubTasks to PlanSteps and execute via StepExecutor.
 
     This bridges System A plans (TaskDecomposer output) into System B
@@ -129,7 +134,5 @@ async def execute_subtasks_via_agent(
         RunContext with fully populated plan steps (status, result, error).
     """
     plan_steps = plansteps_from_subtasks(subtasks)
-    from src.agent.state import RunContext  # deferred to avoid circular import
-
     context = RunContext(goal=goal, plan=plan_steps)
     return await executor.execute_plan(context, on_confirm=on_confirm)
