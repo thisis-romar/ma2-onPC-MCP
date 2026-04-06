@@ -44,6 +44,24 @@ _DISCOVER_PATTERNS = re.compile(
 _GROUP_PATTERNS = re.compile(
     r"\b(group|create\s+group|fixture\s+group)\b", re.IGNORECASE
 )
+_EFFECT_PATTERNS = re.compile(
+    r"\b(effect|matricks|fx)\b", re.IGNORECASE
+)
+_CHASER_PATTERNS = re.compile(
+    r"\b(chaser|chase|speed\s+sequence)\b", re.IGNORECASE
+)
+_MACRO_PATTERNS = re.compile(
+    r"\b(macro|script|automate)\b", re.IGNORECASE
+)
+_TIMECODE_PATTERNS = re.compile(
+    r"\b(timecode|smpte|sync|clock)\b", re.IGNORECASE
+)
+_IMPORT_PATTERNS = re.compile(
+    r"\b(import|psr|merge\s+show|partial\s+show)\b", re.IGNORECASE
+)
+_VIEW_LAYOUT_PATTERNS = re.compile(
+    r"\b(view|layout|screen|button)\b", re.IGNORECASE
+)
 
 # Object type extraction
 _OBJECT_TYPE_PATTERNS = {
@@ -118,6 +136,11 @@ class DomainPlanner:
             return self._build_discover_workflow(goal)
         elif goal.intent == GoalIntent.COMPOSITE:
             return self._build_composite_workflow(goal)
+        elif goal.intent in (
+            GoalIntent.EFFECT, GoalIntent.CHASER, GoalIntent.MACRO,
+            GoalIntent.TIMECODE, GoalIntent.IMPORT, GoalIntent.VIEW_LAYOUT,
+        ):
+            return self._build_generic_workflow(goal)
         else:
             # Fallback: discovery
             return self._build_discover_workflow(goal)
@@ -152,6 +175,18 @@ class DomainPlanner:
             return GoalIntent.GROUP
         if _LABEL_PATTERNS.search(text):
             return GoalIntent.LABEL
+        if _EFFECT_PATTERNS.search(text):
+            return GoalIntent.EFFECT
+        if _CHASER_PATTERNS.search(text):
+            return GoalIntent.CHASER
+        if _MACRO_PATTERNS.search(text):
+            return GoalIntent.MACRO
+        if _TIMECODE_PATTERNS.search(text):
+            return GoalIntent.TIMECODE
+        if _IMPORT_PATTERNS.search(text):
+            return GoalIntent.IMPORT
+        if _VIEW_LAYOUT_PATTERNS.search(text):
+            return GoalIntent.VIEW_LAYOUT
         if _DISCOVER_PATTERNS.search(text):
             return GoalIntent.DISCOVER
 
@@ -336,6 +371,37 @@ class DomainPlanner:
                 risk_tier=RiskTier.SAFE_READ,
             ),
         ]
+
+    def _build_generic_workflow(self, goal: ParsedGoal) -> list[PlanStep]:
+        """Build a 3-step workflow for intents without dedicated templates.
+
+        Pattern: discover → execute → verify.  Used for effect, chaser,
+        macro, timecode, import, and view/layout intents.
+        """
+        intent = goal.intent.value
+        obj = goal.object_type or intent
+
+        discover = PlanStep(
+            tool_name="query_object_list",
+            tool_args={"object_type": obj},
+            description=f"Discover existing {intent} objects",
+            risk_tier=RiskTier.SAFE_READ,
+        )
+        execute = PlanStep(
+            tool_name="store_object",
+            tool_args={"object_type": obj},
+            description=f"Create or modify {intent} object",
+            risk_tier=RiskTier.DESTRUCTIVE,
+            depends_on=[discover.id],
+        )
+        verify = PlanStep(
+            tool_name="get_object_info",
+            tool_args={"object_type": obj},
+            description=f"Verify {intent} object was created correctly",
+            risk_tier=RiskTier.SAFE_READ,
+            depends_on=[execute.id],
+        )
+        return [discover, execute, verify]
 
     def _build_composite_workflow(self, goal: ParsedGoal) -> list[PlanStep]:
         """Build a composite workflow by chaining multiple sub-workflows.

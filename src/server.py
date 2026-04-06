@@ -526,7 +526,7 @@ _vocab_spec = build_v39_spec()
 # Create MCP server
 mcp = FastMCP(
     name="grandMA2-MCP",
-    instructions="""grandMA2 MCP server — 197 tools, 18 resources, 13 prompts.
+    instructions="""grandMA2 MCP server — 198 tools, 18 resources, 13 prompts.
 
 Use suggest_tool_for_task(task_description) to find the right tool for any task.
 It supports hybrid retrieval (keyword + semantic), metadata filtering by risk_tier
@@ -11055,6 +11055,41 @@ async def plan_agent_goal(goal: str) -> str:
         ],
         "policy_warnings": warnings,
     }, indent=2)
+
+
+@mcp.tool()
+@_handle_errors
+async def resume_agent_run(run_id: str) -> str:
+    """Resume a previously interrupted agent run from its last checkpoint.
+
+    When a run is interrupted (crash, timeout, user abort), its step-level
+    checkpoints are preserved in the WorkflowMemory database.  This tool
+    reconstructs the run context and resumes execution from the first
+    incomplete step.
+
+    Args:
+        run_id: The run_id of the interrupted run (from a previous
+            run_agent_goal trace).
+
+    Returns:
+        str: JSON execution trace of the resumed run, or an error message
+            if the run_id is not found or has no saved checkpoints.
+    """
+    from src.agent.runtime import AgentRuntime
+
+    registry = _build_tool_registry()
+    runtime = AgentRuntime(tool_registry=registry)
+
+    async def _auto_confirm(step) -> bool:
+        return True
+
+    trace = await runtime.resume_run(run_id, on_confirm=_auto_confirm)
+    if trace is None:
+        return json.dumps({
+            "error": f"Run '{run_id}' not found or has no saved checkpoints.",
+            "hint": "Use run_agent_goal to start a new run.",
+        }, indent=2)
+    return trace.to_json()
 
 
 # ============================================================

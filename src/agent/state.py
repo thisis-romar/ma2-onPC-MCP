@@ -47,6 +47,12 @@ class GoalIntent(StrEnum):
     DISCOVER = "discover"
     GROUP = "group"
     COMPOSITE = "composite"
+    EFFECT = "effect"
+    CHASER = "chaser"
+    MACRO = "macro"
+    TIMECODE = "timecode"
+    IMPORT = "import"
+    VIEW_LAYOUT = "view_layout"
 
 
 @dataclass

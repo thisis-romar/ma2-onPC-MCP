@@ -378,3 +378,36 @@ class TestLicenseTierValidation:
             f"TOOL_LICENSE_TIERS has entries for non-existent tools: "
             f"{sorted(phantom_entries)}"
         )
+
+    def test_no_unmapped_destructive_tools(self):
+        """Tools with destructive-sounding names should be in TOOL_LICENSE_TIERS."""
+        import ast
+        from pathlib import Path
+
+        from src.license_tiers import TOOL_LICENSE_TIERS
+
+        _DESTRUCTIVE_HINTS = {"store", "delete", "copy", "move", "assign",
+                              "import", "export", "create", "remove"}
+
+        tool_names: set[str] = set()
+        for path in (Path("src/server.py"), Path("src/server_orchestration_tools.py")):
+            tree = ast.parse(path.read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.AsyncFunctionDef):
+                    for dec in node.decorator_list:
+                        if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
+                            if dec.func.attr == "tool":
+                                tool_names.add(node.name)
+                        elif isinstance(dec, ast.Attribute) and dec.attr == "tool":
+                            tool_names.add(node.name)
+
+        unmapped = [
+            name for name in tool_names
+            if name not in TOOL_LICENSE_TIERS
+            and any(hint in name for hint in _DESTRUCTIVE_HINTS)
+        ]
+
+        assert unmapped == [], (
+            f"Tools with destructive names not in TOOL_LICENSE_TIERS "
+            f"(defaulting to COMMUNITY): {sorted(unmapped)}"
+        )

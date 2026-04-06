@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.12.8
+version: 4.13.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-06T15:26:41Z
+last_updated: 2026-04-06T21:36:33Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **197 tools**, **18 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
+MCP server exposing **198 tools**, **18 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -132,7 +132,7 @@ uv run python scripts/audit_md_counts.py --fix                # auto-fix stale c
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-04-04): **3135 tests** (unit + live integration).
+- Current counts (2026-04-04): **3136 tests** (unit + live integration).
 
 ---
 
@@ -171,7 +171,7 @@ uv run python scripts/audit_md_counts.py --fix                # auto-fix stale c
 
 ## License Tier Feature Gating
 
-All 197 MCP tools are classified into three license tiers:
+All 198 MCP tools are classified into three license tiers:
 
 | Tier | Cost | Tool count | Examples |
 |------|------|-----------|---------|
@@ -242,6 +242,6 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not auto-promote Skills from `SkillImprover` output — promotion is operator-initiated via Tool 141.
 - Do not make MCP resources perform console side-effects — resources are read-only context.
 - Do not put MA2 operating knowledge into tool docstrings — put it in `.claude/skills/` instead.
-- Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_197_tools_mapped` will fail.
+- Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_198_tools_mapped` will fail.
 - Do not set `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, or `GMA_LICENSE_BYPASS=1` in production — dev/test only.
 

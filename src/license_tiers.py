@@ -227,6 +227,7 @@ TOOL_LICENSE_TIERS: dict[str, LicenseTier] = {
     # --- Agent harness (server.py) ----------------------------------------
     "run_agent_goal": ENT,
     "plan_agent_goal": ENT,
+    "resume_agent_run": ENT,
 
     # --- PSR (Partial Show Read) ------------------------------------------
     "prepare_partial_show_read": ENT,

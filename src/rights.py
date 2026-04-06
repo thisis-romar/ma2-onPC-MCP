@@ -297,6 +297,7 @@ _OPERATION_MIN_RIGHT: dict[str, MA2Right] = {
     "abort_task":                 MA2Right.PROGRAM,
     "retry_failed_steps":         MA2Right.PROGRAM,
     "run_agent_goal":             MA2Right.PROGRAM,
+    "resume_agent_run":           MA2Right.PROGRAM,
     # ── setup (4) — console config / RDM / world tools ───────────
     "label_world":                MA2Right.SETUP,
     "lock_console_ui":            MA2Right.SETUP,

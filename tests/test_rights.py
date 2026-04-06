@@ -216,7 +216,7 @@ class TestOperationMinRightCompleteness:
     def test_all_197_tools_mapped(self):
         """Every registered MCP tool must have an entry in _OPERATION_MIN_RIGHT."""
         all_tools = self._get_all_tool_names()
-        assert len(all_tools) == 197, f"Expected 197 tools, found {len(all_tools)}"
+        assert len(all_tools) == 198, f"Expected 198 tools, found {len(all_tools)}"
         unmapped = all_tools - set(_OPERATION_MIN_RIGHT)
         assert unmapped == set(), (
             f"{len(unmapped)} tools missing from _OPERATION_MIN_RIGHT: "
