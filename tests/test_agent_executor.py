@@ -192,3 +192,61 @@ class TestStepExecutor:
         assert s1.status == StepStatus.FAILED
         assert s2.status == StepStatus.SKIPPED
         assert s3.status == StepStatus.SKIPPED
+
+
+# ── ProgressMonitor tests ────────────────────────────────────────────────
+
+
+class TestProgressMonitor:
+    """Tests for the ProgressMonitor stall/loop detector."""
+
+    def test_progressing_on_different_outputs(self):
+        from src.agent.executor import ProgressMonitor, ProgressStatus
+
+        m = ProgressMonitor()
+        assert m.track("s1", "output A", success=True) == ProgressStatus.PROGRESSING
+        assert m.track("s1", "output B", success=True) == ProgressStatus.PROGRESSING
+        assert m.track("s1", "output C", success=True) == ProgressStatus.PROGRESSING
+
+    def test_looping_on_identical_outputs(self):
+        from src.agent.executor import ProgressMonitor, ProgressStatus
+
+        m = ProgressMonitor(max_identical_outputs=2)
+        assert m.track("s1", "same", success=True) == ProgressStatus.PROGRESSING
+        assert m.track("s1", "same", success=True) == ProgressStatus.LOOPING
+
+    def test_stalled_on_consecutive_failures(self):
+        from src.agent.executor import ProgressMonitor, ProgressStatus
+
+        m = ProgressMonitor(max_consecutive_failures=3)
+        assert m.track("s1", "err1", success=False) == ProgressStatus.PROGRESSING
+        assert m.track("s1", "err2", success=False) == ProgressStatus.PROGRESSING
+        assert m.track("s1", "err3", success=False) == ProgressStatus.STALLED
+
+    def test_success_resets_failure_count(self):
+        from src.agent.executor import ProgressMonitor, ProgressStatus
+
+        m = ProgressMonitor(max_consecutive_failures=3)
+        m.track("s1", "err", success=False)
+        m.track("s1", "err", success=False)
+        m.track("s1", "ok", success=True)  # resets counter
+        assert m.track("s1", "err", success=False) == ProgressStatus.PROGRESSING
+        assert m.track("s1", "err", success=False) == ProgressStatus.PROGRESSING
+
+    def test_reset_clears_state(self):
+        from src.agent.executor import ProgressMonitor, ProgressStatus
+
+        m = ProgressMonitor(max_consecutive_failures=2)
+        m.track("s1", "err", success=False)
+        m.reset("s1")
+        assert m.track("s1", "err", success=False) == ProgressStatus.PROGRESSING
+
+    def test_independent_tracking_per_step(self):
+        from src.agent.executor import ProgressMonitor, ProgressStatus
+
+        m = ProgressMonitor(max_consecutive_failures=2)
+        m.track("s1", "err", success=False)
+        m.track("s2", "err", success=False)
+        # Each step has 1 failure, not 2
+        assert m.track("s1", "err", success=False) == ProgressStatus.STALLED
+        assert m.track("s2", "ok", success=True) == ProgressStatus.PROGRESSING

@@ -337,6 +337,32 @@ _POOL_TYPES_TO_INDEX = [
     "Fixture", "Executor",
 ]
 
+# Maps show-memory gap IDs → pool types required for that gap.
+# Used by ``pools_for_gaps()`` for incremental hydration.
+GAP_POOL_MAP: dict[int, list[str]] = {
+    1: ["Filter"],                    # Gap 1 — active filter
+    2: ["World"],                     # Gap 2 — active world
+    3: ["Fixture"],                   # Gap 3 — parked fixtures
+    8: list(_POOL_TYPES_TO_INDEX),    # Gap 8 — full preset pool / name index
+    9: ["Sequence"],                  # Gap 9 — sequences
+    10: ["Executor"],                 # Gap 10 — executor state
+    13: ["Macro"],                    # Gap 13 — active macros
+    15: ["Layout"],                   # Gap 15 — layout labels
+    16: ["Fixture"],                  # Gap 16 — fixture types
+}
+
+
+def pools_for_gaps(gap_ids: set[int]) -> set[str]:
+    """Return the union of pool types needed by the given gap IDs.
+
+    >>> sorted(pools_for_gaps({3, 9}))
+    ['Fixture', 'Sequence']
+    """
+    result: set[str] = set()
+    for gid in gap_ids:
+        result.update(GAP_POOL_MAP.get(gid, []))
+    return result
+
 
 class ConsoleStateHydrator:
     """
@@ -355,15 +381,26 @@ class ConsoleStateHydrator:
     async def hydrate(
         self,
         sequence_ids: list[int] | None = None,
+        pool_types: set[str] | None = None,
     ) -> ConsoleStateSnapshot:
+        """Hydrate a snapshot from live telnet reads.
+
+        Args:
+            sequence_ids: Optional list of sequence IDs for deep cue hydration (Phase 3).
+            pool_types: Optional set of pool type names to index in Phase 2.
+                ``None`` (default) indexes all 13 pool types for backwards
+                compatibility.  Pass a subset (e.g. ``{"Fixture", "Sequence"}``)
+                for incremental hydration — use :func:`pools_for_gaps` to derive
+                the set from gap IDs.
+        """
         t0 = time.time()
         snap = ConsoleStateSnapshot()
 
         # Phase 1: System variables
         await self._hydrate_system_vars(snap)
 
-        # Phase 2: Pool name index (run all types concurrently)
-        await self._hydrate_pool_index(snap)
+        # Phase 2: Pool name index (run specified types concurrently)
+        await self._hydrate_pool_index(snap, pool_types=pool_types)
 
         # Phase 3: Deep sequence cue hydration (optional)
         if sequence_ids:
@@ -385,13 +422,22 @@ class ConsoleStateHydrator:
 
     # ── Phase 2: pool index ───────────────────────────────────────────
 
-    async def _hydrate_pool_index(self, snap: ConsoleStateSnapshot) -> None:
+    async def _hydrate_pool_index(
+        self,
+        snap: ConsoleStateSnapshot,
+        pool_types: set[str] | None = None,
+    ) -> None:
+        types_to_index = (
+            [p for p in _POOL_TYPES_TO_INDEX if p in pool_types]
+            if pool_types is not None
+            else _POOL_TYPES_TO_INDEX
+        )
         tasks = [
             self._index_one_pool(snap, pool_type)
-            for pool_type in _POOL_TYPES_TO_INDEX
+            for pool_type in types_to_index
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        for pool_type, result in zip(_POOL_TYPES_TO_INDEX, results, strict=False):
+        for pool_type, result in zip(types_to_index, results, strict=False):
             if isinstance(result, Exception):
                 snap.partial = True
                 snap.hydration_errors.append(f"Pool index {pool_type} failed: {result}")

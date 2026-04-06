@@ -10,10 +10,12 @@ as async Python functions. No MCP protocol overhead — shared telnet client.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
+from enum import StrEnum
 
 from src.agent.policy import PolicyEngine, StepDecision
 from src.agent.rollback import RollbackExecutor, RollbackResult
@@ -35,6 +37,63 @@ DEFAULT_MAX_RETRIES = 2
 RETRY_DELAYS = [1.0, 2.0, 4.0]  # seconds between retries
 
 
+# ── Progress monitoring ──────────────────────────────────────────────────
+
+
+class ProgressStatus(StrEnum):
+    """Outcome of a progress check on a step."""
+
+    PROGRESSING = "progressing"
+    STALLED = "stalled"       # too many consecutive failures
+    LOOPING = "looping"       # identical output repeated
+
+
+class ProgressMonitor:
+    """Detects stalled or looping execution by tracking outputs per step.
+
+    Tracks two signals:
+      1. **Consecutive failures** — if a step fails N times in a row, it's STALLED.
+      2. **Identical outputs** — if the same output hash appears M times, it's LOOPING.
+    """
+
+    def __init__(
+        self,
+        max_consecutive_failures: int = 3,
+        max_identical_outputs: int = 2,
+    ):
+        self.max_consecutive_failures = max_consecutive_failures
+        self.max_identical_outputs = max_identical_outputs
+        # Per-step tracking
+        self._failures: dict[str, int] = {}          # step_id → consecutive failure count
+        self._output_hashes: dict[str, dict[str, int]] = {}  # step_id → {hash → count}
+
+    def track(self, step_id: str, output: str, *, success: bool) -> ProgressStatus:
+        """Record an execution result and return the current progress status."""
+        h = hashlib.sha256(output.encode()).hexdigest()[:16]
+
+        if not success:
+            self._failures[step_id] = self._failures.get(step_id, 0) + 1
+            if self._failures[step_id] >= self.max_consecutive_failures:
+                return ProgressStatus.STALLED
+            return ProgressStatus.PROGRESSING
+
+        # Success — reset failure counter
+        self._failures[step_id] = 0
+
+        # Track output hash
+        hashes = self._output_hashes.setdefault(step_id, {})
+        hashes[h] = hashes.get(h, 0) + 1
+        if hashes[h] >= self.max_identical_outputs:
+            return ProgressStatus.LOOPING
+
+        return ProgressStatus.PROGRESSING
+
+    def reset(self, step_id: str) -> None:
+        """Clear all tracking data for a step."""
+        self._failures.pop(step_id, None)
+        self._output_hashes.pop(step_id, None)
+
+
 class StepExecutor:
     """Executes PlanSteps by calling MCP tool functions."""
 
@@ -51,6 +110,7 @@ class StepExecutor:
         self._verifier = verifier
         self._max_retries = max_retries
         self._rollback = rollback or RollbackExecutor(tool_registry)
+        self._monitor = ProgressMonitor()
 
     async def execute_plan(
         self,
@@ -151,6 +211,18 @@ class StepExecutor:
                     "Step completed: %s (attempt %d)", step.description, attempt + 1
                 )
 
+                # Progress monitoring — detect identical outputs (looping)
+                progress = self._monitor.track(
+                    step.id, result or "", success=True,
+                )
+                if progress == ProgressStatus.LOOPING:
+                    logger.warning(
+                        "Step '%s' is LOOPING — identical output repeated",
+                        step.description,
+                    )
+                    step.error = "Stall detected: identical output repeated"
+                    return  # stay COMPLETED but note the loop
+
                 # Post-step verification
                 if self._verifier.has_strategy(step.tool_name):
                     verification = await self._verifier.verify_step(step, context)
@@ -193,6 +265,20 @@ class StepExecutor:
                     self._max_retries + 1,
                     e,
                 )
+
+                # Progress monitoring — detect consecutive failures (stalled)
+                progress = self._monitor.track(
+                    step.id, str(e), success=False,
+                )
+                if progress == ProgressStatus.STALLED:
+                    logger.warning(
+                        "Step '%s' is STALLED — %d consecutive failures",
+                        step.description,
+                        self._monitor._failures.get(step.id, 0),
+                    )
+                    step.status = StepStatus.FAILED
+                    step.error = f"Stall detected: {e}"
+                    return  # abort retries
 
                 if attempt < self._max_retries:
                     delay = RETRY_DELAYS[min(attempt, len(RETRY_DELAYS) - 1)]

@@ -15,7 +15,7 @@ import pytest
 
 from src.agent_memory import LongTermMemory
 from src.skill import SkillRegistry
-from src.skill_improver import SkillImprover, _slugify
+from src.skill_improver import RISK_WEIGHTS, SkillImprover, _slugify
 from src.telemetry import ToolTelemetry
 
 # ---------------------------------------------------------------------------
@@ -212,3 +212,63 @@ class TestQualityScoreForSession:
     def test_zero_steps(self, imp, ltm):
         _insert_session(ltm, "no_steps", "task", "success", 0, 0)
         assert imp.quality_score_for_session("no_steps") == 0.0
+
+
+# ---------------------------------------------------------------------------
+# risk_weighted_quality_score
+# ---------------------------------------------------------------------------
+
+
+def _record(tel, tool_name, risk_tier, session_id, error_class=None):
+    """Insert a telemetry invocation for testing."""
+    tel.record_sync(
+        tool_name=tool_name,
+        inputs_json="{}",
+        output_preview="ok",
+        error_class=error_class,
+        latency_ms=10.0,
+        risk_tier=risk_tier,
+        operator="test",
+        session_id=session_id,
+    )
+
+
+class TestRiskWeightedQualityScore:
+    def test_risk_weights_constant(self):
+        assert RISK_WEIGHTS["SAFE_READ"] == 1.0
+        assert RISK_WEIGHTS["SAFE_WRITE"] == 1.5
+        assert RISK_WEIGHTS["DESTRUCTIVE"] == 3.0
+
+    def test_all_reads_success(self, imp, tel, ltm):
+        _insert_session(ltm, "reads", "task", "success", 3, 0)
+        _record(tel, "list_groups", "SAFE_READ", "reads")
+        _record(tel, "list_macros", "SAFE_READ", "reads")
+        _record(tel, "get_info", "SAFE_READ", "reads")
+        assert imp.risk_weighted_quality_score("reads") == 1.0
+
+    def test_destructive_failure_weighs_more(self, imp, tel, ltm):
+        _insert_session(ltm, "mixed", "task", "success", 2, 1)
+        # 2 SAFE_READ successes (weight 1.0 each = 2.0)
+        _record(tel, "list_groups", "SAFE_READ", "mixed")
+        _record(tel, "list_macros", "SAFE_READ", "mixed")
+        # 1 DESTRUCTIVE failure (weight 3.0)
+        _record(tel, "store_cue", "DESTRUCTIVE", "mixed", error_class="RuntimeError")
+        score = imp.risk_weighted_quality_score("mixed")
+        # weighted_done=2.0, weighted_failed=3.0, total=5.0
+        assert abs(score - 0.4) < 0.01
+
+    def test_fallback_to_unweighted_when_no_invocations(self, imp, ltm):
+        _insert_session(ltm, "no_inv", "task", "success", 8, 2)
+        score = imp.risk_weighted_quality_score("no_inv")
+        assert abs(score - 0.8) < 0.01  # falls back to 8/(8+2)
+
+    def test_nonexistent_session(self, imp):
+        assert imp.risk_weighted_quality_score("does-not-exist") == 0.0
+
+    def test_safe_write_failure_moderate_weight(self, imp, tel, ltm):
+        _insert_session(ltm, "sw", "task", "success", 1, 1)
+        _record(tel, "set_intensity", "SAFE_WRITE", "sw")
+        _record(tel, "set_intensity", "SAFE_WRITE", "sw", error_class="RuntimeError")
+        score = imp.risk_weighted_quality_score("sw")
+        # weighted_done=1.5, weighted_failed=1.5, total=3.0
+        assert abs(score - 0.5) < 0.01

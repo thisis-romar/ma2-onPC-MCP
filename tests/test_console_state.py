@@ -272,3 +272,58 @@ class TestSequenceEntryAndCueRecord:
         part = CuePart(part=1, label="Part A")
         assert part.part == 1
         assert part.label == "Part A"
+
+
+# ── Incremental hydration tests ──────────────────────────────────────────
+
+
+class TestPoolsForGaps:
+    """Tests for the pools_for_gaps helper."""
+
+    def test_single_gap_returns_mapped_types(self):
+        from src.console_state import pools_for_gaps
+
+        result = pools_for_gaps({3})
+        assert result == {"Fixture"}
+
+    def test_multiple_gaps_returns_union(self):
+        from src.console_state import pools_for_gaps
+
+        result = pools_for_gaps({3, 9})
+        assert result == {"Fixture", "Sequence"}
+
+    def test_gap_8_returns_all_pool_types(self):
+        from src.console_state import _POOL_TYPES_TO_INDEX, pools_for_gaps
+
+        result = pools_for_gaps({8})
+        assert result == set(_POOL_TYPES_TO_INDEX)
+
+    def test_unknown_gap_returns_empty(self):
+        from src.console_state import pools_for_gaps
+
+        result = pools_for_gaps({999})
+        assert result == set()
+
+    def test_empty_gaps_returns_empty(self):
+        from src.console_state import pools_for_gaps
+
+        result = pools_for_gaps(set())
+        assert result == set()
+
+
+class TestGapPoolMap:
+    """Tests for the GAP_POOL_MAP constant."""
+
+    def test_gap_pool_map_exists(self):
+        from src.console_state import GAP_POOL_MAP
+
+        assert isinstance(GAP_POOL_MAP, dict)
+        assert len(GAP_POOL_MAP) >= 9
+
+    def test_all_mapped_types_are_valid(self):
+        from src.console_state import GAP_POOL_MAP, _POOL_TYPES_TO_INDEX
+
+        valid = set(_POOL_TYPES_TO_INDEX)
+        for gap_id, types in GAP_POOL_MAP.items():
+            for t in types:
+                assert t in valid, f"Gap {gap_id} maps to unknown pool type '{t}'"

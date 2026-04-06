@@ -27,6 +27,13 @@ from .telemetry import ToolTelemetry
 
 _DEFAULT_DB = Path(__file__).parent.parent / "rag" / "store" / "agent_memory.db"
 
+# Risk tier weights for risk_weighted_quality_score()
+RISK_WEIGHTS: dict[str, float] = {
+    "SAFE_READ": 1.0,
+    "SAFE_WRITE": 1.5,
+    "DESTRUCTIVE": 3.0,
+}
+
 
 # ---------------------------------------------------------------------------
 # Suggestion dataclasses  (read-only outputs — never auto-applied)
@@ -136,7 +143,9 @@ class SkillImprover:
             total = done + failed
             if total == 0:
                 continue
-            quality = done / total
+            quality = self.risk_weighted_quality_score(session_id)
+            if quality == 0.0:
+                quality = done / total  # fallback if no invocation data
             if quality < min_quality:
                 continue
             # Skip sessions already promoted
@@ -184,6 +193,49 @@ class SkillImprover:
         if total == 0:
             return 0.0
         return round(done / total, 3)
+
+    def risk_weighted_quality_score(self, session_id: str) -> float:
+        """Compute a risk-weighted 0.0–1.0 quality score for a session.
+
+        Weights invocations by risk tier so that DESTRUCTIVE failures count
+        more heavily than SAFE_READ failures:
+
+        ========== ======
+        Risk tier  Weight
+        ========== ======
+        SAFE_READ  1.0
+        SAFE_WRITE 1.5
+        DESTRUCTIVE 3.0
+        ========== ======
+
+        Falls back to the unweighted :meth:`quality_score_for_session` when no
+        ``tool_invocations`` data is available for the session.
+        """
+        try:
+            rows = self._tel._conn.execute(
+                "SELECT risk_tier, error_class FROM tool_invocations "
+                "WHERE session_id=?",
+                (session_id,),
+            ).fetchall()
+        except Exception:
+            return self.quality_score_for_session(session_id)
+
+        if not rows:
+            return self.quality_score_for_session(session_id)
+
+        weighted_done = 0.0
+        weighted_failed = 0.0
+        for risk_tier, error_class in rows:
+            w = RISK_WEIGHTS.get(risk_tier, 1.0)
+            if error_class:
+                weighted_failed += w
+            else:
+                weighted_done += w
+
+        total = weighted_done + weighted_failed
+        if total == 0.0:
+            return 0.0
+        return round(weighted_done / total, 3)
 
     # ------------------------------------------------------------------ #
     # Lifecycle                                                            #
