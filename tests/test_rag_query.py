@@ -210,3 +210,83 @@ class TestRagEndToEnd:
         )
         assert result.files_processed == 0
         assert result.chunks_created == 0
+
+
+# ── Golden-set retrieval quality tests ───────────────────────────────────
+
+
+@pytest.fixture
+def golden_db(tmp_path):
+    """Seed a DB with 5 distinct domain-specific Python files for quality testing."""
+    src = tmp_path / "src"
+    src.mkdir()
+
+    files = {
+        "playback.py": (
+            "def go_cue(sequence_id, cue_number):\n"
+            "    '''Execute a Go command on a sequence to advance to the next cue.'''\n"
+            "    return f'Go Cue {cue_number} Sequence {sequence_id}'\n"
+        ),
+        "selection.py": (
+            "def select_fixtures(fixture_ids):\n"
+            "    '''Select fixtures by ID for programming in the grandMA2 programmer.'''\n"
+            "    return f'Select Fixture {\" + \".join(map(str, fixture_ids))}'\n"
+        ),
+        "store.py": (
+            "def store_preset(preset_type, slot, name):\n"
+            "    '''Store the current programmer values as a preset in the pool.'''\n"
+            "    return f'Store Preset {preset_type}.{slot} /o'\n"
+        ),
+        "patch.py": (
+            "def patch_fixture(fixture_type, dmx_address, universe):\n"
+            "    '''Patch a new fixture at the given DMX address and universe.'''\n"
+            "    return f'Assign Fixture {fixture_type} At {universe}.{dmx_address}'\n"
+        ),
+        "effects.py": (
+            "def create_effect(effect_form, speed_hz, phase_offset):\n"
+            "    '''Create a running effect with specified form, speed and phase.'''\n"
+            "    return f'Effect {effect_form} Speed {speed_hz} Phase {phase_offset}'\n"
+        ),
+    }
+
+    for name, content in files.items():
+        (src / name).write_text(content)
+
+    db_path = tmp_path / "golden.db"
+    provider = ZeroVectorProvider(dimensions=8)
+    ingest(root_dir=tmp_path, db_path=db_path, embedding_provider=provider, repo_ref="golden")
+    return db_path
+
+
+class TestGoldenSetRetrieval:
+    """Verify that known queries return the expected top result.
+
+    These tests use keyword-based search (ZeroVectorProvider) to validate
+    that the RAG pipeline correctly indexes and retrieves domain-specific
+    lighting control code.
+    """
+
+    def test_go_cue_query_finds_playback(self, golden_db):
+        hits = rag_query("go_cue", db_path=golden_db)
+        assert len(hits) >= 1
+        assert "go_cue" in hits[0].text
+
+    def test_select_fixtures_query_finds_selection(self, golden_db):
+        hits = rag_query("select_fixtures", db_path=golden_db)
+        assert len(hits) >= 1
+        assert "select_fixtures" in hits[0].text
+
+    def test_store_preset_query_finds_store(self, golden_db):
+        hits = rag_query("store_preset", db_path=golden_db)
+        assert len(hits) >= 1
+        assert "store_preset" in hits[0].text
+
+    def test_patch_fixture_query_finds_patch(self, golden_db):
+        hits = rag_query("patch_fixture", db_path=golden_db)
+        assert len(hits) >= 1
+        assert "patch_fixture" in hits[0].text
+
+    def test_effect_query_finds_effects(self, golden_db):
+        hits = rag_query("create_effect", db_path=golden_db)
+        assert len(hits) >= 1
+        assert "create_effect" in hits[0].text
