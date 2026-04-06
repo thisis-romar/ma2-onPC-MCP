@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.12.0
+version: 4.12.1
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-04T20:12:50Z
+last_updated: 2026-04-06T10:31:55Z
 ---
 
 # Project Rules
@@ -132,7 +132,7 @@ uv run python scripts/audit_md_counts.py --fix                # auto-fix stale c
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-04-04): **3027 tests** (unit + live integration).
+- Current counts (2026-04-04): **3057 tests** (unit + live integration).
 
 ---
 
