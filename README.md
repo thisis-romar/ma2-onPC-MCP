@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.34.3
+version: 3.35.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-06T15:26:41Z
+last_updated: 2026-04-06T21:28:54Z
 ---
 
 <p align="center">
@@ -18,7 +18,7 @@ last_updated: 2026-04-06T15:26:41Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3135-brightgreen?style=for-the-badge" alt="3135 Tests"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.34.0-purple?style=for-the-badge" alt="Version 3.34.0"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.34.2-purple?style=for-the-badge" alt="Version 3.34.2"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/uv.lock"><img src="https://img.shields.io/badge/MCP%20SDK-%E2%89%A5%201.21-blue?style=for-the-badge" alt="MCP SDK >= 1.21"></a>
@@ -107,6 +107,13 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
 
+**Autonomous agent entry points:**
+- `run_agent_goal(goal, auto_confirm, dry_run)` — full loop: classify → plan → validate → execute → verify → trace
+- `plan_agent_goal(goal)` — dry-run: returns plan + policy warnings without executing
+- `resume_run(run_id)` — resume an interrupted run from its last DAG checkpoint
+
+4 workflow templates in [`src/agent/workflows/`](src/agent/workflows/): patch, preset, playback, common.
+
 ### Module Overview
 
 | Module | Role |
@@ -114,7 +121,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/server.py`](src/server.py) | FastMCP server, 163 interactive tools, safety gate, env config |
 | [`src/server_orchestration_tools.py`](src/server_orchestration_tools.py) | 34 agentic tools (110–144) registered onto FastMCP |
 | [`src/orchestrator.py`](src/orchestrator.py) | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
-| [`src/task_decomposer.py`](src/task_decomposer.py) | Natural-language goal → ordered SubTask plan (rule-based) |
+| [`src/task_decomposer.py`](src/task_decomposer.py) | Natural-language goal → ordered SubTask plan (14 built-in rules + `register_rule()` extensibility) |
 | [`src/agent_memory.py`](src/agent_memory.py) | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
 | [`src/console_state.py`](src/console_state.py) | ConsoleStateSnapshot: hydrates 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | [`src/pool_name_index.py`](src/pool_name_index.py) | In-memory pool name/ID registry — zero-cost object resolution |
@@ -136,6 +143,12 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/agent/`](src/agent/) | Agent harness: runtime, domain planner, step executor, policy, verification, memory, trace |
 | [`src/agent/rollback.py`](src/agent/rollback.py) | `RollbackExecutor`: OOPS/DELETE compensation after verification failures |
 | [`src/agent_bridge.py`](src/agent_bridge.py) | SubTask↔PlanStep converters + `execute_subtasks_via_agent()` bridge |
+| [`src/telnet_client.py`](src/telnet_client.py) | Async Telnet (telnetlib3), auth, send/receive, injection prevention, `CircuitBreaker` |
+| [`src/completions.py`](src/completions.py) | MCP Completions — argument autocompletion for tool parameters |
+| [`src/context.py`](src/context.py) | Shared asyncio ContextVars for operator identity propagation |
+| [`src/elicitation.py`](src/elicitation.py) | Server-initiated user input requests (when MCP client supports it) |
+| [`src/sampling.py`](src/sampling.py) | Server-initiated LLM calls via MCP client sampling |
+| [`src/subscriptions.py`](src/subscriptions.py) | MCP Resource change notification tracking |
 | [`src/tools.py`](src/tools.py) | Global GMA2 telnet client accessor — `get_client()` used by all tools |
 
 ### Advanced Features (Phases 1–6)
@@ -191,6 +204,26 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 | `read-only` | Only `SAFE_READ` commands allowed (`list`, `info`, `cd`) |
 | `standard` | `SAFE_READ` + `SAFE_WRITE` allowed; `DESTRUCTIVE` requires `confirm_destructive=True` |
 | `admin` | All commands allowed without confirmation |
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GMA_HOST` | `127.0.0.1` | grandMA2 console IP address |
+| `GMA_PORT` | `30000` | Telnet port (30001 = read-only) |
+| `GMA_USER` | `administrator` | Console login username |
+| `GMA_PASSWORD` | `admin` | Console login password |
+| `GMA_SAFETY_LEVEL` | `standard` | `read-only`, `standard`, or `admin` |
+| `GMA_TRANSPORT` | `stdio` | MCP transport: `stdio` (Claude Desktop, VS Code), `sse` (web clients), `streamable-http` (HTTP integrations) |
+| `GMA_SCOPE` | `tier:3` | OAuth tier (`tier:0`–`tier:5`) or explicit scopes |
+| `GMA_LICENSE_TIER` | `community` | `community` (free), `professional`, `enterprise` |
+| `GMA_TELEMETRY` | `1` | Set `0` to disable per-tool invocation recording |
+| `GMA_POLICY_STRICTNESS` | `warn` | `warn` (default) or `block` — controls policy rule enforcement |
+| `GMA_AUTH_BYPASS` | _(unset)_ | Set `1` to bypass OAuth scope checks (dev only) |
+| `GMA_RIGHTS_BYPASS` | _(unset)_ | Set `1` to bypass MA2 native rights (dev only) |
+| `GMA_LICENSE_BYPASS` | _(unset)_ | Set `1` to bypass license tier checks (dev only) |
+| `GITHUB_MODELS_TOKEN` | _(unset)_ | GitHub PAT with `models:read` scope for RAG embeddings (falls back to `GITHUB_TOKEN`) |
+| `LOG_LEVEL` | `INFO` | Python logging level |
 
 ## License Tiers
 
@@ -1369,6 +1402,15 @@ The stop hook is configured in `.claude/settings.json` (project-level) so all co
 ## Acknowledgments
 
 This project is derived from [gma2-mcp](https://github.com/chienchuanw/gma2-mcp) by **chienchuanw**, whose foundation work (Nov–Dec 2025) provided the initial grandMA2 Telnet integration that this project builds upon.
+
+## Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) — version history from v2.0.0 to current
+- [CONTRIBUTING.md](CONTRIBUTING.md) — contribution guidelines
+- [SECURITY.md](SECURITY.md) — security policy and vulnerability reporting
+- [doc/network-topology.md](doc/network-topology.md) — deployment diagram and firewall setup (`sudo bash scripts/lockdown_firewall.sh --apply`)
+- [doc/responsibility-map.md](doc/responsibility-map.md) — module responsibility boundaries
+- [doc/tool-surface-tiers.md](doc/tool-surface-tiers.md) — tool classification by risk and scope
 
 ## License
 
