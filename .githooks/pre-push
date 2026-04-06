@@ -73,4 +73,14 @@ uv run python -m pytest -x -q
 echo "[pre-push] Auditing CLAUDE.md / README.md counts..."
 uv run python scripts/audit_md_counts.py
 
+# ── CHANGELOG Freshness ─────────────────────────────────────────────────
+
+if [ -f "CHANGELOG.md" ] && [ -f "pyproject.toml" ]; then
+    V_PYPROJECT=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+    if [ -n "$V_PYPROJECT" ] && ! grep -q "\[$V_PYPROJECT\]" CHANGELOG.md; then
+        echo "[pre-push] WARNING: CHANGELOG.md has no entry for v$V_PYPROJECT"
+        echo "           Add a ## [$V_PYPROJECT] section before the next release."
+    fi
+fi
+
 echo "[pre-push] All checks passed."
