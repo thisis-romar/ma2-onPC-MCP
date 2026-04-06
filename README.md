@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 198 MCP tools via Telnet
-version: 3.35.2
+version: 3.35.3
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-06T21:47:03Z
+last_updated: 2026-04-06T22:35:54Z
 ---
 
 <p align="center">
@@ -32,7 +32,7 @@ last_updated: 2026-04-06T21:47:03Z
 <table>
 <tr><td><b>Agent Harness</b></td><td>198 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
 <tr><td><b>Embedded Agent Core</b></td><td>Orchestrator, task decomposer, working + long-term memory, and a skill registry with self-improvement suggestions. Inject a real LLM client and it becomes a fully autonomous lighting agent that plans, executes, remembers, and learns.</td></tr>
-<tr><td><b>3-layer permission model</b></td><td>OAuth scope ∩ MA2 native rights ∩ console floor — all three must agree. 197 tools mapped to a minimum <code>MA2Right</code> tier, three risk tiers (<code>SAFE_READ</code> / <code>SAFE_WRITE</code> / <code>DESTRUCTIVE</code>), and line-break injection rejected at the transport layer.</td></tr>
+<tr><td><b>3-layer permission model</b></td><td>OAuth scope ∩ MA2 native rights ∩ console floor — all three must agree. 198 tools mapped to a minimum <code>MA2Right</code> tier, three risk tiers (<code>SAFE_READ</code> / <code>SAFE_WRITE</code> / <code>DESTRUCTIVE</code>), and line-break injection rejected at the transport layer.</td></tr>
 <tr><td><b>A closed learning loop</b></td><td>Every tool call recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Skills are versioned playbooks with full lineage tracking.</td></tr>
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
 </table>
@@ -71,7 +71,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 ```mermaid
 graph TD
     H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>34 tools (110–144) · orchestrator · skills"] --> A
-    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>163 tools · safety gate"] --> B
+    A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>164 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
     C["🔧 Command Builders<br/><code>src/commands/</code><br/>254 pure functions → strings"] --> D
     D["📡 Telnet Client<br/><code>src/telnet_client.py</code><br/>async · auth · injection prevention"]
@@ -102,7 +102,7 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 
 | Layer | What it is | Key files |
 |-------|-----------|-----------|
-| **Bottom 163 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | [`src/server.py`](src/server.py) |
+| **Bottom 164 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | [`src/server.py`](src/server.py) |
 | **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | [`src/server_orchestration_tools.py`](src/server_orchestration_tools.py), [`src/orchestrator.py`](src/orchestrator.py) |
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
@@ -118,7 +118,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 
 | Module | Role |
 |--------|------|
-| [`src/server.py`](src/server.py) | FastMCP server, 163 interactive tools, safety gate, env config |
+| [`src/server.py`](src/server.py) | FastMCP server, 164 interactive tools, safety gate, env config |
 | [`src/server_orchestration_tools.py`](src/server_orchestration_tools.py) | 34 agentic tools (110–144) registered onto FastMCP |
 | [`src/orchestrator.py`](src/orchestrator.py) | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
 | [`src/task_decomposer.py`](src/task_decomposer.py) | Natural-language goal → ordered SubTask plan (14 built-in rules + `register_rule()` extensibility) |
@@ -244,7 +244,7 @@ Tools not in the tier map default to COMMUNITY. When a tool's required tier exce
 
 ## MCP Tools
 
-The server exposes **197 tools** to MCP clients, grouped into 15 categories plus an agentic orchestration layer:
+The server exposes **198 tools** to MCP clients, grouped into 15 categories plus an agentic orchestration layer:
 
 <details>
 <summary><strong>🧭 Navigation & Inspection</strong> — 4 tools</summary>
@@ -1293,7 +1293,7 @@ The command builder layer ([`src/commands/`](src/commands/)) generates grandMA2 
 ```
 ma2-onPC-MCP/
 ├── src/
-│   ├── server.py                           # FastMCP server (163 interactive tools)
+│   ├── server.py                           # FastMCP server (164 interactive tools)
 │   ├── server_orchestration_tools.py       # Agentic layer (tools 110–144)
 │   │
 │   │   # Orchestration & Memory
