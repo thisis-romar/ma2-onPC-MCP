@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 197 MCP tools via Telnet
-version: 3.34.2
+version: 3.34.3
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-06T15:16:12Z
+last_updated: 2026-04-06T15:26:41Z
 ---
 
 <p align="center">
@@ -17,7 +17,7 @@ last_updated: 2026-04-06T15:16:12Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-197-brightgreen?style=for-the-badge" alt="197 MCP Tools"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3136-brightgreen?style=for-the-badge" alt="3136 Tests"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3135-brightgreen?style=for-the-badge" alt="3135 Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.34.0-purple?style=for-the-badge" alt="Version 3.34.0"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
