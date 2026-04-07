@@ -16,7 +16,7 @@ import pytest
 
 class TestControlExecutorNewActions:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_flash_go(self, mock_get_client):
         from src.server import control_executor
 
@@ -32,7 +32,7 @@ class TestControlExecutorNewActions:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_flash_go_page_qualified(self, mock_get_client):
         from src.server import control_executor
 
@@ -47,7 +47,7 @@ class TestControlExecutorNewActions:
         assert data["command_sent"] == "FlashGo Executor 2.5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_flash_on(self, mock_get_client):
         from src.server import control_executor
 
@@ -63,7 +63,7 @@ class TestControlExecutorNewActions:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_swop_go(self, mock_get_client):
         from src.server import control_executor
 
@@ -79,7 +79,7 @@ class TestControlExecutorNewActions:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_swop_on(self, mock_get_client):
         from src.server import control_executor
 
@@ -95,7 +95,7 @@ class TestControlExecutorNewActions:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_manual_xfade(self, mock_get_client):
         from src.server import control_executor
 
@@ -111,7 +111,7 @@ class TestControlExecutorNewActions:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_manual_xfade_missing_value_blocked(self, mock_get_client):
         from src.server import control_executor
 
@@ -125,7 +125,7 @@ class TestControlExecutorNewActions:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_invalid_action_blocked(self, mock_get_client):
         from src.server import control_executor
 
@@ -139,7 +139,7 @@ class TestControlExecutorNewActions:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_included(self, mock_get_client):
         from src.server import control_executor
 
@@ -155,7 +155,7 @@ class TestControlExecutorNewActions:
 
 class TestSetAdvancedTimingSnapPercent:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_snap_percent(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -171,7 +171,7 @@ class TestSetAdvancedTimingSnapPercent:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_snap_percent_float(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -185,7 +185,7 @@ class TestSetAdvancedTimingSnapPercent:
         mock_client.send_command_with_response.assert_called_once_with("SnapPercent 33.3")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_snap_percent_missing_value_blocked(self, mock_get_client):
         from src.server import set_advanced_timing
 

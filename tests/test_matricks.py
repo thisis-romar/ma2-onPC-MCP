@@ -330,7 +330,7 @@ class TestManageMAtricksTool:
     """Tests for the manage_matricks MCP tool dispatch."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_interleave_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -344,7 +344,7 @@ class TestManageMAtricksTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_blocks_xy_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -357,7 +357,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "MAtricksBlocks 2.3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_wings_off_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -370,7 +370,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "MAtricksWings Off"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_filter_name_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -383,7 +383,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "MAtricksFilter OddID"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_recall_id_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -396,7 +396,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "MAtricks 10"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_recall_mode_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -409,7 +409,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "MAtricks Toggle"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_reset_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -422,7 +422,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "MAtricksReset"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_all_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -435,7 +435,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "All"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_allrows_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -467,7 +467,7 @@ class TestManageMAtricksTool:
         assert "column requires width" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_groups_increment_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -480,7 +480,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "MAtricksGroups + 2"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_next_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -493,7 +493,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "Next"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_previous_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -506,7 +506,7 @@ class TestManageMAtricksTool:
         assert data["command_sent"] == "Previous"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_nextrow_dispatch(self, mock_get_client):
         from src.server import manage_matricks
 
@@ -550,7 +550,7 @@ class TestStoreMAtricksPresetTool:
         assert "At least one" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_basic_workflow(self, mock_get_client):
         from src.server import store_matricks_preset
 
@@ -574,7 +574,7 @@ class TestStoreMAtricksPresetTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_no_reset(self, mock_get_client):
         from src.server import store_matricks_preset
 
@@ -593,7 +593,7 @@ class TestStoreMAtricksPresetTool:
         assert "MAtricksBlocks 3" in data["commands_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_blocks_xy(self, mock_get_client):
         from src.server import store_matricks_preset
 
@@ -611,7 +611,7 @@ class TestStoreMAtricksPresetTool:
         assert "MAtricksBlocks 2.3" in data["commands_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_all_settings(self, mock_get_client):
         from src.server import store_matricks_preset
 

@@ -43,8 +43,12 @@ from src.categorization.taxonomy import (
     save_taxonomy,
 )
 
-# Path to the real server.py
+# Path to the real server.py and split-out community tools
 SERVER_PATH = Path(__file__).resolve().parent.parent / "src" / "server.py"
+COMMUNITY_TOOLS_PATH = Path(__file__).resolve().parent.parent / "src" / "tools_community.py"
+PROFESSIONAL_TOOLS_PATH = Path(__file__).resolve().parent.parent / "src" / "tools_professional.py"
+ENTERPRISE_TOOLS_PATH = Path(__file__).resolve().parent.parent / "src" / "tools_enterprise.py"
+_EXTRA_PATHS = [COMMUNITY_TOOLS_PATH, PROFESSIONAL_TOOLS_PATH, ENTERPRISE_TOOLS_PATH]
 
 
 # ===========================================================================
@@ -57,18 +61,18 @@ class TestFeatureExtraction:
 
     def test_extract_features_finds_tools(self):
         """AST extraction should find MCP tools from server.py."""
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         # The project has 78+ tools; we just verify we get a substantial count
         assert len(tools) >= 70, f"Expected ≥70 tools, got {len(tools)}"
 
     def test_extract_features_names_unique(self):
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         names = [t.name for t in tools]
         assert len(names) == len(set(names)), "Tool names must be unique"
 
     def test_extract_features_detects_destructive(self):
         """Tools with confirm_destructive param should be flagged."""
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         destructive_tools = [t for t in tools if t.has_confirm_destructive]
         assert len(destructive_tools) >= 5, (
             f"Expected ≥5 destructive tools, got {len(destructive_tools)}"
@@ -80,13 +84,13 @@ class TestFeatureExtraction:
             )
 
     def test_extract_features_docstrings_not_empty(self):
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         for t in tools:
             assert t.docstring, f"Tool {t.name} has empty docstring"
 
     def test_extract_features_known_tools(self):
         """Spot-check that well-known tools are found."""
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         names = {t.name for t in tools}
         for expected in [
             "send_raw_command",
@@ -99,7 +103,7 @@ class TestFeatureExtraction:
             assert expected in names, f"Missing expected tool: {expected}"
 
     def test_structural_vector_dimensions(self):
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         expected_dim = ToolFeatures.structural_dim()
         for t in tools:
             vec = t.to_structural_vector()
@@ -109,7 +113,7 @@ class TestFeatureExtraction:
 
     def test_structural_vector_values_in_range(self):
         """All binary/one-hot features should be 0 or 1; scalars ≥ 0."""
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         for t in tools:
             vec = t.to_structural_vector()
             # First 8 dims are binary/one-hot
@@ -120,7 +124,7 @@ class TestFeatureExtraction:
             assert vec[9] >= 0
 
     def test_safe_read_tools_detected(self):
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         safe_read = [t for t in tools if t.risk_tier == "SAFE_READ"]
         assert len(safe_read) >= 3, f"Expected ≥3 SAFE_READ tools, got {len(safe_read)}"
 
@@ -471,7 +475,7 @@ class TestFullPipeline:
     def test_full_pipeline_zero_vector(self):
         """End-to-end: extract → embed(zero) → cluster → taxonomy."""
         # Extract features
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         assert len(tools) >= 70
 
         # Build structural matrix
@@ -608,7 +612,7 @@ class TestMCPToolWrappers:
 
         # Also reset server module cache
         import src.server as server_mod
-        monkeypatch.setattr(server_mod, "_taxonomy_cache", None)
+        import src.tools_enterprise as _te_mod; monkeypatch.setattr(_te_mod, "_taxonomy_cache", None)
 
         self.taxonomy_path = out_path
         self.taxonomy = tax_mod.load_taxonomy(out_path)
@@ -704,7 +708,7 @@ class TestClusteringAudit:
 
     def _run_pipeline(self, seed=42, k_override=None):
         """Run the full pipeline and return (tools, combined, labels, sil)."""
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         structural = np.array(
             [t.to_structural_vector() for t in tools], dtype=np.float64,
         )
@@ -753,7 +757,7 @@ class TestClusteringAudit:
 
     def test_multi_restart_stability(self):
         """Multiple restarts should improve or match single-restart inertia."""
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         structural = np.array(
             [t.to_structural_vector() for t in tools], dtype=np.float64,
         )
@@ -867,7 +871,7 @@ class TestClusteringAudit:
 
     def test_zero_variance_on_real_features(self):
         """Real tool features should have some zero-variance dims to drop."""
-        tools = extract_tool_features(str(SERVER_PATH))
+        tools = extract_tool_features(str(SERVER_PATH), extra_paths=_EXTRA_PATHS)
         structural = np.array(
             [t.to_structural_vector() for t in tools], dtype=np.float64,
         )

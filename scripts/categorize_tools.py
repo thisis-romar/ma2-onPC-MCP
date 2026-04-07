@@ -59,17 +59,25 @@ def run(
     k_override: int | None = None,
     alpha: float = 0.4,
     server_path: str | None = None,
+    extra_paths: list[str] | None = None,
 ) -> dict:
     """Execute the full categorization pipeline and return the taxonomy dict."""
     if not 0.0 <= alpha <= 1.0:
         raise ValueError(f"alpha must be in [0, 1], got {alpha}")
 
     server_file = Path(server_path) if server_path else _ROOT / "src" / "server.py"
+    if extra_paths is None:
+        # Auto-discover split tool modules alongside server.py
+        extra_paths = []
+        for name in ("tools_community.py", "tools_professional.py", "tools_enterprise.py"):
+            path = server_file.parent / name
+            if path.exists():
+                extra_paths.append(str(path))
     out_path = Path(output) if output else DEFAULT_TAXONOMY_PATH
 
     # --- Step 1: Extract features ---
     print(f"[1/6] Extracting features from {server_file.name} ...")
-    tools = extract_tool_features(str(server_file))
+    tools = extract_tool_features(str(server_file), extra_paths=extra_paths)
     print(f"       Found {len(tools)} tools")
 
     # --- Step 2: Build structural matrix ---

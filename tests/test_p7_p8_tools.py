@@ -13,7 +13,7 @@ import pytest
 
 class TestSetAdvancedTiming:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fade_path_linear(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -29,7 +29,7 @@ class TestSetAdvancedTiming:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_out_fade_bare(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -45,7 +45,7 @@ class TestSetAdvancedTiming:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_out_fade_with_cue_and_sequence(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -64,7 +64,7 @@ class TestSetAdvancedTiming:
         assert data["command_sent"] == "OutFade 1.5 Cue 5 Sequence 99"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_out_delay(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -80,7 +80,7 @@ class TestSetAdvancedTiming:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_step_fade(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -96,7 +96,7 @@ class TestSetAdvancedTiming:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_step_in_fade(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -112,7 +112,7 @@ class TestSetAdvancedTiming:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_step_out_fade(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -128,7 +128,7 @@ class TestSetAdvancedTiming:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_invalid_action_blocked(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -142,7 +142,7 @@ class TestSetAdvancedTiming:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fade_path_missing_path_type_blocked(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -156,7 +156,7 @@ class TestSetAdvancedTiming:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fade_path_invalid_path_type_blocked(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -170,7 +170,7 @@ class TestSetAdvancedTiming:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_out_fade_missing_value_blocked(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -184,7 +184,7 @@ class TestSetAdvancedTiming:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_included(self, mock_get_client):
         from src.server import set_advanced_timing
 
@@ -200,7 +200,7 @@ class TestSetAdvancedTiming:
 
 class TestPreviewExecutorContent:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_preview_bare(self, mock_get_client):
         from src.server import preview_executor_content
 
@@ -216,7 +216,7 @@ class TestPreviewExecutorContent:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_preview_with_executor(self, mock_get_client):
         from src.server import preview_executor_content
 
@@ -232,7 +232,7 @@ class TestPreviewExecutorContent:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_preview_edit_bare(self, mock_get_client):
         from src.server import preview_executor_content
 
@@ -248,7 +248,7 @@ class TestPreviewExecutorContent:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_preview_edit_with_executor(self, mock_get_client):
         from src.server import preview_executor_content
 
@@ -263,7 +263,7 @@ class TestPreviewExecutorContent:
         assert data["command_sent"] == "PreviewEdit Executor 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_preview_exec(self, mock_get_client):
         from src.server import preview_executor_content
 
@@ -279,7 +279,7 @@ class TestPreviewExecutorContent:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_preview_exec_missing_executor_blocked(self, mock_get_client):
         from src.server import preview_executor_content
 
@@ -293,7 +293,7 @@ class TestPreviewExecutorContent:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_invalid_action_blocked(self, mock_get_client):
         from src.server import preview_executor_content
 
@@ -307,7 +307,7 @@ class TestPreviewExecutorContent:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_included(self, mock_get_client):
         from src.server import preview_executor_content
 

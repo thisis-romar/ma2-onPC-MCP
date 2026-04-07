@@ -45,7 +45,7 @@ class TestEffectsReferenceResource:
 
 class TestProgrammingActionRecordMacro:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_record_macro_blocked_without_confirm(self, mock_get_client):
         from src.server import programming_action
 
@@ -59,7 +59,7 @@ class TestProgrammingActionRecordMacro:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_record_macro_dispatches_with_confirm(self, mock_get_client):
         from src.server import programming_action
 
@@ -76,7 +76,7 @@ class TestProgrammingActionRecordMacro:
         assert data["command_sent"] == "Record Macro 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_record_macro_missing_macro_id_blocked(self, mock_get_client):
         from src.server import programming_action
 

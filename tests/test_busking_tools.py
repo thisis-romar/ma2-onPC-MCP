@@ -15,7 +15,7 @@ class TestModulateEffectTool:
     """Tests for modulate_effect."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_rate_mode_sends_correct_command(self, mock_get_client):
         from src.server import modulate_effect
 
@@ -31,7 +31,7 @@ class TestModulateEffectTool:
         assert "EffectRate" in data["command"] or "effectrate" in data["command"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_speed_mode_sends_correct_command(self, mock_get_client):
         from src.server import modulate_effect
 
@@ -47,7 +47,7 @@ class TestModulateEffectTool:
         assert "EffectSpeed" in data["command"] or "effectspeed" in data["command"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_response_included_in_output(self, mock_get_client):
         from src.server import modulate_effect
 
@@ -61,7 +61,7 @@ class TestModulateEffectTool:
         assert data["response"] == "Acknowledged"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_rate_normal_value_100(self, mock_get_client):
         from src.server import modulate_effect
 
@@ -80,7 +80,7 @@ class TestClearEffectsOnPageTool:
     """Tests for clear_effects_on_page."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_default_range_returns_20_commands(self, mock_get_client):
         from src.server import clear_effects_on_page
 
@@ -95,7 +95,7 @@ class TestClearEffectsOnPageTool:
         assert data["page"] == 1
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_custom_range(self, mock_get_client):
         from src.server import clear_effects_on_page
 
@@ -110,7 +110,7 @@ class TestClearEffectsOnPageTool:
         assert data["page"] == 3
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_response_forwarded(self, mock_get_client):
         from src.server import clear_effects_on_page
 
@@ -128,7 +128,7 @@ class TestNormalizePageFadersTool:
     """Tests for normalize_page_faders."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_zeroed_flag_set(self, mock_get_client):
         from src.server import normalize_page_faders
 
@@ -142,7 +142,7 @@ class TestNormalizePageFadersTool:
         assert data["zeroed"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_default_range_20_commands(self, mock_get_client):
         from src.server import normalize_page_faders
 
@@ -157,7 +157,7 @@ class TestNormalizePageFadersTool:
         assert data["page"] == 2
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_custom_exec_range(self, mock_get_client):
         from src.server import normalize_page_faders
 
@@ -175,7 +175,7 @@ class TestClassifyShowModeTool:
     """Tests for classify_show_mode."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_empty_show_classified_as_empty(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -191,7 +191,7 @@ class TestClassifyShowModeTool:
         assert data["evidence"]["macros"] == 0
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_mostly_effects_classified_as_busking(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -210,7 +210,7 @@ class TestClassifyShowModeTool:
         assert data["evidence"]["macros"] == 1
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_mostly_macros_classified_as_sequence(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -227,7 +227,7 @@ class TestClassifyShowModeTool:
         assert data["mode"] == "sequence"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_equal_mix_classified_as_hybrid(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -244,7 +244,7 @@ class TestClassifyShowModeTool:
         assert data["mode"] == "hybrid"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_bracket_lines_excluded_from_count(self, mock_get_client):
         from src.server import classify_show_mode
 

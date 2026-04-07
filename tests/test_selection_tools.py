@@ -13,7 +13,7 @@ import pytest
 
 class TestFilterFixtureSelection:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_filter_active(self, mock_get_client):
         from src.server import filter_fixture_selection
 
@@ -29,7 +29,7 @@ class TestFilterFixtureSelection:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_filter_output(self, mock_get_client):
         from src.server import filter_fixture_selection
 
@@ -44,7 +44,7 @@ class TestFilterFixtureSelection:
         assert data["command_sent"] == "If Output"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_filter_programmer(self, mock_get_client):
         from src.server import filter_fixture_selection
 
@@ -59,7 +59,7 @@ class TestFilterFixtureSelection:
         assert data["command_sent"] == "If Programmer"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_invalid_filter_type_blocked(self, mock_get_client):
         from src.server import filter_fixture_selection
 
@@ -73,7 +73,7 @@ class TestFilterFixtureSelection:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_included(self, mock_get_client):
         from src.server import filter_fixture_selection
 
@@ -90,7 +90,7 @@ class TestProgrammerOperationsExtended:
     """Tests for the 4 new SAFE_WRITE actions added to programmer_operations."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_shuffle_selection(self, mock_get_client):
         from src.server import programming_action as programmer_operations
 
@@ -106,7 +106,7 @@ class TestProgrammerOperationsExtended:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_shuffle_values(self, mock_get_client):
         from src.server import programming_action as programmer_operations
 
@@ -122,7 +122,7 @@ class TestProgrammerOperationsExtended:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_full_highlight(self, mock_get_client):
         from src.server import programming_action as programmer_operations
 
@@ -138,7 +138,7 @@ class TestProgrammerOperationsExtended:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_blind_edit(self, mock_get_client):
         from src.server import programming_action as programmer_operations
 
@@ -154,7 +154,7 @@ class TestProgrammerOperationsExtended:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_new_actions_are_not_destructive(self, mock_get_client):
         """New SAFE_WRITE actions must NOT require confirm_destructive."""
         from src.server import programming_action as programmer_operations

@@ -431,8 +431,8 @@ class TestSnapshotWiring:
     """Verify that server tools update _orchestrator.last_snapshot after telnet success."""
 
     @pytest.mark.asyncio
-    @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional._orchestrator")
+    @patch("src.server_core.get_client")
     async def test_manage_matricks_interleave_updates_tracker(
         self, mock_get_client, mock_orch
     ):
@@ -447,8 +447,8 @@ class TestSnapshotWiring:
         assert snap.matricks.interleave == 4
 
     @pytest.mark.asyncio
-    @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional._orchestrator")
+    @patch("src.server_core.get_client")
     async def test_manage_matricks_reset_clears_tracker(
         self, mock_get_client, mock_orch
     ):
@@ -467,8 +467,8 @@ class TestSnapshotWiring:
         assert snap.matricks.active is False
 
     @pytest.mark.asyncio
-    @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional._orchestrator")
+    @patch("src.server_core.get_client")
     async def test_manage_matricks_no_snapshot_does_not_raise(
         self, mock_get_client, mock_orch
     ):
@@ -483,8 +483,8 @@ class TestSnapshotWiring:
         assert "command_sent" in data
 
     @pytest.mark.asyncio
-    @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional._orchestrator")
+    @patch("src.server_core.get_client")
     async def test_manage_matricks_wings_turn_off(
         self, mock_get_client, mock_orch
     ):
@@ -500,8 +500,8 @@ class TestSnapshotWiring:
         assert snap.matricks.wings is None
 
     @pytest.mark.asyncio
-    @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional._orchestrator")
+    @patch("src.server_core.get_client")
     async def test_manage_matricks_selection_steps_no_state_change(
         self, mock_get_client, mock_orch
     ):
@@ -519,9 +519,9 @@ class TestSnapshotWiring:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server._orchestrator")
-    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
-    @patch("src.server.get_client")
+    @patch("src.tools_enterprise._orchestrator")
+    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
     async def test_create_filter_library_updates_vte(
         self, mock_get_client, mock_check, mock_orch, mock_write
     ):
@@ -542,9 +542,9 @@ class TestSnapshotWiring:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server._orchestrator")
-    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
-    @patch("src.server.get_client")
+    @patch("src.tools_enterprise._orchestrator")
+    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
     async def test_create_filter_library_no_snapshot_ok(
         self, mock_get_client, mock_check, mock_orch, mock_write
     ):
@@ -571,7 +571,7 @@ class TestWriteTrackerCompletion:
 
     @pytest.mark.asyncio
     @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_fixture_adds_to_parked_set(self, mock_client, mock_orch):
         from src.server import park_fixture
 
@@ -587,7 +587,7 @@ class TestWriteTrackerCompletion:
 
     @pytest.mark.asyncio
     @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unpark_fixture_removes_from_parked_set(self, mock_client, mock_orch):
         from src.server import unpark_fixture
 
@@ -604,7 +604,7 @@ class TestWriteTrackerCompletion:
 
     @pytest.mark.asyncio
     @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_unpark_nil_snapshot_no_raise(self, mock_client, mock_orch):
         from src.server import park_fixture, unpark_fixture
 
@@ -619,7 +619,7 @@ class TestWriteTrackerCompletion:
 
     @pytest.mark.asyncio
     @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_toggle_console_mode_updates_console_modes(self, mock_client, mock_orch):
         from src.server import toggle_console_mode
 
@@ -635,7 +635,7 @@ class TestWriteTrackerCompletion:
 
     @pytest.mark.asyncio
     @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_toggle_console_mode_twice_inverts(self, mock_client, mock_orch):
         from src.server import toggle_console_mode
 
@@ -652,7 +652,7 @@ class TestWriteTrackerCompletion:
 
     @pytest.mark.asyncio
     @patch("src.server._orchestrator")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_toggle_console_mode_nil_snapshot_no_raise(self, mock_client, mock_orch):
         from src.server import toggle_console_mode
 

@@ -17,7 +17,7 @@ class TestSetExecutorPriority:
     """Tests for set_executor_priority."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_valid_priority_sends_command(self, mock_get_client):
         from src.server import set_executor_priority
 
@@ -34,7 +34,7 @@ class TestSetExecutorPriority:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_normal_priority(self, mock_get_client):
         from src.server import set_executor_priority
 
@@ -59,7 +59,7 @@ class TestSetExecutorPriority:
         assert "error" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_super_priority(self, mock_get_client):
         from src.server import set_executor_priority
 
@@ -74,7 +74,7 @@ class TestSetExecutorPriority:
         assert data.get("blocked") is not True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_forwarded(self, mock_get_client):
         from src.server import set_executor_priority
 
@@ -113,7 +113,7 @@ class TestGetSimilarTools:
         }
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_returns_ranked_similar_tools(self, mock_load):
         from src.server import get_similar_tools
 
@@ -132,7 +132,7 @@ class TestGetSimilarTools:
             assert "category" in entry
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_unknown_tool_returns_error(self, mock_load):
         from src.server import get_similar_tools
 
@@ -145,7 +145,7 @@ class TestGetSimilarTools:
         assert data.get("blocked") is True
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_top_n_respected(self, mock_load):
         from src.server import get_similar_tools
 
@@ -158,7 +158,7 @@ class TestGetSimilarTools:
         assert len(data) <= 2
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_results_sorted_by_distance(self, mock_load):
         from src.server import get_similar_tools
 

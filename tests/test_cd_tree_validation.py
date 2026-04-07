@@ -110,7 +110,7 @@ class TestGroupTreeVerification:
     """Verify create_fixture_group appears in cd Group → list."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_create_group_sends_correct_commands(self, mock_get_client):
         from src.server import create_fixture_group
 
@@ -133,7 +133,7 @@ class TestGroupTreeVerification:
         assert "Test Group" in result
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_delete_group_sends_noconfirm(self, mock_get_client):
         from src.server import delete_object
 
@@ -159,7 +159,7 @@ class TestGroupTreeVerification:
 
 class TestSequenceTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_sequence(self, mock_get_client):
         from src.server import store_object
 
@@ -185,7 +185,7 @@ class TestSequenceTreeVerification:
 
 class TestCueTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_in_sequence(self, mock_get_client):
         from src.server import store_current_cue
 
@@ -212,7 +212,7 @@ class TestCueTreeVerification:
 
 class TestPresetTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_color_preset(self, mock_get_client):
         from src.server import store_new_preset
 
@@ -239,7 +239,7 @@ class TestPresetTreeVerification:
 
 class TestMacroTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_macro(self, mock_get_client):
         from src.server import store_object
 
@@ -265,7 +265,7 @@ class TestMacroTreeVerification:
 
 class TestEffectTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_effect(self, mock_get_client):
         from src.server import store_object
 
@@ -291,7 +291,7 @@ class TestEffectTreeVerification:
 
 class TestExecutorTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_sequence_to_executor(self, mock_get_client):
         from src.server import assign_object
 
@@ -315,7 +315,7 @@ class TestExecutorTreeVerification:
         assert str(TEST_SEQUENCE_ID) in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_empty_executor(self, mock_get_client):
         from src.server import assign_object
 
@@ -344,8 +344,8 @@ class TestNavigationTreeCoverage:
     """Verify navigation tools generate correct cd commands for each branch."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.navigate")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.navigate")
     async def test_navigate_to_group(self, mock_navigate, mock_get_client):
         from src.server import navigate_console
 
@@ -357,8 +357,8 @@ class TestNavigationTreeCoverage:
         assert data["success"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.navigate")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.navigate")
     async def test_navigate_to_sequence(self, mock_navigate, mock_get_client):
         from src.server import navigate_console
 
@@ -370,8 +370,8 @@ class TestNavigationTreeCoverage:
         assert data["success"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.navigate")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.navigate")
     async def test_navigate_to_root(self, mock_navigate, mock_get_client):
         from src.server import navigate_console
 
@@ -383,8 +383,8 @@ class TestNavigationTreeCoverage:
         assert data["success"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.list_destination")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.list_destination")
     async def test_list_at_destination(self, mock_list, mock_get_client):
         from src.server import list_console_destination
 
@@ -456,7 +456,7 @@ class TestQueryObjectListBranches:
     """Verify query_object_list generates correct list commands per type."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_groups(self, mock_get_client):
         from src.server import query_object_list
 
@@ -468,7 +468,7 @@ class TestQueryObjectListBranches:
         assert "group" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_cues(self, mock_get_client):
         from src.server import query_object_list
 
@@ -482,7 +482,7 @@ class TestQueryObjectListBranches:
         assert "cue" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_presets(self, mock_get_client):
         from src.server import query_object_list
 
@@ -496,7 +496,7 @@ class TestQueryObjectListBranches:
         assert "preset" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_attributes(self, mock_get_client):
         from src.server import query_object_list
 
@@ -508,7 +508,7 @@ class TestQueryObjectListBranches:
         assert "attribute" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_generic_type(self, mock_get_client):
         from src.server import query_object_list
 

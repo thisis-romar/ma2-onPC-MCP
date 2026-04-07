@@ -23,7 +23,7 @@ import pytest
 
 class TestPreparePartialShowRead:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_psr_prepare_command(self, mock_get_client):
         from src.server import prepare_partial_show_read
 
@@ -39,7 +39,7 @@ class TestPreparePartialShowRead:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_show_name_with_spaces(self, mock_get_client):
         from src.server import prepare_partial_show_read
 
@@ -52,7 +52,7 @@ class TestPreparePartialShowRead:
         assert data["command_sent"] == 'PSRPrepare "venue 2024"'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_included(self, mock_get_client):
         from src.server import prepare_partial_show_read
 
@@ -72,7 +72,7 @@ class TestPreparePartialShowRead:
 
 class TestListPsrObjects:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_psr_list_command(self, mock_get_client):
         from src.server import list_psr_objects
 
@@ -88,7 +88,7 @@ class TestListPsrObjects:
         assert data["risk_tier"] == "SAFE_READ"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_included(self, mock_get_client):
         from src.server import list_psr_objects
 
@@ -108,7 +108,7 @@ class TestListPsrObjects:
 
 class TestPartialShowRead:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_blocked_without_confirm(self, mock_get_client):
         from src.server import partial_show_read
 
@@ -127,7 +127,7 @@ class TestPartialShowRead:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_psr_command_when_confirmed(self, mock_get_client):
         from src.server import partial_show_read
 
@@ -149,7 +149,7 @@ class TestPartialShowRead:
         assert data["blocked"] is False
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_import_all_objects_of_type(self, mock_get_client):
         from src.server import partial_show_read
 
@@ -167,7 +167,7 @@ class TestPartialShowRead:
         assert data["command_sent"] == 'PSR "my_show" Group'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_merge_flag_forwarded(self, mock_get_client):
         from src.server import partial_show_read
 
@@ -187,7 +187,7 @@ class TestPartialShowRead:
         assert data["command_sent"] == 'PSR "my_show" Sequence 1 /merge'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_no_merge_by_default(self, mock_get_client):
         from src.server import partial_show_read
 
@@ -206,7 +206,7 @@ class TestPartialShowRead:
         assert "/merge" not in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_range_string_forwarded(self, mock_get_client):
         from src.server import partial_show_read
 

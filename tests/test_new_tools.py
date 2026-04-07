@@ -16,7 +16,7 @@ class TestControlExecutorExtendedActions:
     """Tests for new swop, top, stomp actions on control_executor."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_executor_swop(self, mock_get_client):
         from src.server import control_executor
 
@@ -31,7 +31,7 @@ class TestControlExecutorExtendedActions:
         assert data["command_sent"] == "swop executor 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_executor_top(self, mock_get_client):
         from src.server import control_executor
 
@@ -46,7 +46,7 @@ class TestControlExecutorExtendedActions:
         assert data["command_sent"] == "top executor 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_executor_stomp(self, mock_get_client):
         from src.server import control_executor
 
@@ -73,7 +73,7 @@ class TestLoadCueTool:
     """Tests for the load_cue MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_load_cue_next_bare(self, mock_get_client):
         from src.server import load_cue
 
@@ -88,7 +88,7 @@ class TestLoadCueTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_load_cue_next_executor(self, mock_get_client):
         from src.server import load_cue
 
@@ -102,7 +102,7 @@ class TestLoadCueTool:
         assert data["command_sent"] == "loadnext executor 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_load_cue_prev_sequence(self, mock_get_client):
         from src.server import load_cue
 
@@ -128,7 +128,7 @@ class TestCutPasteObjectTool:
     """Tests for the cut_paste_object MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_cut_group(self, mock_get_client):
         from src.server import cut_paste_object
 
@@ -143,7 +143,7 @@ class TestCutPasteObjectTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_paste_to_target(self, mock_get_client):
         from src.server import cut_paste_object
 
@@ -157,7 +157,7 @@ class TestCutPasteObjectTool:
         assert data["command_sent"] == "paste group 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_paste_bare(self, mock_get_client):
         from src.server import cut_paste_object
 
@@ -201,7 +201,7 @@ class TestCloneObjectTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_clone_fixture_confirmed(self, mock_get_client):
         from src.server import clone_object
 
@@ -219,7 +219,7 @@ class TestCloneObjectTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_clone_with_range_and_noconfirm(self, mock_get_client):
         from src.server import clone_object
 
@@ -240,7 +240,7 @@ class TestFixLocateFixtureTool:
     """Tests for the fix_locate_fixture MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fix_selection(self, mock_get_client):
         from src.server import fix_locate_fixture
 
@@ -255,7 +255,7 @@ class TestFixLocateFixtureTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fix_specific_fixtures(self, mock_get_client):
         from src.server import fix_locate_fixture
 
@@ -269,7 +269,7 @@ class TestFixLocateFixtureTool:
         assert data["command_sent"] == "fix fixture 1 + 3 + 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fix_single_with_end(self, mock_get_client):
         from src.server import fix_locate_fixture
 
@@ -283,7 +283,7 @@ class TestFixLocateFixtureTool:
         assert data["command_sent"] == "fix fixture 1 thru 10"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_locate(self, mock_get_client):
         from src.server import fix_locate_fixture
 
@@ -309,7 +309,7 @@ class TestManipulateSelectionTool:
     """Tests for the manipulate_selection MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_invert(self, mock_get_client):
         from src.server import manipulate_selection
 
@@ -324,7 +324,7 @@ class TestManipulateSelectionTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_align(self, mock_get_client):
         from src.server import manipulate_selection
 
@@ -370,7 +370,7 @@ class TestBlockUnblockCueTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_block_cue_confirmed(self, mock_get_client):
         from src.server import block_unblock_cue
 
@@ -387,7 +387,7 @@ class TestBlockUnblockCueTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unblock_cue_with_sequence(self, mock_get_client):
         from src.server import block_unblock_cue
 
@@ -403,7 +403,7 @@ class TestBlockUnblockCueTool:
         assert data["command_sent"] == "unblock cue 3 sequence 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_block_cue_range(self, mock_get_client):
         from src.server import block_unblock_cue
 
@@ -434,7 +434,7 @@ class TestBrowseEffectLibraryTool:
     """Tests for browse_effect_library MCP tool (tool 103)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_listeffectlibrary(self, mock_get_client):
         from src.server import browse_effect_library
 
@@ -463,7 +463,7 @@ class TestBrowseMacroLibraryTool:
     """Tests for browse_macro_library MCP tool (tool 104)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_listmacrolibrary(self, mock_get_client):
         from src.server import browse_macro_library
 
@@ -482,7 +482,7 @@ class TestBrowsePluginLibraryTool:
     """Tests for browse_plugin_library MCP tool (tool 105)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_listpluginlibrary(self, mock_get_client):
         from src.server import browse_plugin_library
 
@@ -501,7 +501,7 @@ class TestListFaderModulesTool:
     """Tests for list_fader_modules MCP tool (tool 106)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_listfadermodules(self, mock_get_client):
         from src.server import list_fader_modules
 
@@ -520,7 +520,7 @@ class TestListUpdateHistoryTool:
     """Tests for list_update_history MCP tool (tool 107)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_listupdate(self, mock_get_client):
         from src.server import list_update_history
 
@@ -549,7 +549,7 @@ class TestDeleteShowTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_deletes_show_with_noconfirm(self, mock_get_client, monkeypatch):
         monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
         from src.server import delete_show
@@ -580,7 +580,7 @@ class TestAssignTempFaderTool:
     """Tests for assign_temp_fader MCP tool (tool 109)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_tempfader_default(self, mock_get_client):
         from src.server import assign_temp_fader
 
@@ -595,7 +595,7 @@ class TestAssignTempFaderTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_tempfader_value(self, mock_get_client):
         from src.server import assign_temp_fader
 
@@ -646,7 +646,7 @@ class TestPlaybackActionMultiExecutor:
     """Tests for playback_action MCP tool with list[int] executor/object_id."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fast_forward_executor_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -659,7 +659,7 @@ class TestPlaybackActionMultiExecutor:
         assert data["command_sent"] == ">>> executor 1 + 2 + 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fast_back_executor_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -672,7 +672,7 @@ class TestPlaybackActionMultiExecutor:
         assert data["command_sent"] == "<<< executor 2 + 4"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_go_object_id_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -687,7 +687,7 @@ class TestPlaybackActionMultiExecutor:
         assert data["command_sent"] == "go executor 1 + 2 + 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_go_back_object_id_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -722,7 +722,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
     """Tests that def_go / def_go_back / def_pause read $SELECTEDEXEC before firing."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_go_includes_selected_exec(self, mock_get_client):
         from src.server import playback_action
 
@@ -740,7 +740,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["selected_cue_before"] == "3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_pause_includes_selected_exec(self, mock_get_client):
         from src.server import playback_action
 
@@ -758,7 +758,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["selected_cue_before"] == "1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_go_back_fires_defgoback(self, mock_get_client):
         from src.server import playback_action
 
@@ -775,7 +775,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["selected_executor"] == "5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_goback_alias(self, mock_get_client):
         from src.server import playback_action
 
@@ -791,7 +791,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["command_sent"] == "defgoback"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_go_selected_exec_none_when_listvar_empty(self, mock_get_client):
         from src.server import playback_action
 
@@ -821,7 +821,7 @@ class TestSelectExecutorConfirmation:
     """Tests that select_executor reads back $SELECTEDEXEC to confirm selection."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_executor_confirmed_match(self, mock_get_client):
         from src.server import select_executor
 
@@ -839,7 +839,7 @@ class TestSelectExecutorConfirmation:
         assert "warning" not in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_executor_warning_on_mismatch(self, mock_get_client):
         from src.server import select_executor
 
@@ -857,7 +857,7 @@ class TestSelectExecutorConfirmation:
         assert "7" in data["warning"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_executor_warning_when_listvar_empty(self, mock_get_client):
         from src.server import select_executor
 
@@ -874,7 +874,7 @@ class TestSelectExecutorConfirmation:
         assert "warning" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_executor_page_no_warning(self, mock_get_client):
         """page=2/exec=5 → command 'select executor 2.5'; $SELECTEDEXEC='5' → no warning."""
         from src.server import select_executor
@@ -901,7 +901,7 @@ class TestSelectExecutorDeselect:
     """Tests for select_executor deselect=True parameter."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_deselect_sends_bare_select(self, mock_get_client):
         from src.server import select_executor
 
@@ -919,7 +919,7 @@ class TestSelectExecutorDeselect:
         assert "unverified" in data["note"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_deselect_ignores_executor_id(self, mock_get_client):
         """When deselect=True, executor_id must not appear in the command."""
         from src.server import select_executor

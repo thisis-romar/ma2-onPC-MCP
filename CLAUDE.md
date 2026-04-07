@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.13.2
+version: 4.15.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-07T01:34:22Z
+last_updated: 2026-04-07T20:44:13Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **198 tools**, **18 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
+MCP server exposing **198 tools**, **17 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,8 +22,12 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server — 163 tools + 18 MCP resources + 13 MCP prompts, safety gate |
-| `src/server_orchestration_tools.py` | Registers 34 agentic tools onto FastMCP |
+| `src/server.py` | FastMCP server startup — 17 MCP resources + 13 MCP prompts, orchestrator wiring, re-exports |
+| `src/server_core.py` | Shared infrastructure — `mcp` instance, `get_client()`, `_handle_errors`, pool helpers |
+| `src/tools_community.py` | 20 COMMUNITY tools (free tier, public repo) |
+| `src/tools_professional.py` | 124 PROFESSIONAL tools (paid tier, private submodule) |
+| `src/tools_enterprise.py` | 20 ENTERPRISE tools (premium tier, private submodule) |
+| `src/server_orchestration_tools.py` | 34 ENTERPRISE agentic tools (private submodule) |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
@@ -53,19 +57,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `.githooks/pre-commit` | RAG zero-vector ingest on every commit |
 | `.githooks/pre-push` | Runs `pytest -x -q` before every push |
 | `.githooks/stop-git-check.sh` | Stop hook — flags uncommitted/unpushed work when Claude stops |
-| `src/agent/runtime.py` | Agent harness: goal → plan → execute → verify → trace |
-| `src/agent/planner.py` | Rule-based domain planner, goal classification |
-| `src/agent/executor.py` | Step executor with retries, confirmation flow |
-| `src/agent/policy.py` | Plan-level governance (extends `src/vocab.py` safety) |
-| `src/agent/verification.py` | Post-mutation state verification |
-| `src/agent/memory.py` | SQLite workflow memory (conventions, recipes, run history) |
-| `src/agent/trace.py` | Structured JSON execution traces |
-| `src/agent/state.py` | Data models: RunContext, PlanStep, Checkpoint |
-| `src/agent/workflows/` | Workflow templates: patch, preset, playback, common |
-
-**Responsibility map:** see `doc/responsibility-map.md`.
-**Tool tier classification:** see `doc/tool-surface-tiers.md`.
-**MCP primitive audit:** see `doc/transcript-architecture-audit.md`.
+| `src/agent/` | Agent harness — see Skill `agent-harness-operations` for details |
 
 ---
 
@@ -103,36 +95,7 @@ uv run python scripts/audit_md_counts.py --fix                # auto-fix stale c
 
 ## Code Conventions
 
-### Adding a new MCP tool
-1. Add command builder in `src/commands/` — pure, returns `str`, no I/O.
-2. Export from `src/commands/__init__.py`.
-3. Register in `src/server.py` with `@mcp.tool()` and `@_handle_errors`.
-4. Apply `@require_scope(OAuthScope.X)` — see `doc/ma2-rights-matrix.json`.
-5. Add an entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` mapping the tool function name → `MA2Right` tier. This is **required** — `_handle_errors` enforces it at runtime.
-6. If DESTRUCTIVE, accept `confirm_destructive: bool = False` and gate on it.
-7. Assign a license tier in `src/license_tiers.py` (omit for COMMUNITY / free).
-8. Add tests in `tests/test_<feature>.py`.
-
-### Adding a new MCP resource
-- Use `@mcp.resource("ma2://category/name")` for static docs or URI-addressable state.
-- Use `@mcp.resource("ma2://category/{param}")` for templated dynamic resources.
-- Resources must be read-only — no console side-effects.
-
-### Adding a new MCP prompt
-- Use `@mcp.prompt()` for user-initiated workflow templates.
-- Prompts accept arguments and may reference resources.
-- Prompts must not themselves execute destructive operations — they orchestrate tools.
-
-### Command builders
-- Pure functions only — no imports from `src.telnet_client`, `src.navigation`, or `src.server`.
-- Return raw grandMA2 command strings, e.g. `"Store Cue 1 Sequence 99 /merge"`.
-- See `.claude/rules/ma2-conventions.md` for quoting, path, and timing rules.
-
-### Tests
-- Unit tests import command builders or vocab directly and assert on returned strings.
-- No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
-- Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-04-04): **3151 tests** (unit + live integration).
+See Skill **`mcp-development-guidelines`** for contributor workflows (adding tools, resources, prompts, command builders, tests).
 
 ---
 
@@ -171,44 +134,13 @@ uv run python scripts/audit_md_counts.py --fix                # auto-fix stale c
 
 ## License Tier Feature Gating
 
-All 198 MCP tools are classified into three license tiers:
-
-| Tier | Cost | Tool count | Examples |
-|------|------|-----------|---------|
-| `COMMUNITY` | Free | ~30 | `navigate_console`, `get_object_info`, `playback_action`, `set_intensity` |
-| `PROFESSIONAL` | Paid | ~120 | Store/copy/delete, presets, sequences, macros, effects, patch, show mgmt |
-| `ENTERPRISE` | Premium | ~50 | RAG search, orchestration, skill system, agent harness, ML categorisation |
-
-**Environment variables:**
-
-| Var | Default | Effect |
-|-----|---------|--------|
-| `GMA_LICENSE_TIER` | `community` | Active tier: `community`, `professional`, `enterprise` |
-| `GMA_LICENSE_BYPASS` | `0` | Set `1` to bypass tier checks (dev/test only) |
-
-**How it works:** `_handle_errors` in `src/server.py` reads `TOOL_LICENSE_TIERS` (from `src/license_tiers.py`) at decoration time. Tools not in the map default to COMMUNITY. When a tool's tier exceeds the active tier, it returns `{"blocked": True, "license_required": "...", "current_tier": "..."}`.
-
-**Adding a tool's tier:** Add an entry to `TOOL_LICENSE_TIERS` in `src/license_tiers.py`. Omit COMMUNITY tools (they are the default).
+Three tiers: **COMMUNITY** (free, ~30 tools), **PROFESSIONAL** (paid, ~120), **ENTERPRISE** (premium, ~50). Set `GMA_LICENSE_TIER` env var. See Skill **`license-tier-management`** for implementation details and env vars.
 
 ---
 
 ## Agent Harness (`src/agent/`)
 
-The agent harness enables autonomous multi-step execution on top of the existing MCP tools — no changes to command builders, telnet client, or navigation.
-
-```
-AgentRuntime (runtime.py)
-  → DomainPlanner (planner.py) — rule-based goal → plan
-  → PolicyEngine (policy.py) — plan-level governance
-  → StepExecutor (executor.py) — tool dispatch + retries
-  → Verifier (verification.py) — post-mutation checks
-  → WorkflowMemory (memory.py) — SQLite operational memory
-  → ExecutionTrace (trace.py) — JSON audit artifacts
-```
-
-MCP tools added: `run_agent_goal(goal, auto_confirm, dry_run)`, `plan_agent_goal(goal)`.
-
-**Note:** `DomainPlanner` uses its own `PlanStep` model. Use `src/agent_bridge.py` (see below) to convert between `PlanStep` and main's `SubTask` for cross-system interop.
+Autonomous multi-step execution: `AgentRuntime` -> `DomainPlanner` -> `PolicyEngine` -> `StepExecutor` -> `Verifier`. MCP tools: `run_agent_goal()`, `plan_agent_goal()`. See Skill **`agent-harness-operations`** for architecture details.
 
 ---
 

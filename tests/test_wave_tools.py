@@ -32,7 +32,7 @@ def _mock_client(response="OK"):
 
 class TestConsoleLogin:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_login_command(self, mock_get_client):
         from src.server import console_login
 
@@ -48,7 +48,7 @@ class TestConsoleLogin:
 
 class TestConsoleLogout:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_logout_command(self, mock_get_client):
         from src.server import console_logout
 
@@ -63,7 +63,7 @@ class TestConsoleLogout:
 
 class TestLockConsoleUI:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_lock_command(self, mock_get_client):
         from src.server import lock_console_ui
 
@@ -78,7 +78,7 @@ class TestLockConsoleUI:
 
 class TestUnlockConsoleUI:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unlock_no_password(self, mock_get_client):
         from src.server import unlock_console_ui
 
@@ -90,7 +90,7 @@ class TestUnlockConsoleUI:
         assert result["command_sent"] == "Unlock"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unlock_with_password(self, mock_get_client):
         from src.server import unlock_console_ui
 
@@ -120,7 +120,7 @@ class TestUnlockConsoleUI:
 ])
 class TestWave2ListTools:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_command_sent(self, mock_get_client, tool_name, expected_cmd):
         import src.server as server_module
 
@@ -142,7 +142,7 @@ class TestWave2ListTools:
 
 class TestControlChaser:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_rate(self, mock_get_client):
         from src.server import control_chaser
 
@@ -154,7 +154,7 @@ class TestControlChaser:
         assert result["command_sent"] == "Rate 100"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_speed(self, mock_get_client):
         from src.server import control_chaser
 
@@ -166,7 +166,7 @@ class TestControlChaser:
         assert result["command_sent"] == "Speed 120 Executor 1.201"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_skip_fwd(self, mock_get_client):
         from src.server import control_chaser
 
@@ -178,7 +178,7 @@ class TestControlChaser:
         assert result["command_sent"] == "SkipPlus"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_skip_bk(self, mock_get_client):
         from src.server import control_chaser
 
@@ -190,7 +190,7 @@ class TestControlChaser:
         assert result["command_sent"] == "SkipMinus Executor 1.201"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_xfade_ab(self, mock_get_client):
         from src.server import control_chaser
 
@@ -220,7 +220,7 @@ class TestControlChaser:
 
 class TestSetEffectParam:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_bpm(self, mock_get_client):
         from src.server import set_effect_param
 
@@ -247,7 +247,7 @@ class TestSetEffectParam:
 
 class TestCallPluginTool:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_call_by_id(self, mock_get_client):
         from src.server import call_plugin_tool
 
@@ -259,7 +259,7 @@ class TestCallPluginTool:
         assert result["command_sent"] == "Plugin 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_call_by_name(self, mock_get_client):
         from src.server import call_plugin_tool
 
@@ -273,7 +273,7 @@ class TestCallPluginTool:
 
 class TestRunLuaScript:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_simple_script(self, mock_get_client):
         from src.server import run_lua_script
 
@@ -287,7 +287,7 @@ class TestRunLuaScript:
 
 class TestReloadAllPlugins:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_reload(self, mock_get_client):
         from src.server import reload_all_plugins
 
@@ -301,7 +301,7 @@ class TestReloadAllPlugins:
 
 class TestControlSpecialMaster:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_grandmaster(self, mock_get_client):
         from src.server import control_special_master
 
@@ -329,7 +329,7 @@ class TestControlSpecialMaster:
 
 class TestRdmDiscover:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_automatch(self, mock_get_client):
         from src.server import rdm_discover
 
@@ -341,7 +341,7 @@ class TestRdmDiscover:
         assert result["command_sent"] == "RdmAutomatch"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_autopatch(self, mock_get_client):
         from src.server import rdm_discover
 
@@ -363,7 +363,7 @@ class TestRdmDiscover:
 
 class TestRdmGetInfo:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_all(self, mock_get_client):
         from src.server import rdm_get_info
 
@@ -375,7 +375,7 @@ class TestRdmGetInfo:
         assert result["command_sent"] == "RdmList"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_universe(self, mock_get_client):
         from src.server import rdm_get_info
 
@@ -387,7 +387,7 @@ class TestRdmGetInfo:
         assert result["command_sent"] == "RdmList Universe 2"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fixture_info(self, mock_get_client):
         from src.server import rdm_get_info
 
@@ -401,7 +401,7 @@ class TestRdmGetInfo:
 
 class TestRdmPatch:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_setpatch(self, mock_get_client):
         from src.server import rdm_patch
 
@@ -413,7 +413,7 @@ class TestRdmPatch:
         assert result["command_sent"] == "RdmSetpatch Fixture 101 Universe 1 Address 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unmatch(self, mock_get_client):
         from src.server import rdm_patch
 
@@ -456,7 +456,7 @@ class TestRdmPatch:
 
 class TestControlChaserBranchCoverage:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_xfade_a(self, mock_get_client):
         from src.server import control_chaser
 
@@ -466,7 +466,7 @@ class TestControlChaserBranchCoverage:
         assert result["command_sent"] == "CrossFadeA"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_xfade_b(self, mock_get_client):
         from src.server import control_chaser
 
@@ -476,7 +476,7 @@ class TestControlChaserBranchCoverage:
         assert result["command_sent"] == "CrossFadeB"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_skip_fwd_with_executor_and_page(self, mock_get_client):
         from src.server import control_chaser
 
@@ -493,7 +493,7 @@ class TestControlChaserBranchCoverage:
         assert "error" in result
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_case_insensitive_action(self, mock_get_client):
         from src.server import control_chaser
 
@@ -510,7 +510,7 @@ class TestControlChaserBranchCoverage:
 
 class TestControlSpecialMasterBranchCoverage:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_speed_master(self, mock_get_client):
         from src.server import control_special_master
 
@@ -520,7 +520,7 @@ class TestControlSpecialMasterBranchCoverage:
         assert result["command_sent"] == "SpecialMaster Speed1Master At 120"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_rate_master(self, mock_get_client):
         from src.server import control_special_master
 
