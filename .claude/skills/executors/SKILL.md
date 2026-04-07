@@ -1,22 +1,136 @@
 ---
-title: Executor Configuration
-description: Instruction module for configuring grandMA2 executors — trigger types, priority levels, start/stop modes, special masters, fader function, and wing layout
+title: Executors
+description: Instruction module for assigning grandMA2 sequences to executors and configuring executor options — trigger types, priority levels, start/stop modes, special masters, fader function, and wing layout
 version: 1.0.0
-created: 2026-03-31T21:00:00Z
-last_updated: 2026-03-31T21:00:00Z
+created: 2026-04-07T15:14:23Z
+last_updated: 2026-04-07T15:14:23Z
 ---
 
-# Executor Configuration
+# Executors
 
-**Charter:** DESTRUCTIVE — assigns options, priority, trigger types, and fader functions
-to grandMA2 executors. Changes to executor configuration affect live playback behavior.
+**Charter:** DESTRUCTIVE — assigns sequences to executor slots and configures executor
+options (priority, trigger, start/stop, fader function, protect flags). Changes affect
+live playback behavior on the console.
 
-Invoke when asked to: set executor priority, configure a flash button, change trigger type,
-assign a speed master to a fader, set autostart, configure kill protect, or assign GO+ mode.
+Invoke when asked to: assign a sequence to an executor, place a sequence on a fader,
+mount a sequence onto a playback slot, make a sequence accessible on stage, set executor
+priority, configure a flash button, change trigger type, assign a speed master to a fader,
+set autostart, configure kill protect, or assign GO+ mode.
 
 ---
 
-## Core Concept: Executor vs. Sequence
+## Assignment
+
+### Core MA2 Concept: Executors and Assignment
+
+A sequence exists in the pool but is **invisible on the console** until it is assigned
+to an executor. Executors are numbered slots (1–240 per page) that correspond to
+physical faders and buttons on the desk or the touch screen.
+
+```
+Sequence N (pool, invisible)
+     |
+     | Assign Sequence N At Executor E
+     v
+Executor E on current page (fader + buttons visible)
+```
+
+Once assigned:
+- Fader controls intensity / master level
+- Go button steps through cues
+- Release removes the sequence from the programmer
+
+---
+
+### Executor ID Convention
+
+- Test/demo objects in this repo use executor **201** to avoid colliding with real show data
+- Default to 201 unless the operator passes an explicit executor ID or 201 is already occupied
+
+---
+
+### Assignment Steps
+
+#### 1. Detect a free executor
+
+Call `get_executor_status()` (no args) to list all executors.
+
+Parse the response to find executors with **no sequence assigned**:
+- A line is "occupied" if it contains `Sequence=` or `Seq N` in the name/value columns
+- Default target: executor 201 (unless explicitly provided or occupied)
+
+If the desired executor is occupied → report it and fall back to the lowest free ID.
+
+---
+
+#### 2. Assign the sequence
+
+Call:
+
+```python
+assign_object(
+    mode="assign",
+    source_type="sequence",
+    source_id=<sequence_id>,
+    target_type="executor",
+    target_id=<executor_id>,
+    confirm_destructive=True,
+)
+```
+
+This sends: `Assign Sequence <sequence_id> At Executor <executor_id>`
+
+---
+
+#### 3. Verify the assignment
+
+Call `get_executor_status(executor_id=<executor_id>)` and check that the response
+contains a reference to the sequence number (e.g. `Seq 99` or `Sequence=99`).
+
+- If confirmed → emit `{"kind": "ok", "detail": "Executor E assigned Sequence N"}`
+- If not found → emit `{"kind": "error", "detail": "Assignment not confirmed"}`
+
+---
+
+#### 4. Compress findings
+
+Return only:
+
+```json
+{
+  "summary": "Assigned Sequence N to Executor E",
+  "findings": [],
+  "assignment": {
+    "sequence_id": 99,
+    "executor_id": 201,
+    "confirmed": true
+  },
+  "state_changes": [
+    "Executor 201: Sequence 99 assigned (color palette fader)"
+  ],
+  "recommended_actions": [
+    "Press Go on Executor 201 to step through the 8 color cues",
+    "Edit Preset 4.1 to change the Red hue live (reference update)"
+  ],
+  "confidence": "high"
+}
+```
+
+---
+
+### Assignment Safety Escalation
+
+Before executing the assign step, confirm `confirm_destructive=True` was explicitly passed.
+Print: `"About to assign Sequence N to Executor E"`.
+If not set → abort with `{"blocked": true, "reason": "confirm_destructive required"}`.
+
+Never auto-set `confirm_destructive=True`.
+
+---
+
+## Configuration
+
+### Core Concept: Executor vs. Sequence
 
 The **sequence** stores the cue data. The **executor** is the hardware button/fader
 slot that plays it back. Configuration lives on the executor (not the sequence):
@@ -30,7 +144,7 @@ An executor is addressed as `[page].[exec_number]` (e.g., `1.201`).
 
 ---
 
-## Part 1 — Priority
+### Part 1 — Priority
 
 Controls how the executor competes with other playbacks for LTP (Latest Takes Precedence).
 
@@ -57,9 +171,9 @@ Use HTP only for pure intensity submasters, not for multi-attribute playbacks.
 
 ---
 
-## Part 2 — Start and Stop Options
+### Part 2 — Start and Stop Options
 
-### Start options
+#### Start options
 
 | Option | Behavior |
 |--------|---------|
@@ -76,7 +190,7 @@ send_raw_command(
 )
 ```
 
-### Combining options
+#### Combining options
 
 Options stack — apply multiple in one command:
 
@@ -86,7 +200,7 @@ Assign Executor 1.201 /autostart /autostop /restart /priority=normal
 
 ---
 
-## Part 3 — Trigger Types
+### Part 3 — Trigger Types
 
 | Trigger | Value | Behavior |
 |---------|-------|---------|
@@ -105,7 +219,7 @@ send_raw_command(
 
 ---
 
-## Part 4 — Fader Function
+### Part 4 — Fader Function
 
 Controls what the physical fader does (beyond just intensity):
 
@@ -136,7 +250,7 @@ Now executor 210's fader globally controls the speed of executor 201.
 
 ---
 
-## Part 5 — Protect Options
+### Part 5 — Protect Options
 
 Prevent accidental kills and overwrites:
 
@@ -155,7 +269,7 @@ send_raw_command(
 
 ---
 
-## Part 6 — Special Masters
+### Part 6 — Special Masters
 
 Special masters are system-wide control executors that affect everything:
 
@@ -173,7 +287,7 @@ set_special_master(master="speed1", value=120)       # 120 BPM for speed group 1
 
 ---
 
-## Part 7 — GO+ (Autoforward) Configuration
+### Part 7 — GO+ (Autoforward) Configuration
 
 ```python
 send_raw_command(
@@ -189,7 +303,7 @@ Assign Executor 1.201 /trigger=timecode
 
 ---
 
-## Part 8 — Executor Layout and Appearance
+### Part 8 — Executor Layout and Appearance
 
 ```python
 label_or_appearance(
@@ -209,10 +323,11 @@ Wing layout conventions:
 
 ## Discovery Workflow
 
-Before configuring executors, audit what is already assigned:
+Before assigning or configuring executors, audit what is already assigned:
 
 ```python
 get_executor_state(executor_id=201)     # see current config + assigned sequence
+get_executor_status()                   # list all executors
 list_executor_pages()                   # see all pages and fader assignments
 ```
 
@@ -221,13 +336,18 @@ list_executor_pages()                   # see all pages and fader assignments
 ## Allowed Tools
 
 ```
+get_executor_status        — SAFE_READ: list all executors or a specific one
 get_executor_state         — SAFE_READ: read current executor config and state
 list_executor_pages        — SAFE_READ: audit wing layout
+assign_object              — DESTRUCTIVE: assign sequence to executor
 assign_sequence_to_executor — DESTRUCTIVE: assign sequence with options
 set_special_master         — SAFE_WRITE: adjust grand/playback/speed masters
 label_or_appearance        — DESTRUCTIVE: name and color-code executor
 send_raw_command           — DESTRUCTIVE: set priority/trigger/fader/protect options
 ```
+
+DESTRUCTIVE tools require `confirm_destructive=True`.
+No preset mutations, no cue edits, no macro changes.
 
 ---
 
@@ -239,3 +359,4 @@ send_raw_command           — DESTRUCTIVE: set priority/trigger/fader/protect o
 - Speed masters affect all assigned chasers globally — a value of 0 stops all assigned chasers.
 - Fader function changes take effect immediately on a live system — use blind mode if possible.
 - Protect flags survive show saves — always document which executors are kill-protected.
+- Never auto-set `confirm_destructive=True`.
