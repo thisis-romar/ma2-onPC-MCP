@@ -499,10 +499,16 @@ from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
 from src.server_core import (
     _get_sequence_for_executor,
     _get_telemetry,
+    _GMA_SAFETY_LEVEL,
     _handle_errors,
+    _parse_listvar,
+    _parse_preset_tree_list,
+    _read_selected_exec,
     _SEQ_FOR_EXECUTOR_RE,
     _validate_object_exists,
+    _vocab_spec,
     get_client,
+    mcp,
 )
 from src.server_orchestration_tools import register_orchestration_tools
 from src.session_manager import SessionManager
@@ -526,33 +532,10 @@ _GMA_HOST = os.getenv("GMA_HOST", "127.0.0.1")
 _GMA_PORT = int(os.getenv("GMA_PORT", "30000"))
 _GMA_USER = os.getenv("GMA_USER", "administrator")
 _GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
-_GMA_SAFETY_LEVEL = os.getenv("GMA_SAFETY_LEVEL", "standard").lower()
-
-# Build vocab spec once for token classification / safety gating
-_vocab_spec = build_v39_spec()
+# _GMA_SAFETY_LEVEL, _vocab_spec, mcp imported from server_core
 
 # Create MCP server
-mcp = FastMCP(
-    name="grandMA2-MCP",
-    instructions="""grandMA2 MCP server — 198 tools, 18 resources, 13 prompts.
-
-Use suggest_tool_for_task(task_description) to find the right tool for any task.
-It supports hybrid retrieval (keyword + semantic), metadata filtering by risk_tier
-and license_tier, and returns related skills from the skill registry.
-
-Core workflows:
-  Inspect  → navigate_console, list_console_destination, query_object_list, get_object_info
-  Plan     → inspect + list_system_variables + suggest_tool_for_task
-  Execute  → run_orchestrated_task (handles preflight, execution, verification)
-  Agent    → run_agent_goal (autonomous: plan → policy → execute → verify → trace)
-
-SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
-Rights: read ma2://docs/rights-matrix before any mutating operation.
-License tiers: COMMUNITY (free), PROFESSIONAL, ENTERPRISE — check with suggest_tool_for_task.
-""",
-)
-
-# Session pool, telemetry, get_client(), _handle_errors, and object probing
+# mcp, session pool, telemetry, get_client(), _handle_errors, and shared
 # helpers are now in src/server_core.py — imported above.
 
 
@@ -1831,28 +1814,7 @@ async def query_object_list(
     }, indent=2)
 
 
-def _parse_listvar(raw: str, filter_prefix: str | None = None) -> dict[str, str]:
-    """Parse ListVar telnet output into a {$NAME: value} dict.
-
-    ListVar lines have the format:  $Global : $VARNAME = VALUE
-    """
-    variables: dict[str, str] = {}
-    for line in raw.splitlines():
-        line = line.strip()
-        if "=" not in line or line.startswith("["):
-            continue
-        # Strip scope prefix: "$Global : $VARNAME = VALUE" → "$VARNAME = VALUE"
-        if " : " in line:
-            _, _, line = line.partition(" : ")
-            line = line.strip()
-        name, _, value = line.partition("=")
-        name = name.strip().lstrip("$")
-        value = value.strip()
-        if not name:
-            continue
-        if filter_prefix is None or name.upper().startswith(filter_prefix.upper()):
-            variables[f"${name}"] = value
-    return variables
+# _parse_listvar moved to server_core.py
 
 
 @mcp.tool()
@@ -1887,18 +1849,7 @@ async def list_system_variables(
     }, indent=2)
 
 
-async def _read_selected_exec(client) -> tuple[str | None, str | None]:
-    """Read $SELECTEDEXEC and $SELECTEDEXECCUE from the console.
-
-    Returns (exec_value, cue_value). Both are None if ListVar fails or the
-    variables are absent in the response.
-    """
-    try:
-        raw = await client.send_command_with_response("ListVar")
-        variables = _parse_listvar(raw)
-        return variables.get("$SELECTEDEXEC"), variables.get("$SELECTEDEXECCUE")
-    except Exception:
-        return None, None
+# _read_selected_exec moved to server_core.py
 
 
 @mcp.tool()
@@ -2875,45 +2826,7 @@ async def select_preset_type(
     }, indent=2)
 
 
-def _parse_preset_tree_list(raw: str) -> list[dict]:
-    """Parse grandMA2 list output from the PresetType cd-tree.
-
-    Handles rows of the form:
-      ``PresetType N  LibName  ScreenName  ...``
-      ``Feature N  LibName  ScreenName  ...``
-      ``Attribute N  LibName  ScreenName  ...``
-      ``SubAttribute N  LibName  ScreenName  ...``
-
-    These rows have only one numeric ID (not the two required by the standard
-    tabular parser), so they are skipped by parse_list_output().
-    """
-    import re
-    _ANSI = re.compile(r"\x1b\[[0-9;]*m|\x1b\[K")
-    _ROW = re.compile(
-        r"^\s*(PresetType|Feature|Attribute|SubAttribute)\s+(\d+)\s+(\S+)\s+(.*?)\s*$",
-        re.IGNORECASE,
-    )
-    entries = []
-    for line in raw.splitlines():
-        line = _ANSI.sub("", line).strip()
-        m = _ROW.match(line)
-        if m:
-            obj_type, obj_id, lib_name, rest = m.group(1), m.group(2), m.group(3), m.group(4)
-            # rest may contain "ScreenName  IdentifiedAs  DefaultScope  (count)"
-            parts = re.split(r"\s{2,}", rest)
-            entry = {
-                "type": obj_type,
-                "id": int(obj_id),
-                "library_name": lib_name,
-            }
-            if parts:
-                entry["screen_name"] = parts[0].strip()
-            if len(parts) > 1:
-                entry["identified_as"] = parts[1].strip()
-            if len(parts) > 2:
-                entry["extra"] = parts[2].strip()
-            entries.append(entry)
-    return entries
+# _parse_preset_tree_list moved to server_core.py
 
 
 @mcp.tool()

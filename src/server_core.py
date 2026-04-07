@@ -9,12 +9,16 @@ Extracts singletons and the ``_handle_errors`` decorator from the monolithic
 circular dependencies.
 
 Exports:
+    mcp                 — FastMCP server instance (singleton)
     get_client          — async function returning a live GMA2TelnetClient
     _handle_errors      — decorator wrapping every @mcp.tool()
     _get_telemetry      — lazy ToolTelemetry singleton accessor
     _validate_object_exists  — probe whether a pool object exists
     _get_sequence_for_executor — resolve executor → sequence
     _SEQ_FOR_EXECUTOR_RE     — compiled regex for sequence parsing
+    _parse_listvar      — parse ListVar telnet output
+    _read_selected_exec — read $SELECTEDEXEC and $SELECTEDEXECCUE
+    _parse_preset_tree_list — parse preset type tree output
 """
 
 from __future__ import annotations
@@ -27,6 +31,8 @@ import os
 import re
 import time
 
+from mcp.server.fastmcp import FastMCP
+
 from src.context import _current_session_id
 from src.credentials import get_operator_identity, resolve_console_credentials
 from src.license import get_license_tier, has_tier
@@ -36,6 +42,7 @@ from src.session_manager import SessionManager
 from src.telemetry import ToolTelemetry, infer_risk_tier
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
+from src.vocab import RiskTier, build_v39_spec, classify_token
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +51,31 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 _GMA_HOST = os.getenv("GMA_HOST", "127.0.0.1")
 _GMA_PORT = int(os.getenv("GMA_PORT", "30000"))
+_GMA_SAFETY_LEVEL = os.getenv("GMA_SAFETY_LEVEL", "standard").lower()
+_vocab_spec = build_v39_spec()
+
+# ---------------------------------------------------------------------------
+# FastMCP server instance — singleton, imported by all tool modules
+# ---------------------------------------------------------------------------
+mcp = FastMCP(
+    name="grandMA2-MCP",
+    instructions="""grandMA2 MCP server — 198 tools, 18 resources, 13 prompts.
+
+Use suggest_tool_for_task(task_description) to find the right tool for any task.
+It supports hybrid retrieval (keyword + semantic), metadata filtering by risk_tier
+and license_tier, and returns related skills from the skill registry.
+
+Core workflows:
+  Inspect  → navigate_console, list_console_destination, query_object_list, get_object_info
+  Plan     → inspect + list_system_variables + suggest_tool_for_task
+  Execute  → run_orchestrated_task (handles preflight, execution, verification)
+  Agent    → run_agent_goal (autonomous: plan → policy → execute → verify → trace)
+
+SAFETY: DESTRUCTIVE tools require confirm_destructive=True.
+Rights: read ma2://docs/rights-matrix before any mutating operation.
+License tiers: COMMUNITY (free), PROFESSIONAL, ENTERPRISE — check with suggest_tool_for_task.
+""",
+)
 
 # ---------------------------------------------------------------------------
 # Per-operator session pool
@@ -256,3 +288,85 @@ async def _get_sequence_for_executor(
         page, executor_id,
     )
     return None, raw
+
+
+# ---------------------------------------------------------------------------
+# Shared helpers — ListVar parsing, selected executor, preset tree
+# ---------------------------------------------------------------------------
+
+def _parse_listvar(raw: str, filter_prefix: str | None = None) -> dict[str, str]:
+    """Parse ListVar telnet output into a {$NAME: value} dict.
+
+    ListVar lines have the format:  $Global : $VARNAME = VALUE
+    """
+    variables: dict[str, str] = {}
+    for line in raw.splitlines():
+        line = line.strip()
+        if "=" not in line or line.startswith("["):
+            continue
+        # Strip scope prefix: "$Global : $VARNAME = VALUE" → "$VARNAME = VALUE"
+        if " : " in line:
+            _, _, line = line.partition(" : ")
+            line = line.strip()
+        name, _, value = line.partition("=")
+        name = name.strip().lstrip("$")
+        value = value.strip()
+        if not name:
+            continue
+        if filter_prefix is None or name.upper().startswith(filter_prefix.upper()):
+            variables[f"${name}"] = value
+    return variables
+
+
+async def _read_selected_exec(client) -> tuple[str | None, str | None]:
+    """Read $SELECTEDEXEC and $SELECTEDEXECCUE from the console.
+
+    Returns (exec_value, cue_value). Both are None if ListVar fails or the
+    variables are absent in the response.
+    """
+    try:
+        raw = await client.send_command_with_response("ListVar")
+        variables = _parse_listvar(raw)
+        return variables.get("$SELECTEDEXEC"), variables.get("$SELECTEDEXECCUE")
+    except Exception:
+        return None, None
+
+
+def _parse_preset_tree_list(raw: str) -> list[dict]:
+    """Parse grandMA2 list output from the PresetType cd-tree.
+
+    Handles rows of the form:
+      ``PresetType N  LibName  ScreenName  ...``
+      ``Feature N  LibName  ScreenName  ...``
+      ``Attribute N  LibName  ScreenName  ...``
+      ``SubAttribute N  LibName  ScreenName  ...``
+
+    These rows have only one numeric ID (not the two required by the standard
+    tabular parser), so they are skipped by parse_list_output().
+    """
+    _ANSI = re.compile(r"\x1b\[[0-9;]*m|\x1b\[K")
+    _ROW = re.compile(
+        r"^\s*(PresetType|Feature|Attribute|SubAttribute)\s+(\d+)\s+(\S+)\s+(.*?)\s*$",
+        re.IGNORECASE,
+    )
+    entries = []
+    for line in raw.splitlines():
+        line = _ANSI.sub("", line).strip()
+        m = _ROW.match(line)
+        if m:
+            obj_type, obj_id, lib_name, rest = m.group(1), m.group(2), m.group(3), m.group(4)
+            # rest may contain "ScreenName  IdentifiedAs  DefaultScope  (count)"
+            parts = re.split(r"\s{2,}", rest)
+            entry = {
+                "type": obj_type,
+                "id": int(obj_id),
+                "library_name": lib_name,
+            }
+            if parts:
+                entry["screen_name"] = parts[0].strip()
+            if len(parts) > 1:
+                entry["identified_as"] = parts[1].strip()
+            if len(parts) > 2:
+                entry["extra"] = parts[2].strip()
+            entries.append(entry)
+    return entries
