@@ -1,0 +1,45 @@
+name: Feature request
+description: New MCP tool, orchestration behavior, skill, or documentation improvement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project does this affect?
+      options:
+        - server/tools
+        - orchestrator/agent
+        - commands/builders
+        - skills
+        - docs
+        - rag/indexing
+        - vscode-mcp-provider
+        - other
+    validations:
+      required: true
+  - type: dropdown
+    id: safety_scope
+    attributes:
+      label: Safety scope
+      description: What safety tier would this feature operate at?
+      options:
+        - SAFE_READ
+        - SAFE_WRITE
+        - DESTRUCTIVE
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Write this as acceptance criteria — what should be true when this is done?
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and safety requirements
+      description: Include confirmation gates, things that must never happen, and MA2 behavioral constraints.

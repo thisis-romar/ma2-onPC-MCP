@@ -1,9 +1,9 @@
 ---
 title: Security Policy
-description: Vulnerability reporting process for the GrandPA2-Buddy MCP server
-version: 1.0.0
+description: Vulnerability reporting process for the ma2-onPC-mcp MCP server
+version: 1.1.0
 created: 2026-04-04T00:00:00Z
-last_updated: 2026-04-04T00:00:00Z
+last_updated: 2026-04-07T19:09:40Z
 ---
 
 # Security Policy
@@ -12,8 +12,8 @@ last_updated: 2026-04-04T00:00:00Z
 
 | Version | Supported |
 |---------|-----------|
-| 3.26.x  | Yes       |
-| < 3.26  | No        |
+| 3.35.x  | Yes       |
+| < 3.35  | No        |
 
 ## Scope
 

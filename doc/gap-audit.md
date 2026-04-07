@@ -1,9 +1,9 @@
 ---
 title: Full Builder / Tool / Skill / Resource / RAG Manual Gap Audit
 description: Coverage gaps between command builders, MCP tools, skills, prompts, resources, and MA2 help documentation
-version: 1.8.0
-created: 2026-04-01T21:07:09Z
-last_updated: 2026-04-02T05:30:00Z
+version: 1.8.1
+created: 2026-04-02T09:07:54Z
+last_updated: 2026-04-07T19:09:40Z
 ---
 
 # Full Builder / Tool / Skill / Resource / RAG Manual Gap Audit
