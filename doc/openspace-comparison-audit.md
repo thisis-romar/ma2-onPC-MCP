@@ -1,9 +1,9 @@
 ---
 title: OpenSpace Framework Comparison Audit
 description: Feature-by-feature comparison of ma2-onPC-MCP against the OpenSpace self-evolving skill framework, with gap analysis and prioritised roadmap
-version: 1.5.1
-created: 2026-03-29T16:59:35Z
-last_updated: 2026-04-02T05:30:00Z
+version: 1.5.2
+created: 2026-03-31T03:07:46Z
+last_updated: 2026-04-07T19:09:40Z
 ---
 
 # OpenSpace Framework Comparison Audit

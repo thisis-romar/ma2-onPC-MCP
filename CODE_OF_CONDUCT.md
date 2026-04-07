@@ -1,9 +1,9 @@
 ---
 title: Code of Conduct
 description: Contributor Covenant Code of Conduct v2.1 for ma2-onPC-MCP
-version: 1.0.0
-created: 2026-04-01T00:00:00Z
-last_updated: 2026-04-02T05:30:00Z
+version: 1.0.1
+created: 2026-04-01T18:45:46Z
+last_updated: 2026-04-07T19:09:40Z
 ---
 
 # Code of Conduct
