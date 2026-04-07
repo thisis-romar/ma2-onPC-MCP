@@ -431,7 +431,7 @@ class TestSnapshotWiring:
     """Verify that server tools update _orchestrator.last_snapshot after telnet success."""
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional._orchestrator")
+    @patch("src.private.tools_professional._orchestrator")
     @patch("src.server_core.get_client")
     async def test_manage_matricks_interleave_updates_tracker(
         self, mock_get_client, mock_orch
@@ -447,7 +447,7 @@ class TestSnapshotWiring:
         assert snap.matricks.interleave == 4
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional._orchestrator")
+    @patch("src.private.tools_professional._orchestrator")
     @patch("src.server_core.get_client")
     async def test_manage_matricks_reset_clears_tracker(
         self, mock_get_client, mock_orch
@@ -467,7 +467,7 @@ class TestSnapshotWiring:
         assert snap.matricks.active is False
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional._orchestrator")
+    @patch("src.private.tools_professional._orchestrator")
     @patch("src.server_core.get_client")
     async def test_manage_matricks_no_snapshot_does_not_raise(
         self, mock_get_client, mock_orch
@@ -483,7 +483,7 @@ class TestSnapshotWiring:
         assert "command_sent" in data
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional._orchestrator")
+    @patch("src.private.tools_professional._orchestrator")
     @patch("src.server_core.get_client")
     async def test_manage_matricks_wings_turn_off(
         self, mock_get_client, mock_orch
@@ -500,7 +500,7 @@ class TestSnapshotWiring:
         assert snap.matricks.wings is None
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional._orchestrator")
+    @patch("src.private.tools_professional._orchestrator")
     @patch("src.server_core.get_client")
     async def test_manage_matricks_selection_steps_no_state_change(
         self, mock_get_client, mock_orch
@@ -519,8 +519,8 @@ class TestSnapshotWiring:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.tools_enterprise._orchestrator")
-    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.private.tools_enterprise._orchestrator")
+    @patch("src.private.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server_core.get_client")
     async def test_create_filter_library_updates_vte(
         self, mock_get_client, mock_check, mock_orch, mock_write
@@ -542,8 +542,8 @@ class TestSnapshotWiring:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.tools_enterprise._orchestrator")
-    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.private.tools_enterprise._orchestrator")
+    @patch("src.private.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server_core.get_client")
     async def test_create_filter_library_no_snapshot_ok(
         self, mock_get_client, mock_check, mock_orch, mock_write

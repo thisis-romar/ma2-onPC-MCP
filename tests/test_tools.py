@@ -583,7 +583,7 @@ class TestSetNodePropertyTool:
     """Tests for the set_node_property MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.set_property")
+    @patch("src.private.tools_professional.set_property")
     @patch("src.server_core.get_client")
     async def test_set_property_basic(self, mock_get_client, mock_set_property):
         """Test setting a property on a node."""
@@ -612,7 +612,7 @@ class TestSetNodePropertyTool:
         mock_set_property.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.set_property")
+    @patch("src.private.tools_professional.set_property")
     @patch("src.server_core.get_client")
     async def test_set_property_failure(self, mock_get_client, mock_set_property):
         """Test property set that fails verification."""
@@ -2444,8 +2444,8 @@ class TestBrowsePresetTypeTool:
     EMPTY_RAW = "Executing : List\nWARNING, NO OBJECTS FOUND FOR LIST\n[Fixture]>\n"
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.navigate")
-    @patch("src.tools_professional.list_destination")
+    @patch("src.private.tools_professional.navigate")
+    @patch("src.private.tools_professional.list_destination")
     @patch("src.server_core.get_client")
     async def test_browse_depth1_returns_features(self, mock_get_client, mock_list_dest, mock_navigate):
         """depth=1 returns feature list for given preset type."""
@@ -3352,7 +3352,7 @@ class TestSetSequencePropertyTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.set_property", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.set_property", new_callable=AsyncMock)
     @patch("src.server_core.get_client")
     async def test_set_loop_property(self, mock_get_client, mock_set_property):
         """Test setting the loop property on a sequence."""
@@ -3378,7 +3378,7 @@ class TestSetSequencePropertyTool:
         mock_set_property.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.set_property", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.set_property", new_callable=AsyncMock)
     @patch("src.server_core.get_client")
     async def test_set_tracking_property(self, mock_get_client, mock_set_property):
         """Test setting the tracking property on a sequence."""
@@ -4802,8 +4802,8 @@ class TestListUndoHistory:
 
 class TestListFixtureTypes:
     @pytest.mark.asyncio
-    @patch("src.tools_professional.list_destination")
-    @patch("src.tools_professional.navigate")
+    @patch("src.private.tools_professional.list_destination")
+    @patch("src.private.tools_professional.navigate")
     @patch("src.server_core.get_client")
     async def test_list_fixture_types(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListEntry, ListOutput
@@ -4836,8 +4836,8 @@ class TestListFixtureTypes:
 
 class TestListLayers:
     @pytest.mark.asyncio
-    @patch("src.tools_professional.list_destination")
-    @patch("src.tools_professional.navigate")
+    @patch("src.private.tools_professional.list_destination")
+    @patch("src.private.tools_professional.navigate")
     @patch("src.server_core.get_client")
     async def test_list_layers(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListOutput
@@ -4864,8 +4864,8 @@ class TestListLayers:
 
 class TestListUniverses:
     @pytest.mark.asyncio
-    @patch("src.tools_professional.list_destination")
-    @patch("src.tools_professional.navigate")
+    @patch("src.private.tools_professional.list_destination")
+    @patch("src.private.tools_professional.navigate")
     @patch("src.server_core.get_client")
     async def test_list_universes(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListEntry, ListOutput
@@ -4945,8 +4945,8 @@ class TestListLibrary:
 
 class TestBrowsePatchSchedule:
     @pytest.mark.asyncio
-    @patch("src.tools_professional.list_destination")
-    @patch("src.tools_professional.navigate")
+    @patch("src.private.tools_professional.list_destination")
+    @patch("src.private.tools_professional.navigate")
     @patch("src.server_core.get_client")
     async def test_browse_all(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListEntry, ListOutput
@@ -4972,8 +4972,8 @@ class TestBrowsePatchSchedule:
         assert len(data["commands_sent"]) == 5
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.list_destination")
-    @patch("src.tools_professional.navigate")
+    @patch("src.private.tools_professional.list_destination")
+    @patch("src.private.tools_professional.navigate")
     @patch("src.server_core.get_client")
     async def test_browse_specific_type(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListOutput
@@ -5071,7 +5071,7 @@ class TestSetFixtureTypeProperty:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.set_property", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.set_property", new_callable=AsyncMock)
     @patch("src.server_core.get_client")
     async def test_confirmed(self, mock_get_client, mock_set_prop):
         from src.navigation import SetPropertyResult
@@ -5178,8 +5178,8 @@ class TestListPresetPoolTool:
 
     @pytest.mark.asyncio
     @patch("src.server_core.get_client")
-    @patch("src.tools_professional.list_destination", new_callable=AsyncMock)
-    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.list_destination", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.navigate", new_callable=AsyncMock)
     async def test_overview_no_args(self, mock_navigate, mock_list_dest, mock_get_client):
         from src.server import list_preset_pool
 
@@ -5200,8 +5200,8 @@ class TestListPresetPoolTool:
 
     @pytest.mark.asyncio
     @patch("src.server_core.get_client")
-    @patch("src.tools_professional.list_destination", new_callable=AsyncMock)
-    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.list_destination", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.navigate", new_callable=AsyncMock)
     async def test_color_pool_by_name(self, mock_navigate, mock_list_dest, mock_get_client):
         from src.server import list_preset_pool
 
@@ -5221,8 +5221,8 @@ class TestListPresetPoolTool:
 
     @pytest.mark.asyncio
     @patch("src.server_core.get_client")
-    @patch("src.tools_professional.list_destination", new_callable=AsyncMock)
-    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.list_destination", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.navigate", new_callable=AsyncMock)
     async def test_color_pool_by_number(self, mock_navigate, mock_list_dest, mock_get_client):
         from src.server import list_preset_pool
 
@@ -5240,7 +5240,7 @@ class TestListPresetPoolTool:
         assert data["pool_index"] == 4
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
+    @patch("src.private.tools_professional.navigate", new_callable=AsyncMock)
     async def test_unknown_preset_type_returns_error(self, mock_navigate):
         from src.server import list_preset_pool
 
@@ -5435,8 +5435,8 @@ class TestCreateMAtricksLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
-    @patch("src.tools_enterprise.navigate", new_callable=AsyncMock)
+    @patch("src.private.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.private.tools_enterprise.navigate", new_callable=AsyncMock)
     @patch("src.server_core.get_client")
     async def test_creates_with_embedded_colors(self, mock_get_client, mock_navigate, mock_check, mock_write):
         from src.server import create_matricks_library

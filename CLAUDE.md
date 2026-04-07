@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.15.0
+version: 4.16.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-07T20:44:13Z
+last_updated: 2026-04-07T23:22:40Z
 ---
 
 # Project Rules
@@ -25,9 +25,9 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/server.py` | FastMCP server startup — 17 MCP resources + 13 MCP prompts, orchestrator wiring, re-exports |
 | `src/server_core.py` | Shared infrastructure — `mcp` instance, `get_client()`, `_handle_errors`, pool helpers |
 | `src/tools_community.py` | 20 COMMUNITY tools (free tier, public repo) |
-| `src/tools_professional.py` | 124 PROFESSIONAL tools (paid tier, private submodule) |
-| `src/tools_enterprise.py` | 20 ENTERPRISE tools (premium tier, private submodule) |
-| `src/server_orchestration_tools.py` | 34 ENTERPRISE agentic tools (private submodule) |
+| `src/private/tools_professional.py` | 124 PROFESSIONAL tools (paid tier, private submodule) |
+| `src/private/tools_enterprise.py` | 20 ENTERPRISE tools (premium tier, private submodule) |
+| `src/private/server_orchestration_tools.py` | 34 ENTERPRISE agentic tools (private submodule) |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |

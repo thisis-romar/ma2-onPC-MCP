@@ -43,7 +43,7 @@ from src.console_state import (
     ExecutorState,
     SequenceEntry,
 )
-from src.server_orchestration_tools import register_orchestration_tools
+from src.private.server_orchestration_tools import register_orchestration_tools
 
 # ── Test helpers ──────────────────────────────────────────────────────────────
 

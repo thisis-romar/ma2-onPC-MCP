@@ -286,7 +286,7 @@ class TestCheckPoolAvailabilityTool:
 
 class TestImportObjectsSlotStatus:
     @pytest.mark.asyncio
-    @patch("src.tools_professional._check_pool_slots")
+    @patch("src.private.tools_professional._check_pool_slots")
     @patch("src.server_core.get_client")
     async def test_import_includes_slot_status_occupied(
         self, mock_get_client, mock_check_slots,
@@ -316,7 +316,7 @@ class TestImportObjectsSlotStatus:
         assert result["slot_status"]["previous_name"] == "OldMacro"
 
     @pytest.mark.asyncio
-    @patch("src.tools_professional._check_pool_slots")
+    @patch("src.private.tools_professional._check_pool_slots")
     @patch("src.server_core.get_client")
     async def test_import_includes_slot_status_free(
         self, mock_get_client, mock_check_slots,

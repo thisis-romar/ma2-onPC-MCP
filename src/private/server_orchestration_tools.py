@@ -19,7 +19,7 @@ Tools 134-136 are orchestration safety gates: confirm_destructive_steps, abort_t
 and retry_failed_steps.
 
 Usage in server.py:
-    from src.server_orchestration_tools import register_orchestration_tools
+    from src.private.server_orchestration_tools import register_orchestration_tools
     register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, OAuthScope)
 """
 
@@ -27,11 +27,11 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from .agent_memory import LongTermMemory
-from .orchestrator import Orchestrator
-from .skill import SkillRegistry
-from .skill_improver import SkillImprover
-from .task_decomposer import TaskDecomposer
+from src.agent_memory import LongTermMemory
+from src.orchestrator import Orchestrator
+from src.skill import SkillRegistry
+from src.skill_improver import SkillImprover
+from src.task_decomposer import TaskDecomposer
 
 
 def register_orchestration_tools(
@@ -252,7 +252,7 @@ def register_orchestration_tools(
         """
         import json
 
-        from .task_decomposer import RiskTier, SubTask, TaskPlan
+        from src.task_decomposer import RiskTier, SubTask, TaskPlan
 
         try:
             steps_raw = json.loads(steps_json)
@@ -988,7 +988,7 @@ def register_orchestration_tools(
         decomposer = TaskDecomposer()
         plan = decomposer.decompose(goal, params)
 
-        from .task_decomposer import RiskTier
+        from src.task_decomposer import RiskTier
         destructive = [
             {
                 "step_index": i,
@@ -1204,7 +1204,7 @@ def register_orchestration_tools(
     # ToolTelemetry() instance would produce a split view with zero shared rows.
     import json as _json
 
-    from .server import _get_telemetry as _get_server_telemetry
+    from src.server_core import _get_telemetry as _get_server_telemetry
     _tel = _get_server_telemetry()
     _reg = SkillRegistry()
     _ltm_skill = LongTermMemory()
