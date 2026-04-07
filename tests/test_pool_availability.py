@@ -37,10 +37,10 @@ def _make_nav():
 
 class TestCheckPoolSlots:
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_empty_pool_all_free(self, mock_navigate, mock_list_dest):
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
         mock_list_dest.return_value = _make_list_result([])
@@ -54,10 +54,10 @@ class TestCheckPoolSlots:
         assert result["largest_contiguous"] == 10
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_occupied_slots_detected(self, mock_navigate, mock_list_dest):
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
         entries = [
@@ -79,10 +79,10 @@ class TestCheckPoolSlots:
         assert slots == [3, 5, 7]
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_free_ranges_computed(self, mock_navigate, mock_list_dest):
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
         entries = [
@@ -105,10 +105,10 @@ class TestCheckPoolSlots:
         assert {"start": 8, "end": 10} in ranges
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_needed_slots_can_fit(self, mock_navigate, mock_list_dest):
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
         # Slots 1-5 occupied, 6-20 free
@@ -128,10 +128,10 @@ class TestCheckPoolSlots:
         assert result["suggested_start"] == 6
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_needed_slots_cannot_fit(self, mock_navigate, mock_list_dest):
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
         # Every other slot occupied: 1,3,5,7,9 — max contiguous free = 1
@@ -151,10 +151,10 @@ class TestCheckPoolSlots:
         assert result["suggested_start"] is None
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_start_from_filter(self, mock_navigate, mock_list_dest):
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
         # Slots 1 and 2 occupied — but start_from=3, so they should be ignored
@@ -176,10 +176,10 @@ class TestCheckPoolSlots:
         assert result["next_free_slots"][0] == 3
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_next_free_slots_ascending_order(self, mock_navigate, mock_list_dest):
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
         entries = [
@@ -197,11 +197,11 @@ class TestCheckPoolSlots:
         assert 1 in free
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
     async def test_sub_pool_detection(self, mock_navigate, mock_list_dest):
         """Pools like Macros (cd 13) show a sub-pool first; helper should descend."""
-        from src.server import _check_pool_slots
+        from src.server_core import _check_pool_slots
 
         mock_navigate.return_value = _make_nav()
 
@@ -234,9 +234,9 @@ class TestCheckPoolSlots:
 
 class TestCheckPoolAvailabilityTool:
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
+    @patch("src.server_core.get_client")
     async def test_tool_json_structure(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.server import check_pool_availability
 
@@ -261,9 +261,9 @@ class TestCheckPoolAvailabilityTool:
         assert result["pool_type"] == "Group"
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.server_core.list_destination")
+    @patch("src.server_core.navigate")
+    @patch("src.server_core.get_client")
     async def test_tool_with_needed_slots(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.server import check_pool_availability
 
@@ -286,8 +286,8 @@ class TestCheckPoolAvailabilityTool:
 
 class TestImportObjectsSlotStatus:
     @pytest.mark.asyncio
-    @patch("src.server._check_pool_slots")
-    @patch("src.server.get_client")
+    @patch("src.server_core._check_pool_slots")
+    @patch("src.server_core.get_client")
     async def test_import_includes_slot_status_occupied(
         self, mock_get_client, mock_check_slots,
     ):
@@ -316,8 +316,8 @@ class TestImportObjectsSlotStatus:
         assert result["slot_status"]["previous_name"] == "OldMacro"
 
     @pytest.mark.asyncio
-    @patch("src.server._check_pool_slots")
-    @patch("src.server.get_client")
+    @patch("src.server_core._check_pool_slots")
+    @patch("src.server_core.get_client")
     async def test_import_includes_slot_status_free(
         self, mock_get_client, mock_check_slots,
     ):

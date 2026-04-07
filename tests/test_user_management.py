@@ -119,7 +119,7 @@ class TestListConsoleUsersTool:
     """Tests for list_console_users MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_list_user(self, mock_get_client, monkeypatch):
         monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
         from src.server import list_console_users
@@ -150,7 +150,7 @@ class TestCreateConsoleUserTool:
     """Tests for create_console_user MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_creates_user(self, mock_get_client, monkeypatch):
         monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
         from src.server import create_console_user
@@ -221,7 +221,7 @@ class TestAssignWorldToUserProfileTool:
     """Tests for assign_world_to_user_profile MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assigns_world(self, mock_get_client, monkeypatch):
         monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
         from src.server import assign_world_to_user_profile
@@ -296,7 +296,7 @@ class TestDeleteUserTool:
         assert "Slot 1" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_deletes_user_slot3(self, mock_get_client, monkeypatch):
         monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
         from src.server import delete_user

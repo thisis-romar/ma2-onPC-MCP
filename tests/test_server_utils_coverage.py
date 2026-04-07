@@ -17,7 +17,7 @@ class TestSetExecutorPriority:
     """Tests for set_executor_priority."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_valid_priority_sends_command(self, mock_get_client):
         from src.server import set_executor_priority
 
@@ -34,7 +34,7 @@ class TestSetExecutorPriority:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_normal_priority(self, mock_get_client):
         from src.server import set_executor_priority
 
@@ -59,7 +59,7 @@ class TestSetExecutorPriority:
         assert "error" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_super_priority(self, mock_get_client):
         from src.server import set_executor_priority
 
@@ -74,7 +74,7 @@ class TestSetExecutorPriority:
         assert data.get("blocked") is not True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_raw_response_forwarded(self, mock_get_client):
         from src.server import set_executor_priority
 

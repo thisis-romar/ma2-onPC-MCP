@@ -35,6 +35,7 @@ from mcp.server.fastmcp import FastMCP
 
 from src.context import _current_session_id
 from src.credentials import get_operator_identity, resolve_console_credentials
+from src.navigation import list_destination, navigate
 from src.license import get_license_tier, has_tier
 from src.license_tiers import TOOL_LICENSE_TIERS
 from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
@@ -370,3 +371,169 @@ def _parse_preset_tree_list(raw: str) -> list[dict]:
                 entry["extra"] = parts[2].strip()
             entries.append(entry)
     return entries
+
+
+# ---------------------------------------------------------------------------
+# Object pool destinations — shared by check_pool_availability and related tools
+# ---------------------------------------------------------------------------
+
+# NOTE: System-config branches (cd 1=Showfile, cd 2=TimeConfig, cd 3=Settings …)
+#       are NOT object pools — they have property nodes, not named user objects.
+_OBJECT_POOL_DESTINATIONS: dict[str, str] = {
+    # keyword        numeric cd index
+    "Group":         "22",
+    "Sequence":      "25",
+    "Preset":        "17",
+    "Macro":         "13",
+    "Effect":        "24",
+    "Gel":           "16",
+    "World":         "18",
+    "Filter":        "19",
+    "Form":          "23",
+    "Timer":         "26",
+    "Layout":        "38",
+    "Timecode":      "35",
+    "Agenda":        "34",
+    "UserProfile":   "39",
+    "Camera":        "Camera",   # no separate numeric index — cd Camera
+    "MAtricks":      "MAtricks",
+    "View":          "View",
+    "Remote":        "36",
+}
+
+
+async def _check_pool_slots(
+    client: "GMA2TelnetClient",
+    pool_type: str,
+    start_from: int = 1,
+    scan_up_to: int = 200,
+    needed_slots: int | None = None,
+) -> dict:
+    """Check which slots are occupied/free in a pool.
+
+    Navigates to the pool via cd, lists contents, computes availability,
+    then returns to root.  Pure SAFE_READ — no modifications.
+
+    Args:
+        client: Connected telnet client.
+        pool_type: Pool keyword (e.g. "Macro", "Filter", "Group") or
+            numeric cd index (e.g. "13").  Case-insensitive lookup
+            against ``_OBJECT_POOL_DESTINATIONS``.
+        start_from: First slot to consider (default 1).
+        scan_up_to: Last slot to consider (default 200).
+        needed_slots: If set, checks whether this many contiguous free
+            slots exist and suggests a start position.
+
+    Returns:
+        dict with keys: pool_type, occupied_slots, free_ranges,
+        next_free_slots, total_occupied, total_free_in_range,
+        largest_contiguous, can_fit, suggested_start.
+    """
+    # Resolve pool destination
+    destination: str | None = None
+    pool_key = pool_type.strip()
+
+    # Try keyword lookup (case-insensitive)
+    for key, val in _OBJECT_POOL_DESTINATIONS.items():
+        if key.lower() == pool_key.lower():
+            destination = val
+            pool_key = key  # normalise casing
+            break
+
+    # Accept raw numeric / keyword destinations as-is
+    if destination is None:
+        destination = pool_key
+
+    # Navigate to pool
+    await navigate(client, destination)
+
+    # List contents
+    lst = await list_destination(client)
+    entries = lst.parsed_list.entries
+
+    # Detect sub-pool level (e.g. Macros cd 13 → "MacroPool 1 Global")
+    # If entries look like container objects rather than actual pool items,
+    # navigate one level deeper.
+    if (
+        entries
+        and len(entries) == 1
+        and entries[0].object_type
+        and "Pool" in (entries[0].object_type or "")
+    ):
+        await navigate(client, "1")
+        lst = await list_destination(client)
+        entries = lst.parsed_list.entries
+
+    # Parse occupied slot numbers
+    occupied: list[dict] = []
+    occupied_ids: set[int] = set()
+    for e in entries:
+        if e.object_id is None:
+            continue
+        try:
+            slot = int(e.object_id)
+        except (ValueError, TypeError):
+            continue
+        if start_from <= slot <= scan_up_to:
+            occupied.append({"slot": slot, "name": e.name or ""})
+            occupied_ids.add(slot)
+
+    # Sort occupied by slot number
+    occupied.sort(key=lambda x: x["slot"])
+
+    # Compute free ranges and next free slots
+    free_ranges: list[dict] = []
+    next_free: list[int] = []
+    run_start: int | None = None
+    largest_contiguous = 0
+
+    for slot in range(start_from, scan_up_to + 1):
+        if slot not in occupied_ids:
+            if run_start is None:
+                run_start = slot
+            if len(next_free) < 10:
+                next_free.append(slot)
+        else:
+            if run_start is not None:
+                run_len = slot - run_start
+                free_ranges.append({"start": run_start, "end": slot - 1})
+                if run_len > largest_contiguous:
+                    largest_contiguous = run_len
+                run_start = None
+
+    # Close trailing free range
+    if run_start is not None:
+        run_len = scan_up_to - run_start + 1
+        free_ranges.append({"start": run_start, "end": scan_up_to})
+        if run_len > largest_contiguous:
+            largest_contiguous = run_len
+
+    total_in_range = scan_up_to - start_from + 1
+    total_free = total_in_range - len(occupied)
+
+    # Check if needed_slots can fit contiguously
+    can_fit: bool | None = None
+    suggested_start: int | None = None
+    if needed_slots is not None:
+        can_fit = False
+        for fr in free_ranges:
+            block_size = fr["end"] - fr["start"] + 1
+            if block_size >= needed_slots:
+                can_fit = True
+                suggested_start = fr["start"]
+                break
+
+    # Return to root
+    await navigate(client, "/")
+
+    return {
+        "pool_type": pool_key,
+        "occupied_slots": occupied,
+        "free_ranges": free_ranges,
+        "next_free_slots": next_free,
+        "total_occupied": len(occupied),
+        "total_free_in_range": total_free,
+        "largest_contiguous": largest_contiguous,
+        "can_fit": can_fit,
+        "suggested_start": suggested_start,
+    }

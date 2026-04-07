@@ -110,7 +110,7 @@ class TestGroupTreeVerification:
     """Verify create_fixture_group appears in cd Group → list."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_create_group_sends_correct_commands(self, mock_get_client):
         from src.server import create_fixture_group
 
@@ -133,7 +133,7 @@ class TestGroupTreeVerification:
         assert "Test Group" in result
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_delete_group_sends_noconfirm(self, mock_get_client):
         from src.server import delete_object
 
@@ -159,7 +159,7 @@ class TestGroupTreeVerification:
 
 class TestSequenceTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_sequence(self, mock_get_client):
         from src.server import store_object
 
@@ -185,7 +185,7 @@ class TestSequenceTreeVerification:
 
 class TestCueTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_in_sequence(self, mock_get_client):
         from src.server import store_current_cue
 
@@ -212,7 +212,7 @@ class TestCueTreeVerification:
 
 class TestPresetTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_color_preset(self, mock_get_client):
         from src.server import store_new_preset
 
@@ -239,7 +239,7 @@ class TestPresetTreeVerification:
 
 class TestMacroTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_macro(self, mock_get_client):
         from src.server import store_object
 
@@ -265,7 +265,7 @@ class TestMacroTreeVerification:
 
 class TestEffectTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_effect(self, mock_get_client):
         from src.server import store_object
 
@@ -291,7 +291,7 @@ class TestEffectTreeVerification:
 
 class TestExecutorTreeVerification:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_sequence_to_executor(self, mock_get_client):
         from src.server import assign_object
 
@@ -315,7 +315,7 @@ class TestExecutorTreeVerification:
         assert str(TEST_SEQUENCE_ID) in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_empty_executor(self, mock_get_client):
         from src.server import assign_object
 

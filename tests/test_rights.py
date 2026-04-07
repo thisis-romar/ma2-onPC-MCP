@@ -201,7 +201,7 @@ class TestOperationMinRightCompleteness:
     def _get_all_tool_names() -> set[str]:
         """Extract all @mcp.tool() function names from server.py and orchestration."""
         tool_names = set()
-        for path in ("src/server.py", "src/server_orchestration_tools.py", "src/tools_community.py"):
+        for path in ("src/server.py", "src/server_orchestration_tools.py", "src/tools_community.py", "src/tools_professional.py"):
             with open(path) as f:
                 lines = f.readlines()
             for i, line in enumerate(lines):

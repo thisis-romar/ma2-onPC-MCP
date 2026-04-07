@@ -20,7 +20,7 @@ class TestCreateFixtureGroupTool:
     """Tests for the create fixture group MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_create_fixture_group_basic(self, mock_get_client):
         """Test creating a basic fixture group."""
         from src.server import create_fixture_group
@@ -41,7 +41,7 @@ class TestCreateFixtureGroupTool:
         assert "10" in result
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_create_fixture_group_with_label(self, mock_get_client):
         """Test creating a fixture group with a label."""
         from src.server import create_fixture_group
@@ -61,7 +61,7 @@ class TestCreateFixtureGroupTool:
         assert calls[2][0][0] == 'label group 1 "Front Wash"'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_create_fixture_group_with_custom_name(self, mock_get_client):
         """Test creating a fixture group with a custom name."""
         from src.server import create_fixture_group
@@ -323,7 +323,7 @@ class TestApplyPresetTool:
     """Tests for the apply_preset MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_apply_color_preset(self, mock_get_client):
         """Test applying a color preset to current selection."""
         from src.server import apply_preset
@@ -339,7 +339,7 @@ class TestApplyPresetTool:
         mock_client.send_command_with_response.assert_called_once_with("call preset 4.3")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_apply_preset_with_group(self, mock_get_client):
         """Test applying a preset after selecting a group."""
         from src.server import apply_preset
@@ -358,7 +358,7 @@ class TestApplyPresetTool:
         assert data["commands_sent"] == ["group 2", "call preset 2.1"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_apply_preset_with_fixture_range(self, mock_get_client):
         """Test applying a preset after selecting a fixture range."""
         from src.server import apply_preset
@@ -377,7 +377,7 @@ class TestApplyPresetTool:
         assert calls[1][0][0] == "call preset 3.5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_apply_preset_numeric_type(self, mock_get_client):
         """Test applying a preset using numeric type string."""
         from src.server import apply_preset
@@ -405,7 +405,7 @@ class TestStoreCueTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_basic_cue(self, mock_get_client):
         """Test storing a simple cue."""
         from src.server import store_current_cue
@@ -421,7 +421,7 @@ class TestStoreCueTool:
         mock_client.send_command_with_response.assert_called_once_with("store cue 5")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_with_sequence(self, mock_get_client):
         """Test storing a cue into a specific sequence."""
         from src.server import store_current_cue
@@ -436,7 +436,7 @@ class TestStoreCueTool:
         assert data["commands_sent"] == ["store cue 3 sequence 2"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_with_label(self, mock_get_client):
         """Test storing a cue with a label."""
         from src.server import store_current_cue
@@ -454,7 +454,7 @@ class TestStoreCueTool:
         assert calls[1][0][0] == 'label cue 3 "Opening Look"'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_merge(self, mock_get_client):
         """Test storing a cue with merge option."""
         from src.server import store_current_cue
@@ -583,8 +583,8 @@ class TestSetNodePropertyTool:
     """Tests for the set_node_property MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.set_property")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.set_property")
+    @patch("src.server_core.get_client")
     async def test_set_property_basic(self, mock_get_client, mock_set_property):
         """Test setting a property on a node."""
         from src.navigation import SetPropertyResult
@@ -612,8 +612,8 @@ class TestSetNodePropertyTool:
         mock_set_property.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.server.set_property")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.set_property")
+    @patch("src.server_core.get_client")
     async def test_set_property_failure(self, mock_get_client, mock_set_property):
         """Test property set that fails verification."""
         from src.navigation import SetPropertyResult
@@ -697,7 +697,7 @@ class TestParkFixtureTool:
     """Tests for the park_fixture and unpark_fixture MCP tools."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_fixture(self, mock_get_client):
         """Test parking a fixture."""
         from src.server import park_fixture
@@ -712,7 +712,7 @@ class TestParkFixtureTool:
         assert data["command_sent"] == "park fixture 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_dmx_with_value(self, mock_get_client):
         """Test parking DMX at a specific value."""
         from src.server import park_fixture
@@ -727,7 +727,7 @@ class TestParkFixtureTool:
         assert data["command_sent"] == "park dmx 101 at 128"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unpark_fixture(self, mock_get_client):
         """Test unparking a fixture."""
         from src.server import unpark_fixture
@@ -746,7 +746,7 @@ class TestRunMacroTool:
     """Tests for the run_macro MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_run_macro(self, mock_get_client):
         """Test executing a macro."""
         from src.server import run_macro
@@ -776,7 +776,7 @@ class TestDeleteObjectTool:
         assert "DESTRUCTIVE" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_delete_cue_with_confirm(self, mock_get_client):
         """Test deleting a cue with confirmation."""
         from src.server import delete_object
@@ -794,7 +794,7 @@ class TestDeleteObjectTool:
         assert data["command_sent"] == "delete cue 5 /noconfirm"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_delete_group_with_confirm(self, mock_get_client):
         """Test deleting a generic object type."""
         from src.server import delete_object
@@ -816,7 +816,7 @@ class TestCopyOrMoveObjectTool:
     """Tests for the copy_or_move_object MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_copy_group(self, mock_get_client):
         """Test copying a group."""
         from src.server import copy_or_move_object
@@ -833,7 +833,7 @@ class TestCopyOrMoveObjectTool:
         assert data["command_sent"] == "copy group 1 at 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_move_macro(self, mock_get_client):
         """Test moving a macro."""
         from src.server import copy_or_move_object
@@ -866,7 +866,7 @@ class TestStoreNewPresetTool:
     """Tests for the store_new_preset MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_color_preset(self, mock_get_client):
         """Test storing a color preset."""
         from src.server import store_new_preset
@@ -881,7 +881,7 @@ class TestStoreNewPresetTool:
         assert data["command_sent"] == "store preset 4.5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_preset_with_merge(self, mock_get_client):
         """Test storing a preset with merge option."""
         from src.server import store_new_preset
@@ -1427,7 +1427,7 @@ class TestManageVariableTool:
     """Tests for the manage_variable MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_global_var(self, mock_get_client):
         """Test setting a global variable."""
         from src.server import manage_variable
@@ -1444,7 +1444,7 @@ class TestManageVariableTool:
         assert data["command_sent"] == "setvar $myvar = 42"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_user_var(self, mock_get_client):
         """Test setting a user variable."""
         from src.server import manage_variable
@@ -1461,7 +1461,7 @@ class TestManageVariableTool:
         assert data["command_sent"] == "setuservar $speed = 100"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_add_global_var(self, mock_get_client):
         """Test adding to a global variable."""
         from src.server import manage_variable
@@ -1478,7 +1478,7 @@ class TestManageVariableTool:
         assert data["command_sent"] == "addvar $counter = 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_add_user_var(self, mock_get_client):
         """Test adding to a user variable."""
         from src.server import manage_variable
@@ -1547,7 +1547,7 @@ class TestLabelOrAppearanceTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_label_group(self, mock_get_client):
         """Test labeling a group."""
         from src.server import label_or_appearance
@@ -1566,7 +1566,7 @@ class TestLabelOrAppearanceTool:
         assert data["blocked"] is False
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_label_preset(self, mock_get_client):
         """Test labeling a preset with preset_type."""
         from src.server import label_or_appearance
@@ -1598,7 +1598,7 @@ class TestLabelOrAppearanceTool:
         assert "error" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_appearance_with_color(self, mock_get_client):
         """Test setting appearance with hex color."""
         from src.server import label_or_appearance
@@ -1617,7 +1617,7 @@ class TestLabelOrAppearanceTool:
         assert "FF0000" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_appearance_with_rgb(self, mock_get_client):
         """Test setting appearance with RGB components."""
         from src.server import label_or_appearance
@@ -1653,7 +1653,7 @@ class TestAssignObjectTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_sequence_to_executor(self, mock_get_client):
         """Test assigning a sequence to an executor."""
         from src.server import assign_object
@@ -1673,7 +1673,7 @@ class TestAssignObjectTool:
         assert "sequence" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_function(self, mock_get_client):
         """Test assigning a function to an executor."""
         from src.server import assign_object
@@ -1691,7 +1691,7 @@ class TestAssignObjectTool:
         assert "toggle" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_fade(self, mock_get_client):
         """Test assigning a fade time to a cue."""
         from src.server import assign_object
@@ -1709,7 +1709,7 @@ class TestAssignObjectTool:
         assert "3" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_to_layout(self, mock_get_client):
         """Test assigning an object to a layout."""
         from src.server import assign_object
@@ -1727,7 +1727,7 @@ class TestAssignObjectTool:
         assert "layout" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_empty(self, mock_get_client):
         """Test emptying an executor."""
         from src.server import assign_object
@@ -1745,7 +1745,7 @@ class TestAssignObjectTool:
         assert "empty" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_temp_fader(self, mock_get_client):
         """Test assigning temp fader to an executor."""
         from src.server import assign_object
@@ -1792,7 +1792,7 @@ class TestEditObjectTool:
     """Tests for the edit_object MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_edit_cue(self, mock_get_client):
         """Test editing a cue (SAFE_WRITE, no confirm needed)."""
         from src.server import edit_object
@@ -1819,7 +1819,7 @@ class TestEditObjectTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_cut_with_confirm(self, mock_get_client):
         """Test cutting an object with confirmation."""
         from src.server import edit_object
@@ -1850,7 +1850,7 @@ class TestEditObjectTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_paste_with_confirm(self, mock_get_client):
         """Test pasting with confirmation."""
         from src.server import edit_object
@@ -1892,7 +1892,7 @@ class TestRemoveContentTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_selection(self, mock_get_client):
         """Test removing selection."""
         from src.server import remove_content
@@ -1909,7 +1909,7 @@ class TestRemoveContentTool:
         assert data["command_sent"] == "remove selection"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_fixture(self, mock_get_client):
         """Test removing a fixture."""
         from src.server import remove_content
@@ -1927,7 +1927,7 @@ class TestRemoveContentTool:
         assert "fixture" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_fixture_with_filter(self, mock_get_client):
         """Test removing a fixture with if_filter."""
         from src.server import remove_content
@@ -1945,7 +1945,7 @@ class TestRemoveContentTool:
         assert "if PresetType 1" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_effect(self, mock_get_client):
         """Test removing an effect."""
         from src.server import remove_content
@@ -1963,7 +1963,7 @@ class TestRemoveContentTool:
         assert "effect" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_preset_type(self, mock_get_client):
         """Test removing a preset type."""
         from src.server import remove_content
@@ -1982,7 +1982,7 @@ class TestRemoveContentTool:
         assert "presettype" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_generic(self, mock_get_client):
         """Test generic remove."""
         from src.server import remove_content
@@ -2013,7 +2013,7 @@ class TestStoreObjectTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_macro(self, mock_get_client):
         """Test storing a macro."""
         from src.server import store_object
@@ -2031,7 +2031,7 @@ class TestStoreObjectTool:
         assert data["blocked"] is False
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_with_name(self, mock_get_client):
         """Test storing with a name."""
         from src.server import store_object
@@ -2050,7 +2050,7 @@ class TestStoreObjectTool:
         assert "Rainbow" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_with_merge(self, mock_get_client):
         """Test storing with merge option."""
         from src.server import store_object
@@ -2068,7 +2068,7 @@ class TestStoreObjectTool:
         assert "/merge" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_with_overwrite(self, mock_get_client):
         """Test storing with overwrite option."""
         from src.server import store_object
@@ -2157,7 +2157,7 @@ class TestSetExecutorLevelTool:
     """Tests for the set_executor_level MCP tool (tool #30)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_executor_level_basic(self, mock_get_client):
         """Test setting executor level to a valid value."""
         from src.server import set_executor_level
@@ -2174,7 +2174,7 @@ class TestSetExecutorLevelTool:
         mock_client.send_command_with_response.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_executor_level_with_page(self, mock_get_client):
         """Test setting executor level with page qualifier."""
         from src.server import set_executor_level
@@ -2224,7 +2224,7 @@ class TestNavigatePageTool:
     """Tests for the navigate_page MCP tool (tool #31)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_navigate_page_goto(self, mock_get_client):
         """Test navigating to an absolute page."""
         from src.server import navigate_page
@@ -2240,7 +2240,7 @@ class TestNavigatePageTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_navigate_page_next(self, mock_get_client):
         """Test navigating to the next page."""
         from src.server import navigate_page
@@ -2255,7 +2255,7 @@ class TestNavigatePageTool:
         assert "page +" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_navigate_page_previous(self, mock_get_client):
         """Test navigating to the previous page."""
         from src.server import navigate_page
@@ -2290,7 +2290,7 @@ class TestNavigatePageTool:
         assert "error" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_navigate_page_next_with_steps(self, mock_get_client):
         """Test navigating forward by multiple steps."""
         from src.server import navigate_page
@@ -2305,7 +2305,7 @@ class TestNavigatePageTool:
         assert "3" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_navigate_page_create_if_missing(self, mock_get_client):
         """Test that create_if_missing sends Store Page before Page N."""
         from src.server import navigate_page
@@ -2323,7 +2323,7 @@ class TestNavigatePageTool:
         assert data["steps"][1]["command"] == "page 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_navigate_page_no_create_by_default(self, mock_get_client):
         """Test that create_if_missing=False sends only Page N."""
         from src.server import navigate_page
@@ -2343,7 +2343,7 @@ class TestSelectFeatureTool:
     """Tests for the select_feature MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_feature_zoom(self, mock_get_client):
         """Test selecting the Zoom feature bank."""
         from src.server import select_feature
@@ -2359,7 +2359,7 @@ class TestSelectFeatureTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_feature_color(self, mock_get_client):
         """Test selecting the Color feature bank."""
         from src.server import select_feature
@@ -2378,7 +2378,7 @@ class TestSelectPresetTypeTool:
     """Tests for the select_preset_type MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_preset_type_by_number(self, mock_get_client):
         """Test selecting a preset type by number."""
         from src.server import select_preset_type
@@ -2394,7 +2394,7 @@ class TestSelectPresetTypeTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_preset_type_by_name(self, mock_get_client):
         """Test selecting a preset type by name."""
         from src.server import select_preset_type
@@ -2409,7 +2409,7 @@ class TestSelectPresetTypeTool:
         assert data["command_sent"] == 'PresetType "Color"'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_preset_type_control(self, mock_get_client):
         """Test selecting Control preset type (type 7, $FEATURE=MSPEED)."""
         from src.server import select_preset_type
@@ -2444,9 +2444,9 @@ class TestBrowsePresetTypeTool:
     EMPTY_RAW = "Executing : List\nWARNING, NO OBJECTS FOUND FOR LIST\n[Fixture]>\n"
 
     @pytest.mark.asyncio
-    @patch("src.server.navigate")
-    @patch("src.server.list_destination")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.navigate")
+    @patch("src.tools_professional.list_destination")
+    @patch("src.server_core.get_client")
     async def test_browse_depth1_returns_features(self, mock_get_client, mock_list_dest, mock_navigate):
         """depth=1 returns feature list for given preset type."""
         from unittest.mock import MagicMock
@@ -2493,7 +2493,7 @@ class TestModifySelectionTool:
     """Tests for the modify_selection MCP tool (tool #32)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_modify_selection_add(self, mock_get_client):
         """Test adding a fixture to the selection."""
         from src.server import modify_selection
@@ -2508,7 +2508,7 @@ class TestModifySelectionTool:
         assert "+ 5" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_modify_selection_remove(self, mock_get_client):
         """Test removing a fixture from the selection."""
         from src.server import modify_selection
@@ -2523,7 +2523,7 @@ class TestModifySelectionTool:
         assert "- 3" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_modify_selection_clear(self, mock_get_client):
         """Test clearing the selection."""
         from src.server import modify_selection
@@ -2538,7 +2538,7 @@ class TestModifySelectionTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_modify_selection_replace(self, mock_get_client):
         """Test replacing the selection."""
         from src.server import modify_selection
@@ -2577,7 +2577,7 @@ class TestAdjustValueRelativeTool:
     """Tests for the adjust_value_relative MCP tool (tool #33)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_adjust_value_positive_delta(self, mock_get_client):
         """Test nudging a value up by a positive delta."""
         from src.server import adjust_value_relative
@@ -2593,7 +2593,7 @@ class TestAdjustValueRelativeTool:
         assert "at + 10" in data["commands_sent"][-1]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_adjust_value_negative_delta(self, mock_get_client):
         """Test nudging a value down by a negative delta."""
         from src.server import adjust_value_relative
@@ -2609,7 +2609,7 @@ class TestAdjustValueRelativeTool:
         assert "at - 5" in data["commands_sent"][-1]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_adjust_value_with_fixture_and_attribute(self, mock_get_client):
         """Test nudging with fixture selection and attribute targeting."""
         from src.server import adjust_value_relative
@@ -2641,7 +2641,7 @@ class TestControlTimecodeTool:
     """Tests for the control_timecode MCP tool (tool #34)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_timecode_start(self, mock_get_client):
         """Test starting a timecode show."""
         from src.server import control_timecode
@@ -2656,7 +2656,7 @@ class TestControlTimecodeTool:
         assert data["command_sent"] == "go timecode 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_timecode_stop(self, mock_get_client):
         """Test stopping a timecode show."""
         from src.server import control_timecode
@@ -2671,7 +2671,7 @@ class TestControlTimecodeTool:
         assert data["command_sent"] == "off timecode 2"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_timecode_goto(self, mock_get_client):
         """Test jumping to a timecode position."""
         from src.server import control_timecode
@@ -2712,7 +2712,7 @@ class TestControlTimerTool:
     """Tests for the control_timer MCP tool (tool #35)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_timer_start(self, mock_get_client):
         """Test starting a timer."""
         from src.server import control_timer
@@ -2727,7 +2727,7 @@ class TestControlTimerTool:
         assert data["command_sent"] == "go timer 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_timer_stop(self, mock_get_client):
         """Test stopping a timer."""
         from src.server import control_timer
@@ -2742,7 +2742,7 @@ class TestControlTimerTool:
         assert data["command_sent"] == "off timer 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_timer_reset(self, mock_get_client):
         """Test resetting a timer."""
         from src.server import control_timer
@@ -2781,7 +2781,7 @@ class TestUndoLastActionTool:
     """Tests for the undo_last_action MCP tool (tool #36)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_undo_once(self, mock_get_client):
         """Test undoing a single action."""
         from src.server import undo_last_action
@@ -2798,7 +2798,7 @@ class TestUndoLastActionTool:
         mock_client.send_command_with_response.assert_called_once_with("oops")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_undo_multiple(self, mock_get_client):
         """Test undoing multiple actions."""
         from src.server import undo_last_action
@@ -2835,7 +2835,7 @@ class TestUndoLastActionTool:
         assert "error" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_undo_risk_tier(self, mock_get_client):
         """Test that risk tier is SAFE_WRITE."""
         from src.server import undo_last_action
@@ -2854,7 +2854,7 @@ class TestToggleConsoleModeTool:
     """Tests for the toggle_console_mode MCP tool (tool #37)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_toggle_blind(self, mock_get_client):
         """Test toggling blind mode."""
         from src.server import toggle_console_mode
@@ -2870,7 +2870,7 @@ class TestToggleConsoleModeTool:
         assert data["mode"] == "blind"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_toggle_highlight(self, mock_get_client):
         """Test toggling highlight mode."""
         from src.server import toggle_console_mode
@@ -2885,7 +2885,7 @@ class TestToggleConsoleModeTool:
         assert data["command_sent"] == "highlight"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_toggle_freeze(self, mock_get_client):
         """Test toggling freeze mode."""
         from src.server import toggle_console_mode
@@ -2925,7 +2925,7 @@ class TestUpdateCueDataTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_update_active_cue(self, mock_get_client):
         """Test updating the currently active cue."""
         from src.server import update_cue_data
@@ -2941,7 +2941,7 @@ class TestUpdateCueDataTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_update_specific_cue(self, mock_get_client):
         """Test updating a specific cue."""
         from src.server import update_cue_data
@@ -2956,7 +2956,7 @@ class TestUpdateCueDataTool:
         assert "cue 5" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_update_with_merge(self, mock_get_client):
         """Test updating with merge option."""
         from src.server import update_cue_data
@@ -2973,7 +2973,7 @@ class TestUpdateCueDataTool:
         assert "/merge" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_update_with_sequence_scope(self, mock_get_client):
         """Test updating with sequence scoping."""
         from src.server import update_cue_data
@@ -3014,7 +3014,7 @@ class TestSetCueTimingTool:
         assert "error" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_fade_time_only(self, mock_get_client):
         """Test setting fade time only."""
         from src.server import set_cue_timing
@@ -3033,7 +3033,7 @@ class TestSetCueTimingTool:
         assert "3" in data["commands_sent"][0]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_delay_time_only(self, mock_get_client):
         """Test setting delay time only."""
         from src.server import set_cue_timing
@@ -3051,7 +3051,7 @@ class TestSetCueTimingTool:
         assert "delay" in data["commands_sent"][0]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_both_fade_and_delay(self, mock_get_client):
         """Test setting both fade and delay times."""
         from src.server import set_cue_timing
@@ -3073,7 +3073,7 @@ class TestSelectFixturesByGroupTool:
     """Tests for the select_fixtures_by_group MCP tool (tool #40)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_group_replace(self, mock_get_client):
         """Test selecting a group (replacing current selection)."""
         from src.server import select_fixtures_by_group
@@ -3089,7 +3089,7 @@ class TestSelectFixturesByGroupTool:
         assert data["group_id"] == 2
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_group_append(self, mock_get_client):
         """Test appending a group to the current selection."""
         from src.server import select_fixtures_by_group
@@ -3114,7 +3114,7 @@ class TestSelectFixturesByGroupTool:
         assert "error" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_group_risk_tier(self, mock_get_client):
         """Test that risk tier is SAFE_WRITE."""
         from src.server import select_fixtures_by_group
@@ -3133,7 +3133,7 @@ class TestControlExecutorTool:
     """Tests for the control_executor MCP tool (tool #41)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_executor_on(self, mock_get_client):
         """Test turning an executor on."""
         from src.server import control_executor
@@ -3149,7 +3149,7 @@ class TestControlExecutorTool:
         assert "on" in data["command_sent"].lower() or "5" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_executor_off(self, mock_get_client):
         """Test turning an executor off."""
         from src.server import control_executor
@@ -3164,7 +3164,7 @@ class TestControlExecutorTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_executor_flash(self, mock_get_client):
         """Test flashing an executor."""
         from src.server import control_executor
@@ -3192,7 +3192,7 @@ class TestControlExecutorTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_control_executor_set_speed_confirmed(self, mock_get_client):
         """Test setting executor speed with confirmation."""
         from src.server import control_executor
@@ -3298,7 +3298,7 @@ class TestStoreTimecodeEventTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_timecode_without_position(self, mock_get_client):
         """Test storing a timecode event without a position."""
         from src.server import store_timecode_event
@@ -3315,7 +3315,7 @@ class TestStoreTimecodeEventTool:
         assert data["command_sent"] == "store timecode 2"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_timecode_with_position(self, mock_get_client):
         """Test storing a timecode event at a specific position."""
         from src.server import store_timecode_event
@@ -3352,8 +3352,8 @@ class TestSetSequencePropertyTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.set_property", new_callable=AsyncMock)
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.set_property", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
     async def test_set_loop_property(self, mock_get_client, mock_set_property):
         """Test setting the loop property on a sequence."""
         from src.navigation import SetPropertyResult
@@ -3378,8 +3378,8 @@ class TestSetSequencePropertyTool:
         mock_set_property.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.server.set_property", new_callable=AsyncMock)
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.set_property", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
     async def test_set_tracking_property(self, mock_get_client, mock_set_property):
         """Test setting the tracking property on a sequence."""
         from src.navigation import SetPropertyResult
@@ -3408,7 +3408,7 @@ class TestSetSequencePropertyTool:
 
 class TestSaveShowTool:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_save_show_save(self, mock_get_client):
         from src.server import save_show
         mock_client = MagicMock()
@@ -3420,7 +3420,7 @@ class TestSaveShowTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_save_show_saveas(self, mock_get_client):
         from src.server import save_show
         mock_client = MagicMock()
@@ -3455,7 +3455,7 @@ class TestStoreCueWithTimingTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_with_timing_fade(self, mock_get_client):
         from src.server import store_cue_with_timing
         mock_client = MagicMock()
@@ -3468,7 +3468,7 @@ class TestStoreCueWithTimingTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_with_timing_both_times(self, mock_get_client):
         from src.server import store_cue_with_timing
         mock_client = MagicMock()
@@ -3480,7 +3480,7 @@ class TestStoreCueWithTimingTool:
         assert "outtime 10.0" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_with_timing_merge(self, mock_get_client):
         from src.server import store_cue_with_timing
         mock_client = MagicMock()
@@ -3491,7 +3491,7 @@ class TestStoreCueWithTimingTool:
         assert "/merge" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_with_timing_sequence_id(self, mock_get_client):
         from src.server import store_cue_with_timing
         mock_client = MagicMock()
@@ -3505,7 +3505,7 @@ class TestStoreCueWithTimingTool:
         assert "sequence 2" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_cue_with_timing_no_sequence_id(self, mock_get_client):
         """Without sequence_id, command should NOT contain 'sequence'."""
         from src.server import store_cue_with_timing
@@ -3519,7 +3519,7 @@ class TestStoreCueWithTimingTool:
 
 class TestSelectExecutorTool:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_executor_basic(self, mock_get_client):
         from src.server import select_executor
         mock_client = MagicMock()
@@ -3531,7 +3531,7 @@ class TestSelectExecutorTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_select_executor_with_page(self, mock_get_client):
         from src.server import select_executor
         mock_client = MagicMock()
@@ -3544,7 +3544,7 @@ class TestSelectExecutorTool:
 
 class TestRemoveFromProgrammerTool:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_channel(self, mock_get_client):
         from src.server import remove_from_programmer
         mock_client = MagicMock()
@@ -3556,7 +3556,7 @@ class TestRemoveFromProgrammerTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_channel_range(self, mock_get_client):
         from src.server import remove_from_programmer
         mock_client = MagicMock()
@@ -3567,7 +3567,7 @@ class TestRemoveFromProgrammerTool:
         assert data["command_sent"] == "off channel 1 thru 10"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_remove_fixture(self, mock_get_client):
         from src.server import remove_from_programmer
         mock_client = MagicMock()
@@ -3595,7 +3595,7 @@ class TestAssignCueTriggerTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_cue_trigger_follow(self, mock_get_client):
         from src.server import assign_cue_trigger
         mock_client = MagicMock()
@@ -3606,7 +3606,7 @@ class TestAssignCueTriggerTool:
         assert data["command_sent"] == "assign trigger follow cue 3 sequence 1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_cue_trigger_bpm(self, mock_get_client):
         from src.server import assign_cue_trigger
         mock_client = MagicMock()
@@ -3633,7 +3633,7 @@ class TestAssignExecutorPropertyTool:
         assert data["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_executor_width(self, mock_get_client):
         from src.server import assign_executor_property
         mock_client = MagicMock()
@@ -3652,7 +3652,7 @@ class TestAssignExecutorPropertyTool:
         assert "badoption" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_assign_executor_ratemaster(self, mock_get_client):
         from src.server import assign_executor_property
         mock_client = MagicMock()
@@ -3716,7 +3716,7 @@ class TestSaveRecallViewTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_save_recall_view_store(self, mock_get_client):
         from src.server import save_recall_view
         mock_client = MagicMock()
@@ -3728,7 +3728,7 @@ class TestSaveRecallViewTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_save_recall_view_recall(self, mock_get_client):
         from src.server import save_recall_view
         mock_client = MagicMock()
@@ -3740,7 +3740,7 @@ class TestSaveRecallViewTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_save_recall_view_label(self, mock_get_client):
         from src.server import save_recall_view
         mock_client = MagicMock()
@@ -3774,7 +3774,7 @@ class TestExportObjectsTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_export_basic(self, mock_get_client):
         from src.server import export_objects
         mock_client = MagicMock()
@@ -3786,7 +3786,7 @@ class TestExportObjectsTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_export_range(self, mock_get_client):
         from src.server import export_objects
         mock_client = MagicMock()
@@ -3797,7 +3797,7 @@ class TestExportObjectsTool:
         assert data["command_sent"] == 'export Macro 1 thru 5 "macros" /noconfirm'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_export_preset(self, mock_get_client):
         from src.server import export_objects
         mock_client = MagicMock()
@@ -3808,7 +3808,7 @@ class TestExportObjectsTool:
         assert data["command_sent"] == 'export Preset 1.3 "dim3" /noconfirm'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_export_with_style_csv(self, mock_get_client):
         from src.server import export_objects
         mock_client = MagicMock()
@@ -3819,7 +3819,7 @@ class TestExportObjectsTool:
         assert "/style=csv" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_export_with_overwrite(self, mock_get_client):
         from src.server import export_objects
         mock_client = MagicMock()
@@ -3856,7 +3856,7 @@ class TestImportObjectsTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_import_basic(self, mock_get_client):
         from src.server import import_objects
         mock_client = MagicMock()
@@ -3868,7 +3868,7 @@ class TestImportObjectsTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_import_no_id(self, mock_get_client):
         from src.server import import_objects
         mock_client = MagicMock()
@@ -3879,7 +3879,7 @@ class TestImportObjectsTool:
         assert data["command_sent"] == 'import "macros" at Macro /noconfirm'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_import_preset(self, mock_get_client):
         from src.server import import_objects
         mock_client = MagicMock()
@@ -3890,7 +3890,7 @@ class TestImportObjectsTool:
         assert data["command_sent"] == 'import "preset_dimmer" at Preset 1.99 /noconfirm'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_import_matricks(self, mock_get_client):
         from src.server import import_objects
         mock_client = MagicMock()
@@ -3901,7 +3901,7 @@ class TestImportObjectsTool:
         assert data["command_sent"] == 'import "matricks_test" at MAtricks 99 /noconfirm'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_import_with_quiet(self, mock_get_client):
         from src.server import import_objects
         mock_client = MagicMock()
@@ -3937,7 +3937,7 @@ class TestImportFixtureTypeTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_four_commands(self, mock_get_client):
         from src.server import import_fixture_type
         mock_client = MagicMock()
@@ -3958,7 +3958,7 @@ class TestImportFixtureTypeTool:
         assert commands[3] == 'ChangeDest /'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_returns_fixture_key(self, mock_get_client):
         from src.server import import_fixture_type
         mock_client = MagicMock()
@@ -3985,7 +3985,7 @@ class TestImportFixtureLayerTool:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_four_commands_no_layer_index(self, mock_get_client):
         from src.server import import_fixture_layer
         mock_client = MagicMock()
@@ -4001,7 +4001,7 @@ class TestImportFixtureLayerTool:
         assert commands[3] == 'ChangeDest /'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_four_commands_with_layer_index(self, mock_get_client):
         from src.server import import_fixture_layer
         mock_client = MagicMock()
@@ -4249,7 +4249,7 @@ class TestGetSequenceForExecutor:
 
 class TestParkFixtureValidated:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_existing_fixture(self, mock_get_client):
         from src.server import park_fixture
         mock_client = MagicMock()
@@ -4265,7 +4265,7 @@ class TestParkFixtureValidated:
         assert mock_client.send_command_with_response.call_count == 2
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_nonexistent_fixture_blocked(self, mock_get_client):
         from src.server import park_fixture
         mock_client = MagicMock()
@@ -4282,7 +4282,7 @@ class TestParkFixtureValidated:
         assert mock_client.send_command_with_response.call_count == 1
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_dmx_skips_validation(self, mock_get_client):
         from src.server import park_fixture
         mock_client = MagicMock()
@@ -4295,7 +4295,7 @@ class TestParkFixtureValidated:
         assert mock_client.send_command_with_response.call_count == 1
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_park_fixture_with_value(self, mock_get_client):
         from src.server import park_fixture
         mock_client = MagicMock()
@@ -4311,7 +4311,7 @@ class TestParkFixtureValidated:
 
 class TestUnparkFixtureValidated:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unpark_existing_fixture(self, mock_get_client):
         from src.server import unpark_fixture
         mock_client = MagicMock()
@@ -4326,7 +4326,7 @@ class TestUnparkFixtureValidated:
         assert data["command_sent"] == "unpark fixture 20"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unpark_nonexistent_fixture_blocked(self, mock_get_client):
         from src.server import unpark_fixture
         mock_client = MagicMock()
@@ -4341,7 +4341,7 @@ class TestUnparkFixtureValidated:
         assert "does not exist" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unpark_dmx_skips_validation(self, mock_get_client):
         from src.server import unpark_fixture
         mock_client = MagicMock()
@@ -4427,7 +4427,7 @@ class TestPlaybackActionGotoValidated:
 
 class TestListFixturesTool:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_all_fixtures(self, mock_get_client):
         from src.server import list_fixtures
         mock_client = MagicMock()
@@ -4443,7 +4443,7 @@ class TestListFixturesTool:
         assert data["risk_tier"] == "SAFE_READ"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_specific_fixture_exists(self, mock_get_client):
         from src.server import list_fixtures
         mock_client = MagicMock()
@@ -4458,7 +4458,7 @@ class TestListFixturesTool:
         assert data["fixture_id"] == 20
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_specific_fixture_not_found(self, mock_get_client):
         from src.server import list_fixtures
         mock_client = MagicMock()
@@ -4474,7 +4474,7 @@ class TestListFixturesTool:
 
 class TestListSequenceCuesTool:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_all_cues_by_sequence_id(self, mock_get_client):
         from src.server import list_sequence_cues
         mock_client = MagicMock()
@@ -4490,7 +4490,7 @@ class TestListSequenceCuesTool:
         assert data["risk_tier"] == "SAFE_READ"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_check_specific_cue_exists(self, mock_get_client):
         from src.server import list_sequence_cues
         mock_client = MagicMock()
@@ -4504,7 +4504,7 @@ class TestListSequenceCuesTool:
         assert data["exists"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_check_specific_cue_not_found(self, mock_get_client):
         from src.server import list_sequence_cues
         mock_client = MagicMock()
@@ -4518,7 +4518,7 @@ class TestListSequenceCuesTool:
         assert data["command_sent"] == "list cue 99 sequence 278"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_resolve_sequence_from_executor(self, mock_get_client):
         from src.server import list_sequence_cues
         mock_client = MagicMock()
@@ -4535,7 +4535,7 @@ class TestListSequenceCuesTool:
         assert "executor_probe_response" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_executor_with_no_sequence_linked(self, mock_get_client):
         from src.server import list_sequence_cues
         mock_client = MagicMock()
@@ -4550,7 +4550,7 @@ class TestListSequenceCuesTool:
         assert "sequence assigned" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_no_sequence_or_executor_returns_error(self, mock_get_client):
         from src.server import list_sequence_cues
         mock_client = MagicMock()
@@ -4568,7 +4568,7 @@ class TestListSequenceCuesTool:
 
 class TestHighlightFixtures:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_highlight_on(self, mock_get_client):
         from src.server import highlight_fixtures
         mock_client = MagicMock()
@@ -4580,7 +4580,7 @@ class TestHighlightFixtures:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_highlight_off(self, mock_get_client):
         from src.server import highlight_fixtures
         mock_client = MagicMock()
@@ -4618,7 +4618,7 @@ class TestReleaseExecutor:
 
 class TestBlackoutToggle:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_blackout(self, mock_get_client):
         from src.server import blackout_toggle
         mock_client = MagicMock()
@@ -4632,7 +4632,7 @@ class TestBlackoutToggle:
 
 class TestListShows:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_shows(self, mock_get_client):
         from src.server import list_shows
         mock_client = MagicMock()
@@ -4654,7 +4654,7 @@ class TestLoadShow:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_load_show_confirmed(self, mock_get_client):
         from src.server import load_show
         mock_client = MagicMock()
@@ -4676,7 +4676,7 @@ class TestNewShow:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_new_show_confirmed_default_connectivity(self, mock_get_client):
         """Default preserve_connectivity=True auto-adds /globalsettings /protocols /network."""
         from src.server import new_show
@@ -4693,7 +4693,7 @@ class TestNewShow:
         assert data["preserve_connectivity"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_new_show_no_connectivity_preservation(self, mock_get_client):
         """preserve_connectivity=False: only /noconfirm, no keep flags unless explicit."""
         from src.server import new_show
@@ -4707,7 +4707,7 @@ class TestNewShow:
         assert data["preserve_connectivity"] is False
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_new_show_all_keep_flags(self, mock_get_client):
         """All keep flags + preserve_connectivity=False → all six flags in command."""
         from src.server import new_show
@@ -4783,7 +4783,7 @@ class TestGetVariable:
 
 class TestListUndoHistory:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_oops(self, mock_get_client):
         from src.server import list_undo_history
         mock_client = MagicMock()
@@ -4802,9 +4802,9 @@ class TestListUndoHistory:
 
 class TestListFixtureTypes:
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.list_destination")
+    @patch("src.tools_professional.navigate")
+    @patch("src.server_core.get_client")
     async def test_list_fixture_types(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListEntry, ListOutput
         from src.server import list_fixture_types
@@ -4836,9 +4836,9 @@ class TestListFixtureTypes:
 
 class TestListLayers:
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.list_destination")
+    @patch("src.tools_professional.navigate")
+    @patch("src.server_core.get_client")
     async def test_list_layers(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListOutput
         from src.server import list_layers
@@ -4864,9 +4864,9 @@ class TestListLayers:
 
 class TestListUniverses:
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.list_destination")
+    @patch("src.tools_professional.navigate")
+    @patch("src.server_core.get_client")
     async def test_list_universes(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListEntry, ListOutput
         from src.server import list_universes
@@ -4897,7 +4897,7 @@ class TestListUniverses:
 
 class TestListLibrary:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fixture_library(self, mock_get_client):
         from src.server import list_library
         mock_client = MagicMock()
@@ -4909,7 +4909,7 @@ class TestListLibrary:
         assert data["risk_tier"] == "SAFE_READ"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_effect_library(self, mock_get_client):
         from src.server import list_library
         mock_client = MagicMock()
@@ -4920,7 +4920,7 @@ class TestListLibrary:
         assert data["command_sent"] == "listeffectlibrary"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_macro_library(self, mock_get_client):
         from src.server import list_library
         mock_client = MagicMock()
@@ -4945,9 +4945,9 @@ class TestListLibrary:
 
 class TestBrowsePatchSchedule:
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.list_destination")
+    @patch("src.tools_professional.navigate")
+    @patch("src.server_core.get_client")
     async def test_browse_all(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListEntry, ListOutput
         from src.server import browse_patch_schedule
@@ -4972,9 +4972,9 @@ class TestBrowsePatchSchedule:
         assert len(data["commands_sent"]) == 5
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.list_destination")
+    @patch("src.tools_professional.navigate")
+    @patch("src.server_core.get_client")
     async def test_browse_specific_type(self, mock_get_client, mock_navigate, mock_list_dest):
         from src.prompt_parser import ListOutput
         from src.server import browse_patch_schedule
@@ -5006,7 +5006,7 @@ class TestPatchFixture:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_patch_confirmed(self, mock_get_client):
         from src.server import patch_fixture
         mock_client = MagicMock()
@@ -5023,7 +5023,7 @@ class TestPatchFixture:
         assert "dmx" in data["commands_sent"][0].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_patch_with_fixture_type(self, mock_get_client):
         from src.server import patch_fixture
         mock_client = MagicMock()
@@ -5047,7 +5047,7 @@ class TestUnpatchFixture:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_unpatch_confirmed(self, mock_get_client):
         from src.server import unpatch_fixture
         mock_client = MagicMock()
@@ -5071,8 +5071,8 @@ class TestSetFixtureTypeProperty:
         assert data["risk_tier"] == "DESTRUCTIVE"
 
     @pytest.mark.asyncio
-    @patch("src.server.set_property", new_callable=AsyncMock)
-    @patch("src.server.get_client")
+    @patch("src.tools_professional.set_property", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
     async def test_confirmed(self, mock_get_client, mock_set_prop):
         from src.navigation import SetPropertyResult
         from src.server import set_fixture_type_property
@@ -5101,7 +5101,7 @@ class TestStoreNewPresetScopeFlags:
     """Tests for universal/selective/global_scope flags on store_new_preset."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_universal_color_preset(self, mock_get_client):
         from src.server import store_new_preset
 
@@ -5121,7 +5121,7 @@ class TestStoreNewPresetScopeFlags:
         assert data["command_sent"].startswith("store preset 4.6")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_selective_preset(self, mock_get_client):
         from src.server import store_new_preset
 
@@ -5139,7 +5139,7 @@ class TestStoreNewPresetScopeFlags:
         assert "/selective" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_store_global_scope_preset(self, mock_get_client):
         from src.server import store_new_preset
 
@@ -5177,9 +5177,9 @@ class TestListPresetPoolTool:
     )
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.list_destination", new_callable=AsyncMock)
-    @patch("src.server.navigate", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
+    @patch("src.tools_professional.list_destination", new_callable=AsyncMock)
+    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
     async def test_overview_no_args(self, mock_navigate, mock_list_dest, mock_get_client):
         from src.server import list_preset_pool
 
@@ -5199,9 +5199,9 @@ class TestListPresetPoolTool:
         assert "Global PresetPool" in data["description"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.list_destination", new_callable=AsyncMock)
-    @patch("src.server.navigate", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
+    @patch("src.tools_professional.list_destination", new_callable=AsyncMock)
+    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
     async def test_color_pool_by_name(self, mock_navigate, mock_list_dest, mock_get_client):
         from src.server import list_preset_pool
 
@@ -5220,9 +5220,9 @@ class TestListPresetPoolTool:
         assert data["cd_path"] == "17.1.4"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.list_destination", new_callable=AsyncMock)
-    @patch("src.server.navigate", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
+    @patch("src.tools_professional.list_destination", new_callable=AsyncMock)
+    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
     async def test_color_pool_by_number(self, mock_navigate, mock_list_dest, mock_get_client):
         from src.server import list_preset_pool
 
@@ -5240,7 +5240,7 @@ class TestListPresetPoolTool:
         assert data["pool_index"] == 4
 
     @pytest.mark.asyncio
-    @patch("src.server.navigate", new_callable=AsyncMock)
+    @patch("src.tools_professional.navigate", new_callable=AsyncMock)
     async def test_unknown_preset_type_returns_error(self, mock_navigate):
         from src.server import list_preset_pool
 
@@ -5326,7 +5326,7 @@ class TestManageMAtricksRefactored:
         assert "Unknown action" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_no_confirm_destructive_needed(self, mock_get_client):
         """manage_matricks no longer requires confirm_destructive (SAFE_WRITE)."""
         from src.server import manage_matricks
@@ -5435,7 +5435,7 @@ class TestCreateMAtricksLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server_core._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server.navigate", new_callable=AsyncMock)
     @patch("src.server.get_client")
     async def test_creates_with_embedded_colors(self, mock_get_client, mock_navigate, mock_check, mock_write):
@@ -5602,7 +5602,7 @@ class TestStoreWorldTool:
         assert result["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_store_command(self, mock_get_client):
         from src.server import store_world
         client = MagicMock()
@@ -5613,7 +5613,7 @@ class TestStoreWorldTool:
         assert "store world 5" in result["commands_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_overwrite_flag(self, mock_get_client):
         from src.server import store_world
         client = MagicMock()
@@ -5624,7 +5624,7 @@ class TestStoreWorldTool:
         assert "store world 3 /overwrite" in result["commands_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_with_name_sends_two_commands(self, mock_get_client):
         from src.server import store_world
         client = MagicMock()
@@ -5645,7 +5645,7 @@ class TestLabelWorldTool:
         assert result["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_label_command(self, mock_get_client):
         from src.server import label_world
         client = MagicMock()
@@ -5667,7 +5667,7 @@ class TestStoreAgendaTool:
         assert result["blocked"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_sends_store_command(self, mock_get_client):
         from src.server import store_agenda
         client = MagicMock()
@@ -5678,7 +5678,7 @@ class TestStoreAgendaTool:
         assert "store agenda 1" in result["commands_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_with_name_sends_two_commands(self, mock_get_client):
         from src.server import store_agenda
         client = MagicMock()

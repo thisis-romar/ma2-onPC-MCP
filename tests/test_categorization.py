@@ -46,7 +46,8 @@ from src.categorization.taxonomy import (
 # Path to the real server.py and split-out community tools
 SERVER_PATH = Path(__file__).resolve().parent.parent / "src" / "server.py"
 COMMUNITY_TOOLS_PATH = Path(__file__).resolve().parent.parent / "src" / "tools_community.py"
-_EXTRA_PATHS = [COMMUNITY_TOOLS_PATH]
+PROFESSIONAL_TOOLS_PATH = Path(__file__).resolve().parent.parent / "src" / "tools_professional.py"
+_EXTRA_PATHS = [COMMUNITY_TOOLS_PATH, PROFESSIONAL_TOOLS_PATH]
 
 
 # ===========================================================================
