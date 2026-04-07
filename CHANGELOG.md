@@ -1,9 +1,9 @@
 ---
 title: Changelog
 description: All notable changes to GrandPA2-Buddy, organized by version
-version: 4.0.0
+version: 5.0.0
 created: 2026-04-06T15:55:55Z
-last_updated: 2026-04-06T22:30:00Z
+last_updated: 2026-04-07T01:34:22Z
 ---
 
 # Changelog
@@ -19,6 +19,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Table of Contents
 
+- [3.35.3](#3353--2026-04-07) — CLA file, version sync, CHANGELOG commit-SHA links, stale count fixes
 - [3.35.2](#3352--2026-04-06) — resume_agent_run tool, DomainPlanner 13 intents
 - [3.35.1](#3351--2026-04-06) — README gap fixes (env var table, agent docs, module table)
 - [3.35.0](#3350--2026-04-06) — P0-P1 security hardening (history purge, LICENSE sync)
@@ -52,6 +53,21 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - [2.2.0](#220--2026-03-17) — ML categorization, safety gates
 - [2.1.0](#210--2026-03-16) — PresetType/Feature tools
 - [2.0.0](#200--2026-03-15) — First commit (tool 78)
+
+---
+
+## [3.35.3] — 2026-04-07
+
+### Added
+- CLA.md (Contributor License Agreement) — required before accepting external contributions
+- CHANGELOG Table of Contents with one-line descriptions per version
+- CHANGELOG compare links using commit SHAs (replaces broken tag-based URLs)
+
+### Fixed
+- Version sync: pyproject.toml, src/__init__.py, LICENSE, README badge all at 3.35.3
+- README: 197→198 tools in 2 prose locations, 163→164 in 4 locations
+- pyproject.toml description: 197→198 MCP tools
+- test_rights.py: rename `test_all_197_tools_mapped` → `test_all_198_tools_mapped`
 
 ---
 
