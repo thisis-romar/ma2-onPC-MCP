@@ -11,13 +11,10 @@ Usage:
     uv run python -m src.server
 """
 
-import asyncio
-import functools
 import json
 import logging
 import os
 import re
-import sys
 import time
 from datetime import UTC
 from pathlib import Path
@@ -27,471 +24,6 @@ from mcp.server.fastmcp import FastMCP
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, has_scope, require_scope
-from src.commands import (
-    SPECIAL_MASTER_NAMES,
-    attribute_at,
-    build_assign_world_to_user_profile,
-    build_delete_user,
-    build_list_users,
-    build_store_user,
-    call,
-    channel_at,
-    fixture_at,
-    go_macro,
-    go_sequence,
-    goto_cue,
-    group_at,
-    label_group,
-    pause_sequence,
-    select_fixture,
-    store_group,
-)
-from src.commands import (
-    add_to_selection as build_add_to_selection,
-)
-from src.commands import (
-    add_user_var as build_add_user_var,
-)
-from src.commands import (
-    add_var as build_add_var,
-)
-from src.commands import (
-    align as build_align,
-)
-from src.commands import (
-    appearance as build_appearance,
-)
-from src.commands import (
-    # assign_object
-    assign as build_assign,
-)
-from src.commands import (
-    assign_delay as build_assign_delay,
-)
-from src.commands import (
-    assign_effect_to_executor as build_assign_effect_to_executor,
-)
-from src.commands import (
-    assign_fade as build_assign_fade,
-)
-from src.commands import (
-    assign_function as build_assign_function,
-)
-from src.commands import (
-    assign_to_layout as build_assign_to_layout,
-)
-from src.commands import (
-    at_relative as build_at_relative,
-)
-from src.commands import (
-    blackout as build_blackout,
-)
-from src.commands import (
-    blind_edit as build_blind_edit,
-)
-from src.commands import (
-    block as build_block,
-)
-from src.commands import (
-    build_login as build_console_login,
-)
-from src.commands import (
-    build_logout as build_console_logout,
-)
-from src.commands import (
-    call_plugin as build_call_plugin,
-)
-from src.commands import (
-    chaser_rate as build_chaser_rate,
-)
-from src.commands import (
-    chaser_skip as build_chaser_skip,
-)
-from src.commands import (
-    chaser_speed as build_chaser_speed,
-)
-from src.commands import (
-    chaser_xfade as build_chaser_xfade,
-)
-from src.commands import (
-    clear as build_clear,
-)
-from src.commands import (
-    clear_active as build_clear_active,
-)
-from src.commands import (
-    clear_all as build_clear_all,
-)
-from src.commands import (
-    clear_selection as build_clear_selection,
-)
-from src.commands import (
-    clone as build_clone,
-)
-from src.commands import (
-    copy as build_copy,
-)
-from src.commands import (
-    cut as build_cut,
-)
-from src.commands import (
-    def_go_back as build_def_go_back,
-)
-from src.commands import (
-    def_go_forward as build_def_go_forward,
-)
-from src.commands import (
-    def_go_pause as build_def_go_pause,
-)
-from src.commands import (
-    delete as build_delete,
-)
-from src.commands import (
-    delete_cue as build_delete_cue,
-)
-from src.commands import (
-    delete_fixture as build_delete_fixture,
-)
-from src.commands import (
-    delete_show as build_delete_show,
-)
-from src.commands import (
-    # edit_object
-    edit as build_edit,
-)
-from src.commands import (
-    executor_at as build_executor_at,
-)
-from src.commands import (
-    export_object as build_export_object,
-)
-from src.commands import (
-    fade_path as build_fade_path,
-)
-from src.commands import (
-    fix_fixture as build_fix_fixture,
-)
-from src.commands import (
-    flash_executor as build_flash_executor,
-)
-from src.commands import (
-    flash_go as build_flash_go,
-)
-from src.commands import (
-    flash_on as build_flash_on,
-)
-from src.commands import (
-    full_highlight as build_full_highlight,
-)
-from src.commands import (
-    get_user_var as build_get_user_var,
-)
-from src.commands import (
-    # playback_action
-    go as build_go,
-)
-from src.commands import (
-    go_back as build_go_back,
-)
-from src.commands import (
-    go_fast_back as build_go_fast_back,
-)
-from src.commands import (
-    go_fast_forward as build_go_fast_forward,
-)
-from src.commands import (
-    goto as build_goto,
-)
-from src.commands import (
-    goto_timecode as build_goto_timecode,
-)
-from src.commands import (
-    highlight as build_highlight,
-)
-from src.commands import (
-    if_active as build_if_active,
-)
-from src.commands import (
-    if_output as build_if_output,
-)
-from src.commands import (
-    if_prog as build_if_prog,
-)
-from src.commands import (
-    import_fixture_type_cmd as build_import_fixture_type_cmd,
-)
-from src.commands import (
-    import_layer_cmd as build_import_layer_cmd,
-)
-from src.commands import (
-    import_object as build_import_object,
-)
-from src.commands import (
-    info as build_info,
-)
-from src.commands import (
-    invert as build_invert,
-)
-from src.commands import (
-    label as build_label,
-)
-from src.commands import (
-    # label_or_appearance
-    label_preset as build_label_preset,
-)
-from src.commands import (
-    list_attribute as build_list_attribute,
-)
-from src.commands import (
-    list_cue as build_list_cue,
-)
-from src.commands import (
-    list_effect_library as build_list_effect_library,
-)
-from src.commands import (
-    list_fader_modules as build_list_fader_modules,
-)
-from src.commands import (
-    list_group as build_list_group,
-)
-from src.commands import (
-    list_library as build_list_library,
-)
-from src.commands import (
-    list_macro_library as build_list_macro_library,
-)
-from src.commands import (
-    list_messages as build_list_messages,
-)
-from src.commands import (
-    # query_object_list
-    list_objects as build_list_objects,
-)
-from src.commands import (
-    list_oops as build_list_oops,
-)
-from src.commands import (
-    list_plugin_library as build_list_plugin_library,
-)
-from src.commands import (
-    list_preset as build_list_preset,
-)
-from src.commands import (
-    list_shows as build_list_shows,
-)
-from src.commands import (
-    list_update as build_list_update,
-)
-from src.commands import (
-    list_user_var as build_list_user_var,
-)
-from src.commands import (
-    list_var as build_list_var,
-)
-from src.commands import (
-    load_next as build_load_next,
-)
-from src.commands import (
-    load_prev as build_load_prev,
-)
-from src.commands import (
-    load_show as build_load_show,
-)
-from src.commands import (
-    locate as build_locate,
-)
-from src.commands import (
-    lock_console as build_lock_console,
-)
-from src.commands import (
-    manual_xfade as build_manual_xfade,
-)
-from src.commands import (
-    move as build_move,
-)
-from src.commands import (
-    new_show as build_new_show,
-)
-from src.commands import (
-    off_executor as build_off_executor,
-)
-from src.commands import (
-    on_executor as build_on_executor,
-)
-from src.commands import (
-    out_delay as build_out_delay,
-)
-from src.commands import (
-    out_fade as build_out_fade,
-)
-from src.commands import (
-    page_next as build_page_next,
-)
-from src.commands import (
-    page_previous as build_page_previous,
-)
-from src.commands import (
-    park as build_park,
-)
-from src.commands import (
-    paste as build_paste,
-)
-from src.commands import (
-    preview as build_preview,
-)
-from src.commands import (
-    preview_edit as build_preview_edit,
-)
-from src.commands import (
-    preview_executor as build_preview_executor,
-)
-from src.commands import (
-    psr as build_psr,
-)
-from src.commands import (
-    psr_list as build_psr_list,
-)
-from src.commands import (
-    psr_prepare as build_psr_prepare,
-)
-from src.commands import (
-    rdm_automatch as build_rdm_automatch,
-)
-from src.commands import (
-    rdm_autopatch as build_rdm_autopatch,
-)
-from src.commands import (
-    rdm_info as build_rdm_info,
-)
-from src.commands import (
-    rdm_list as build_rdm_list,
-)
-from src.commands import (
-    rdm_setpatch as build_rdm_setpatch,
-)
-from src.commands import (
-    rdm_unmatch as build_rdm_unmatch,
-)
-from src.commands import (
-    release_effects_on_page as build_release_effects_on_page,
-)
-from src.commands import (
-    release_executor as build_release_executor,
-)
-from src.commands import (
-    reload_plugins as build_reload_plugins,
-)
-from src.commands import (
-    # remove_content
-    remove as build_remove,
-)
-from src.commands import (
-    remove_effect as build_remove_effect,
-)
-from src.commands import (
-    remove_fixture as build_remove_fixture,
-)
-from src.commands import (
-    remove_from_selection as build_remove_from_selection,
-)
-from src.commands import (
-    remove_preset_type as build_remove_preset_type,
-)
-from src.commands import (
-    remove_selection as build_remove_selection,
-)
-from src.commands import (
-    run_lua as build_run_lua,
-)
-from src.commands import (
-    set_effect_parameter as build_set_effect_parameter,
-)
-from src.commands import (
-    set_effect_rate as build_set_effect_rate,
-)
-from src.commands import (
-    set_effect_speed as build_set_effect_speed,
-)
-from src.commands import (
-    set_special_master as build_set_special_master,
-)
-from src.commands import (
-    set_user_var as build_set_user_var,
-)
-from src.commands import (
-    # manage_variable
-    set_var as build_set_var,
-)
-from src.commands import (
-    shuffle_selection as build_shuffle_selection,
-)
-from src.commands import (
-    shuffle_values as build_shuffle_values,
-)
-from src.commands import (
-    snap_percent as build_snap_percent,
-)
-from src.commands import (
-    solo_executor as build_solo_executor,
-)
-from src.commands import (
-    step_fade as build_step_fade,
-)
-from src.commands import (
-    step_in_fade as build_step_in_fade,
-)
-from src.commands import (
-    step_out_fade as build_step_out_fade,
-)
-from src.commands import (
-    stomp_executor as build_stomp_executor,
-)
-from src.commands import (
-    # store_object
-    store as build_store_generic,
-)
-from src.commands import (
-    store_cue as build_store_cue,
-)
-from src.commands import (
-    store_cue_timed as build_store_cue_timed,
-)
-from src.commands import (
-    store_preset as build_store_preset,
-)
-from src.commands import (
-    swop_executor as build_swop_executor,
-)
-from src.commands import (
-    swop_go as build_swop_go,
-)
-from src.commands import (
-    swop_on as build_swop_on,
-)
-from src.commands import (
-    temp_fader as build_temp_fader,
-)
-from src.commands import (
-    top_executor as build_top_executor,
-)
-from src.commands import (
-    unblock as build_unblock,
-)
-from src.commands import (
-    unlock_console as build_unlock_console,
-)
-from src.commands import (
-    unpark as build_unpark,
-)
-from src.commands import (
-    update_cue as build_update_cue,
-)
-from src.commands import (
-    zero_page_faders as build_zero_page_faders,
-)
-from src.context import _current_session_id
-from src.credentials import get_operator_identity, resolve_console_credentials
-from src.license import get_license_tier, has_tier
 from src.license_tiers import TOOL_LICENSE_TIERS
 from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
 from src.orchestrator import Orchestrator
@@ -513,10 +45,6 @@ from src.server_core import (
     mcp,
 )
 from src.server_orchestration_tools import register_orchestration_tools
-from src.session_manager import SessionManager
-from src.telemetry import ToolTelemetry, infer_risk_tier
-from src.telnet_client import GMA2TelnetClient
-from src.tools import set_gma2_client
 from src.vocab import RiskTier, build_v39_spec, classify_token
 
 # Load environment variables
@@ -735,124 +263,8 @@ _GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
 # _SEQ_FOR_EXECUTOR_RE) are now in src/server_core.py — imported above.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ============================================================
-# Codebase Search (RAG)
-
-
 # ============================================================
 # New Tools (Tools 30–44)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ============================================================
-# New Tools (Tools 45–52) — Quick Start Guide Gap-Fill
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ============================================================
@@ -860,34 +272,6 @@ _GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
 # ============================================================
 
 # Valid export types (live-validated on MA2 3.9.60.65)
-_EXPORT_TYPES = {
-    "group", "preset", "macro", "effect", "sequence", "view", "page",
-    "camera", "layout", "form", "plugin", "matricks", "mask", "image",
-    "executor", "timecode", "userprofile", "channel", "screen", "filter",
-}
-
-# Valid import types (screen excluded — Error #16 RESIZE FORBIDDEN on import)
-_IMPORT_TYPES = {
-    "group", "preset", "macro", "effect", "sequence", "view", "page",
-    "camera", "layout", "form", "plugin", "matricks", "mask", "image",
-    "executor", "timecode", "userprofile", "filter",
-}
-
-# Type-specific subfolders (informational — MA2 routes automatically)
-# macros/ | effects/ | plugins/ | matricks/ | masks/ | importexport/ (default)
-_IMPORT_EXPORT_DATA_ROOT = (
-    r"C:\ProgramData\MA Lighting Technologies\grandma\gma2_V_3.9.60\importexport"
-)
-
-
-
-
-
-
-# ============================================================
-# Tools 74–76 — Fixture Type / Layer Import + XML Generation
-
-
 
 
 
@@ -896,78 +280,13 @@ _IMPORT_EXPORT_DATA_ROOT = (
 # Tools 55–56 — Fixture & Sequence/Cue Discovery (SAFE_READ)
 
 
-
-
-
-
-
-
-
-
-# ============================================================
-# Tools 70–73: Tier 3 — Fixture Patching Workflow
-
-
-
-
-
-
-
-
 # ============================================================
 # Wildcard Name Discovery
-
-
-
-
-# ============================================================
-# Server Startup
-# ============================================================
-
-
-# ============================================================
-# Tools 83–86 — ML-Based Tool Categorization
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ============================================================================
 # USER MANAGEMENT TOOLS (Tools 98-100)
 # Require OAuth scope gma2:user:manage (Tier 5 — Admin only)
-
-
-
-
-
-
-
-
-# ============================================================
-# Tools 102–109: Quick-wins sprint
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ============================================================
@@ -989,7 +308,6 @@ register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, 
 from src.completions import register_completions  # noqa: E402
 
 register_completions(mcp)
-
 
 
 # ============================================================
@@ -1692,78 +1010,12 @@ Steps:
 Return a summary of: accounts created, accounts skipped (already existed), any errors."""
 
 
-
-
-# ============================================================
-# Wave 1 — Console Session & UI Lock
-
-
-
-
-
-
-
-
 # ============================================================
 # Wave 2 — Read-only list tools (pool discovery)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ============================================================
-# Wave 3 — Chaser live control & Effect programmer parameters
-
-
-
-
 # ============================================================
 # Wave 4 — Plugin / Lua / Special Master
-
-
-
-
-
-
-
-
-# ============================================================
-# Wave 5 — RDM (Remote Device Management)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ============================================================
@@ -2013,19 +1265,7 @@ At every DESTRUCTIVE phase: present what will change and ask "Proceed? (yes/no)"
 
 
 # ============================================================
-# Agent Harness
-
-
-
-
-
-
-
-
-# ============================================================
 # PSR — Partial Show Read Tools, Resource, and Prompt
-
-
 
 
 def psr_guide() -> str:
@@ -2094,7 +1334,6 @@ World, Plugin, Timer.
 - FILE NOT FOUND: Verify source_show name matches exactly (case-sensitive on some builds).
 - FIXTURE ID MISMATCH: Source fixture IDs do not exist in current show patch.
 """
-
 
 
 @mcp.prompt()
@@ -2177,39 +1416,11 @@ For each imported object type:
 """
 
 
-# ============================================================
-# P4 — Selection Filter Tool
-# ============================================================
-
-_FIXTURE_FILTER_MAP = {
-    "active": build_if_active,
-    "output": build_if_output,
-    "programmer": build_if_prog,
-}
 
 
 
 
-# ============================================================
-# P7 — Advanced Timing Tool
-# ============================================================
 
-_VALID_TIMING_ACTIONS = frozenset({
-    "fade_path", "out_fade", "out_delay",
-    "step_fade", "step_in_fade", "step_out_fade",
-    "snap_percent",
-})
-
-
-
-
-# ============================================================
-# P8 — Preview Mode Tool
-
-
-# ============================================================
-# P5 — Reference Resources (Effects, Timecode, Macro)
-# ============================================================
 
 
 @mcp.resource("ma2://docs/effects-reference")
@@ -2505,10 +1716,6 @@ immediately — the Telnet session may need to reconnect on the new IP.
 - All stations must run compatible grandMA2 software versions
 """
 
-
-# ============================================================
-# P6 — Prompts (program_effect, build_timecode_show)
-# ============================================================
 
 
 @mcp.prompt()

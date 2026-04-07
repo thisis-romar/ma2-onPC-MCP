@@ -31,6 +31,9 @@ def _count_mcp_tools() -> int:
     """Count @mcp.tool() decorators across server files."""
     total = 0
     for p in (REPO_ROOT / "src" / "server.py",
+              REPO_ROOT / "src" / "tools_community.py",
+              REPO_ROOT / "src" / "tools_professional.py",
+              REPO_ROOT / "src" / "tools_enterprise.py",
               REPO_ROOT / "src" / "server_orchestration_tools.py"):
         total += p.read_text().count("@mcp.tool()")
     return total

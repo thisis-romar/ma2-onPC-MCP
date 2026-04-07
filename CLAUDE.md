@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.14.0
+version: 4.15.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-07T15:14:23Z
+last_updated: 2026-04-07T20:44:13Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **198 tools**, **18 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
+MCP server exposing **198 tools**, **17 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,8 +22,12 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server — 163 tools + 18 MCP resources + 13 MCP prompts, safety gate |
-| `src/server_orchestration_tools.py` | Registers 34 agentic tools onto FastMCP |
+| `src/server.py` | FastMCP server startup — 17 MCP resources + 13 MCP prompts, orchestrator wiring, re-exports |
+| `src/server_core.py` | Shared infrastructure — `mcp` instance, `get_client()`, `_handle_errors`, pool helpers |
+| `src/tools_community.py` | 20 COMMUNITY tools (free tier, public repo) |
+| `src/tools_professional.py` | 124 PROFESSIONAL tools (paid tier, private submodule) |
+| `src/tools_enterprise.py` | 20 ENTERPRISE tools (premium tier, private submodule) |
+| `src/server_orchestration_tools.py` | 34 ENTERPRISE agentic tools (private submodule) |
 | `src/telnet_client.py` | Async Telnet (telnetlib3), auth, send/receive, injection prevention |
 | `src/session_manager.py` | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | `src/credentials.py` | OAuth tier → console user credential resolver |
