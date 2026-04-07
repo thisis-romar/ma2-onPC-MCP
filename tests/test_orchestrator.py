@@ -520,8 +520,8 @@ class TestSnapshotWiring:
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
     @patch("src.server._orchestrator")
-    @patch("src.server_core._check_pool_slots", new_callable=AsyncMock)
-    @patch("src.server_core.get_client")
+    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server.get_client")
     async def test_create_filter_library_updates_vte(
         self, mock_get_client, mock_check, mock_orch, mock_write
     ):
@@ -543,8 +543,8 @@ class TestSnapshotWiring:
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
     @patch("src.server._orchestrator")
-    @patch("src.server_core._check_pool_slots", new_callable=AsyncMock)
-    @patch("src.server_core.get_client")
+    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server.get_client")
     async def test_create_filter_library_no_snapshot_ok(
         self, mock_get_client, mock_check, mock_orch, mock_write
     ):

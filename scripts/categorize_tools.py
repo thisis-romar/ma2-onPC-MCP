@@ -67,9 +67,12 @@ def run(
 
     server_file = Path(server_path) if server_path else _ROOT / "src" / "server.py"
     if extra_paths is None:
-        # Auto-discover tools_community.py alongside server.py
-        community = server_file.parent / "tools_community.py"
-        extra_paths = [str(community)] if community.exists() else []
+        # Auto-discover split tool modules alongside server.py
+        extra_paths = []
+        for name in ("tools_community.py", "tools_professional.py"):
+            path = server_file.parent / name
+            if path.exists():
+                extra_paths.append(str(path))
     out_path = Path(output) if output else DEFAULT_TAXONOMY_PATH
 
     # --- Step 1: Extract features ---
