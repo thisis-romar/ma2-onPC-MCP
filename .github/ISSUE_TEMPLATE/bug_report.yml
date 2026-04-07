@@ -1,0 +1,53 @@
+name: Bug report
+description: Something isn't working (include console context + safety scope)
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: dropdown
+    id: safety_scope
+    attributes:
+      label: Safety scope
+      description: What category of impact could this bug have?
+      options:
+        - SAFE_READ
+        - SAFE_WRITE
+        - DESTRUCTIVE
+    validations:
+      required: true
+  - type: input
+    id: tool_name
+    attributes:
+      label: MCP tool name
+      description: Which tool triggered the issue? (e.g. store_cue, list_groups)
+      placeholder: tool_name
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened?
+      description: Include MCP tool parameters + error output if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: input
+    id: ma2_version
+    attributes:
+      label: MA2 software version
+      placeholder: "3.9.60.65"
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - onPC (Windows)
+        - Physical console
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: "1. Connect to console\n2. Call tool X with params Y\n3. Observe error Z"

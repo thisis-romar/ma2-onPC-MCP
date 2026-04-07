@@ -1,0 +1,173 @@
+name: OpenRouter Triage
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: read
+  issues: write  # needed to comment on issues
+
+jobs:
+  openrouter-triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm init -y && npm install axios
+
+      - name: Run OpenRouter triage
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_CHAT_MODEL: ${{ secrets.OPENROUTER_CHAT_MODEL || 'nvidia/llama-3.1-nemotron-70b-instruct:free' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node -e "
+            const axios = require('axios');
+            const fs = require('fs');
+            (async () => {
+            
+            // Get event data
+            const eventName = process.env.GITHUB_EVENT_NAME;
+            const eventPath = process.env.GITHUB_EVENT_PATH;
+            const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+            
+            let issueNumber, issueTitle, issueBody, senderLogin;
+            
+            if (eventName === 'issues' && (event.action === 'opened' || event.action === 'labeled')) {
+              issueNumber = event.issue.number;
+              issueTitle = event.issue.title;
+              issueBody = event.issue.body || '';
+              senderLogin = event.sender.login;
+            } else if (eventName === 'issue_comment' && event.action === 'created') {
+              issueNumber = event.issue.number;
+              issueTitle = event.issue.title;
+              issueBody = event.issue.body || '';
+              senderLogin = event.sender.login;
+              
+              // Only respond if comment contains trigger phrase
+              const triggerPhrase = '@openrouter';
+              if (!event.comment.body.includes(triggerPhrase)) {
+                console.log('No trigger phrase found, exiting');
+                process.exit(0);
+              }
+              
+              // Remove trigger phrase from body for processing
+              issueBody = event.comment.body.replace(triggerPhrase, '').trim();
+            } else {
+              console.log('Unsupported event:', eventName);
+              process.exit(0);
+            }
+            
+            console.log(`Processing issue #${issueNumber}: ${issueTitle}`);
+            
+            // Prepare prompt for OpenRouter
+            const prompt = \`You are a planning agent for the ma2-onPC-MCP repository.
+            Analyze the following issue and produce a structured plan.
+
+            Issue #\${issueNumber}: \${issueTitle}
+            \${issueBody}
+
+            Produce your response in this exact format:
+
+            **Problem Restatement**
+            [Clear, concise restatement of the issue/problem]
+
+            **Proposed Approach**
+            [High-level approach to solve this issue]
+
+            **File-Level Changes**
+            - List of specific files that would need to be modified
+            - Use format: \`path/to/file.js\` - brief description
+
+            **Tests to Add/Run**
+            - List of tests that should be added or run
+            - Include both unit and integration test considerations
+
+            **Risk & Safety Notes**
+            - Safety classification: SAFE_READ / SAFE_WRITE / DESTRUCTIVE
+            - Any risks to tool dispatch, Telnet command building, auth/scope enforcement
+            - Confirmation requirements for DESTRUCTIVE operations
+
+            Follow repository policies from CLAUDE.md and CONTRIBUTING.md.
+            Keep responses concise and actionable.\`;
+
+            // Call OpenRouter API
+            try {
+              const response = await axios.post(
+                'https://openrouter.ai/api/v1/chat/completions',
+                {
+                  model: process.env.OPENROUTER_CHAT_MODEL,
+                  messages: [
+                    {
+                      role: 'system',
+                      content: 'You are a helpful AI assistant that specializes in software development planning and analysis for the ma2-onpc-mcp repository.'
+                    },
+                    {
+                      role: 'user',
+                      content: prompt
+                    }
+                  ],
+                  temperature: 0.7,
+                  max_tokens: 2000
+                },
+                {
+                  headers: {
+                    'Authorization': \`Bearer \${process.env.OPENROUTER_API_KEY}\`,
+                    'HTTP-Referer': 'https://github.com/thisis-romar/ma2-onPC-mcp',
+                    'X-Title': 'ma2-onpc-mcp OpenRouter Triage'
+                  }
+                }
+              );
+
+              const plan = response.data.choices[0].message.content;
+              
+              // Post comment back to issue
+              const commentBody = \`## 🤖 OpenRouter Triage Plan\n\n\${plan}\n\n---\n*This plan was generated automatically using OpenRouter's \${process.env.OPENROUTER_CHAT_MODEL} model.*\`;
+              
+              await axios.post(
+                \`https://api.github.com/repos/\${process.env.GITHUB_REPOSITORY}/issues/\${issueNumber}/comments\`,
+                {
+                  body: commentBody
+                },
+                {
+                  headers: {
+                    'Authorization': \`token \${process.env.GITHUB_TOKEN}\`,
+                    'Accept': 'application/vnd.github.v3+json'
+                  }
+                }
+              );
+              
+              console.log('Successfully posted triage comment');
+            } catch (error) {
+              console.error('Error calling OpenRouter API:', error.response?.data || error.message);
+              // Still post an error comment so user knows something went wrong
+              try {
+                await axios.post(
+                  \`https://api.github.com/repos/\${process.env.GITHUB_REPOSITORY}/issues/\${issueNumber}/comments\`,
+                  {
+                    body: '## ❌ OpenRouter Triage Failed\n\nUnable to generate plan due to API error. Please check that OPENROUTER_API_KEY and OPENROUTER_CHAT_MODEL are configured correctly in repository secrets.'
+                  },
+                  {
+                    headers: {
+                      'Authorization': \`token \${process.env.GITHUB_TOKEN}\`,
+                      'Accept': 'application/vnd.github.v3+json'
+                    }
+                  }
+                );
+              } catch (commentError) {
+                console.error('Failed to post error comment:', commentError.message);
+              }
+              process.exit(1);
+            }
+            })().catch(e => { console.error(e); process.exit(1); });
+          "

@@ -2862,10 +2862,14 @@ async def search_codebase(
         }, indent=2)
 
     provider = None
-    token = os.getenv("GITHUB_MODELS_TOKEN") or os.getenv("GITHUB_TOKEN")
-    if token:
+    github_token = os.getenv("GITHUB_MODELS_TOKEN") or os.getenv("GITHUB_TOKEN")
+    openrouter_token = os.getenv("OPENROUTER_API_KEY")
+    if github_token:
         from rag.ingest.embed import GitHubModelsProvider
-        provider = GitHubModelsProvider(token=token)
+        provider = GitHubModelsProvider(token=github_token)
+    elif openrouter_token:
+        from rag.ingest.embed import OpenRouterProvider
+        provider = OpenRouterProvider(token=openrouter_token)
 
     want = min(top_k, 20)
     # When a kind filter is requested, over-fetch 10× so we have enough candidates

@@ -24,6 +24,7 @@ from rag.config import RAG_DB_PATH
 from rag.ingest.embed import (
     EmbeddingProvider,
     GitHubModelsProvider,
+    OpenRouterProvider,
     ZeroVectorProvider,
 )
 from rag.ingest.index import ingest
@@ -37,21 +38,37 @@ def make_provider(
     batch_size: int = 32,
 ) -> EmbeddingProvider:
     """Build an embedding provider from --provider flag and env vars."""
-    token = os.environ.get("GITHUB_MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN")
-    model = os.environ.get("RAG_EMBED_MODEL", "openai/text-embedding-3-small")
-    dimensions = int(os.environ.get("RAG_EMBED_DIMENSIONS", "1536"))
+    github_token = os.environ.get("GITHUB_MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    openrouter_token = os.environ.get("OPENROUTER_API_KEY")
+    model = os.environ.get("RAG_EMBED_MODEL")
+    dimensions_str = os.environ.get("RAG_EMBED_DIMENSIONS")
 
     if choice == "github":
-        if not token:
+        if not github_token:
             print(
                 "Error: --provider github requires GITHUB_MODELS_TOKEN or GITHUB_TOKEN env var.",
                 file=sys.stderr,
             )
             sys.exit(1)
         return GitHubModelsProvider(
-            token=token,
-            model=model,
-            dimensions=dimensions,
+            token=github_token,
+            model=model or "openai/text-embedding-3-small",
+            dimensions=int(dimensions_str) if dimensions_str else 1536,
+            batch_size=batch_size,
+            inter_request_delay=inter_request_delay,
+        )
+
+    if choice == "openrouter":
+        if not openrouter_token:
+            print(
+                "Error: --provider openrouter requires OPENROUTER_API_KEY env var.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        return OpenRouterProvider(
+            token=openrouter_token,
+            model=model or "nvidia/llama-nemotron-embed-vl-1b-v2:free",
+            dimensions=int(dimensions_str) if dimensions_str else 2048,
             batch_size=batch_size,
             inter_request_delay=inter_request_delay,
         )
@@ -59,13 +76,23 @@ def make_provider(
     if choice == "zero":
         return ZeroVectorProvider()
 
-    # Auto-detect: use GitHub Models if token is set, otherwise zero-vector
-    if token:
+    # Auto-detect: GitHub Models > OpenRouter > zero-vector
+    if github_token:
         logger.info("Auto-detected GITHUB_MODELS_TOKEN, using GitHub Models provider")
         return GitHubModelsProvider(
-            token=token,
-            model=model,
-            dimensions=dimensions,
+            token=github_token,
+            model=model or "openai/text-embedding-3-small",
+            dimensions=int(dimensions_str) if dimensions_str else 1536,
+            batch_size=batch_size,
+            inter_request_delay=inter_request_delay,
+        )
+
+    if openrouter_token:
+        logger.info("Auto-detected OPENROUTER_API_KEY, using OpenRouter provider")
+        return OpenRouterProvider(
+            token=openrouter_token,
+            model=model or "nvidia/llama-nemotron-embed-vl-1b-v2:free",
+            dimensions=int(dimensions_str) if dimensions_str else 2048,
             batch_size=batch_size,
             inter_request_delay=inter_request_delay,
         )
@@ -81,7 +108,7 @@ def main() -> None:
     parser.add_argument("--db", default=str(RAG_DB_PATH), help=f"SQLite database path (default: {RAG_DB_PATH})")
     parser.add_argument(
         "--provider",
-        choices=["github", "zero"],
+        choices=["github", "openrouter", "zero"],
         default=None,
         help="Embedding provider (default: auto-detect from env vars)",
     )
