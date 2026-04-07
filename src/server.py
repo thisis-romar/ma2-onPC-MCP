@@ -263,36 +263,6 @@ _GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
 # _SEQ_FOR_EXECUTOR_RE) are now in src/server_core.py — imported above.
 
 
-# ============================================================
-# New Tools (Tools 30–44)
-
-
-# ============================================================
-# Tools 53–54 — Import / Export
-# ============================================================
-
-# Valid export types (live-validated on MA2 3.9.60.65)
-
-
-
-
-# ============================================================
-# Tools 55–56 — Fixture & Sequence/Cue Discovery (SAFE_READ)
-
-
-# ============================================================
-# Wildcard Name Discovery
-
-
-# ============================================================================
-# USER MANAGEMENT TOOLS (Tools 98-100)
-# Require OAuth scope gma2:user:manage (Tier 5 — Admin only)
-
-
-# ============================================================
-# Agentic Layer — Orchestrator wiring
-# ============================================================
-
 _ltm = LongTermMemory()
 
 _orchestrator = Orchestrator(
@@ -1010,20 +980,6 @@ Steps:
 Return a summary of: accounts created, accounts skipped (already existed), any errors."""
 
 
-# ============================================================
-# Wave 2 — Read-only list tools (pool discovery)
-
-
-# ============================================================
-# Wave 4 — Plugin / Lua / Special Master
-
-
-# ============================================================
-# New Prompts: Volunteer Preflight, Busking Template,
-# Pre-Show Health Check, Adapt Show to Venue
-# ============================================================
-
-
 @mcp.prompt()
 def volunteer_sunday_preflight(show_name: str = "", campus_name: str = "") -> str:
     """
@@ -1264,10 +1220,6 @@ Call save_show(confirm_destructive=True).
 At every DESTRUCTIVE phase: present what will change and ask "Proceed? (yes/no)" before executing."""
 
 
-# ============================================================
-# PSR — Partial Show Read Tools, Resource, and Prompt
-
-
 def psr_guide() -> str:
     """PSR workflow guide — slot conflict resolution, fixture ID verification, post-import diff."""
     return """# grandMA2 Partial Show Read (PSR) Guide
@@ -1414,13 +1366,6 @@ For each imported object type:
 - Use dry_run=True for the first pass to assess conflicts before committing.
 - Oops (undo) is available immediately after PSR if the import produces unexpected results.
 """
-
-
-
-
-
-
-
 
 
 @mcp.resource("ma2://docs/effects-reference")
@@ -1717,7 +1662,6 @@ immediately — the Telnet session may need to reconnect on the new IP.
 """
 
 
-
 @mcp.prompt()
 def program_effect(
     fixture_group: str,
@@ -1870,10 +1814,6 @@ Starting SMPTE position: {smpte_start}
 - Oops is available if timecode events are stored incorrectly.
 """
 
-
-# ============================================================
-# Server Startup
-# ============================================================
 
 _VALID_TRANSPORTS = ("stdio", "sse", "streamable-http")
 
