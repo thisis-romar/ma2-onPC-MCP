@@ -344,8 +344,8 @@ class TestNavigationTreeCoverage:
     """Verify navigation tools generate correct cd commands for each branch."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.navigate")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.navigate")
     async def test_navigate_to_group(self, mock_navigate, mock_get_client):
         from src.server import navigate_console
 
@@ -357,8 +357,8 @@ class TestNavigationTreeCoverage:
         assert data["success"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.navigate")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.navigate")
     async def test_navigate_to_sequence(self, mock_navigate, mock_get_client):
         from src.server import navigate_console
 
@@ -370,8 +370,8 @@ class TestNavigationTreeCoverage:
         assert data["success"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.navigate")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.navigate")
     async def test_navigate_to_root(self, mock_navigate, mock_get_client):
         from src.server import navigate_console
 
@@ -383,8 +383,8 @@ class TestNavigationTreeCoverage:
         assert data["success"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
-    @patch("src.server.list_destination")
+    @patch("src.server_core.get_client")
+    @patch("src.tools_community.list_destination")
     async def test_list_at_destination(self, mock_list, mock_get_client):
         from src.server import list_console_destination
 
@@ -456,7 +456,7 @@ class TestQueryObjectListBranches:
     """Verify query_object_list generates correct list commands per type."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_groups(self, mock_get_client):
         from src.server import query_object_list
 
@@ -468,7 +468,7 @@ class TestQueryObjectListBranches:
         assert "group" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_cues(self, mock_get_client):
         from src.server import query_object_list
 
@@ -482,7 +482,7 @@ class TestQueryObjectListBranches:
         assert "cue" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_presets(self, mock_get_client):
         from src.server import query_object_list
 
@@ -496,7 +496,7 @@ class TestQueryObjectListBranches:
         assert "preset" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_attributes(self, mock_get_client):
         from src.server import query_object_list
 
@@ -508,7 +508,7 @@ class TestQueryObjectListBranches:
         assert "attribute" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_generic_type(self, mock_get_client):
         from src.server import query_object_list
 

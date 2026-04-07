@@ -646,7 +646,7 @@ class TestPlaybackActionMultiExecutor:
     """Tests for playback_action MCP tool with list[int] executor/object_id."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fast_forward_executor_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -659,7 +659,7 @@ class TestPlaybackActionMultiExecutor:
         assert data["command_sent"] == ">>> executor 1 + 2 + 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fast_back_executor_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -672,7 +672,7 @@ class TestPlaybackActionMultiExecutor:
         assert data["command_sent"] == "<<< executor 2 + 4"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_go_object_id_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -687,7 +687,7 @@ class TestPlaybackActionMultiExecutor:
         assert data["command_sent"] == "go executor 1 + 2 + 3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_go_back_object_id_list(self, mock_get_client):
         from src.server import playback_action
 
@@ -722,7 +722,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
     """Tests that def_go / def_go_back / def_pause read $SELECTEDEXEC before firing."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_go_includes_selected_exec(self, mock_get_client):
         from src.server import playback_action
 
@@ -740,7 +740,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["selected_cue_before"] == "3"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_pause_includes_selected_exec(self, mock_get_client):
         from src.server import playback_action
 
@@ -758,7 +758,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["selected_cue_before"] == "1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_go_back_fires_defgoback(self, mock_get_client):
         from src.server import playback_action
 
@@ -775,7 +775,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["selected_executor"] == "5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_goback_alias(self, mock_get_client):
         from src.server import playback_action
 
@@ -791,7 +791,7 @@ class TestPlaybackActionDefGoReadsSelectedExec:
         assert data["command_sent"] == "defgoback"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_go_selected_exec_none_when_listvar_empty(self, mock_get_client):
         from src.server import playback_action
 

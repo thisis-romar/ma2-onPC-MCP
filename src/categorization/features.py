@@ -284,9 +284,25 @@ def _detect_returns_list(docstring: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def extract_tool_features(server_path: str | Path) -> list[ToolFeatures]:
-    """Parse *server_path* and return a :class:`ToolFeatures` per ``@mcp.tool()`` function."""
-    source = Path(server_path).read_text()
+def extract_tool_features(
+    server_path: str | Path,
+    *,
+    extra_paths: list[str | Path] | None = None,
+) -> list[ToolFeatures]:
+    """Parse *server_path* (and optional *extra_paths*) and return a :class:`ToolFeatures` per ``@mcp.tool()`` function."""
+    paths = [Path(server_path)]
+    if extra_paths:
+        paths.extend(Path(p) for p in extra_paths)
+
+    all_tools: list[ToolFeatures] = []
+    for path in paths:
+        all_tools.extend(_extract_from_file(path))
+    return all_tools
+
+
+def _extract_from_file(path: Path) -> list[ToolFeatures]:
+    """Extract tool features from a single Python file."""
+    source = path.read_text()
     tree = ast.parse(source)
     import_map = _build_import_map(tree)
 

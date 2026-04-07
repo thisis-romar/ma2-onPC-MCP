@@ -82,7 +82,7 @@ class TestExecuteSequenceTool:
     """Tests for the execute sequence MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_execute_sequence_go(self, mock_get_client):
         """Test executing a sequence (go)."""
         from src.server import execute_sequence
@@ -96,7 +96,7 @@ class TestExecuteSequenceTool:
         mock_client.send_command.assert_called_once_with("go+ sequence 1")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_execute_sequence_pause(self, mock_get_client):
         """Test pausing a sequence."""
         from src.server import execute_sequence
@@ -110,7 +110,7 @@ class TestExecuteSequenceTool:
         mock_client.send_command.assert_called_once_with("pause sequence 1")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_execute_sequence_goto(self, mock_get_client):
         """Test jumping to a specific cue."""
         from src.server import execute_sequence
@@ -128,7 +128,7 @@ class TestSendRawCommandTool:
     """Tests for the send raw command MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_send_safe_write_command(self, mock_get_client):
         """Test sending a SAFE_WRITE command (selfix) — should be allowed."""
         import json
@@ -149,7 +149,7 @@ class TestSendRawCommandTool:
         assert data["blocked"] is False
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_block_destructive_command(self, mock_get_client):
         """Test that destructive commands are blocked without confirm_destructive."""
         import json
@@ -169,7 +169,7 @@ class TestSendRawCommandTool:
         mock_client.send_command_with_response.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_allow_destructive_with_confirm(self, mock_get_client):
         """Test that destructive commands pass with confirm_destructive=True."""
         import json
@@ -202,7 +202,7 @@ class TestSendRawCommandTool:
         assert data["command_sent"] is None
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_safe_read_always_allowed(self, mock_get_client):
         """Test that SAFE_READ commands (list, info, cd) are always allowed."""
         import json
@@ -224,7 +224,7 @@ class TestErrorHandling:
     """Tests for the _handle_errors decorator on MCP tools."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_connection_error_returns_json(self, mock_get_client):
         """Test that ConnectionError is caught and returned as JSON."""
         from src.server import set_intensity
@@ -238,7 +238,7 @@ class TestErrorHandling:
         assert "Connection failed" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_runtime_error_returns_json(self, mock_get_client):
         """Test that RuntimeError (e.g. dropped connection) is caught."""
         from src.server import get_object_info
@@ -260,7 +260,7 @@ class TestSetIntensityTool:
     """Tests for the set_intensity MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fixture_at_50(self, mock_get_client):
         """Test setting a single fixture to 50%."""
         from src.server import set_intensity
@@ -276,7 +276,7 @@ class TestSetIntensityTool:
         mock_client.send_command_with_response.assert_called_once_with("fixture 1 at 50")
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_group_at_full(self, mock_get_client):
         """Test setting a group to full."""
         from src.server import set_intensity
@@ -291,7 +291,7 @@ class TestSetIntensityTool:
         assert data["command_sent"] == "group 3 at 100"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_channel_range(self, mock_get_client):
         """Test setting a channel range."""
         from src.server import set_intensity
@@ -473,7 +473,7 @@ class TestGetObjectInfoTool:
     """Tests for the get_object_info MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_info_group(self, mock_get_client):
         """Test querying info on a group."""
         from src.server import get_object_info
@@ -489,7 +489,7 @@ class TestGetObjectInfoTool:
         assert data["raw_response"] == "Group 3 info"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_info_preset_dot_notation(self, mock_get_client):
         """Test querying info on a preset with dot notation."""
         from src.server import get_object_info
@@ -508,7 +508,7 @@ class TestClearProgrammerTool:
     """Tests for the clear_programmer MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_clear_all(self, mock_get_client):
         """Test clearing entire programmer."""
         from src.server import clear_programmer
@@ -523,7 +523,7 @@ class TestClearProgrammerTool:
         assert data["command_sent"] == "clearall"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_clear_selection(self, mock_get_client):
         """Test clearing selection only."""
         from src.server import clear_programmer
@@ -538,7 +538,7 @@ class TestClearProgrammerTool:
         assert data["command_sent"] == "clearselection"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_clear_active(self, mock_get_client):
         """Test clearing active values only."""
         from src.server import clear_programmer
@@ -553,7 +553,7 @@ class TestClearProgrammerTool:
         assert data["command_sent"] == "clearactive"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_clear_sequential(self, mock_get_client):
         """Test sequential clear mode."""
         from src.server import clear_programmer
@@ -642,7 +642,7 @@ class TestSetAttributeTool:
     """Tests for the set_attribute MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_pan(self, mock_get_client):
         """Test setting Pan attribute."""
         from src.server import set_attribute
@@ -657,7 +657,7 @@ class TestSetAttributeTool:
         assert data["commands_sent"] == ['attribute "Pan" at 120']
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_attribute_with_group(self, mock_get_client):
         """Test setting attribute after selecting a group."""
         from src.server import set_attribute
@@ -674,7 +674,7 @@ class TestSetAttributeTool:
         assert calls[1][0][0] == 'attribute "Tilt" at 50'
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_set_attribute_with_fixture_range(self, mock_get_client):
         """Test setting attribute after selecting fixtures."""
         from src.server import set_attribute
@@ -912,8 +912,8 @@ class TestNavigateConsoleTool:
     """Tests for the navigate_console MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.tools_community.navigate")
+    @patch("src.server_core.get_client")
     async def test_navigate_to_root(self, mock_get_client, mock_navigate):
         """Test navigating to root."""
         from src.prompt_parser import ConsolePrompt
@@ -943,8 +943,8 @@ class TestNavigateConsoleTool:
         assert data["parsed_prompt"]["location"] == "Root"
 
     @pytest.mark.asyncio
-    @patch("src.server.navigate")
-    @patch("src.server.get_client")
+    @patch("src.tools_community.navigate")
+    @patch("src.server_core.get_client")
     async def test_navigate_with_object_id(self, mock_get_client, mock_navigate):
         """Test navigating with dot notation."""
         from src.prompt_parser import ConsolePrompt
@@ -978,8 +978,8 @@ class TestGetConsoleLocationTool:
     """Tests for the get_console_location MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_current_location")
-    @patch("src.server.get_client")
+    @patch("src.tools_community.get_current_location")
+    @patch("src.server_core.get_client")
     async def test_get_location(self, mock_get_client, mock_get_location):
         """Test querying current location."""
         from src.prompt_parser import ConsolePrompt
@@ -1012,8 +1012,8 @@ class TestListConsoleDestinationTool:
     """Tests for the list_console_destination MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.list_destination")
-    @patch("src.server.get_client")
+    @patch("src.tools_community.list_destination")
+    @patch("src.server_core.get_client")
     async def test_list_destination(self, mock_get_client, mock_list_dest):
         """Test listing objects at current destination."""
         from src.prompt_parser import ListEntry, ListOutput
@@ -1052,7 +1052,7 @@ class TestQueryObjectListTool:
     """Tests for the query_object_list MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_cue(self, mock_get_client):
         """Test listing cues."""
         from src.server import query_object_list
@@ -1067,7 +1067,7 @@ class TestQueryObjectListTool:
         assert data["command_sent"] == "list cue"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_cue_with_sequence(self, mock_get_client):
         """Test listing cues in a specific sequence."""
         from src.server import query_object_list
@@ -1082,7 +1082,7 @@ class TestQueryObjectListTool:
         assert "sequence 2" in data["command_sent"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_group(self, mock_get_client):
         """Test listing groups."""
         from src.server import query_object_list
@@ -1097,7 +1097,7 @@ class TestQueryObjectListTool:
         assert data["command_sent"] == "list group"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_preset(self, mock_get_client):
         """Test listing presets by type."""
         from src.server import query_object_list
@@ -1112,7 +1112,7 @@ class TestQueryObjectListTool:
         assert "preset" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_attribute(self, mock_get_client):
         """Test listing attributes."""
         from src.server import query_object_list
@@ -1127,7 +1127,7 @@ class TestQueryObjectListTool:
         assert data["command_sent"] == "list attribute"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_messages(self, mock_get_client):
         """Test listing messages."""
         from src.server import query_object_list
@@ -1142,7 +1142,7 @@ class TestQueryObjectListTool:
         assert data["command_sent"] == "list messages"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_generic(self, mock_get_client):
         """Test listing a generic object type."""
         from src.server import query_object_list
@@ -1171,7 +1171,7 @@ class TestListSystemVariablesTool:
     )
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_parses_key_value_pairs(self, mock_get_client):
         from src.server import list_system_variables
 
@@ -1188,7 +1188,7 @@ class TestListSystemVariablesTool:
         assert data["variables"]["$FADERPAGE"] == "1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_filter_prefix(self, mock_get_client):
         from src.server import list_system_variables
 
@@ -1204,7 +1204,7 @@ class TestListSystemVariablesTool:
         assert data["variable_count"] == 2
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_strips_scope_prefix(self, mock_get_client):
         from src.server import list_system_variables
 
@@ -1221,7 +1221,7 @@ class TestListSystemVariablesTool:
         assert data["variables"]["$HOSTNAME"] == "console1"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_empty_response(self, mock_get_client):
         from src.server import list_system_variables
 
@@ -1247,7 +1247,7 @@ class TestGetVariableEchoAction:
     )
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_echo_no_dollar(self, mock_get_client):
         from src.server import get_variable
 
@@ -1264,7 +1264,7 @@ class TestGetVariableEchoAction:
         assert data["found"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_echo_strips_dollar(self, mock_get_client):
         from src.server import get_variable
 
@@ -1292,7 +1292,7 @@ class TestPlaybackActionTool:
     """Tests for the playback_action MCP tool."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_go_executor(self, mock_get_client):
         """Test go on executor."""
         from src.server import playback_action
@@ -1310,7 +1310,7 @@ class TestPlaybackActionTool:
         assert "executor" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_go_back(self, mock_get_client):
         """Test go back."""
         from src.server import playback_action
@@ -1325,7 +1325,7 @@ class TestPlaybackActionTool:
         assert "goback" in data["command_sent"].lower()
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_goto_cue(self, mock_get_client):
         """Test goto specific cue."""
         from src.server import playback_action
@@ -1352,7 +1352,7 @@ class TestPlaybackActionTool:
         assert "cue_id" in data["error"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fast_forward(self, mock_get_client):
         """Test fast forward."""
         from src.server import playback_action
@@ -1367,7 +1367,7 @@ class TestPlaybackActionTool:
         assert data["command_sent"] == ">>>"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_fast_back(self, mock_get_client):
         """Test fast back."""
         from src.server import playback_action
@@ -1382,7 +1382,7 @@ class TestPlaybackActionTool:
         assert data["command_sent"] == "<<<"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_go(self, mock_get_client):
         """Test go on selected executor."""
         from src.server import playback_action
@@ -1397,7 +1397,7 @@ class TestPlaybackActionTool:
         assert data["command_sent"] == "defgoforward"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_def_pause(self, mock_get_client):
         """Test pause selected executor."""
         from src.server import playback_action
@@ -3235,7 +3235,7 @@ class TestGetExecutorStatusTool:
     """Tests for the get_executor_status MCP tool (tool #42)."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_get_status_all_executors(self, mock_get_client):
         """Test listing all executors."""
         from src.server import get_executor_status
@@ -3251,7 +3251,7 @@ class TestGetExecutorStatusTool:
         assert data["risk_tier"] == "SAFE_READ"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_get_status_specific_executor(self, mock_get_client):
         """Test listing a specific executor."""
         from src.server import get_executor_status
@@ -3266,7 +3266,7 @@ class TestGetExecutorStatusTool:
         assert data["command_sent"] == "list executor 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_get_status_with_page(self, mock_get_client):
         """Test listing a page-qualified executor."""
         from src.server import get_executor_status
@@ -3665,7 +3665,7 @@ class TestAssignExecutorPropertyTool:
 
 class TestIfFilterTool:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_if_filter_active(self, mock_get_client):
         from src.server import if_filter
         mock_client = MagicMock()
@@ -3677,7 +3677,7 @@ class TestIfFilterTool:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_if_filter_fixture(self, mock_get_client):
         from src.server import if_filter
         mock_client = MagicMock()
@@ -3688,7 +3688,7 @@ class TestIfFilterTool:
         assert data["command_sent"] == "if fixture 5"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_if_filter_attribute(self, mock_get_client):
         from src.server import if_filter
         mock_client = MagicMock()
@@ -4356,7 +4356,7 @@ class TestUnparkFixtureValidated:
 
 class TestPlaybackActionGotoValidated:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_goto_cue_exists_with_sequence(self, mock_get_client):
         from src.server import playback_action
         mock_client = MagicMock()
@@ -4371,7 +4371,7 @@ class TestPlaybackActionGotoValidated:
         assert data["cue_exists"] is True
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_goto_cue_not_found_blocked(self, mock_get_client):
         from src.server import playback_action
         mock_client = MagicMock()
@@ -4387,7 +4387,7 @@ class TestPlaybackActionGotoValidated:
         assert "list_sequence_cues" in data["hint"]
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_goto_resolves_sequence_from_executor(self, mock_get_client):
         from src.server import playback_action
         mock_client = MagicMock()
@@ -4404,7 +4404,7 @@ class TestPlaybackActionGotoValidated:
         assert "executor_probe_response" in data
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_goto_no_sequence_context_warns_and_executes(self, mock_get_client):
         from src.server import playback_action
         mock_client = MagicMock()
@@ -4593,7 +4593,7 @@ class TestHighlightFixtures:
 
 class TestReleaseExecutor:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_release_basic(self, mock_get_client):
         from src.server import release_executor
         mock_client = MagicMock()
@@ -4605,7 +4605,7 @@ class TestReleaseExecutor:
         assert data["risk_tier"] == "SAFE_WRITE"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_release_with_page(self, mock_get_client):
         from src.server import release_executor
         mock_client = MagicMock()
@@ -4733,7 +4733,7 @@ class TestNewShow:
 
 class TestGetVariable:
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_get_user_var(self, mock_get_client):
         from src.server import get_variable
         mock_client = MagicMock()
@@ -4745,7 +4745,7 @@ class TestGetVariable:
         assert data["risk_tier"] == "SAFE_READ"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_var(self, mock_get_client):
         from src.server import get_variable
         mock_client = MagicMock()
@@ -4756,7 +4756,7 @@ class TestGetVariable:
         assert data["command_sent"] == "listvar"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_list_user_var(self, mock_get_client):
         from src.server import get_variable
         mock_client = MagicMock()
@@ -5500,7 +5500,7 @@ class TestScopeEnforcement:
         monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
         from src.server import get_executor_status
 
-        with patch("src.server.get_client") as mock_get_client:
+        with patch("src.server_core.get_client") as mock_get_client:
             mock_client = MagicMock()
             mock_client.send_command_with_response = AsyncMock(return_value="")
             mock_get_client.return_value = mock_client
@@ -5531,7 +5531,7 @@ class TestScopeEnforcement:
         monkeypatch.delenv("GMA_AUTH_BYPASS", raising=False)
         from src.server import create_console_user
 
-        with patch("src.server.get_client") as mock_get_client:
+        with patch("src.server_core.get_client") as mock_get_client:
             mock_client = MagicMock()
             mock_client.send_command_with_response = AsyncMock(return_value="OK")
             mock_get_client.return_value = mock_client
@@ -5550,7 +5550,7 @@ class TestScopeEnforcement:
         monkeypatch.setenv("GMA_AUTH_BYPASS", "1")
         from src.server import create_console_user
 
-        with patch("src.server.get_client") as mock_get_client:
+        with patch("src.server_core.get_client") as mock_get_client:
             mock_client = MagicMock()
             mock_client.send_command_with_response = AsyncMock(return_value="OK")
             mock_get_client.return_value = mock_client
