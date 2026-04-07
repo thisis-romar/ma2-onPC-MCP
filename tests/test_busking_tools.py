@@ -175,7 +175,7 @@ class TestClassifyShowModeTool:
     """Tests for classify_show_mode."""
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_empty_show_classified_as_empty(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -191,7 +191,7 @@ class TestClassifyShowModeTool:
         assert data["evidence"]["macros"] == 0
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_mostly_effects_classified_as_busking(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -210,7 +210,7 @@ class TestClassifyShowModeTool:
         assert data["evidence"]["macros"] == 1
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_mostly_macros_classified_as_sequence(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -227,7 +227,7 @@ class TestClassifyShowModeTool:
         assert data["mode"] == "sequence"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_equal_mix_classified_as_hybrid(self, mock_get_client):
         from src.server import classify_show_mode
 
@@ -244,7 +244,7 @@ class TestClassifyShowModeTool:
         assert data["mode"] == "hybrid"
 
     @pytest.mark.asyncio
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_bracket_lines_excluded_from_count(self, mock_get_client):
         from src.server import classify_show_mode
 

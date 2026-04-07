@@ -113,7 +113,7 @@ class TestGetSimilarTools:
         }
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_returns_ranked_similar_tools(self, mock_load):
         from src.server import get_similar_tools
 
@@ -132,7 +132,7 @@ class TestGetSimilarTools:
             assert "category" in entry
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_unknown_tool_returns_error(self, mock_load):
         from src.server import get_similar_tools
 
@@ -145,7 +145,7 @@ class TestGetSimilarTools:
         assert data.get("blocked") is True
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_top_n_respected(self, mock_load):
         from src.server import get_similar_tools
 
@@ -158,7 +158,7 @@ class TestGetSimilarTools:
         assert len(data) <= 2
 
     @pytest.mark.asyncio
-    @patch("src.server._load_taxonomy_cached")
+    @patch("src.tools_enterprise._load_taxonomy_cached")
     async def test_results_sorted_by_distance(self, mock_load):
         from src.server import get_similar_tools
 

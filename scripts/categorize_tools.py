@@ -69,7 +69,7 @@ def run(
     if extra_paths is None:
         # Auto-discover split tool modules alongside server.py
         extra_paths = []
-        for name in ("tools_community.py", "tools_professional.py"):
+        for name in ("tools_community.py", "tools_professional.py", "tools_enterprise.py"):
             path = server_file.parent / name
             if path.exists():
                 extra_paths.append(str(path))

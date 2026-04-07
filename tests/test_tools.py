@@ -5435,9 +5435,9 @@ class TestCreateMAtricksLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
-    @patch("src.server.navigate", new_callable=AsyncMock)
-    @patch("src.server.get_client")
+    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.tools_enterprise.navigate", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
     async def test_creates_with_embedded_colors(self, mock_get_client, mock_navigate, mock_check, mock_write):
         from src.server import create_matricks_library
 

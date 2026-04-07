@@ -174,8 +174,8 @@ class TestCreateFilterLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server._check_pool_slots", new_callable=AsyncMock)
-    @patch("src.server.get_client")
+    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.server_core.get_client")
     async def test_creates_all_filters(self, mock_get_client, mock_check, mock_write):
         from src.server import create_filter_library
 
@@ -199,7 +199,7 @@ class TestCreateFilterLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_no_combos_no_exclusions(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -219,7 +219,7 @@ class TestCreateFilterLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_custom_start_slot(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -239,7 +239,7 @@ class TestCreateFilterLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_import_commands_sent(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -268,7 +268,7 @@ class TestCreateFilterLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_color_scheme_in_result(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -284,7 +284,7 @@ class TestCreateFilterLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_filter_categories_in_results(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -473,7 +473,7 @@ class TestCreateFilterLibraryVTE:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_vte_creates_all_variants(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -492,7 +492,7 @@ class TestCreateFilterLibraryVTE:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_vte_single_type_only(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -514,7 +514,7 @@ class TestCreateFilterLibraryVTE:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_vte_false_no_variants(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -531,7 +531,7 @@ class TestCreateFilterLibraryVTE:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_vte_filter_names(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -553,7 +553,7 @@ class TestCreateFilterLibraryVTE:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_vte_has_vte_field(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
@@ -577,7 +577,7 @@ class TestCreateFilterLibraryVTE:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.server.get_client")
+    @patch("src.server_core.get_client")
     async def test_vte_slot_continuity(self, mock_get_client, mock_write):
         from src.server import create_filter_library
 
