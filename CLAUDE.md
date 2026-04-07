@@ -132,7 +132,7 @@ uv run python scripts/audit_md_counts.py --fix                # auto-fix stale c
 - Unit tests import command builders or vocab directly and assert on returned strings.
 - No live console required; live tests are in `tests/test_live_integration.py` (skipped by default).
 - Use `@pytest.mark.asyncio` for async tests.
-- Current counts (2026-04-04): **3141 tests** (unit + live integration).
+- Current counts (2026-04-04): **3151 tests** (unit + live integration).
 
 ---
 

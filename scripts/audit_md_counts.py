@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2025-2026 thisis-romar. All rights reserved.
+# Licensed under the Business Source License 1.1. See LICENSE file.
+
 """Audit CLAUDE.md and README.md for stale counts.
 
 Compares declared counts (tools, resources, prompts, skills, tests,
@@ -32,16 +35,16 @@ def _count_mcp_tools() -> int:
     total = 0
     for p in (REPO_ROOT / "src" / "server.py",
               REPO_ROOT / "src" / "server_orchestration_tools.py"):
-        total += p.read_text().count("@mcp.tool()")
+        total += p.read_text(encoding="utf-8").count("@mcp.tool()")
     return total
 
 
 def _count_mcp_resources() -> int:
-    return (REPO_ROOT / "src" / "server.py").read_text().count("@mcp.resource(")
+    return (REPO_ROOT / "src" / "server.py").read_text(encoding="utf-8").count("@mcp.resource(")
 
 
 def _count_mcp_prompts() -> int:
-    return (REPO_ROOT / "src" / "server.py").read_text().count("@mcp.prompt()")
+    return (REPO_ROOT / "src" / "server.py").read_text(encoding="utf-8").count("@mcp.prompt()")
 
 
 def _count_skills() -> int:
@@ -83,7 +86,7 @@ def _count_command_exports() -> tuple[int, int]:
 def _count_vocab_keywords() -> dict[str, int]:
     """Return keyword counts from the vocab JSON."""
     vocab_path = REPO_ROOT / "src" / "grandMA2_v3_9_telnet_keyword_vocabulary.json"
-    data = json.loads(vocab_path.read_text())
+    data = json.loads(vocab_path.read_text(encoding="utf-8"))
     counts: dict[str, int] = {}
     for key in ("function_keywords", "object_keywords", "helping_keywords", "special_chars"):
         val = data.get(key, [])
@@ -109,7 +112,7 @@ class CountCheck:
         """Return True if all declarations match actual."""
         ok = True
         for fpath, regex in self.patterns:
-            text = fpath.read_text()
+            text = fpath.read_text(encoding="utf-8")
             for m in re.finditer(regex, text):
                 declared = int(m.group(1))
                 if declared != self.actual:
@@ -125,7 +128,7 @@ class CountCheck:
         """Replace stale numbers in-place. Returns count of fixes applied."""
         fixed = 0
         for fpath, regex in self.patterns:
-            text = fpath.read_text()
+            text = fpath.read_text(encoding="utf-8")
             new_text = text
             for m in reversed(list(re.finditer(regex, text))):
                 declared = int(m.group(1))
@@ -135,7 +138,7 @@ class CountCheck:
                     new_text = new_text[:m.start()] + new_span + new_text[m.end():]
                     fixed += 1
             if new_text != text:
-                fpath.write_text(new_text)
+                fpath.write_text(new_text, encoding="utf-8")
         return fixed
 
 
