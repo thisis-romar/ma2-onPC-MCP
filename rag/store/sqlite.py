@@ -160,10 +160,10 @@ class RagStore:
         self.conn.execute("DELETE FROM chunks WHERE repo_ref = ?", (repo_ref,))
         self.conn.execute("DELETE FROM documents WHERE repo_ref = ?", (repo_ref,))
         # Rebuild FTS5 index in one pass (faster than row-by-row trigger deletes)
-        import contextlib
-
-        with contextlib.suppress(Exception):
+        try:
             self.conn.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')")
+        except Exception:
+            logger.warning("FTS5 rebuild failed after delete_by_repo_ref — index may be stale")
         self.conn.commit()
 
     # ------------------------------------------------------------------

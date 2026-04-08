@@ -20,6 +20,7 @@ from urllib.robotparser import RobotFileParser
 import httpx
 from bs4 import BeautifulSoup, Tag
 
+from rag.config import MIN_PAGE_TEXT_LENGTH, WEB_CRAWLER_USER_AGENT
 from rag.types import RepoFile
 
 logger = logging.getLogger(__name__)
@@ -109,11 +110,10 @@ def crawl_web(
             visited.add(normalized)
             queue.append(normalized)
 
-    user_agent = "grandpa2-buddy-rag-crawler/1.0 (documentation indexer)"
     client = httpx.Client(
         timeout=30.0,
         follow_redirects=True,
-        headers={"User-Agent": user_agent},
+        headers={"User-Agent": WEB_CRAWLER_USER_AGENT},
     )
 
     # Load robots.txt for each domain (best-effort — skip if unavailable)
@@ -131,7 +131,7 @@ def crawl_web(
                     logger.info("Loaded robots.txt from %s", robots_url)
                 else:
                     rp.allow_all = True
-            except Exception:
+            except (httpx.HTTPError, OSError):
                 rp.allow_all = True  # can't fetch → assume allowed
             robots_parsers[domain] = rp
 
@@ -141,7 +141,7 @@ def crawl_web(
         rp = robots_parsers.get(domain)
         if rp is None or getattr(rp, "allow_all", False):
             return True
-        return rp.can_fetch(user_agent, check_url)
+        return rp.can_fetch(WEB_CRAWLER_USER_AGENT, check_url)
 
     try:
         while queue and len(files) < max_pages:
@@ -183,7 +183,7 @@ def crawl_web(
 
             # Extract text
             text = _extract_text(soup)
-            if not text or len(text.strip()) < 50:
+            if not text or len(text.strip()) < MIN_PAGE_TEXT_LENGTH:
                 logger.debug("Skipping (too little content): %s", url)
                 continue
 

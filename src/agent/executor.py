@@ -374,6 +374,8 @@ class StepExecutor:
 
     def _mark_stale_nodes(self, step: PlanStep) -> None:
         """Mark graph nodes as stale after a mutation step completes."""
+        if self._graph_store is None:
+            return
         affected = self._TOOL_NODE_IMPACT.get(step.tool_name)
         if affected is None:
             # Unknown tool that mutates — mark all types stale (safe fallback)
@@ -381,10 +383,10 @@ class StepExecutor:
         if not affected:
             # Empty list or unknown → mark everything stale
             for nt in ("fixture", "group", "sequence", "cue", "executor", "preset"):
-                self._graph_store.mark_type_stale(nt)  # type: ignore[union-attr]
+                self._graph_store.mark_type_stale(nt)
         else:
             for node_type in affected:
-                self._graph_store.mark_type_stale(node_type)  # type: ignore[union-attr]
+                self._graph_store.mark_type_stale(node_type)
         logger.debug(
             "KG staleness: marked %s after tool %s",
             affected or "all types", step.tool_name,

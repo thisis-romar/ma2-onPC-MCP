@@ -14,7 +14,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from rag.config import DEFAULT_TOP_K, RAG_DB_PATH
+from rag.config import DEDUP_PREFIX_LEN, DEFAULT_TOP_K, RAG_DB_PATH
 from rag.ingest.embed import EmbeddingProvider
 from rag.retrieve.rerank import rerank
 from rag.store.sqlite import RagStore
@@ -36,7 +36,7 @@ def _deduplicate(hits: list[RagHit]) -> list[RagHit]:
     seen: dict[str, int] = {}  # text_prefix → index in result
     result: list[RagHit] = []
     for hit in hits:
-        key = hit.text[:200]
+        key = hit.text[:DEDUP_PREFIX_LEN]
         if key in seen:
             idx = seen[key]
             if hit.score > result[idx].score:

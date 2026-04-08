@@ -63,6 +63,8 @@ def _extract_terms(text: str) -> list[str]:
 
 def _keyword_overlap(query_terms: list[str], chunk_text: str) -> float:
     """Return fraction of query terms found in chunk text (0.0 to 1.0)."""
+    if not query_terms:
+        return 0.0
     chunk_lower = chunk_text.lower()
     matches = sum(1 for term in query_terms if term in chunk_lower)
     return matches / len(query_terms)

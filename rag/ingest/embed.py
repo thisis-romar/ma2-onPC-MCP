@@ -11,6 +11,8 @@ from abc import ABC, abstractmethod
 
 import httpx
 
+from rag.config import DAILY_QUOTA_RETRY_AFTER, MAX_RETRY_WAIT
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,6 +104,10 @@ class GitHubModelsProvider(EmbeddingProvider):
             timeout=timeout,
         )
 
+    def close(self) -> None:
+        """Close the underlying HTTP client to release connections."""
+        self._client.close()
+
     @property
     def model_name(self) -> str:
         return self._model
@@ -139,7 +145,12 @@ class GitHubModelsProvider(EmbeddingProvider):
         for i in range(0, len(unique_texts), self._batch_size):
             batch = unique_texts[i : i + self._batch_size]
             response = self._request_with_retry(batch)
-            data = response.json()["data"]
+            body = response.json()
+            data = body.get("data")
+            if not data:
+                raise RuntimeError(
+                    f"GitHub Models API returned no 'data' field: {body.get('error', body)}"
+                )
             batch_embeddings = [
                 item["embedding"]
                 for item in sorted(data, key=lambda x: x["index"])
@@ -179,8 +190,8 @@ class GitHubModelsProvider(EmbeddingProvider):
                 retry_after = response.headers.get("retry-after")
 
                 # --- Change 1: detect daily quota vs per-minute limit ---
-                if retry_after and float(retry_after) > 3600:
-                    hours = float(retry_after) / 3600
+                if retry_after and float(retry_after) > DAILY_QUOTA_RETRY_AFTER:
+                    hours = float(retry_after) / DAILY_QUOTA_RETRY_AFTER
                     raise RuntimeError(
                         f"GitHub Models daily quota exhausted "
                         f"(retry-after={float(retry_after):.0f}s, ~{hours:.1f}h). "
@@ -190,7 +201,7 @@ class GitHubModelsProvider(EmbeddingProvider):
                 if attempt == max_retries:
                     response.raise_for_status()
 
-                wait = min(float(retry_after), 120.0) if retry_after else delay
+                wait = min(float(retry_after), MAX_RETRY_WAIT) if retry_after else delay
                 logger.warning(
                     "Rate limited (%d), retrying in %.1fs (attempt %d/%d)",
                     response.status_code, wait, attempt + 1, max_retries,
@@ -239,6 +250,10 @@ class OpenRouterProvider(EmbeddingProvider):
             timeout=timeout,
         )
 
+    def close(self) -> None:
+        """Close the underlying HTTP client to release connections."""
+        self._client.close()
+
     @property
     def model_name(self) -> str:
         return self._model
@@ -275,7 +290,12 @@ class OpenRouterProvider(EmbeddingProvider):
         for i in range(0, len(unique_texts), self._batch_size):
             batch = unique_texts[i : i + self._batch_size]
             response = self._request_with_retry(batch)
-            data = response.json()["data"]
+            body = response.json()
+            data = body.get("data")
+            if not data:
+                raise RuntimeError(
+                    f"OpenRouter API returned no 'data' field: {body.get('error', body)}"
+                )
             batch_embeddings = [
                 item["embedding"]
                 for item in sorted(data, key=lambda x: x["index"])
@@ -310,8 +330,8 @@ class OpenRouterProvider(EmbeddingProvider):
             if response.status_code == 429 or response.status_code >= 500:
                 retry_after = response.headers.get("retry-after")
 
-                if retry_after and float(retry_after) > 3600:
-                    hours = float(retry_after) / 3600
+                if retry_after and float(retry_after) > DAILY_QUOTA_RETRY_AFTER:
+                    hours = float(retry_after) / DAILY_QUOTA_RETRY_AFTER
                     raise RuntimeError(
                         f"OpenRouter daily quota exhausted "
                         f"(retry-after={float(retry_after):.0f}s, ~{hours:.1f}h). "
@@ -321,7 +341,7 @@ class OpenRouterProvider(EmbeddingProvider):
                 if attempt == max_retries:
                     response.raise_for_status()
 
-                wait = min(float(retry_after), 120.0) if retry_after else delay
+                wait = min(float(retry_after), MAX_RETRY_WAIT) if retry_after else delay
                 logger.warning(
                     "Rate limited (%d), retrying in %.1fs (attempt %d/%d)",
                     response.status_code, wait, attempt + 1, max_retries,
