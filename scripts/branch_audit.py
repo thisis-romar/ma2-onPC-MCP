@@ -36,7 +36,7 @@ import sys
 import tempfile
 from collections import Counter
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -695,7 +695,7 @@ def main() -> int:
         cross: dict[str, dict] = {}
         ctx_list = list(contexts.values())
         if len(ctx_list) >= 2:
-            print(f"\n[audit] === Cross-branch comparison ===")
+            print("\n[audit] === Cross-branch comparison ===")
             drift = dim_config_drift(ctx_list[0], ctx_list[1])
             cross["config_drift"] = {
                 "status": drift.status,
@@ -716,7 +716,7 @@ def main() -> int:
         # Build report
         report = {
             "meta": {
-                "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "script_version": "1.0.0",
                 "branches_audited": [b if b != "HEAD" else current_branch for b in args.branches],
             },
@@ -733,7 +733,7 @@ def main() -> int:
 
         # Summary
         s = report["summary"]
-        print(f"\n[audit] === SUMMARY ===")
+        print("\n[audit] === SUMMARY ===")
         print(f"  Total findings: {s['total_findings']}")
         print(f"  By severity: sev1={s['by_severity']['sev1']}, sev2={s['by_severity']['sev2']}, "
               f"sev3={s['by_severity']['sev3']}, sev4={s['by_severity']['sev4']}")
