@@ -77,13 +77,17 @@ def rag_query(
 
     try:
         if embedding_provider is not None:
-            query_embedding = embedding_provider.embed_one(query)
-            # Over-fetch 2x so the reranker has candidates to reorder before truncating.
-            # Dimension-mismatched chunks (e.g. zero-vector-stub) are skipped transparently.
-            hits = store.search_by_embedding(
-                query_embedding, top_k=top_k * 2,
-                repo_ref=repo_ref, kind=kind,
-            )
+            try:
+                query_embedding = embedding_provider.embed_one(query)
+                hits = store.search_by_embedding(
+                    query_embedding, top_k=top_k * 2,
+                    repo_ref=repo_ref, kind=kind,
+                )
+            except ValueError:
+                logger.warning(
+                    "Embedding dimension mismatch — falling back to text search"
+                )
+                hits = store.search_by_text(query, top_k=top_k * 2)
         else:
             hits = store.search_by_text(query, top_k=top_k * 2)
 

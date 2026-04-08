@@ -165,6 +165,40 @@ class TestValidatePlanDependencies:
         assert "sequence 99" in warnings[0]
 
 
+class TestCheckEntityExists:
+    def test_existing_entity_returns_true(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        assert pq.check_entity_exists("fixture", 1) is True
+
+    def test_missing_entity_returns_false(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        assert pq.check_entity_exists("fixture", 999) is False
+
+    def test_group_exists(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        assert pq.check_entity_exists("group", 1) is True
+
+
+class TestCountByType:
+    def test_fixture_count(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        assert pq.count_by_type("fixture") == 2
+
+    def test_group_count(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        assert pq.count_by_type("group") == 2
+
+    def test_empty_type_returns_zero(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        assert pq.count_by_type("world") == 0
+
+
 # -- DomainPlanner with graph tests -----------------------------------------
 
 

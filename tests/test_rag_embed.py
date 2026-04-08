@@ -332,3 +332,49 @@ class TestOpenRouterProvider:
         p = OpenRouterProvider(token="or-test123", inter_request_delay=0.0)
         with pytest.raises(RuntimeError, match="daily quota exhausted"):
             p.embed_one("hello")
+
+
+# ── Retry/backoff tests ─────────────────────────────────────────────────
+
+
+class TestRetryBackoff:
+    """_request_with_retry must retry on 429/5xx and give up after max_retries."""
+
+    @patch("time.sleep")
+    @patch.object(httpx.Client, "post")
+    def test_429_then_success(self, mock_post: MagicMock, mock_sleep: MagicMock):
+        """429 on first attempt, success on second."""
+        resp_429 = MagicMock(spec=httpx.Response)
+        resp_429.status_code = 429
+        resp_429.headers = {"retry-after": "1"}
+        resp_429.raise_for_status = MagicMock()
+
+        resp_ok = _mock_embedding_response([[0.1, 0.2]])
+
+        mock_post.side_effect = [resp_429, resp_ok]
+
+        p = GitHubModelsProvider(token="ghp_test", dimensions=2, inter_request_delay=0.0)
+        result = p.embed_one("hello")
+
+        assert result == [0.1, 0.2]
+        assert mock_post.call_count == 2
+        mock_sleep.assert_called_once()  # slept between retries
+
+    @patch("time.sleep")
+    @patch.object(httpx.Client, "post")
+    def test_max_retries_exhausted_raises(self, mock_post: MagicMock, mock_sleep: MagicMock):
+        """Repeated 429s beyond max_retries should raise."""
+        resp_429 = MagicMock(spec=httpx.Response)
+        resp_429.status_code = 429
+        resp_429.headers = {}
+        resp_429.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "Too Many Requests", request=MagicMock(), response=resp_429
+        )
+        mock_post.return_value = resp_429
+
+        p = GitHubModelsProvider(token="ghp_test", dimensions=2, inter_request_delay=0.0)
+        with pytest.raises(httpx.HTTPStatusError):
+            p.embed_one("hello")
+
+        # Should have tried max_retries + 1 times (default max_retries=5 → 6 attempts)
+        assert mock_post.call_count == 6
