@@ -303,6 +303,7 @@ async def search_codebase(
     query: str,
     top_k: int = 8,
     kind: str | None = None,
+    graph_expand: bool = False,
 ) -> str:
     """Search source code, grandMA2 docs, and MCP SDK source using the RAG index.
 
@@ -319,9 +320,13 @@ async def search_codebase(
                 "store preset", "how to patch fixtures", "mcp tool context")
         top_k:  Number of results to return (default 8, max 20)
         kind:   Optional filter — one of: "source", "test", "doc", "config"
+        graph_expand: When True and a knowledge graph is available, enrich
+                results with graph context (entity relationships from the
+                current console state).
 
     Returns:
         JSON array of matching chunks with path, kind, lines, score, and text.
+        When graph_expand is True, each hit includes a graph_context field.
         Returns an error JSON if the RAG index has not been built yet.
 
     Examples:
@@ -348,11 +353,20 @@ async def search_codebase(
         from rag.ingest.embed import GitHubModelsProvider
         provider = GitHubModelsProvider(token=token)
 
+    # Resolve graph store for GraphRAG enrichment
+    kg_store = None
+    if graph_expand:
+        from src.knowledge_graph import get_graph_store
+        kg_store = get_graph_store()
+
     want = min(top_k, 20)
     # When a kind filter is requested, over-fetch 10× so we have enough candidates
     # of the right kind after filtering (the DB has 4 kinds; web docs dominate).
     fetch_k = want * 10 if kind else want
-    hits = rag_query(query, embedding_provider=provider, top_k=fetch_k, db_path=db)
+    hits = rag_query(
+        query, embedding_provider=provider, top_k=fetch_k, db_path=db,
+        graph_store=kg_store,
+    )
 
     if kind:
         hits = [h for h in hits if h.kind == kind][:want]
@@ -364,6 +378,7 @@ async def search_codebase(
             "lines": f"{hit.start_line}-{hit.end_line}",
             "score": round(hit.score, 4),
             "text": hit.text,
+            **({"graph_context": hit.graph_context} if hit.graph_context else {}),
         }
         for hit in hits
     ], indent=2)

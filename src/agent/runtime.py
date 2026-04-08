@@ -13,7 +13,7 @@ import json
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from src.agent.executor import ConfirmCallback, StepExecutor
 from src.agent.memory import WorkflowMemory
@@ -22,6 +22,9 @@ from src.agent.policy import PolicyEngine
 from src.agent.state import ParsedGoal, PlanStep, RunContext, RunStatus, StepStatus
 from src.agent.trace import ExecutionTrace, build_trace
 from src.agent.verification import Verifier
+
+if TYPE_CHECKING:
+    from src.knowledge_graph.store import GraphStore
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +39,11 @@ class AgentRuntime:
         memory_db_path: str | None = None,
         batch_limit: int = 10,
         max_retries: int = 2,
+        graph_store: GraphStore | None = None,
     ):
-        self.planner = DomainPlanner()
-        self.policy = PolicyEngine(batch_limit=batch_limit)
+        self._graph_store = graph_store
+        self.planner = DomainPlanner(graph_store=graph_store)
+        self.policy = PolicyEngine(batch_limit=batch_limit, graph_store=graph_store)
         self.verifier = Verifier(tool_dispatch=tool_registry)
         if memory_db_path:
             self.memory = WorkflowMemory(db_path=memory_db_path)
@@ -50,6 +55,7 @@ class AgentRuntime:
             verifier=self.verifier,
             max_retries=max_retries,
             checkpoint_fn=self._checkpoint,
+            graph_store=graph_store,
         )
 
     def _checkpoint(self, run_id: str, step_index: int, step_dict: dict) -> None:

@@ -16,6 +16,7 @@ import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from src.agent.policy import PolicyEngine, StepDecision
 from src.agent.rollback import RollbackExecutor
@@ -27,6 +28,10 @@ from src.agent.state import (
     StepStatus,
 )
 from src.agent.verification import Verifier
+from src.vocab import RiskTier
+
+if TYPE_CHECKING:
+    from src.knowledge_graph.store import GraphStore
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +113,7 @@ class StepExecutor:
         max_retries: int = DEFAULT_MAX_RETRIES,
         rollback: RollbackExecutor | None = None,
         checkpoint_fn: CheckpointFn | None = None,
+        graph_store: GraphStore | None = None,
     ):
         self._tools = tool_registry
         self._policy = policy
@@ -116,6 +122,7 @@ class StepExecutor:
         self._rollback = rollback or RollbackExecutor(tool_registry)
         self._monitor = ProgressMonitor()
         self._checkpoint_fn = checkpoint_fn
+        self._graph_store = graph_store
 
     async def execute_plan(
         self,
@@ -236,6 +243,10 @@ class StepExecutor:
                     "Step completed: %s (attempt %d)", step.description, attempt + 1
                 )
 
+                # Mark affected graph nodes stale after mutations
+                if self._graph_store is not None and step.risk_tier != RiskTier.SAFE_READ:
+                    self._mark_stale_nodes(step)
+
                 # Progress monitoring — detect identical outputs (looping)
                 progress = self._monitor.track(
                     step.id, result or "", success=True,
@@ -342,3 +353,39 @@ class StepExecutor:
                 logger.info("Skipping dependent step: %s", step.description)
                 # Recursively skip transitive dependents
                 self._skip_dependents(step, context)
+
+    # ── Knowledge graph staleness ────────────────────────────────────
+
+    # Map tool names to node types they affect. Unmapped mutations mark all types stale.
+    _TOOL_NODE_IMPACT: dict[str, list[str]] = {
+        "store_current_cue": ["cue", "sequence"],
+        "store_cue_with_timing": ["cue", "sequence"],
+        "update_cue_data": ["cue", "sequence"],
+        "store_new_preset": ["preset"],
+        "create_fixture_group": ["group"],
+        "assign_executor": ["executor", "sequence"],
+        "assign_sequence_to_executor": ["executor", "sequence"],
+        "patch_fixture": ["fixture", "fixture_type"],
+        "label_object": [],  # empty = mark all stale (could be any type)
+        "delete_object": [],
+        "copy_object": [],
+        "move_object": [],
+    }
+
+    def _mark_stale_nodes(self, step: PlanStep) -> None:
+        """Mark graph nodes as stale after a mutation step completes."""
+        affected = self._TOOL_NODE_IMPACT.get(step.tool_name)
+        if affected is None:
+            # Unknown tool that mutates — mark all types stale (safe fallback)
+            affected = []
+        if not affected:
+            # Empty list or unknown → mark everything stale
+            for nt in ("fixture", "group", "sequence", "cue", "executor", "preset"):
+                self._graph_store.mark_type_stale(nt)  # type: ignore[union-attr]
+        else:
+            for node_type in affected:
+                self._graph_store.mark_type_stale(node_type)  # type: ignore[union-attr]
+        logger.debug(
+            "KG staleness: marked %s after tool %s",
+            affected or "all types", step.tool_name,
+        )
