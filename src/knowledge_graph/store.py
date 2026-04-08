@@ -27,6 +27,15 @@ def _now_iso() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
+def _safe_json_props(raw: str, context: str = "") -> dict[str, Any]:
+    """Parse a JSON props string, returning {} on decode error."""
+    try:
+        return json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning("Corrupt JSON props in %s: %r", context or "unknown", raw[:120])
+        return {}
+
+
 @dataclass
 class Node:
     """A node in the knowledge graph."""
@@ -129,7 +138,7 @@ class GraphStore:
             node_id=row[0],
             node_type=row[1],
             label=row[2],
-            props=json.loads(row[3]),
+            props=_safe_json_props(row[3], f"node {row[0]}"),
             updated_at=row[4],
         )
 
@@ -140,7 +149,8 @@ class GraphStore:
             (str(node_type),),
         ).fetchall()
         return [
-            Node(node_id=r[0], node_type=r[1], label=r[2], props=json.loads(r[3]), updated_at=r[4])
+            Node(node_id=r[0], node_type=r[1], label=r[2],
+                 props=_safe_json_props(r[3], f"node {r[0]}"), updated_at=r[4])
             for r in rows
         ]
 
@@ -220,7 +230,7 @@ class GraphStore:
             ).fetchall()
         return [
             Edge(edge_id=r[0], source_id=r[1], target_id=r[2], edge_type=r[3],
-                 props=json.loads(r[4]), updated_at=r[5])
+                 props=_safe_json_props(r[4], f"edge {r[0]}"), updated_at=r[5])
             for r in rows
         ]
 
@@ -244,7 +254,7 @@ class GraphStore:
             ).fetchall()
         return [
             Edge(edge_id=r[0], source_id=r[1], target_id=r[2], edge_type=r[3],
-                 props=json.loads(r[4]), updated_at=r[5])
+                 props=_safe_json_props(r[4], f"edge {r[0]}"), updated_at=r[5])
             for r in rows
         ]
 
@@ -307,7 +317,8 @@ class GraphStore:
             (max_age_iso,),
         ).fetchall()
         return [
-            Node(node_id=r[0], node_type=r[1], label=r[2], props=json.loads(r[3]), updated_at=r[4])
+            Node(node_id=r[0], node_type=r[1], label=r[2],
+                 props=_safe_json_props(r[3], f"node {r[0]}"), updated_at=r[4])
             for r in rows
         ]
 

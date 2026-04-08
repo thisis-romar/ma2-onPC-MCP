@@ -3,6 +3,8 @@
 
 """Tests for the knowledge graph SQLite store."""
 
+from unittest.mock import patch
+
 import pytest
 
 from src.knowledge_graph.schema import EdgeType, NodeType, node_id
@@ -211,3 +213,71 @@ class TestBulkOps:
         assert stats["edges:member_of"] == 1
         assert stats["total_nodes"] == 3
         assert stats["total_edges"] == 1
+
+
+class TestSafeJsonProps:
+    """_safe_json_props must return {} on corrupt JSON instead of crashing."""
+
+    def test_valid_json_roundtrips(self, store):
+        store.upsert_node("fixture:1", NodeType.FIXTURE, props={"color": "red", "dmx": 42})
+        node = store.get_node("fixture:1")
+        assert node is not None
+        assert node.props == {"color": "red", "dmx": 42}
+
+    def test_corrupt_json_returns_empty_dict(self, store):
+        """Manually corrupt the props column and verify graceful recovery."""
+        store.upsert_node("fixture:1", NodeType.FIXTURE, props={"ok": True})
+        # Directly corrupt the props column in SQLite
+        store.conn.execute(
+            "UPDATE kg_nodes SET props = 'NOT-VALID-JSON{{{' WHERE node_id = 'fixture:1'"
+        )
+        store.conn.commit()
+
+        with patch("src.knowledge_graph.store.logger") as mock_logger:
+            node = store.get_node("fixture:1")
+            assert node is not None
+            assert node.props == {}
+            mock_logger.warning.assert_called_once()
+
+    def test_corrupt_json_in_get_nodes_by_type(self, store):
+        store.upsert_node("fixture:1", NodeType.FIXTURE, props={"ok": True})
+        store.upsert_node("fixture:2", NodeType.FIXTURE, props={"ok": True})
+        # Corrupt one node
+        store.conn.execute(
+            "UPDATE kg_nodes SET props = '<<<BROKEN>>>' WHERE node_id = 'fixture:1'"
+        )
+        store.conn.commit()
+
+        nodes = store.get_nodes_by_type(NodeType.FIXTURE)
+        assert len(nodes) == 2
+        # The corrupt one gets empty props, the other is fine
+        props_set = {n.node_id: n.props for n in nodes}
+        assert props_set["fixture:1"] == {}
+        assert props_set["fixture:2"] == {"ok": True}
+
+    def test_corrupt_json_in_edge_props(self, store):
+        store.upsert_node("fixture:1", NodeType.FIXTURE)
+        store.upsert_node("group:1", NodeType.GROUP)
+        store.upsert_edge("fixture:1", "group:1", EdgeType.MEMBER_OF, props={"rank": 1})
+        # Corrupt edge props
+        store.conn.execute(
+            "UPDATE kg_edges SET props = 'GARBAGE' WHERE source_id = 'fixture:1'"
+        )
+        store.conn.commit()
+
+        edges = store.get_edges_from("fixture:1")
+        assert len(edges) == 1
+        assert edges[0].props == {}
+
+    def test_corrupt_json_in_stale_nodes(self, store):
+        store.upsert_node("fixture:1", NodeType.FIXTURE, props={"x": 1})
+        store.mark_stale("fixture:1")
+        # Corrupt props
+        store.conn.execute(
+            "UPDATE kg_nodes SET props = 'null-ish' WHERE node_id = 'fixture:1'"
+        )
+        store.conn.commit()
+
+        stale = store.stale_nodes("2099-01-01T00:00:00Z")
+        assert len(stale) == 1
+        assert stale[0].props == {}

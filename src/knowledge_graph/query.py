@@ -101,6 +101,12 @@ class GraphQuery:
         Returns:
             TraversalResult with all discovered nodes and edges.
         """
+        _VALID_DIRECTIONS = ("out", "in", "both")
+        if direction not in _VALID_DIRECTIONS:
+            raise ValueError(
+                f"Invalid direction {direction!r} — must be one of {_VALID_DIRECTIONS}"
+            )
+
         result = TraversalResult()
         visited: set[str] = set()
         queue: deque[tuple[str, int]] = deque()

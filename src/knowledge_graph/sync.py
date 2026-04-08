@@ -207,18 +207,19 @@ def _sync_executors(
         )
         counts["nodes"] += 1
 
-        # Edge: sequence → executor (assigned_to)
+        # Edge: sequence ↔ executor (only if the sequence node exists)
         if ex.sequence_id is not None:
             sid = node_id(NodeType.SEQUENCE, ex.sequence_id)
-            store.upsert_edge(
-                sid, eid, EdgeType.ASSIGNED_TO,
-                props={"page": ex.page, "priority": ex.priority},
-            )
-            counts["edges"] += 1
+            if store.get_node(sid) is not None:
+                store.upsert_edge(
+                    sid, eid, EdgeType.ASSIGNED_TO,
+                    props={"page": ex.page, "priority": ex.priority},
+                )
+                counts["edges"] += 1
 
-            # Edge: executor → sequence (controls)
-            store.upsert_edge(eid, sid, EdgeType.CONTROLS)
-            counts["edges"] += 1
+                # Edge: executor → sequence (controls)
+                store.upsert_edge(eid, sid, EdgeType.CONTROLS)
+                counts["edges"] += 1
 
 
 def _sync_worlds(

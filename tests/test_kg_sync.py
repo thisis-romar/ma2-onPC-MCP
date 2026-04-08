@@ -208,6 +208,25 @@ class TestSyncExecutors:
         # Empty executor → no edges
         assert store.get_edges_from("executor:1.2", EdgeType.CONTROLS) == []
 
+    def test_executor_with_missing_sequence_skips_edges(self, store):
+        """When executor references a sequence that doesn't exist in the graph,
+        no edges should be created (FK safety)."""
+        snap = _make_snapshot(
+            sequences=[],  # sequence 99 NOT in pool
+            executor_state={
+                1: ExecutorState(id=1, page=1, sequence_id=99, label="Orphan"),
+            },
+        )
+        sync_snapshot(store, snap)
+
+        # Executor node should exist
+        exec_nodes = store.get_nodes_by_type(NodeType.EXECUTOR)
+        assert len(exec_nodes) == 1
+
+        # But no edges should be created since sequence:99 doesn't exist
+        assert store.get_edges_from("executor:1.1", EdgeType.CONTROLS) == []
+        assert store.get_edges_to("executor:1.1", EdgeType.ASSIGNED_TO) == []
+
 
 class TestSyncWorlds:
     def test_syncs_worlds(self, store):

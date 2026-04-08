@@ -239,3 +239,23 @@ class TestExpandContext:
         assert "nodes" in d
         assert "edges" in d
         assert len(d["nodes"]) > 0
+
+
+class TestBfsDirectionValidation:
+    """bfs() must reject invalid direction values."""
+
+    def test_invalid_direction_raises(self, store, query):
+        store.upsert_node("fixture:1", NodeType.FIXTURE)
+        with pytest.raises(ValueError, match="Invalid direction"):
+            query.bfs("fixture:1", direction="sideways")
+
+    def test_empty_direction_raises(self, store, query):
+        store.upsert_node("fixture:1", NodeType.FIXTURE)
+        with pytest.raises(ValueError, match="Invalid direction"):
+            query.bfs("fixture:1", direction="")
+
+    def test_valid_directions_accepted(self, store, query):
+        _build_playback_chain(store)
+        for d in ("out", "in", "both"):
+            result = query.bfs("sequence:1", max_depth=1, direction=d)
+            assert len(result.nodes) >= 1
