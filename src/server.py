@@ -342,6 +342,8 @@ def resource_tool_taxonomy() -> str:
     Use this resource to understand the tool landscape before calling
     suggest_tool_for_task, or to verify a tool exists before invoking it.
     """
+    if not _HAS_PRIVATE:
+        return json.dumps({"error": "Tool taxonomy requires PROFESSIONAL+ tier (src.private submodule)"})
     taxonomy = _load_taxonomy_cached()
     # Return a compact summary: category → tool names
     categories = taxonomy.get("categories", {})
