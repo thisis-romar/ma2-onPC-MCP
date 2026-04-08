@@ -5,9 +5,9 @@
 
 import pytest
 
-from src.knowledge_graph.schema import EdgeType, NodeType, node_id
-from src.knowledge_graph.store import GraphStore
 from src.knowledge_graph.query import GraphQuery
+from src.knowledge_graph.schema import EdgeType, NodeType
+from src.knowledge_graph.store import GraphStore
 
 
 @pytest.fixture

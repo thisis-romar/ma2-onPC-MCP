@@ -5,6 +5,7 @@
 
 import pytest
 
+from src.commands.constants import MA2Right
 from src.console_state import (
     ConsoleStateSnapshot,
     CuePart,
@@ -12,7 +13,6 @@ from src.console_state import (
     ExecutorState,
     SequenceEntry,
 )
-from src.commands.constants import MA2Right
 from src.knowledge_graph.schema import EdgeType, NodeType
 from src.knowledge_graph.store import GraphStore
 from src.knowledge_graph.sync import sync_snapshot

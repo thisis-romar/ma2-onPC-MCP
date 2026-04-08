@@ -6,11 +6,7 @@
 from bs4 import BeautifulSoup
 
 from rag.ingest.crawl_web import (
-    _convert_headings_to_markdown,
     _extract_text,
-    _normalize_code_blocks,
-    _strip_boilerplate,
-    _strip_img_noise,
 )
 
 

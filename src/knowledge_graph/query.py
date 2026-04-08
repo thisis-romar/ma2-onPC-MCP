@@ -218,9 +218,6 @@ class GraphQuery:
         if seq is None:
             return result_nodes
 
-        # Traverse: sequence → cues
-        cues = self.cues_in_sequence(int(seq.node_id.split(":")[1]))
-
         # Traverse: sequence → assigned groups → fixtures
         # (via BFS from sequence node, following member_of edges back)
         traversal = self.bfs(

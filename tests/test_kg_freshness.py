@@ -3,7 +3,6 @@
 
 """Tests for knowledge graph freshness tracking."""
 
-import time
 
 import pytest
 

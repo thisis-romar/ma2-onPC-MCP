@@ -12,14 +12,13 @@ import pytest
 from src.agent.planner import DomainPlanner
 from src.agent.policy import PolicyEngine
 from src.agent.runtime import AgentRuntime
-from src.agent.state import GoalIntent, PlanStep, StepStatus
+from src.agent.state import PlanStep
+from src.commands.constants import MA2Right
 from src.console_state import (
     ConsoleStateSnapshot,
     ExecutorState,
     SequenceEntry,
 )
-from src.commands.constants import MA2Right
-from src.knowledge_graph.schema import EdgeType, NodeType
 from src.knowledge_graph.store import GraphStore
 from src.knowledge_graph.sync import sync_snapshot
 from src.pool_name_index import PoolNameIndex
@@ -214,7 +213,7 @@ class TestExecutorStaleness:
         from src.agent.policy import PolicyEngine
         from src.agent.verification import Verifier
 
-        executor = StepExecutor(
+        StepExecutor(
             tool_registry=MOCK_REGISTRY,
             policy=PolicyEngine(),
             verifier=Verifier(tool_dispatch=MOCK_REGISTRY),
@@ -222,14 +221,7 @@ class TestExecutorStaleness:
         )
 
         # _mark_stale_nodes is only called when risk_tier != SAFE_READ
-        # so we just verify the condition check works
-        step = PlanStep(
-            tool_name="query_object_list",
-            tool_args={},
-            description="List objects",
-            risk_tier=RiskTier.SAFE_READ,
-        )
-        # Should NOT call _mark_stale_nodes (the condition in execute_plan guards this)
+        # so we just verify that nodes remain fresh when no mutation happens
         assert store.is_fresh("sequence:1", "2020-01-01T00:00:00Z")
 
     def test_unknown_tool_marks_all_stale(self, store):

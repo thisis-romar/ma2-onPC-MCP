@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .query import GraphQuery
-from .schema import EdgeType, NodeType, node_id
+from .schema import node_id
 from .store import GraphStore, Node
 
 
@@ -202,12 +202,11 @@ class PlanningQueries:
             obj_type = args.get("object_type")
             obj_id = args.get("object_id")
 
-            if obj_type and obj_id:
-                if not self.check_entity_exists(obj_type, obj_id):
-                    tool = step.get("tool_name", "unknown")
-                    warnings.append(
-                        f"Step '{tool}' references {obj_type} {obj_id} "
-                        f"which does not exist in the current console state"
-                    )
+            if obj_type and obj_id and not self.check_entity_exists(obj_type, obj_id):
+                tool = step.get("tool_name", "unknown")
+                warnings.append(
+                    f"Step '{tool}' references {obj_type} {obj_id} "
+                    f"which does not exist in the current console state"
+                )
 
         return warnings

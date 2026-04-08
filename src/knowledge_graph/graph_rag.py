@@ -18,9 +18,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .query import GraphQuery
-from .schema import NodeType, node_id
+from .schema import node_id
 from .store import GraphStore
-
 
 # Entity mention patterns — extract (node_type, identifier) pairs from text.
 # These are intentionally conservative to avoid false positives: they require

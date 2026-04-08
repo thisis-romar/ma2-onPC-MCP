@@ -7,9 +7,8 @@ import pytest
 
 from src.knowledge_graph.graph_rag import (
     EntityMention,
-    GraphContext,
-    extract_entities,
     expand_entities,
+    extract_entities,
     graph_rag_query,
 )
 from src.knowledge_graph.query import GraphQuery
