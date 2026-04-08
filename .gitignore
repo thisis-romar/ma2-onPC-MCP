@@ -48,6 +48,9 @@ src/categorization/taxonomy.json
 doc/grandMA2_KMeans_Complete.json
 .claude/settings.local.json
 
+# Audit report (generated artifact)
+doc/audit-report.json
+
 # Agent harness runtime artifacts
 agent_data/
 agent_traces/

@@ -174,7 +174,7 @@ class TestCreateFilterLibraryTool:
 
     @pytest.mark.asyncio
     @patch("pathlib.Path.write_text")
-    @patch("src.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
+    @patch("src.private.tools_enterprise._check_pool_slots", new_callable=AsyncMock)
     @patch("src.server_core.get_client")
     async def test_creates_all_filters(self, mock_get_client, mock_check, mock_write):
         from src.server import create_filter_library

@@ -359,10 +359,10 @@ class TestLicenseTierValidation:
         from src.license_tiers import TOOL_LICENSE_TIERS
 
         server_path = Path("src/server.py")
-        orch_path = Path("src/server_orchestration_tools.py")
+        orch_path = Path("src/private/server_orchestration_tools.py")
         community_path = Path("src/tools_community.py")
-        professional_path = Path("src/tools_professional.py")
-        enterprise_path = Path("src/tools_enterprise.py")
+        professional_path = Path("src/private/tools_professional.py")
+        enterprise_path = Path("src/private/tools_enterprise.py")
 
         tool_names: set[str] = set()
         for path in (server_path, orch_path, community_path, professional_path, enterprise_path):
@@ -393,7 +393,7 @@ class TestLicenseTierValidation:
                               "import", "export", "create", "remove"}
 
         tool_names: set[str] = set()
-        for path in (Path("src/server.py"), Path("src/server_orchestration_tools.py")):
+        for path in (Path("src/server.py"), Path("src/private/server_orchestration_tools.py")):
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
                 if isinstance(node, ast.AsyncFunctionDef):
