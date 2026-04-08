@@ -162,7 +162,7 @@ class RagStore:
         # Rebuild FTS5 index in one pass (faster than row-by-row trigger deletes)
         try:
             self.conn.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')")
-        except Exception:
+        except sqlite3.OperationalError:
             logger.warning("FTS5 rebuild failed after delete_by_repo_ref — index may be stale")
         self.conn.commit()
 

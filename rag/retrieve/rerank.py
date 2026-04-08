@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re
 
+from rag.config import RERANK_BODY_OVERLAP_WEIGHT
 from rag.types import RagHit
 
 # Minimum word length to consider as a keyword (skip "a", "is", etc.)
@@ -106,7 +107,7 @@ def rerank_tools(
         body = tool_bodies.get(name, "")
         if body:
             overlap = _keyword_overlap(query_terms, body)
-            combined = score + overlap * 0.5  # half-weight body overlap bonus
+            combined = score + overlap * RERANK_BODY_OVERLAP_WEIGHT
         else:
             combined = score
         reranked.append((name, combined))

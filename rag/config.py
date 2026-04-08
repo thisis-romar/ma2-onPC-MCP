@@ -29,9 +29,16 @@ DEDUP_PREFIX_LEN: int = 200
 MIN_PAGE_TEXT_LENGTH: int = 50  # pages with less text are considered empty
 WEB_CRAWLER_USER_AGENT: str = "grandpa2-buddy-rag-crawler/1.0 (documentation indexer)"
 
+# Embedding provider defaults
+EMBED_TIMEOUT: float = 60.0  # HTTP timeout for embedding API calls
+EMBED_INTER_REQUEST_DELAY: float = 4.0  # proactive pause between API calls
+
 # Embedding rate-limit thresholds
 DAILY_QUOTA_RETRY_AFTER: float = 3600.0  # seconds — above this means "come back tomorrow"
 MAX_RETRY_WAIT: float = 120.0  # max seconds to sleep on a single retry backoff
+
+# Reranking
+RERANK_BODY_OVERLAP_WEIGHT: float = 0.5  # half-weight bonus for tool body keyword overlap
 
 # File size limit (skip files larger than this)
 MAX_FILE_BYTES: int = 2 * 1024 * 1024  # 2 MB

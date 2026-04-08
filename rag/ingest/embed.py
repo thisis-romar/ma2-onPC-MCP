@@ -11,7 +11,12 @@ from abc import ABC, abstractmethod
 
 import httpx
 
-from rag.config import DAILY_QUOTA_RETRY_AFTER, MAX_RETRY_WAIT
+from rag.config import (
+    DAILY_QUOTA_RETRY_AFTER,
+    EMBED_INTER_REQUEST_DELAY,
+    EMBED_TIMEOUT,
+    MAX_RETRY_WAIT,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +95,8 @@ class GitHubModelsProvider(EmbeddingProvider):
         model: str = "openai/text-embedding-3-small",
         dimensions: int = 1536,
         batch_size: int = 32,
-        timeout: float = 60.0,
-        inter_request_delay: float = 4.0,
+        timeout: float = EMBED_TIMEOUT,
+        inter_request_delay: float = EMBED_INTER_REQUEST_DELAY,
     ) -> None:
         self._token = token
         self._model = model
@@ -207,7 +212,7 @@ class GitHubModelsProvider(EmbeddingProvider):
                     response.status_code, wait, attempt + 1, max_retries,
                 )
                 time.sleep(wait)
-                delay = min(delay * 2, 60.0)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
                 continue
 
             response.raise_for_status()
@@ -236,8 +241,8 @@ class OpenRouterProvider(EmbeddingProvider):
         model: str = "nvidia/llama-nemotron-embed-vl-1b-v2:free",
         dimensions: int = 2048,
         batch_size: int = 32,
-        timeout: float = 60.0,
-        inter_request_delay: float = 4.0,
+        timeout: float = EMBED_TIMEOUT,
+        inter_request_delay: float = EMBED_INTER_REQUEST_DELAY,
     ) -> None:
         self._token = token
         self._model = model
@@ -347,7 +352,7 @@ class OpenRouterProvider(EmbeddingProvider):
                     response.status_code, wait, attempt + 1, max_retries,
                 )
                 time.sleep(wait)
-                delay = min(delay * 2, 60.0)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
                 continue
 
             response.raise_for_status()

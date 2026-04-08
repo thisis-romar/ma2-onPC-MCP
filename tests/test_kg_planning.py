@@ -199,6 +199,31 @@ class TestCountByType:
         assert pq.count_by_type("world") == 0
 
 
+class TestCheckExecutorAvailable:
+    def test_free_executor_is_available(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        available, msg = pq.check_executor_available(99)
+        assert available is True
+        assert msg is None
+
+    def test_occupied_executor_reports_sequence(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        # Executor 1 on page 1 has "Main Show" assigned
+        available, msg = pq.check_executor_available(1, page=1)
+        assert available is False
+        assert "Main Show" in msg
+
+    def test_different_page_is_available(self, store):
+        _populate_console_state(store)
+        pq = PlanningQueries(store)
+        # Executor 1 is assigned on page 1, but page 2 should be free
+        available, msg = pq.check_executor_available(1, page=2)
+        assert available is True
+        assert msg is None
+
+
 # -- DomainPlanner with graph tests -----------------------------------------
 
 
