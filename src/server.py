@@ -14,37 +14,21 @@ Usage:
 import json
 import logging
 import os
-import re
-import time
-from datetime import UTC
 from pathlib import Path
 
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
 
 from src.agent_memory import LongTermMemory
-from src.auth import OAuthScope, has_scope, require_scope
-from src.license_tiers import TOOL_LICENSE_TIERS
-from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
+from src.auth import OAuthScope, require_scope
 from src.orchestrator import Orchestrator
-from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
 from src.server_core import (
-    _check_pool_slots,
-    _get_sequence_for_executor,
-    _get_telemetry,
-    _GMA_SAFETY_LEVEL,
+    _get_sequence_for_executor,  # noqa: F401 — re-exported for tests
+    _get_telemetry,  # noqa: F401 — re-exported for tests
     _handle_errors,
-    _OBJECT_POOL_DESTINATIONS,
-    _parse_listvar,
-    _parse_preset_tree_list,
-    _read_selected_exec,
-    _SEQ_FOR_EXECUTOR_RE,
-    _validate_object_exists,
-    _vocab_spec,
-    get_client,
+    _validate_object_exists,  # noqa: F401 — re-exported for tests
+    get_client,  # noqa: F401 — re-exported for tests
     mcp,
 )
-from src.vocab import RiskTier, build_v39_spec, classify_token
 
 # Load environment variables
 load_dotenv()
@@ -55,20 +39,20 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
-import src.tools_community  # noqa: F401 — registers 20 COMMUNITY tools on mcp
+import src.tools_community  # noqa: E402, F401 — registers 20 COMMUNITY tools on mcp
 
 # Paid-tier modules live in src/private/ (git submodule).
 # Graceful degradation: public-only clones serve 20 COMMUNITY tools.
 _HAS_PRIVATE = False
 try:
-    import src.private.tools_professional  # noqa: F401 — 124 PROFESSIONAL tools
     import src.private.tools_enterprise  # noqa: F401 — 20 ENTERPRISE tools
+    import src.private.tools_professional  # noqa: F401 — 124 PROFESSIONAL tools
     _HAS_PRIVATE = True
 except ImportError:
     pass
 
 # Re-export COMMUNITY tools so existing `from src.server import X` keeps working
-from src.tools_community import (  # noqa: F401
+from src.tools_community import (  # noqa: E402, F401
     clear_programmer,
     discover_fixture_type_attributes,
     discover_object_names,
@@ -93,6 +77,35 @@ from src.tools_community import (  # noqa: F401
 
 # Re-export PROFESSIONAL + ENTERPRISE tools (only when private submodule present)
 if _HAS_PRIVATE:
+    # Also re-export helpers used by tests
+    from src.private.tools_enterprise import (  # noqa: F401  # noqa: F401
+        _build_tool_registry,
+        _discover_filter_attributes,
+        _invalidate_taxonomy_cache,
+        _load_taxonomy_cached,
+        _telnet_send_fn,
+        _tool_caller,
+        check_pool_slot_availability,
+        classify_show_mode,
+        create_filter_library,
+        create_matricks_library,
+        generate_compliance_report,
+        get_similar_tools,
+        get_telemetry_report,
+        list_macro_jump_targets,
+        list_psr_objects,
+        list_tool_categories,
+        partial_show_read,
+        plan_agent_goal,
+        prepare_partial_show_read,
+        recluster_tools,
+        resume_agent_run,
+        run_agent_goal,
+        scan_console_indexes,
+        search_codebase,
+        suggest_tool_for_task,
+        validate_preset_references,
+    )
     from src.private.tools_professional import (  # noqa: F401
         adjust_value_relative,
         apply_preset,
@@ -218,38 +231,6 @@ if _HAS_PRIVATE:
         unpatch_fixture,
         update_cue_data,
         update_object,
-    )
-
-    from src.private.tools_enterprise import (  # noqa: F401
-        check_pool_slot_availability,
-        classify_show_mode,
-        create_filter_library,
-        create_matricks_library,
-        generate_compliance_report,
-        get_similar_tools,
-        get_telemetry_report,
-        list_macro_jump_targets,
-        list_psr_objects,
-        list_tool_categories,
-        partial_show_read,
-        plan_agent_goal,
-        prepare_partial_show_read,
-        recluster_tools,
-        resume_agent_run,
-        run_agent_goal,
-        scan_console_indexes,
-        search_codebase,
-        suggest_tool_for_task,
-        validate_preset_references,
-    )
-    # Also re-export helpers used by tests
-    from src.private.tools_enterprise import (  # noqa: F401
-        _build_tool_registry,
-        _discover_filter_attributes,
-        _invalidate_taxonomy_cache,
-        _load_taxonomy_cached,
-        _telnet_send_fn,
-        _tool_caller,
     )
 
 logger = logging.getLogger(__name__)

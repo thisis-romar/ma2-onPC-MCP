@@ -17,6 +17,7 @@ import asyncio
 import json
 import logging
 
+import src.server_core as _sc
 from src.auth import OAuthScope, require_scope
 from src.commands import (
     attribute_at,
@@ -52,11 +53,9 @@ from src.commands import list_user_var as build_list_user_var
 from src.commands import list_var as build_list_var
 from src.commands import release_executor as build_release_executor
 from src.navigation import get_current_location, list_destination, navigate
-import src.server_core as _sc
-
 from src.server_core import (
-    _get_sequence_for_executor,
     _GMA_SAFETY_LEVEL,
+    _get_sequence_for_executor,
     _handle_errors,
     _parse_listvar,
     _read_selected_exec,
@@ -67,7 +66,7 @@ from src.server_core import (
 
 # Re-export for test discoverability (tools use _sc.get_client() for late binding)
 get_client = _sc.get_client
-from src.vocab import RiskTier, classify_token
+from src.vocab import RiskTier, classify_token  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

@@ -35,15 +35,15 @@ from mcp.server.fastmcp import FastMCP
 
 from src.context import _current_session_id
 from src.credentials import get_operator_identity, resolve_console_credentials
-from src.navigation import list_destination, navigate
 from src.license import get_license_tier, has_tier
 from src.license_tiers import TOOL_LICENSE_TIERS
+from src.navigation import list_destination, navigate
 from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
 from src.session_manager import SessionManager
 from src.telemetry import ToolTelemetry, infer_risk_tier
 from src.telnet_client import GMA2TelnetClient
 from src.tools import set_gma2_client
-from src.vocab import RiskTier, build_v39_spec, classify_token
+from src.vocab import build_v39_spec
 
 logger = logging.getLogger(__name__)
 
@@ -403,7 +403,7 @@ _OBJECT_POOL_DESTINATIONS: dict[str, str] = {
 
 
 async def _check_pool_slots(
-    client: "GMA2TelnetClient",
+    client: GMA2TelnetClient,
     pool_type: str,
     start_from: int = 1,
     scan_up_to: int = 200,
