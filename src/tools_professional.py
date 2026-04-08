@@ -13,15 +13,13 @@ from ``server_core.py`` so tools register on the same server.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
 import re
-import time
 from datetime import UTC
-from pathlib import Path
 
+import src.server_core as _sc
 from src.auth import OAuthScope, has_scope, require_scope
 from src.commands import (
     SPECIAL_MASTER_NAMES,
@@ -50,6 +48,7 @@ from src.commands import at_relative as build_at_relative
 from src.commands import blackout as build_blackout
 from src.commands import blind_edit as build_blind_edit
 from src.commands import block as build_block
+from src.commands import block_cue as build_block_cue
 from src.commands import build_login as build_console_login
 from src.commands import build_logout as build_console_logout
 from src.commands import call_plugin as build_call_plugin
@@ -68,11 +67,13 @@ from src.commands import delete_show as build_delete_show
 from src.commands import edit as build_edit
 from src.commands import executor_at as build_executor_at
 from src.commands import export_object as build_export_object
+from src.commands import extract as build_extract
 from src.commands import fade_path as build_fade_path
 from src.commands import fix_fixture as build_fix_fixture
 from src.commands import flash_executor as build_flash_executor
 from src.commands import flash_go as build_flash_go
 from src.commands import flash_on as build_flash_on
+from src.commands import flip as build_flip
 from src.commands import full_highlight as build_full_highlight
 from src.commands import goto_timecode as build_goto_timecode
 from src.commands import highlight as build_highlight
@@ -85,67 +86,40 @@ from src.commands import import_object as build_import_object
 from src.commands import invert as build_invert
 from src.commands import label as build_label
 from src.commands import label_preset as build_label_preset
-from src.commands import list_attribute as build_list_attribute
-from src.commands import list_cue as build_list_cue
+from src.commands import learn_executor as build_learn_executor
 from src.commands import list_effect_library as build_list_effect_library
 from src.commands import list_fader_modules as build_list_fader_modules
-from src.commands import list_group as build_list_group
 from src.commands import list_library as build_list_library
+from src.commands import list_macro_library as build_list_macro_library
+from src.commands import list_masters as build_list_masters
 from src.commands import list_objects as build_list_objects
 from src.commands import list_oops as build_list_oops
-from src.commands import list_preset as build_list_preset
+from src.commands import list_plugin_library as build_list_plugin_library
+from src.commands import list_plugin_library as build_list_plugins
 from src.commands import list_shows as build_list_shows
 from src.commands import list_update as build_list_update
 from src.commands import list_user_var as build_list_user_var
 from src.commands import list_var as build_list_var
-from src.commands import load_show as build_load_show
-from src.commands import move as build_move
-from src.commands import new_show as build_new_show
-from src.commands import off_executor as build_off_executor
-from src.commands import on_executor as build_on_executor
-from src.commands import page_next as build_page_next
-from src.commands import page_previous as build_page_previous
-from src.commands import park as build_park
-from src.commands import preview as build_preview
-from src.commands import release_executor as build_release_executor
-from src.commands import remove as build_remove
-from src.commands import remove_from_selection as build_remove_from_selection
-from src.commands import save_show as build_save_show
-from src.commands import set_user_var as build_set_user_var
-from src.commands import set_var as build_set_var
-from src.commands import shuffle_selection as build_shuffle_selection
-from src.commands import solo_executor as build_solo_executor
-from src.commands import store_cue as build_store_cue
-from src.commands import store_cue_timed as build_store_cue_timed
-from src.commands import store as build_store_generic
-from src.commands import store_look as build_store_look
-from src.commands import store_preset as build_store_preset
-from src.commands import stomp_executor as build_stomp_executor
-from src.commands import swop_executor as build_swop_executor
-from src.commands import swop_go as build_swop_go
-from src.commands import swop_on as build_swop_on
-from src.commands import temp_fader as build_temp_fader
-from src.commands import top_executor as build_top_executor
-from src.commands import unblock as build_unblock
-from src.commands import block_cue as build_block_cue
-from src.commands import extract as build_extract
-from src.commands import flip as build_flip
-from src.commands import learn_executor as build_learn_executor
-from src.commands import list_macro_library as build_list_macro_library
-from src.commands import list_masters as build_list_masters
-from src.commands import list_plugin_library as build_list_plugin_library
-from src.commands import list_plugin_library as build_list_plugins
 from src.commands import load_next as build_load_next
 from src.commands import load_prev as build_load_prev
+from src.commands import load_show as build_load_show
 from src.commands import locate as build_locate
 from src.commands import lock_console as build_lock
 from src.commands import lock_console as build_lock_console
 from src.commands import lua_execute as build_lua
 from src.commands import manual_xfade as build_manual_xfade
 from src.commands import master_at as build_master_at
+from src.commands import move as build_move
+from src.commands import new_show as build_new_show
+from src.commands import off_executor as build_off_executor
+from src.commands import on_executor as build_on_executor
 from src.commands import out_delay as build_out_delay
 from src.commands import out_fade as build_out_fade
+from src.commands import page_next as build_page_next
+from src.commands import page_previous as build_page_previous
+from src.commands import park as build_park
 from src.commands import paste as build_paste
+from src.commands import preview as build_preview
 from src.commands import preview_edit as build_preview_edit
 from src.commands import preview_executor as build_preview_executor
 from src.commands import rdm_automatch as build_rdm_automatch
@@ -158,8 +132,10 @@ from src.commands import reboot_console as build_reboot
 from src.commands import record_macro as build_record_macro
 from src.commands import release_effects_on_page as build_release_effects_on_page
 from src.commands import reload_plugins as build_reload_plugins
+from src.commands import remove as build_remove
 from src.commands import remove_effect as build_remove_effect
 from src.commands import remove_fixture as build_remove_fixture
+from src.commands import remove_from_selection as build_remove_from_selection
 from src.commands import remove_preset_type as build_remove_preset_type
 from src.commands import remove_selection as build_remove_selection
 from src.commands import restart_console as build_restart
@@ -169,13 +145,29 @@ from src.commands import set_effect_parameter as build_set_effect_parameter
 from src.commands import set_effect_rate as build_set_effect_rate
 from src.commands import set_effect_speed as build_set_effect_speed
 from src.commands import set_special_master as build_set_special_master
+from src.commands import set_user_var as build_set_user_var
+from src.commands import set_var as build_set_var
+from src.commands import shuffle_selection as build_shuffle_selection
 from src.commands import shuffle_values as build_shuffle_values
 from src.commands import shutdown_console as build_shutdown
 from src.commands import snap_percent as build_snap_percent
+from src.commands import solo_executor as build_solo_executor
 from src.commands import special_master_at as build_special_master_at
 from src.commands import step_fade as build_step_fade
 from src.commands import step_in_fade as build_step_in_fade
 from src.commands import step_out_fade as build_step_out_fade
+from src.commands import stomp_executor as build_stomp_executor
+from src.commands import store as build_store_generic
+from src.commands import store_cue as build_store_cue
+from src.commands import store_cue_timed as build_store_cue_timed
+from src.commands import store_look as build_store_look
+from src.commands import store_preset as build_store_preset
+from src.commands import swop_executor as build_swop_executor
+from src.commands import swop_go as build_swop_go
+from src.commands import swop_on as build_swop_on
+from src.commands import temp_fader as build_temp_fader
+from src.commands import top_executor as build_top_executor
+from src.commands import unblock as build_unblock
 from src.commands import unblock_cue as build_unblock_cue
 from src.commands import unlock_console as build_unlock
 from src.commands import unlock_console as build_unlock_console
@@ -184,23 +176,16 @@ from src.commands import update as build_update
 from src.commands import update_cue as build_update_cue
 from src.commands import zero_page_faders as build_zero_page_faders
 from src.navigation import list_destination, navigate, set_property
-import src.server_core as _sc
-
 from src.server_core import (
     _check_pool_slots,
     _get_sequence_for_executor,
-    _GMA_SAFETY_LEVEL,
+    _get_session_manager,
     _handle_errors,
-    _OBJECT_POOL_DESTINATIONS,
     _parse_listvar,
     _parse_preset_tree_list,
-    _read_selected_exec,
-    _SEQ_FOR_EXECUTOR_RE,
     _validate_object_exists,
-    _vocab_spec,
     mcp,
 )
-from src.vocab import RiskTier, classify_token
 
 logger = logging.getLogger(__name__)
 
@@ -3306,7 +3291,6 @@ async def generate_fixture_layer_xml(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
-    import os
     from datetime import datetime
     from xml.dom import minidom
     from xml.etree.ElementTree import Element, SubElement, tostring
@@ -5965,7 +5949,6 @@ async def update_object(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
-    from src.commands import update as build_update
     from src.commands import update_cue as build_update_cue
     if object_type.lower() == "cue":
         cmd = build_update_cue(
@@ -6035,28 +6018,7 @@ async def programming_action(
         align as build_align,
     )
     from src.commands import (
-        block_cue as build_block_cue,
-    )
-    from src.commands import (
-        extract as build_extract,
-    )
-    from src.commands import (
-        flip as build_flip,
-    )
-    from src.commands import (
-        learn_executor as build_learn_executor,
-    )
-    from src.commands import (
         locate as build_locate,
-    )
-    from src.commands import (
-        record_macro as build_record_macro,
-    )
-    from src.commands import (
-        store_look as build_store_look,
-    )
-    from src.commands import (
-        unblock_cue as build_unblock_cue,
     )
 
     valid_actions = {
@@ -6147,15 +6109,6 @@ async def master_control(
     Returns:
         str: JSON with command_sent, raw_response, risk_tier
     """
-    from src.commands import (
-        list_masters as build_list_masters,
-    )
-    from src.commands import (
-        master_at as build_master_at,
-    )
-    from src.commands import (
-        special_master_at as build_special_master_at,
-    )
 
     valid_actions = ("set", "set_special", "list")
     if action not in valid_actions:
@@ -6216,27 +6169,6 @@ async def system_admin(
     from src.commands import (
         build_login,
         build_logout,
-    )
-    from src.commands import (
-        lock_console as build_lock,
-    )
-    from src.commands import (
-        lua_execute as build_lua,
-    )
-    from src.commands import (
-        reboot_console as build_reboot,
-    )
-    from src.commands import (
-        restart_console as build_restart,
-    )
-    from src.commands import (
-        send_chat as build_chat,
-    )
-    from src.commands import (
-        shutdown_console as build_shutdown,
-    )
-    from src.commands import (
-        unlock_console as build_unlock,
     )
 
     valid_actions = {"login", "logout", "lock", "unlock", "lua", "chat", "reboot", "restart", "shutdown"}
@@ -6307,9 +6239,6 @@ async def plugin_management(action: str) -> str:
     Returns:
         str: JSON with command_sent, raw_response, risk_tier
     """
-    from src.commands import (
-        list_plugin_library as build_list_plugins,
-    )
     from src.commands import (
         reload_plugins as build_reload_plugins,
     )

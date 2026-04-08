@@ -14,36 +14,27 @@ from ``server_core.py`` so tools register on the same server.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
-import re
-import time
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from src.auth import OAuthScope, has_scope, require_scope
+import src.server_core as _sc
+from src.auth import OAuthScope, require_scope
 from src.commands import list_effect_library as build_list_effect_library
 from src.commands import list_macro_library as build_list_macro_library
 from src.commands import psr as build_psr
 from src.commands import psr_list as build_psr_list
 from src.commands import psr_prepare as build_psr_prepare
-from src.navigation import list_destination, navigate
-import src.server_core as _sc
-
+from src.navigation import list_destination, navigate, scan_indexes
 from src.server_core import (
     _check_pool_slots,
-    _GMA_SAFETY_LEVEL,
     _handle_errors,
-    _OBJECT_POOL_DESTINATIONS,
-    _parse_listvar,
     _parse_preset_tree_list,
-    _validate_object_exists,
-    _vocab_spec,
     mcp,
 )
-from src.vocab import RiskTier, classify_token
 
 logger = logging.getLogger(__name__)
 
@@ -433,7 +424,6 @@ async def create_matricks_library(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
-    from datetime import datetime
     from pathlib import Path
 
     matricks_dir = Path(
@@ -577,7 +567,6 @@ async def create_filter_library(
             "risk_tier": "DESTRUCTIVE",
         }, indent=2)
 
-    from datetime import datetime
     from pathlib import Path
 
     from src.commands.constants import (

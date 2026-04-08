@@ -611,8 +611,9 @@ class TestMCPToolWrappers:
         monkeypatch.setattr(tax_mod, "DEFAULT_TAXONOMY_PATH", out_path)
 
         # Also reset server module cache
-        import src.server as server_mod
-        import src.tools_enterprise as _te_mod; monkeypatch.setattr(_te_mod, "_taxonomy_cache", None)
+        import src.tools_enterprise as _te_mod  # noqa: E402
+
+        monkeypatch.setattr(_te_mod, "_taxonomy_cache", None)
 
         self.taxonomy_path = out_path
         self.taxonomy = tax_mod.load_taxonomy(out_path)

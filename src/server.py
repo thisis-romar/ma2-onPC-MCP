@@ -14,38 +14,48 @@ Usage:
 import json
 import logging
 import os
-import re
-import time
-from datetime import UTC
+import re  # noqa: F401 — re-exported
+import time  # noqa: F401 — re-exported
+from datetime import UTC  # noqa: F401 — re-exported
 from pathlib import Path
 
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP  # noqa: F401 — re-exported
 
 from src.agent_memory import LongTermMemory
-from src.auth import OAuthScope, has_scope, require_scope
-from src.license_tiers import TOOL_LICENSE_TIERS
-from src.navigation import get_current_location, list_destination, navigate, scan_indexes, set_property
+from src.auth import OAuthScope, has_scope, require_scope  # noqa: F401 — has_scope re-exported
+from src.license_tiers import TOOL_LICENSE_TIERS  # noqa: F401 — re-exported (also redefined below)
+from src.navigation import (  # noqa: F401 — re-exported
+    get_current_location,
+    list_destination,
+    navigate,
+    scan_indexes,
+    set_property,
+)
 from src.orchestrator import Orchestrator
-from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool
-from src.server_core import (
+from src.rights import get_session_ma2_right, is_permitted, min_right_for_tool  # noqa: F401 — re-exported
+from src.server_core import (  # noqa: F401 — re-exported for tests/orchestration
+    _GMA_SAFETY_LEVEL,
+    _OBJECT_POOL_DESTINATIONS,
+    _SEQ_FOR_EXECUTOR_RE,
     _check_pool_slots,
     _get_sequence_for_executor,
     _get_telemetry,
-    _GMA_SAFETY_LEVEL,
     _handle_errors,
-    _OBJECT_POOL_DESTINATIONS,
     _parse_listvar,
     _parse_preset_tree_list,
     _read_selected_exec,
-    _SEQ_FOR_EXECUTOR_RE,
     _validate_object_exists,
     _vocab_spec,
     get_client,
     mcp,
 )
 from src.server_orchestration_tools import register_orchestration_tools
-from src.vocab import RiskTier, build_v39_spec, classify_token
+from src.vocab import (  # noqa: F401 — re-exported (classify_token redefined below)
+    RiskTier,
+    build_v39_spec,
+    classify_token,
+)
 
 # Load environment variables
 load_dotenv()
@@ -56,12 +66,12 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
-import src.tools_community  # noqa: F401 — registers 20 COMMUNITY tools on mcp
-import src.tools_professional  # noqa: F401 — registers 124 PROFESSIONAL tools on mcp
-import src.tools_enterprise  # noqa: F401 — registers 20 ENTERPRISE tools on mcp
+import src.tools_community  # noqa: E402, F401 — registers 20 COMMUNITY tools on mcp
+import src.tools_enterprise  # noqa: E402, F401 — registers 20 ENTERPRISE tools on mcp
+import src.tools_professional  # noqa: E402, F401 — registers 124 PROFESSIONAL tools on mcp
 
 # Re-export COMMUNITY tools so existing `from src.server import X` keeps working
-from src.tools_community import (  # noqa: F401
+from src.tools_community import (  # noqa: E402, F401
     clear_programmer,
     discover_fixture_type_attributes,
     discover_object_names,
@@ -84,8 +94,39 @@ from src.tools_community import (  # noqa: F401
     set_intensity,
 )
 
+# Re-export ENTERPRISE tools so existing `from src.server import X` keeps working
+# Also re-export helpers used by tests
+from src.tools_enterprise import (  # noqa: E402, F401  # noqa: E402, F401
+    _build_tool_registry,
+    _discover_filter_attributes,
+    _invalidate_taxonomy_cache,
+    _load_taxonomy_cached,
+    _telnet_send_fn,
+    _tool_caller,
+    check_pool_slot_availability,
+    classify_show_mode,
+    create_filter_library,
+    create_matricks_library,
+    generate_compliance_report,
+    get_similar_tools,
+    get_telemetry_report,
+    list_macro_jump_targets,
+    list_psr_objects,
+    list_tool_categories,
+    partial_show_read,
+    plan_agent_goal,
+    prepare_partial_show_read,
+    recluster_tools,
+    resume_agent_run,
+    run_agent_goal,
+    scan_console_indexes,
+    search_codebase,
+    suggest_tool_for_task,
+    validate_preset_references,
+)
+
 # Re-export PROFESSIONAL tools so existing `from src.server import X` keeps working
-from src.tools_professional import (  # noqa: F401
+from src.tools_professional import (  # noqa: E402, F401
     adjust_value_relative,
     apply_preset,
     assign_cue_trigger,
@@ -212,39 +253,6 @@ from src.tools_professional import (  # noqa: F401
     update_object,
 )
 
-# Re-export ENTERPRISE tools so existing `from src.server import X` keeps working
-from src.tools_enterprise import (  # noqa: F401
-    check_pool_slot_availability,
-    classify_show_mode,
-    create_filter_library,
-    create_matricks_library,
-    generate_compliance_report,
-    get_similar_tools,
-    get_telemetry_report,
-    list_macro_jump_targets,
-    list_psr_objects,
-    list_tool_categories,
-    partial_show_read,
-    plan_agent_goal,
-    prepare_partial_show_read,
-    recluster_tools,
-    resume_agent_run,
-    run_agent_goal,
-    scan_console_indexes,
-    search_codebase,
-    suggest_tool_for_task,
-    validate_preset_references,
-)
-# Also re-export helpers used by tests
-from src.tools_enterprise import (  # noqa: F401
-    _build_tool_registry,
-    _discover_filter_attributes,
-    _invalidate_taxonomy_cache,
-    _load_taxonomy_cached,
-    _telnet_send_fn,
-    _tool_caller,
-)
-
 logger = logging.getLogger(__name__)
 
 # Get configuration from environment variables
@@ -311,7 +319,7 @@ def resource_vocab_summary() -> str:
     including it in a command string.  Tier determines whether confirm_destructive
     is required and which OAuthScope must be active.
     """
-    from src.vocab import classify_token, load_vocab
+    from src.vocab import classify_token, load_vocab  # noqa: F811
     spec = load_vocab()
     summary = {}
     all_keywords = list(spec.function_keywords.keys()) + list(spec.object_keywords.keys())
@@ -1828,7 +1836,7 @@ def _validate_license_tiers() -> None:
     flags tools whose names suggest they should be gated but are missing
     from the map — catching typos and oversight.
     """
-    from src.license_tiers import TOOL_LICENSE_TIERS
+    from src.license_tiers import TOOL_LICENSE_TIERS  # noqa: F811
 
     _DESTRUCTIVE_HINTS = {"store", "delete", "copy", "move", "assign",
                           "import", "export", "create", "remove"}
