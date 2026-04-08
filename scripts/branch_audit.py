@@ -124,9 +124,11 @@ def _collect_tool_names(root: Path) -> set[str]:
     """Extract @mcp.tool() decorated function names from source files."""
     # Allow optional leading whitespace (orchestration tools are indented
     # inside a register_*() wrapper function).
+    # Use [ \t]* (horizontal whitespace) instead of \s* to prevent
+    # exponential backtracking where \s* would compete with \n.
     tool_re = re.compile(
-        r"^\s*@mcp\.tool\(\)\s*\n(?:\s*@[\w.]+(?:\(.*?\))?\s*\n)*"
-        r"\s*async\s+def\s+(\w+)\(",
+        r"^[ \t]*@mcp\.tool\(\)[ \t]*\n(?:[ \t]*@[\w.]+(?:\(.*?\))?[ \t]*\n)*"
+        r"[ \t]*async\s+def\s+(\w+)\(",
         re.MULTILINE,
     )
     names: set[str] = set()
