@@ -6,7 +6,13 @@ import ast
 import logging
 import re
 
-from rag.config import CHARS_PER_TOKEN, DEFAULT_CHUNK_MAX_TOKENS, DEFAULT_CHUNK_OVERLAP_LINES
+from rag.config import (
+    CHARS_PER_TOKEN,
+    DEFAULT_CHUNK_MAX_TOKENS,
+    DEFAULT_CHUNK_OVERLAP_LINES,
+    MERGE_MIN_CHARS,
+    MERGE_TARGET_CHARS,
+)
 from rag.ingest.extract import extract_symbols
 from rag.types import Chunk, RepoFile
 from rag.utils.hash import sha256
@@ -135,7 +141,88 @@ def _chunk_markdown(
         heading_text = lines[start - 1].lstrip("#").strip()
         ranges.append((start, end, [heading_text]))
 
+    # Merge consecutive tiny sections for better retrieval context
+    ranges = _merge_small_ranges(ranges, lines)
+
     return _make_chunks_from_ranges(file, doc_id, ranges, lines, max_tokens=max_tokens, overlap_lines=overlap_lines)
+
+
+# ---------------------------------------------------------------------------
+# Markdown chunk merging
+# ---------------------------------------------------------------------------
+
+# Heading levels that are major section breaks — never merge across these
+_MAJOR_HEADING_RE = re.compile(r"^#{1,2}\s+")
+
+
+def _range_char_count(start: int, end: int, lines: list[str]) -> int:
+    """Total character count for a line range (1-indexed, inclusive)."""
+    return sum(len(lines[i]) for i in range(start - 1, end))
+
+
+def _is_major_heading(start: int, lines: list[str]) -> bool:
+    """Check if a range starts with an H1 or H2 heading."""
+    if start < 1 or start > len(lines):
+        return False
+    return bool(_MAJOR_HEADING_RE.match(lines[start - 1]))
+
+
+def _merge_small_ranges(
+    ranges: list[tuple[int, int, list[str]]],
+    lines: list[str],
+    *,
+    min_chars: int = MERGE_MIN_CHARS,
+    target_chars: int = MERGE_TARGET_CHARS,
+) -> list[tuple[int, int, list[str]]]:
+    """Merge consecutive tiny Markdown ranges to improve retrieval context.
+
+    Rules:
+    - Only merge ranges where both are smaller than ``min_chars``
+    - Stop merging when combined size would exceed ``target_chars``
+    - Never merge across H1 or H2 boundaries (major section breaks)
+    - Combined symbols from all merged ranges
+    """
+    if len(ranges) <= 1:
+        return ranges
+
+    merged: list[tuple[int, int, list[str]]] = []
+    i = 0
+
+    while i < len(ranges):
+        cur_start, cur_end, cur_syms = ranges[i]
+        cur_chars = _range_char_count(cur_start, cur_end, lines)
+
+        # Try merging forward while current is small
+        while (
+            cur_chars < min_chars
+            and i + 1 < len(ranges)
+        ):
+            next_start, next_end, next_syms = ranges[i + 1]
+            next_chars = _range_char_count(next_start, next_end, lines)
+
+            # Don't merge if next is too large
+            if next_chars >= min_chars:
+                break
+
+            # Don't merge across H1/H2 boundaries
+            if _is_major_heading(next_start, lines):
+                break
+
+            # Don't exceed target size
+            combined_chars = cur_chars + next_chars
+            if combined_chars > target_chars:
+                break
+
+            # Merge: extend range, combine symbols
+            cur_end = next_end
+            cur_syms = cur_syms + next_syms
+            cur_chars = combined_chars
+            i += 1
+
+        merged.append((cur_start, cur_end, cur_syms))
+        i += 1
+
+    return merged
 
 
 # ---------------------------------------------------------------------------

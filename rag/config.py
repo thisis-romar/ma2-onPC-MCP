@@ -15,6 +15,10 @@ DEFAULT_CHUNK_MAX_TOKENS: int = 1200
 DEFAULT_CHUNK_OVERLAP_LINES: int = 20
 CHARS_PER_TOKEN: int = 4  # rough estimate
 
+# Markdown chunk merging — merge consecutive tiny sections for better context
+MERGE_MIN_CHARS: int = 200       # chunks smaller than this are merge candidates
+MERGE_TARGET_CHARS: int = 2000   # stop merging when combined would exceed this
+
 # Retrieval
 DEFAULT_TOP_K: int = 12
 

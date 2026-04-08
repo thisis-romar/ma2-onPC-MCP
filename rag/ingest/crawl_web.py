@@ -30,6 +30,21 @@ _STRIP_TAGS = {"script", "style", "nav", "header", "footer", "noscript"}
 # CSS selectors for sidebar / navigation trees to remove
 _STRIP_SELECTORS = ["#offline-tree", ".topic-tree-container", ".jstree"]
 
+# CSS selectors for boilerplate elements within the content area
+_BOILERPLATE_SELECTORS = [
+    ".breadcrumb", ".breadcrumbs", ".topic-breadcrumb",
+    ".related-topics", ".related-links",
+    ".feedback", ".was-helpful", ".rating",
+    ".pagination", ".prev-next", ".topic-navigation",
+]
+
+# Text patterns that indicate boilerplate paragraphs (matched at start of element text)
+_BOILERPLATE_TEXT_RE = re.compile(
+    r"^\s*(Related Topics|See Also|Was this helpful|"
+    r"\u00a9|©|Copyright|All rights reserved)",
+    re.IGNORECASE,
+)
+
 # Selectors to try for main content, in priority order
 _CONTENT_SELECTORS = [".topic-content", "main", "article", "[role='main']"]
 
@@ -248,6 +263,11 @@ def _extract_text(soup: BeautifulSoup) -> str:
     if content is None:
         return ""
 
+    # Strip boilerplate and noise within the content area
+    _strip_boilerplate(content)
+    _normalize_code_blocks(content)
+    _strip_img_noise(content)
+
     # Convert headings to markdown-style before extracting text
     _convert_headings_to_markdown(content)
 
@@ -277,3 +297,35 @@ def _convert_headings_to_markdown(element: Tag) -> None:
         prefix = "#" * level
         heading_text = tag.get_text(strip=True)
         tag.string = f"{prefix} {heading_text}"
+
+
+def _strip_boilerplate(content: Tag) -> None:
+    """Remove boilerplate elements from within the content area.
+
+    Two passes:
+    1. CSS selector-based: removes breadcrumbs, related-topics, feedback, pagination
+    2. Text pattern-based: removes paragraphs starting with known boilerplate text
+    """
+    # Pass 1: structural removal via CSS selectors
+    for selector in _BOILERPLATE_SELECTORS:
+        for el in content.select(selector):
+            el.decompose()
+
+    # Pass 2: text-based removal for elements without distinctive classes
+    for el in content.find_all(["p", "div", "span"]):
+        text = el.get_text(strip=True)
+        if text and _BOILERPLATE_TEXT_RE.match(text):
+            el.decompose()
+
+
+def _normalize_code_blocks(content: Tag) -> None:
+    """Wrap <pre> block content with fenced code markers for better chunking."""
+    for pre in content.find_all("pre"):
+        code_text = pre.get_text()
+        pre.string = f"\n```\n{code_text}\n```\n"
+
+
+def _strip_img_noise(content: Tag) -> None:
+    """Remove <img> elements that produce noisy alt text like '[Graphic]'."""
+    for img in content.find_all("img"):
+        img.decompose()

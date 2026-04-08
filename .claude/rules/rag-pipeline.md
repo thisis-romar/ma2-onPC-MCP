@@ -19,10 +19,11 @@ crawl → chunk → embed → store (SQLite) → query → rerank
 ```
 
 - Python files: AST-aware chunking. Markdown: heading-based. Everything else: line-based.
-- Embeddings: `GitHubModelsProvider` (requires `GITHUB_MODELS_TOKEN`) or `ZeroVectorProvider` (CI/testing stub, 1536-dim zero vectors).
+- Embeddings: `GitHubModelsProvider` (requires `GITHUB_MODELS_TOKEN`, 1536-dim) or `OpenRouterProvider` (requires `OPENROUTER_API_KEY`, 2048-dim) or `ZeroVectorProvider` (CI/testing stub, 1536-dim zero vectors).
 - The `search_codebase` MCP tool queries the store; auto-detects token and falls back to text search when absent.
-- Embedding API is rate-limited — 4s inter-request delay, batch_size=32 to stay within GitHub Models free tier.
+- Embedding API is rate-limited — 4s inter-request delay, batch_size=32 to stay within free tier limits.
 - Dimension mismatch between old zero-vector chunks and new real embeddings is handled gracefully.
+- **Dimension asymmetry**: GitHub Models uses 1536-dim, OpenRouter uses 2048-dim. Cannot mix in the same store — use `rag_upgrade_embeddings.py --re-embed-all` when switching providers.
 
 ---
 

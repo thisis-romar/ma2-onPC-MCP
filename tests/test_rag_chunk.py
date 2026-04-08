@@ -112,6 +112,95 @@ class TestMarkdownChunking:
         assert len(chunks) >= 1
 
 
+class TestMarkdownMerging:
+    """Tests for _merge_small_ranges merging tiny consecutive Markdown sections."""
+
+    def test_merge_tiny_sections(self):
+        """Four tiny H3 sections should merge into fewer chunks."""
+        md = (
+            "# Title\n\nIntro.\n\n"
+            "### A\n\nShort.\n\n"
+            "### B\n\nShort.\n\n"
+            "### C\n\nShort.\n\n"
+            "### D\n\nShort.\n"
+        )
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        # Title section + merged tiny sections → fewer than 5 chunks
+        assert len(chunks) < 5
+
+    def test_no_merge_across_h1(self):
+        """H1 boundaries prevent merging."""
+        md = (
+            "### Tiny A\n\nX.\n\n"
+            "# Major Section\n\nY.\n\n"
+            "### Tiny B\n\nZ.\n"
+        )
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        # H1 prevents merging Tiny A with Major Section
+        assert len(chunks) >= 2
+
+    def test_no_merge_across_h2(self):
+        """H2 boundaries prevent merging."""
+        md = (
+            "### Tiny A\n\nX.\n\n"
+            "## Major Section\n\nY.\n\n"
+            "### Tiny B\n\nZ.\n"
+        )
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        # H2 prevents merging Tiny A with Major Section
+        assert len(chunks) >= 2
+
+    def test_no_merge_when_large(self):
+        """Sections > MERGE_MIN_CHARS should not be merged."""
+        long_text = "x " * 150  # ~300 chars, well above 200
+        md = (
+            f"### Section A\n\n{long_text}\n\n"
+            f"### Section B\n\n{long_text}\n"
+        )
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        # Both sections are large → should remain separate
+        assert len(chunks) >= 2
+
+    def test_symbols_combined(self):
+        """Merged chunks should have symbols from all constituent headings."""
+        md = (
+            "### Alpha\n\nSmall.\n\n"
+            "### Beta\n\nSmall.\n\n"
+            "### Gamma\n\nSmall.\n"
+        )
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        all_symbols = []
+        for c in chunks:
+            all_symbols.extend(c.symbols)
+        assert "Alpha" in all_symbols
+        assert "Beta" in all_symbols
+        assert "Gamma" in all_symbols
+
+    def test_merge_respects_target(self):
+        """Merging should stop when combined size would exceed target."""
+        # Create many sections that are individually small but collectively large
+        sections = []
+        for i in range(20):
+            sections.append(f"### Section {i}\n\n{'word ' * 30}\n\n")  # ~150 chars each
+        md = "".join(sections)
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        # 20 × 150 = 3000 chars, target is 2000 → should produce at least 2 chunks
+        assert len(chunks) >= 2
+
+    def test_single_section_unchanged(self):
+        """A single section should pass through unchanged."""
+        md = "### Only\n\nContent.\n"
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        assert len(chunks) == 1
+
+
 class TestLineBasedChunking:
     def test_generic_file(self):
         text = "\n".join([f"line {i}" for i in range(200)])
