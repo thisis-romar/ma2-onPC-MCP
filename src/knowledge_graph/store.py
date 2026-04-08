@@ -274,6 +274,51 @@ class GraphStore:
             "SELECT COUNT(*) FROM kg_edges WHERE edge_type = ?", (str(edge_type),)
         ).fetchone()[0]
 
+    # -- freshness tracking --------------------------------------------------
+
+    def mark_stale(self, node_id: str) -> bool:
+        """Mark a node as stale by setting updated_at to epoch.
+
+        Returns True if the node existed.
+        """
+        cur = self.conn.execute(
+            "UPDATE kg_nodes SET updated_at = '1970-01-01T00:00:00Z' WHERE node_id = ?",
+            (node_id,),
+        )
+        self.conn.commit()
+        return cur.rowcount > 0
+
+    def mark_type_stale(self, node_type: NodeType | str) -> int:
+        """Mark all nodes of a type as stale. Returns count."""
+        cur = self.conn.execute(
+            "UPDATE kg_nodes SET updated_at = '1970-01-01T00:00:00Z' WHERE node_type = ?",
+            (str(node_type),),
+        )
+        self.conn.commit()
+        return cur.rowcount
+
+    def stale_nodes(self, max_age_iso: str) -> list[Node]:
+        """Get all nodes older than max_age_iso timestamp."""
+        rows = self.conn.execute(
+            "SELECT node_id, node_type, label, props, updated_at "
+            "FROM kg_nodes WHERE updated_at < ?",
+            (max_age_iso,),
+        ).fetchall()
+        return [
+            Node(node_id=r[0], node_type=r[1], label=r[2], props=json.loads(r[3]), updated_at=r[4])
+            for r in rows
+        ]
+
+    def is_fresh(self, node_id: str, max_age_iso: str) -> bool:
+        """Check if a node's updated_at is >= max_age_iso."""
+        row = self.conn.execute(
+            "SELECT updated_at FROM kg_nodes WHERE node_id = ?",
+            (node_id,),
+        ).fetchone()
+        if row is None:
+            return False
+        return row[0] >= max_age_iso
+
     # -- bulk operations -----------------------------------------------------
 
     def clear(self) -> None:

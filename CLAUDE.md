@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.15.0
+version: 4.16.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-07T20:44:13Z
+last_updated: 2026-04-08T00:19:12Z
 ---
 
 # Project Rules
@@ -44,6 +44,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache; showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
+| `src/knowledge_graph/` | SQLite-backed knowledge graph: domain entity nodes (10 types), relationship edges (12 types), BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |

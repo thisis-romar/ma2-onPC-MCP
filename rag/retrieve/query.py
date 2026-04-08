@@ -1,18 +1,27 @@
 # Copyright (c) 2025-2026 thisis-romar. All rights reserved.
 # Licensed under the Business Source License 1.1. See LICENSE file.
 
-"""Top-K retrieval from the RAG store."""
+"""Top-K retrieval from the RAG store.
+
+Supports optional graph-augmented retrieval (GraphRAG): when a GraphStore
+is provided, entity mentions in the query are expanded with graph context
+and attached to each hit's ``graph_context`` field.
+"""
 
 from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from rag.config import DEFAULT_TOP_K, RAG_DB_PATH
 from rag.ingest.embed import EmbeddingProvider
 from rag.retrieve.rerank import rerank
 from rag.store.sqlite import RagStore
 from rag.types import RagHit
+
+if TYPE_CHECKING:
+    from src.knowledge_graph.store import GraphStore
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +55,7 @@ def rag_query(
     db_path: str | Path = RAG_DB_PATH,
     repo_ref: str | None = None,
     kind: str | None = None,
+    graph_store: GraphStore | None = None,
 ) -> list[RagHit]:
     """Query the RAG index and return the top-K most relevant chunks.
 
@@ -58,6 +68,9 @@ def rag_query(
             "ma2-help-docs", "mcp-sdk").  ``None`` searches all sources.
         kind: Filter to a specific chunk kind (e.g. "source", "test", "doc").
             ``None`` searches all kinds.
+        graph_store: Optional initialized GraphStore for graph-augmented
+            retrieval.  When provided, entity mentions in the query are
+            expanded with graph context and attached to each hit.
     """
     store = RagStore(db_path)
     store.init_db()
@@ -80,6 +93,33 @@ def rag_query(
         # Deduplicate near-identical chunks (same text across different repo_refs)
         hits = _deduplicate(hits)
 
-        return hits[:top_k]
+        hits = hits[:top_k]
+
+        # Graph-augmented enrichment (optional)
+        if graph_store is not None:
+            _enrich_with_graph(hits, query, graph_store)
+
+        return hits
     finally:
         store.close()
+
+
+def _enrich_with_graph(
+    hits: list[RagHit],
+    query: str,
+    graph_store: GraphStore,
+) -> None:
+    """Attach graph context to RAG hits.
+
+    Extracts entity mentions from the query, expands them via graph
+    traversal, and attaches the context to every hit.
+    """
+    from src.knowledge_graph.graph_rag import graph_rag_query
+
+    contexts = graph_rag_query(query, graph_store, max_depth=2)
+    if not contexts:
+        return
+
+    context_dicts = [ctx.to_dict() for ctx in contexts]
+    for hit in hits:
+        hit.graph_context = context_dicts

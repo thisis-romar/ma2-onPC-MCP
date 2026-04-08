@@ -5,13 +5,17 @@
 
 No LLM dependency. Uses keyword matching to classify goals and dispatch
 to workflow templates that define canonical step orderings.
+
+Optional knowledge graph integration: when a GraphStore is provided,
+the planner enriches goals with graph context (entity existence,
+relationship counts, warnings) without changing the core dispatch logic.
 """
 
 from __future__ import annotations
 
 import logging
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from src.agent.state import GoalIntent, ParsedGoal, PlanStep
 from src.agent.workflows.common import build_verify_step
@@ -19,6 +23,9 @@ from src.agent.workflows.patch import build_patch_workflow
 from src.agent.workflows.playback import build_playback_workflow
 from src.agent.workflows.preset import build_preset_workflow
 from src.vocab import RiskTier
+
+if TYPE_CHECKING:
+    from src.knowledge_graph.store import GraphStore
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +101,16 @@ _ID_PATTERN = re.compile(r"\b(?:group|preset|sequence|executor|fixture)\s+(\d+)"
 
 
 class DomainPlanner:
-    """Rule-based planner that decomposes goals into PlanStep sequences."""
+    """Rule-based planner that decomposes goals into PlanStep sequences.
+
+    Optional ``graph_store`` enables graph-informed enrichment: entity
+    existence checks, relationship context, and planning warnings.
+    All graph features are additive — the planner works identically
+    without a graph store.
+    """
+
+    def __init__(self, graph_store: GraphStore | None = None) -> None:
+        self._graph_store = graph_store
 
     def classify_goal(self, goal_text: str) -> ParsedGoal:
         """Extract intent, object types, counts, and names from goal text."""
@@ -106,7 +122,7 @@ class DomainPlanner:
         options = self._extract_options(goal_text)
         confidence = self._estimate_confidence(goal_text, intent)
 
-        return ParsedGoal(
+        goal = ParsedGoal(
             raw=goal_text,
             intent=intent,
             object_type=object_type,
@@ -116,6 +132,12 @@ class DomainPlanner:
             options=options,
             confidence=confidence,
         )
+
+        # Graph enrichment (additive, only if graph store available)
+        if self._graph_store is not None:
+            self._enrich_from_graph(goal)
+
+        return goal
 
     def plan(self, goal: ParsedGoal) -> list[PlanStep]:
         """Decompose a parsed goal into ordered PlanSteps.
@@ -150,6 +172,27 @@ class DomainPlanner:
         parsed = self.classify_goal(goal_text)
         steps = self.plan(parsed)
         return parsed, steps
+
+    # ---------------------------------------------------------------- graph
+
+    def _enrich_from_graph(self, goal: ParsedGoal) -> None:
+        """Enrich a parsed goal with knowledge graph context.
+
+        Adds ``graph_enrichment`` to goal.options with entity existence,
+        relationship context, and warnings. Does not modify core fields.
+        """
+        from src.knowledge_graph.planning import PlanningQueries
+
+        pq = PlanningQueries(self._graph_store)  # type: ignore[arg-type]
+        enrichment = pq.enrich_goal(
+            object_type=goal.object_type,
+            object_id=goal.options.get("object_id"),
+            name=goal.names[0] if goal.names else None,
+        )
+        if enrichment.entity_contexts or enrichment.warnings or enrichment.suggestions:
+            goal.options["graph_enrichment"] = enrichment.to_dict()
+            for warning in enrichment.warnings:
+                logger.info("KG enrichment warning: %s", warning)
 
     # ---------------------------------------------------------------- intent
 
