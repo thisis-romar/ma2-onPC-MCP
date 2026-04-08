@@ -24,6 +24,7 @@ from mcp.server.fastmcp import FastMCP  # noqa: F401 — re-exported
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, has_scope, require_scope  # noqa: F401 — has_scope re-exported
+from src.knowledge_graph import GraphStore, set_graph_store
 from src.license_tiers import TOOL_LICENSE_TIERS  # noqa: F401 — re-exported (also redefined below)
 from src.navigation import (  # noqa: F401 — re-exported
     get_current_location,
@@ -273,11 +274,17 @@ _GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
 
 _ltm = LongTermMemory()
 
+# Initialize the knowledge graph (in-memory, session-scoped).
+_graph_store = GraphStore(":memory:")
+_graph_store.initialize()
+set_graph_store(_graph_store)
+
 _orchestrator = Orchestrator(
     tool_caller=_tool_caller,
     telnet_send=_telnet_send_fn,
     ltm=_ltm,
     parallel=False,
+    graph_store=_graph_store,
 )
 
 register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, OAuthScope)

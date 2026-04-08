@@ -343,3 +343,23 @@ class TestPolicyFreshnessWarning:
         result = engine.validate_plan(plan)
         stale_warnings = [w for w in result.warnings if "Stale graph data" in w]
         assert len(stale_warnings) == 0
+
+
+# -- Server startup wiring tests ----------------------------------------------
+
+
+class TestServerGraphStoreWiring:
+    """Verify that server.py creates and wires the global GraphStore."""
+
+    def test_server_module_graph_store_exists(self):
+        """server.py must expose an initialized _graph_store module attribute."""
+        from src.server import _graph_store
+
+        assert _graph_store is not None
+        assert _graph_store._conn is not None  # proves initialize() was called
+
+    def test_orchestrator_has_graph_store(self):
+        """The module-level _orchestrator must have the graph_store wired in."""
+        from src.server import _orchestrator
+
+        assert _orchestrator._graph_store is not None

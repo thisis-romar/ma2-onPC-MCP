@@ -1752,9 +1752,10 @@ async def run_agent_goal(
         - "Create a color preset for group 1" → preset workflow
     """
     from src.agent.runtime import AgentRuntime
+    from src.knowledge_graph import get_graph_store
 
     registry = _build_tool_registry()
-    runtime = AgentRuntime(tool_registry=registry)
+    runtime = AgentRuntime(tool_registry=registry, graph_store=get_graph_store())
 
     if dry_run:
         parsed_goal, plan, warnings = await runtime.plan_only(goal)
@@ -1793,9 +1794,10 @@ async def plan_agent_goal(goal: str) -> str:
         str: JSON with intent, plan steps, confidence, and warnings.
     """
     from src.agent.runtime import AgentRuntime
+    from src.knowledge_graph import get_graph_store
 
     registry = _build_tool_registry()
-    runtime = AgentRuntime(tool_registry=registry)
+    runtime = AgentRuntime(tool_registry=registry, graph_store=get_graph_store())
 
     parsed_goal, plan, warnings = await runtime.plan_only(goal)
     return json.dumps({
@@ -1836,9 +1838,10 @@ async def resume_agent_run(run_id: str) -> str:
             if the run_id is not found or has no saved checkpoints.
     """
     from src.agent.runtime import AgentRuntime
+    from src.knowledge_graph import get_graph_store
 
     registry = _build_tool_registry()
-    runtime = AgentRuntime(tool_registry=registry)
+    runtime = AgentRuntime(tool_registry=registry, graph_store=get_graph_store())
 
     async def _auto_confirm(step) -> bool:
         return True
