@@ -72,12 +72,14 @@ class GraphStore:
         self._conn.commit()
 
     def close(self) -> None:
+        """Close the SQLite connection and release resources."""
         if self._conn:
             self._conn.close()
             self._conn = None
 
     @property
     def conn(self) -> sqlite3.Connection:
+        """Return the active SQLite connection, raising if not initialized."""
         if self._conn is None:
             raise RuntimeError("GraphStore not initialized — call initialize() first")
         return self._conn

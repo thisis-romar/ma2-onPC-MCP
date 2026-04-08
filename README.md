@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 198 MCP tools via Telnet
-version: 3.35.3
+version: 3.36.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-06T22:35:54Z
+last_updated: 2026-04-08T09:01:44Z
 ---
 
 <p align="center">
@@ -17,7 +17,7 @@ last_updated: 2026-04-06T22:35:54Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-198-brightgreen?style=for-the-badge" alt="198 MCP Tools"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3151-brightgreen?style=for-the-badge" alt="3151 Tests"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3304-brightgreen?style=for-the-badge" alt="3304 Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.35.3-purple?style=for-the-badge" alt="Version 3.35.3"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
@@ -135,6 +135,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/commands/`](src/commands/) | 262 exported command-builder functions, grouped by keyword type |
 | [`src/commands/busking.py`](src/commands/busking.py) | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | [`src/categorization/`](src/categorization/) | ML tool categorization: K-Means clustering + auto-labeling |
+| [`src/knowledge_graph/`](src/knowledge_graph/) | SQLite-backed knowledge graph: 10 node types, 11 edge types, BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
 | [`src/telemetry.py`](src/telemetry.py) | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | [`src/skill.py`](src/skill.py) | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
 | [`src/skill_improver.py`](src/skill_improver.py) | `SkillImprover`: repair suggestions + promotion candidates (read-only) |

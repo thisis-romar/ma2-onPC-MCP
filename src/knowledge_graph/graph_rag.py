@@ -60,6 +60,7 @@ class GraphContext:
     edges: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the graph context to a JSON-compatible dict."""
         return {
             "entity": {
                 "type": self.entity.node_type,

@@ -27,9 +27,11 @@ class TraversalResult:
     paths: list[list[str]] = field(default_factory=list)
 
     def node_ids(self) -> list[str]:
+        """Return the list of node IDs in the traversal result."""
         return [n.node_id for n in self.nodes]
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the traversal result to a JSON-compatible dict."""
         return {
             "nodes": [
                 {"node_id": n.node_id, "node_type": n.node_type, "label": n.label, "props": n.props}

@@ -201,6 +201,30 @@ class TestMarkdownMerging:
         assert len(chunks) == 1
 
 
+class TestMergeEdgeCases:
+    """Edge cases for _merge_small_ranges."""
+
+    def test_empty_markdown_produces_no_crash(self):
+        """Empty markdown input should produce zero chunks without error."""
+        md = ""
+        f = _make_file(md, language="markdown", path="empty.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        assert len(chunks) == 0
+
+    def test_sections_exactly_at_min_chars_boundary(self):
+        """Sections at exactly MERGE_MIN_CHARS boundary should not be merged."""
+        # MERGE_MIN_CHARS = 200; build sections of exactly ~200 chars
+        filler = "x" * 185  # ~185 + heading/newlines ≈ 200 chars
+        md = (
+            f"### Section A\n\n{filler}\n\n"
+            f"### Section B\n\n{filler}\n"
+        )
+        f = _make_file(md, language="markdown", path="doc.md", kind="doc")
+        chunks = chunk_file(f, "doc1")
+        # At the boundary, sections should remain separate (not be merge candidates)
+        assert len(chunks) >= 2
+
+
 class TestLineBasedChunking:
     def test_generic_file(self):
         text = "\n".join([f"line {i}" for i in range(200)])

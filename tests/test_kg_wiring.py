@@ -252,3 +252,94 @@ class TestExecutorStaleness:
         assert not store.is_fresh("fixture:1", "2020-01-01T00:00:00Z")
         assert not store.is_fresh("group:1", "2020-01-01T00:00:00Z")
         assert not store.is_fresh("sequence:1", "2020-01-01T00:00:00Z")
+
+
+# -- Policy freshness warning tests -----------------------------------------
+
+
+class TestPolicyFreshnessWarning:
+    """Rule 9: DESTRUCTIVE steps referencing stale graph data produce warnings."""
+
+    def test_stale_entity_triggers_warning(self, store):
+        """DESTRUCTIVE step referencing a stale group should warn."""
+        snap = _make_snapshot()
+        sync_snapshot(store, snap)
+
+        # Mark group:1 as stale
+        store.mark_stale("group:1")
+
+        engine = PolicyEngine(graph_store=store)
+        plan = [
+            PlanStep(
+                tool_name="query_object_list",
+                tool_args={"object_type": "group"},
+                description="List groups",
+                risk_tier=RiskTier.SAFE_READ,
+            ),
+            PlanStep(
+                tool_name="delete_object",
+                tool_args={"group_id": 1},
+                description="Delete group 1",
+                risk_tier=RiskTier.DESTRUCTIVE,
+            ),
+            PlanStep(
+                tool_name="get_object_info",
+                tool_args={"object_type": "group"},
+                description="Verify",
+                risk_tier=RiskTier.SAFE_READ,
+            ),
+        ]
+        result = engine.validate_plan(plan)
+        stale_warnings = [w for w in result.warnings if "Stale graph data" in w]
+        assert len(stale_warnings) >= 1
+        assert "group:1" in stale_warnings[0]
+        assert result.approved is True  # advisory only
+
+    def test_fresh_entity_no_warning(self, store):
+        """DESTRUCTIVE step referencing a fresh group should not warn."""
+        snap = _make_snapshot()
+        sync_snapshot(store, snap)
+
+        engine = PolicyEngine(graph_store=store)
+        plan = [
+            PlanStep(
+                tool_name="query_object_list",
+                tool_args={"object_type": "group"},
+                description="List groups",
+                risk_tier=RiskTier.SAFE_READ,
+            ),
+            PlanStep(
+                tool_name="delete_object",
+                tool_args={"group_id": 1},
+                description="Delete group 1",
+                risk_tier=RiskTier.DESTRUCTIVE,
+            ),
+            PlanStep(
+                tool_name="get_object_info",
+                tool_args={"object_type": "group"},
+                description="Verify",
+                risk_tier=RiskTier.SAFE_READ,
+            ),
+        ]
+        result = engine.validate_plan(plan)
+        stale_warnings = [w for w in result.warnings if "Stale graph data" in w]
+        assert len(stale_warnings) == 0
+
+    def test_safe_read_with_stale_no_warning(self, store):
+        """SAFE_READ steps should not trigger freshness warnings even if stale."""
+        snap = _make_snapshot()
+        sync_snapshot(store, snap)
+        store.mark_stale("group:1")
+
+        engine = PolicyEngine(graph_store=store)
+        plan = [
+            PlanStep(
+                tool_name="query_object_list",
+                tool_args={"group_id": 1},
+                description="List group 1",
+                risk_tier=RiskTier.SAFE_READ,
+            ),
+        ]
+        result = engine.validate_plan(plan)
+        stale_warnings = [w for w in result.warnings if "Stale graph data" in w]
+        assert len(stale_warnings) == 0

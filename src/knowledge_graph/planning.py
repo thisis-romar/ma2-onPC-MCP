@@ -41,6 +41,7 @@ class GoalEnrichment:
     suggestions: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the goal enrichment to a JSON-compatible dict."""
         return {
             "entity_contexts": [
                 {

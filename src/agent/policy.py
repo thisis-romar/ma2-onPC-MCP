@@ -136,6 +136,7 @@ class PolicyEngine:
         if self._graph_store is not None:
             self._check_graph_entity_existence(plan, warnings)
             self._check_graph_executor_availability(plan, warnings)
+            self._check_graph_freshness(plan, warnings)
 
         has_errors = any(v.severity == "error" for v in violations)
         approved = not has_errors
@@ -342,3 +343,53 @@ class PolicyEngine:
                     available, msg = pq.check_executor_available(int(exec_id), int(page))
                     if not available and msg:
                         warnings.append(msg)
+
+    def _check_graph_freshness(
+        self,
+        plan: list[PlanStep],
+        warnings: list[str],
+    ) -> None:
+        """Rule 9: Warn when DESTRUCTIVE steps reference stale graph entities.
+
+        CLAUDE.md: 'Do not use graph query results for DESTRUCTIVE operations
+        without verifying freshness — stale graph data may reference deleted
+        console objects.'
+
+        Advisory only — never blocks execution.
+        """
+        from datetime import UTC, datetime, timedelta
+
+        from src.knowledge_graph.schema import node_id
+
+        assert self._graph_store is not None  # caller guards  # noqa: S101
+        cutoff = (datetime.now(UTC) - timedelta(minutes=5)).isoformat()
+
+        # Map tool_args keys to node type prefixes
+        _ARG_TO_NODE_TYPE = {
+            "group_id": "group",
+            "group": "group",
+            "sequence_id": "sequence",
+            "sequence": "sequence",
+            "executor_id": "executor",
+            "executor": "executor",
+            "preset_id": "preset",
+            "preset": "preset",
+            "fixture_id": "fixture",
+            "world_id": "world",
+            "filter_id": "filter",
+        }
+
+        for step in plan:
+            if step.risk_tier != RiskTier.DESTRUCTIVE:
+                continue
+            for arg_key, node_type in _ARG_TO_NODE_TYPE.items():
+                obj_id = step.tool_args.get(arg_key)
+                if obj_id is None:
+                    continue
+                nid = node_id(node_type, obj_id)
+                if not self._graph_store.is_fresh(nid, cutoff):
+                    warnings.append(
+                        f"Stale graph data: {nid} referenced by DESTRUCTIVE step "
+                        f"'{step.description}' — verify object still exists on "
+                        f"console before proceeding"
+                    )
