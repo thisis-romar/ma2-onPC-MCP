@@ -70,7 +70,7 @@ uv run python -m src.server  # starts MCP server (stdio transport)
 
 ```mermaid
 graph TD
-    H["🤖 Agent Core Layer<br/><code>src/server_orchestration_tools.py</code><br/>34 tools (110–144) · orchestrator · skills"] --> A
+    H["🤖 Agent Core Layer<br/><code>src/private/server_orchestration_tools.py</code><br/>34 tools (110–144) · orchestrator · skills"] --> A
     A["🎭 MCP Server Layer<br/><code>src/server.py</code><br/>164 tools · safety gate"] --> B
     B["🧭 Navigation Layer<br/><code>src/navigation.py</code><br/>cd · list · scan · set_property"] --> C
     C["🔧 Command Builders<br/><code>src/commands/</code><br/>254 pure functions → strings"] --> D
@@ -103,7 +103,7 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 | Layer | What it is | Key files |
 |-------|-----------|-----------|
 | **Bottom 164 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | [`src/server.py`](src/server.py) |
-| **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | [`src/server_orchestration_tools.py`](src/server_orchestration_tools.py), [`src/orchestrator.py`](src/orchestrator.py) |
+| **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | [`src/private/server_orchestration_tools.py`](src/private/server_orchestration_tools.py), [`src/orchestrator.py`](src/orchestrator.py) |
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
 
@@ -119,7 +119,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | Module | Role |
 |--------|------|
 | [`src/server.py`](src/server.py) | FastMCP server, 164 interactive tools, safety gate, env config |
-| [`src/server_orchestration_tools.py`](src/server_orchestration_tools.py) | 34 agentic tools (110–144) registered onto FastMCP |
+| [`src/private/server_orchestration_tools.py`](src/private/server_orchestration_tools.py) | 34 agentic tools (110–144) registered onto FastMCP |
 | [`src/orchestrator.py`](src/orchestrator.py) | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
 | [`src/task_decomposer.py`](src/task_decomposer.py) | Natural-language goal → ordered SubTask plan (14 built-in rules + `register_rule()` extensibility) |
 | [`src/agent_memory.py`](src/agent_memory.py) | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
@@ -663,7 +663,7 @@ python -m scripts.create_matricks_library --color-only
 <details>
 <summary><strong>🤖 Orchestration & Console State</strong> — 34 tools</summary>
 
-These tools form the **agentic layer** ([`src/server_orchestration_tools.py`](src/server_orchestration_tools.py)). They enable
+These tools form the **agentic layer** ([`src/private/server_orchestration_tools.py`](src/private/server_orchestration_tools.py)). They enable
 multi-step task execution with memory, risk-tier isolation, and zero-telnet state queries
 via a `ConsoleStateSnapshot` cache that closes 19 show-memory gaps.
 
@@ -1300,8 +1300,12 @@ The command builder layer ([`src/commands/`](src/commands/)) generates grandMA2 
 ```
 ma2-onPC-MCP/
 ├── src/
-│   ├── server.py                           # FastMCP server (164 interactive tools)
-│   ├── server_orchestration_tools.py       # Agentic layer (tools 110–144)
+│   ├── server.py                           # FastMCP server startup + 17 resources + 13 prompts
+│   ├── tools_community.py                  # 20 COMMUNITY tools (free tier, public)
+│   ├── private/                            # Git submodule — paid-tier tools
+│   │   ├── tools_professional.py           # 124 PROFESSIONAL tools
+│   │   ├── tools_enterprise.py             # 20 ENTERPRISE tools
+│   │   └── server_orchestration_tools.py   # 34 ENTERPRISE agentic tools (110–144)
 │   │
 │   │   # Orchestration & Memory
 │   ├── orchestrator.py                     # Multi-agent task runner + session memory

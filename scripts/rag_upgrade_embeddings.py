@@ -38,6 +38,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# Auto-load .env file if present (allows background/detached execution)
+_env_file = Path(__file__).resolve().parent.parent / ".env"
+if _env_file.exists():
+    for _line in _env_file.read_text(encoding="utf-8").splitlines():
+        _line = _line.strip()
+        if _line and not _line.startswith("#") and "=" in _line:
+            _key, _, _val = _line.partition("=")
+            os.environ.setdefault(_key.strip(), _val.strip().strip('"'))
+
 from rag.ingest.embed import GitHubModelsProvider, OpenRouterProvider
 
 logger = logging.getLogger(__name__)
@@ -61,6 +70,8 @@ def main() -> None:
     parser.add_argument("--re-embed-all", action="store_true",
                         help="Re-embed ALL chunks, not just zero-vector (use when switching models/dimensions)")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be upgraded, don't write")
+    parser.add_argument("--wait-for-quota", action="store_true",
+                        help="When daily quota is hit, sleep until reset instead of stopping")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable debug logging")
     args = parser.parse_args()
 
@@ -146,27 +157,57 @@ def main() -> None:
         )
     model_name = provider.model_name
 
-    # Process in batches
+    # Process in batches — commit after each batch so progress survives quota stops
     upgraded = 0
     failed = 0
+    quota_hit = False
     batch_sz = args.embed_batch_size
+    total_batches = (len(rows) + batch_sz - 1) // batch_sz
 
     for i in range(0, len(rows), batch_sz):
         batch = rows[i : i + batch_sz]
         texts = [text for _, text in batch]
         chunk_ids = [cid for cid, _ in batch]
+        batch_num = i // batch_sz + 1
 
         try:
             embeddings = provider.embed_many(texts)
         except Exception as exc:
             exc_str = str(exc)
-            logger.error("Embedding API error at batch %d: %s", i // batch_sz, exc_str)
-            failed += len(batch)
-            # Stop on rate-limit or quota exhaustion
-            if "429" in exc_str or "rate" in exc_str.lower() or "quota" in exc_str.lower():
-                logger.warning("Rate/quota limit hit. Stopping. Re-run later to continue.")
+            logger.error("Embedding API error at batch %d/%d: %s", batch_num, total_batches, exc_str)
+            is_quota = "429" in exc_str or "rate" in exc_str.lower() or "quota" in exc_str.lower()
+
+            if is_quota and args.wait_for_quota:
+                # Extract retry-after seconds from error message if available
+                import re
+                retry_match = re.search(r"retry-after=(\d+)", exc_str)
+                wait_secs = int(retry_match.group(1)) + 60 if retry_match else 3600
+                logger.info(
+                    "Quota hit — waiting %d seconds (%.1f hours) for reset, then resuming...",
+                    wait_secs, wait_secs / 3600,
+                )
+                time.sleep(wait_secs)
+                # Retry this same batch after waiting
+                try:
+                    embeddings = provider.embed_many(texts)
+                except Exception as exc2:
+                    logger.error("Still failing after quota wait: %s", exc2)
+                    failed += len(batch)
+                    quota_hit = True
+                    break
+                # Fall through to the update logic below
+            elif is_quota:
+                failed += len(batch)
+                quota_hit = True
+                logger.warning(
+                    "Rate/quota limit hit after %d chunks. "
+                    "Progress saved — re-run later to continue from where we left off.",
+                    upgraded,
+                )
                 break
-            continue
+            else:
+                failed += len(batch)
+                continue
 
         for cid, emb in zip(chunk_ids, embeddings):
             blob = _floats_to_blob(emb)
@@ -177,15 +218,22 @@ def main() -> None:
 
         con.commit()
         upgraded += len(batch)
-        logger.info("Upgraded %d / %d chunks (batch %d)", upgraded, len(rows), i // batch_sz + 1)
+        logger.info(
+            "Batch %d/%d: upgraded %d / %d chunks (%.0f%%)",
+            batch_num, total_batches, upgraded, len(rows),
+            upgraded / len(rows) * 100,
+        )
 
     con.close()
 
+    remaining = total_zero - upgraded - failed if not args.re_embed_all else len(rows) - upgraded - failed
     pct = (total_real + upgraded) / total * 100 if total else 0
     logger.info(
-        "Done: %d upgraded, %d failed, %d remaining zero-vector. Real embedding coverage: %.0f%%",
-        upgraded, failed, total_zero - upgraded - failed, pct,
+        "Done: %d upgraded, %d failed, %d remaining. Real embedding coverage: %.0f%%",
+        upgraded, failed, remaining, pct,
     )
+    if quota_hit:
+        logger.info("Re-run this script to continue upgrading remaining chunks.")
 
 
 if __name__ == "__main__":

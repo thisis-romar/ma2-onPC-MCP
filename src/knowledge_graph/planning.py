@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .query import GraphQuery
-from .schema import node_id
+from .schema import EdgeType, node_id
 from .store import GraphStore, Node
 
 
@@ -148,7 +148,9 @@ class PlanningQueries:
                     f"Group '{ctx.label}' exists but has no member fixtures"
                 )
             elif object_type == "sequence":
-                cues = self._query.cues_in_sequence(int(str(object_id or 0)))
+                # Use the resolved node_id (handles name-based lookups
+                # where object_id may be None).
+                cues = self._query.neighbors_out(ctx.node_id, EdgeType.HAS_CUE)
                 if not cues:
                     enrichment.suggestions.append(
                         f"Sequence '{ctx.label}' has no cues — store cues first"
