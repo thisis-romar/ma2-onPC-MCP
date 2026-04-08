@@ -14,7 +14,7 @@ Provides:
   - get_session_ma2_right(): derive MA2Right from OAuth scope tier
   - check_permission(): unified scope ∩ MA2Right gate
 
-All 197 tools are mapped in ``_OPERATION_MIN_RIGHT``.  The ``_handle_errors``
+All 198 tools are mapped in ``_OPERATION_MIN_RIGHT``.  The ``_handle_errors``
 decorator in ``src/server.py`` calls ``is_permitted()`` at runtime before any
 Telnet I/O, enforcing Layer 2 of the 3-layer permission model.
 

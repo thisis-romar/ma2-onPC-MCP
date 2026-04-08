@@ -7,14 +7,51 @@ Knowledge Graph layer for GrandPA2-Buddy.
 SQLite-backed in-process graph modeling MA2 domain entities (fixtures, groups,
 sequences, executors, presets, users) and their relationships. Populated from
 ConsoleStateSnapshot hydration — no additional telnet traffic.
+
+Public API::
+
+    from src.knowledge_graph import GraphStore, GraphQuery, NodeType, EdgeType
+    from src.knowledge_graph import sync_snapshot, graph_rag_query
+    from src.knowledge_graph import get_graph_store, set_graph_store
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from .graph_rag import extract_entities, graph_rag_query
+from .planning import PlanningQueries
+from .query import GraphQuery, TraversalResult
+from .schema import EdgeType, NodeType, node_id
+from .store import Edge, GraphStore, Node
+from .sync import sync_snapshot
+
 if TYPE_CHECKING:
-    from .store import GraphStore
+    pass
+
+__all__ = [
+    # Store
+    "GraphStore",
+    "Node",
+    "Edge",
+    # Schema
+    "NodeType",
+    "EdgeType",
+    "node_id",
+    # Query
+    "GraphQuery",
+    "TraversalResult",
+    # Sync
+    "sync_snapshot",
+    # GraphRAG
+    "graph_rag_query",
+    "extract_entities",
+    # Planning
+    "PlanningQueries",
+    # Global accessor
+    "get_graph_store",
+    "set_graph_store",
+]
 
 __version__ = "0.1.0"
 
