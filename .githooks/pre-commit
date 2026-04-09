@@ -105,6 +105,18 @@ fi
 
 echo "[pre-commit] IP protection checks passed."
 
+# ── Markdown Version Discipline ─────────────────────────────────────────
+
+STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM -- '*.md' || true)
+if [ -n "$STAGED_MD" ]; then
+    echo "[pre-commit] Checking markdown version discipline..."
+    if ! uv run python scripts/validate_md_versions.py --staged 2>&1; then
+        echo "[pre-commit] Markdown version discipline FAILED. Commit blocked."
+        exit 1
+    fi
+    echo "[pre-commit] Markdown version discipline passed."
+fi
+
 # ── Ruff Lint Check ──────────────────────────────────────────────────────
 
 if [ -n "$STAGED_PY" ]; then

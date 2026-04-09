@@ -14,4 +14,5 @@ install-hooks:
 	chmod +x .githooks/pre-push
 	chmod +x .githooks/prepare-commit-msg
 	chmod +x .githooks/stop-git-check.sh
-	@echo "Git hooks installed. Pre-commit: IP checks + RAG index. Pre-push: IP checks + test suite. Prepare-commit-msg: trade secret filter. Stop: git check."
+	chmod +x .githooks/md-version-reminder.sh
+	@echo "Git hooks installed. Pre-commit: IP checks + MD version discipline + RAG index. Pre-push: IP checks + test suite. Prepare-commit-msg: trade secret filter. Stop: git check. PostToolUse: MD version reminder."
