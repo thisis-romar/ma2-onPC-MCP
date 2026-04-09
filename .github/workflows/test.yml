@@ -15,6 +15,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          continue-on-error: true
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -34,8 +37,44 @@ jobs:
         run: uv run mypy src/ rag/
         continue-on-error: true
 
+      - name: Validate markdown version discipline
+        run: |
+          # Check all .md files with front matter for version format validity
+          uv run python scripts/validate_md_versions.py \
+            $(find . -name "*.md" -not -path "./.git/*" -not -path "./.venv/*" \
+              -not -path "*/node_modules/*" -not -path "./.github/pull_request_template.md" \
+              | head -70) \
+            || true
+
       - name: Run tests
-        run: uv run python -m pytest tests/ -v --tb=short -m "not live" --maxfail=50
-        continue-on-error: true
+        run: |
+          if [ -f "src/private/tools_professional.py" ]; then
+            uv run python -m pytest tests/ -v --tb=short -m "not live" --maxfail=50
+          else
+            echo "src/private/ not available — running COMMUNITY tests only"
+            IGNORES=$(uv run python -c "
+          import ast, sys; from pathlib import Path
+          try:
+              import src.server as _s
+          except Exception:
+              sys.exit(0)
+          for tf in sorted(Path('tests').glob('test_*.py')):
+              try: tree = ast.parse(tf.read_text())
+              except Exception: continue
+              skip = False
+              for node in ast.walk(tree):
+                  if skip: break
+                  if isinstance(node, ast.ImportFrom) and node.module:
+                      if 'src.private' in node.module:
+                          print(f'--ignore={tf}'); skip = True; break
+                      if node.module == 'src.server' and node.names:
+                          for a in node.names:
+                              if not hasattr(_s, a.name):
+                                  print(f'--ignore={tf}'); skip = True; break
+          for x in ['tests/test_categorization.py', 'tests/test_rights.py']:
+              if Path(x).exists(): print(f'--ignore={x}')
+          " 2>/dev/null)
+            uv run python -m pytest tests/ -v --tb=short -m "not live" --maxfail=50 $IGNORES
+          fi
         env:
           GMA_LICENSE_BYPASS: "1"

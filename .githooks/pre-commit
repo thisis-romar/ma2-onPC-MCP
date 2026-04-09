@@ -182,6 +182,8 @@ fi
 # ── RAG Re-index ─────────────────────────────────────────────────────────
 
 echo "[RAG] Re-indexing changed files..."
-uv run python scripts/rag_ingest.py --root . --ref worktree --provider zero
+if ! uv run python scripts/rag_ingest.py --root . --ref worktree --provider zero; then
+    echo "[RAG] WARNING: Re-index failed. Index may be stale."
+fi
 
-echo "[RAG] Index up to date."
+echo "[RAG] Done."

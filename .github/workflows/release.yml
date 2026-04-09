@@ -42,6 +42,22 @@ jobs:
             exit 1
           fi
 
+      - name: Validate LICENSE version
+        run: |
+          V_LICENSE=$(grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' LICENSE | head -1)
+          if [ "$V_LICENSE" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "ERROR: LICENSE version v$V_LICENSE does not match release ${{ steps.version.outputs.VERSION }}"
+            exit 1
+          fi
+
+      - name: Validate README badge version
+        run: |
+          V_BADGE=$(grep -oP 'Version-\K[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1)
+          if [ "$V_BADGE" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "ERROR: README badge version $V_BADGE does not match release ${{ steps.version.outputs.VERSION }}"
+            exit 1
+          fi
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:

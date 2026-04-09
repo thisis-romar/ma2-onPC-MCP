@@ -82,7 +82,22 @@ else
     echo "  OK: Working tree is clean"
 fi
 
-# 7. Check if tag already exists
+# 7. No unpushed commits
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if git rev-parse "origin/$CURRENT_BRANCH" >/dev/null 2>&1; then
+    UNPUSHED=$(git log "origin/$CURRENT_BRANCH..HEAD" --oneline 2>/dev/null)
+    if [ -n "$UNPUSHED" ]; then
+        echo "ERROR: Unpushed commits on $CURRENT_BRANCH:"
+        echo "$UNPUSHED" | sed 's/^/  /'
+        FAIL=1
+    else
+        echo "  OK: No unpushed commits"
+    fi
+else
+    echo "WARNING: Branch $CURRENT_BRANCH has no remote tracking — push before tagging"
+fi
+
+# 8. Check if tag already exists
 if git rev-parse "v$VERSION" >/dev/null 2>&1; then
     echo "ERROR: Tag v$VERSION already exists"
     FAIL=1

@@ -6,6 +6,12 @@
 
 input=$(cat)
 
+# Require jq for JSON parsing
+if ! command -v jq >/dev/null 2>&1; then
+    echo "WARNING: jq not installed — md-version-reminder hook disabled. Install jq for .md version bump reminders." >&2
+    exit 0
+fi
+
 # Extract file_path from the tool input JSON
 file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
 

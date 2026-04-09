@@ -16,8 +16,25 @@ if [ "${CLAUDECODE:-}" != "1" ]; then
     exit 1
 fi
 
-# Method 1: Parse process arguments (most reliable)
-MODEL=$(ps aux 2>/dev/null | grep -oP -- '--model \K[^ \[\]]+' | head -1 || true)
+# Method 1: Parse process arguments with session affinity via parent PID chain
+# Filter to processes in our ancestry to avoid cross-session attribution
+MODEL=""
+if [ -n "${PPID:-}" ]; then
+    # Walk up the process tree to find the claude process for THIS session
+    PID="$PPID"
+    while [ "$PID" -gt 1 ] 2>/dev/null; do
+        CMDLINE=$(cat "/proc/$PID/cmdline" 2>/dev/null | tr '\0' ' ' || true)
+        if echo "$CMDLINE" | grep -qP -- '--model '; then
+            MODEL=$(echo "$CMDLINE" | grep -oP -- '--model \K[^ \[\]]+' || true)
+            break
+        fi
+        PID=$(awk '{print $4}' "/proc/$PID/stat" 2>/dev/null || echo 0)
+    done
+fi
+# Fallback: broad search if ancestry walk failed
+if [ -z "$MODEL" ]; then
+    MODEL=$(ps aux 2>/dev/null | grep -oP -- '--model \K[^ \[\]]+' | head -1 || true)
+fi
 if [ -n "$MODEL" ]; then
     echo "$MODEL"
     exit 0

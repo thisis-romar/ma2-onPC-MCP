@@ -37,7 +37,7 @@ done
 # Append structured trailers when committing from Claude Code.
 # Skip for merge/squash/amend commits (COMMIT_SOURCE = merge/squash/commit).
 
-if [ "${CLAUDECODE:-}" = "1" ] && [ "$COMMIT_SOURCE" != "merge" ]; then
+if [ "${CLAUDECODE:-}" = "1" ] && [[ ! "$COMMIT_SOURCE" =~ ^(merge|squash|commit)$ ]]; then
     # Only append if trailers not already present
     if ! grep -q "^AI-Model:" "$COMMIT_MSG_FILE" 2>/dev/null; then
         REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo ".")"
