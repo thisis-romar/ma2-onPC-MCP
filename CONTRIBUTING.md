@@ -1,9 +1,9 @@
 ---
 title: Contributing to ma2-onPC-MCP
 description: Development setup, branch model, code conventions, test requirements, and skill contribution guide
-version: 3.26.1
+version: 3.27.0
 created: 2026-04-01T18:45:46Z
-last_updated: 2026-04-07T19:09:40Z
+last_updated: 2026-04-09T16:10:25Z
 ---
 
 # Contributing to ma2-onPC-MCP
@@ -40,7 +40,7 @@ uv sync
 cp .env.template .env
 # Edit .env — set GMA_HOST, GMA_PORT, credentials
 
-# 4. Install git hooks (runs zero-vector RAG ingest on every commit)
+# 4. Install git hooks (IP checks, MD version discipline, RAG ingest, test suite)
 make install-hooks
 
 # 5. Run the test suite
