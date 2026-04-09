@@ -100,7 +100,11 @@ for x in ['tests/test_categorization.py', 'tests/test_rights.py']:
 fi
 
 echo "[pre-push] Auditing CLAUDE.md / README.md counts..."
-uv run python scripts/audit_md_counts.py
+if [ -f "src/private/tools_professional.py" ]; then
+    uv run python scripts/audit_md_counts.py
+else
+    echo "[pre-push] NOTE: src/private/ not found — skipping count audit (requires full tool set)"
+fi
 
 # ── CHANGELOG Freshness ─────────────────────────────────────────────────
 
