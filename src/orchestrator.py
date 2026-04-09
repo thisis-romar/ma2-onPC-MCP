@@ -379,6 +379,18 @@ class Orchestrator:
         plan.session_id = session_id
         logger.info("Orchestrator [%s] plan:\n%s", session_id, plan.summary())
 
+        # ── Step 1b: Skill resolution (advisory) ────────────────────
+        if self._graph_store is not None:
+            try:
+                from src.knowledge_graph.planning import PlanningQueries
+                pq = PlanningQueries(self._graph_store)
+                skill_matches = pq.resolve_skill_for_task(goal, limit=2)
+                if skill_matches:
+                    skill_names = [s.label for s in skill_matches if s.label]
+                    logger.info("KG: suggested skills for goal: %s", skill_names)
+            except Exception as exc:
+                logger.debug("Skill resolution skipped: %s", exc)
+
         if auto_confirm_destructive:
             for step in plan.steps:
                 if step.allowed_risk == RiskTier.DESTRUCTIVE:

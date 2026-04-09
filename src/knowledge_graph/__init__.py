@@ -19,6 +19,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from .analysis.change_detector import ChangeSet, detect_changes
+from .analysis.cluster_engine import ClusterResult, cluster_modules
+from .analysis.impact_engine import ImpactResult, compute_blast_radius
+from .analysis.process_engine import ProcessTrace, trace_process
 from .graph_rag import extract_entities, graph_rag_query
 from .mcp_metadata import MCPMetadata, extract_mcp_metadata
 from .parsers.extractor import ImportInfo, ModuleInfo, SymbolInfo, extract_module_info
@@ -68,6 +72,15 @@ __all__ = [
     "ImportInfo",
     "normalize_to_graph",
     "scan_repository",
+    # Analysis
+    "compute_blast_radius",
+    "ImpactResult",
+    "detect_changes",
+    "ChangeSet",
+    "trace_process",
+    "ProcessTrace",
+    "cluster_modules",
+    "ClusterResult",
     # Global accessor
     "get_graph_store",
     "set_graph_store",

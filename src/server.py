@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, require_scope
-from src.knowledge_graph import GraphStore, set_graph_store
+from src.knowledge_graph import GraphStore, get_graph_store, set_graph_store
 from src.orchestrator import Orchestrator
 from src.server_core import (
     _get_sequence_for_executor,  # noqa: F401 — re-exported for tests
@@ -1910,6 +1910,120 @@ def _check_network_security() -> None:
 
     # --- License tier coverage check ---
     _validate_license_tiers()
+
+
+# ── Graph Intelligence Resources ─────────────────────────────────────────
+
+
+@mcp.resource("ma2://graph/stats")
+def resource_graph_stats() -> str:
+    """Node and edge counts by type in the knowledge graph."""
+    store = get_graph_store()
+    if store is None:
+        return "{}"
+    import json
+    return json.dumps(store.stats(), indent=2)
+
+
+@mcp.resource("ma2://graph/entry-points")
+def resource_graph_entry_points() -> str:
+    """Root modules with no incoming IMPORTS edges (code graph entry points)."""
+    store = get_graph_store()
+    if store is None:
+        return "[]"
+    import json
+
+    from src.knowledge_graph.analysis.process_engine import find_entry_points
+    return json.dumps(find_entry_points(store), indent=2)
+
+
+@mcp.resource("ma2://graph/central-modules")
+def resource_graph_central_modules() -> str:
+    """Top 10 most-imported modules by incoming edge count."""
+    store = get_graph_store()
+    if store is None:
+        return "[]"
+    import json
+
+    from src.knowledge_graph.analysis.impact_engine import find_most_central
+    result = find_most_central(store, node_type="module", limit=10)
+    return json.dumps([{"node_id": nid, "incoming_edges": cnt} for nid, cnt in result], indent=2)
+
+
+@mcp.resource("ma2://graph/clusters")
+def resource_graph_clusters() -> str:
+    """Logical module clusters with cohesion scores."""
+    store = get_graph_store()
+    if store is None:
+        return "[]"
+    import json
+
+    from src.knowledge_graph.schema import NodeType as NT
+    clusters = store.get_nodes_by_type(NT.CLUSTER)
+    return json.dumps([
+        {"node_id": c.node_id, "label": c.label, "size": c.props.get("size", 0),
+         "cohesion": c.props.get("cohesion", 0.0)}
+        for c in clusters
+    ], indent=2)
+
+
+@mcp.resource("ma2://graph/schema")
+def resource_graph_schema() -> str:
+    """All NodeTypes and EdgeTypes in the knowledge graph schema."""
+    import json
+
+    from src.knowledge_graph.schema import EdgeType as ET
+    from src.knowledge_graph.schema import NodeType as NT
+    return json.dumps({
+        "node_types": [{"name": nt.name, "value": nt.value} for nt in NT],
+        "edge_types": [{"name": et.name, "value": et.value} for et in ET],
+    }, indent=2)
+
+
+# ── Graph Intelligence Prompts ───────────────────────────────────────────
+
+
+@mcp.prompt()
+def analyze_codebase_structure(repo_path: str = ".") -> str:
+    """Guide for indexing a repository and exploring its code graph structure."""
+    return f"""## Analyze Codebase Structure
+
+1. Call `graph_analyze_repo(path="{repo_path}")` to scan all Python files.
+2. Read `ma2://graph/stats` to see node/edge counts.
+3. Read `ma2://graph/entry-points` to identify root modules.
+4. Call `graph_query(node_type="module", pattern="server")` to find specific modules.
+5. Call `graph_context(node_id="module:src.server", max_depth=2)` to see neighbors.
+6. Read `ma2://graph/central-modules` for the most-imported modules.
+7. Call `graph_list_clusters()` to see logical module groups.
+"""
+
+
+@mcp.prompt()
+def investigate_code_impact(target_module: str = "") -> str:
+    """Guide for blast radius analysis before making code changes."""
+    target = target_module or "module:src.server"
+    return f"""## Investigate Code Impact: {target}
+
+1. Call `graph_impact(node_id="{target}", max_depth=5)`.
+2. Review direct_dependents — these break immediately on change.
+3. Review transitive_dependents — indirect breakage via dependency chains.
+4. Call `graph_trace_process(entry_point="{target}")` to see the call chain.
+
+blast_radius < 5: safe with local testing | 5-20: run full suite | > 20: refactor first.
+"""
+
+
+@mcp.prompt()
+def generate_cluster_skills() -> str:
+    """Guide for turning code graph clusters into reusable skills."""
+    return """## Generate Skills from Code Clusters
+
+1. Call `graph_list_clusters(min_size=3)` to see logical module groups.
+2. Call `graph_generate_skills()` to generate suggestions for all clusters.
+3. Review each suggestion's name, description, and body_preview.
+4. Use `promote_session_to_skill()` with the generated body to create the skill.
+5. Call `list_skills()` to confirm the new skill appears.
+"""
 
 
 def main():
