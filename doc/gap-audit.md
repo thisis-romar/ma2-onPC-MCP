@@ -1,16 +1,16 @@
 ---
 title: Full Builder / Tool / Skill / Resource / RAG Manual Gap Audit
 description: Coverage gaps between command builders, MCP tools, skills, prompts, resources, and MA2 help documentation
-version: 1.8.1
+version: 1.8.2
 created: 2026-04-02T09:07:54Z
-last_updated: 2026-04-07T19:09:40Z
+last_updated: 2026-04-09T04:33:12Z
 ---
 
 # Full Builder / Tool / Skill / Resource / RAG Manual Gap Audit
 
 ## Scope
 
-The project exposes 191 MCP tools, 222 command builders, 34 skills, 13 resources, and 10 prompts. The RAG manual indexes 1,043 grandMA2 help pages. This document identifies four categories of coverage gaps and assigns a priority rating to each so they can be addressed incrementally.
+The project exposes 198 MCP tools, 254 command builders, 34 skills, 17 resources, and 13 prompts. The RAG manual indexes 1,043 grandMA2 help pages. This document identifies four categories of coverage gaps and assigns a priority rating to each so they can be addressed incrementally.
 
 **No Python source changes are made in this pass.** Follow-on PRs address each priority bucket.
 

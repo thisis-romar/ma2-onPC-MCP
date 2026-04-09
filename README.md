@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 198 MCP tools via Telnet
-version: 3.37.0
+version: 3.38.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-08T16:37:27Z
+last_updated: 2026-04-09T04:33:12Z
 ---
 
 <p align="center">
