@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.18.0
+version: 4.19.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-08T09:01:44Z
+last_updated: 2026-04-09T05:37:30Z
 ---
 
 # Project Rules
@@ -44,7 +44,13 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache; showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
-| `src/knowledge_graph/` | SQLite-backed knowledge graph: domain entity nodes (10 types), relationship edges (11 types), BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
+| `src/knowledge_graph/` | SQLite-backed knowledge graph: 18 node types (10 console + 4 code + 4 MCP), 20 edge types (11 console + 4 code + 5 MCP), BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
+| `src/knowledge_graph/skill_sync.py` | Sync SkillRegistry → KG SKILL nodes + IMPROVES_UPON lineage + IMPLEMENTS (skill→tool) edges |
+| `src/knowledge_graph/mcp_metadata.py` | AST-extract `@mcp.tool/resource/prompt` decorators → `MCPMetadata` dataclass |
+| `src/knowledge_graph/resource_sync.py` | Sync MCP tools/resources/prompts → KG nodes + DOCUMENTS/ORCHESTRATES/CATEGORIZED_AS edges |
+| `src/knowledge_graph/parsers/` | Python AST symbol extraction (`extractor.py`), graph normalization (`normalizer.py`), repo scanning (`repo_scanner.py`), multi-repo tracking (`repo_registry.py`) |
+| `rag/ingest/ingest_skills.py` | Crawl `.claude/skills/` → RAG store (`repo_ref="skills"`) |
+| `rag/ingest/ingest_resources.py` | Index MCP resource/prompt docstrings → RAG store (`repo_ref="mcp-resources"`) |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |

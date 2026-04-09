@@ -41,6 +41,15 @@ _QUOTED_ENTITY_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# MCP metadata mention patterns — detect references to skills, resources, prompts
+_SKILL_PATTERN = re.compile(
+    r"\b(?:skill|playbook)\s+[\"']([^\"']+)[\"']", re.IGNORECASE,
+)
+_RESOURCE_URI_PATTERN = re.compile(r"\bma2://[\w/\-{}]+")
+_TOOL_KEYWORD_PATTERN = re.compile(
+    r"\b(?:tool|function)\s+[\"'`]([^\"'`]+)[\"'`]", re.IGNORECASE,
+)
+
 
 @dataclass
 class EntityMention:
@@ -108,6 +117,38 @@ def extract_entities(text: str, store: GraphStore) -> list[EntityMention]:
                     ))
                     seen_node_ids.add(node.node_id)
                 break
+
+    # Skill mentions: 'skill "busking"' or 'playbook "macro-advanced"'
+    for match in _SKILL_PATTERN.finditer(text):
+        name = match.group(1)
+        for node in store.get_nodes_by_type("skill"):
+            if node.label and node.label.lower() == name.lower():
+                if node.node_id not in seen_node_ids:
+                    mentions.append(EntityMention(
+                        node_type="skill", identifier=name, node_id=node.node_id,
+                    ))
+                    seen_node_ids.add(node.node_id)
+                break
+
+    # MCP resource URI mentions: 'ma2://docs/effects-reference'
+    for match in _RESOURCE_URI_PATTERN.finditer(text):
+        uri = match.group(0)
+        nid = node_id("mcp_resource", uri)
+        if nid not in seen_node_ids and store.get_node(nid) is not None:
+            mentions.append(EntityMention(
+                node_type="mcp_resource", identifier=uri, node_id=nid,
+            ))
+            seen_node_ids.add(nid)
+
+    # MCP tool mentions: 'tool "store_current_cue"'
+    for match in _TOOL_KEYWORD_PATTERN.finditer(text):
+        name = match.group(1)
+        nid = node_id("mcp_tool", name)
+        if nid not in seen_node_ids and store.get_node(nid) is not None:
+            mentions.append(EntityMention(
+                node_type="mcp_tool", identifier=name, node_id=nid,
+            ))
+            seen_node_ids.add(nid)
 
     return mentions
 

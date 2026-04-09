@@ -259,6 +259,22 @@ _graph_store = GraphStore(":memory:")
 _graph_store.initialize()
 set_graph_store(_graph_store)
 
+# Sync MCP metadata + skills into the knowledge graph (non-blocking, best-effort).
+try:
+    from src.knowledge_graph import extract_mcp_metadata, sync_resources, sync_skills
+    from src.skill import SkillRegistry as _SkillRegistry
+
+    _mcp_meta = extract_mcp_metadata()
+    _res_counts = sync_resources(_graph_store, _mcp_meta)
+    logger.info("KG: synced %d MCP resource nodes", _res_counts.get("nodes", 0))
+
+    _skill_reg = _SkillRegistry()
+    _known_tool_names = set(_mcp_meta.tools.keys())
+    _skill_counts = sync_skills(_graph_store, _skill_reg, known_tools=_known_tool_names)
+    logger.info("KG: synced %d skill nodes", _skill_counts.get("nodes", 0))
+except Exception as _kg_err:
+    logger.warning("KG metadata sync skipped: %s", _kg_err)
+
 if _HAS_PRIVATE:
     _orchestrator = Orchestrator(
         tool_caller=_tool_caller,
