@@ -32,8 +32,8 @@ last_updated: 2026-04-08T16:37:27Z
 <table>
 <tr><td><b>Agent Harness</b></td><td>198 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
 <tr><td><b>Embedded Agent Core</b></td><td>Orchestrator, task decomposer, working + long-term memory, and a skill registry with self-improvement suggestions. Inject a real LLM client and it becomes a fully autonomous lighting agent that plans, executes, remembers, and learns.</td></tr>
-<tr><td><b>3-layer permission model</b></td><td>OAuth scope ∩ MA2 native rights ∩ console floor — all three must agree. 198 tools mapped to a minimum <code>MA2Right</code> tier, three risk tiers (<code>SAFE_READ</code> / <code>SAFE_WRITE</code> / <code>DESTRUCTIVE</code>), and line-break injection rejected at the transport layer.</td></tr>
-<tr><td><b>A closed learning loop</b></td><td>Every tool call recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Skills are versioned playbooks with full lineage tracking.</td></tr>
+<tr><td><b>3-layer permission model</b></td><td>Scope-model checks (stub for local/dev) ∩ MA2 native rights ∩ console floor — all three must agree. 198 tools mapped to a minimum <code>MA2Right</code> tier, three risk tiers (<code>SAFE_READ</code> / <code>SAFE_WRITE</code> / <code>DESTRUCTIVE</code>), and line-break injection rejected at the transport layer.</td></tr>
+<tr><td><b>Telemetry-backed suggestion loop</b></td><td>Every tool call is recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Promotion and mutation stay human-gated.</td></tr>
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
 </table>
 
@@ -56,7 +56,10 @@ cp .env.template .env        # then edit with your console IP
 # 3. Install git hooks (pre-commit: RAG index, pre-push: test suite, stop: git guard)
 make install-hooks
 
-# 4. Run
+# 4. Safe smoke test (recommended before edits)
+make codex-smoke
+
+# 5. Run
 uv run python -m src.server  # starts MCP server (stdio transport)
 ```
 
@@ -126,7 +129,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/console_state.py`](src/console_state.py) | ConsoleStateSnapshot: hydrates 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | [`src/pool_name_index.py`](src/pool_name_index.py) | In-memory pool name/ID registry — zero-cost object resolution |
 | [`src/rights.py`](src/rights.py) | MA2 native rights enforcement (`_OPERATION_MIN_RIGHT`, `get_session_ma2_right`, `is_permitted`) + telnet feedback classification |
-| [`src/auth.py`](src/auth.py) | OAuth 2.1 scope enforcement (`@require_scope`), scope tier resolution, `GMA_AUTH_BYPASS` |
+| [`src/auth.py`](src/auth.py) | Scope-model enforcement stub (`@require_scope`), scope tier resolution, `GMA_AUTH_BYPASS` |
 | [`src/credentials.py`](src/credentials.py) | OAuth tier → console user credential resolver |
 | [`src/session_manager.py`](src/session_manager.py) | Per-operator Telnet session pool (LRU, keepalive, auto-reconnect) |
 | [`src/navigation.py`](src/navigation.py) | cd + list + scan orchestration |
@@ -182,8 +185,8 @@ GMA_PORT=30000             # default: 30000 (30001 = read-only)
 GMA_SAFETY_LEVEL=standard  # standard (default), admin, or read-only
 LOG_LEVEL=INFO             # default: INFO
 
-# OAuth & License
-GMA_SCOPE=tier:3           # OAuth tier (tier:0–tier:5) or explicit scopes
+# OAuth model stub & License
+GMA_SCOPE=tier:0           # OAuth tier (tier:0–tier:5) or explicit scopes
 GMA_AUTH_BYPASS=            # set "1" to bypass scope checks (dev only)
 GMA_LICENSE_TIER=community  # community (default), professional, enterprise
 GMA_LICENSE_BYPASS=         # set "1" to bypass tier checks (dev only)
@@ -201,6 +204,11 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions (1536 GitHub, 
 > [!NOTE]
 > Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](https://github.com/settings/tokens). Alternatively, use [openrouter.ai](https://openrouter.ai/) for the OpenRouter provider.
 
+
+> [!TIP]
+> For agent sandboxes and Codex-style autonomous workflows, start from the safest profile:
+> `cp .env.codex.safe .env` (tier:0 + read-only port + no default credentials).
+
 | Level | Behavior |
 |-------|----------|
 | `read-only` | Only `SAFE_READ` commands allowed (`list`, `info`, `cd`) |
@@ -217,7 +225,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions (1536 GitHub, 
 | `GMA_PASSWORD` | `admin` | Console login password |
 | `GMA_SAFETY_LEVEL` | `standard` | `read-only`, `standard`, or `admin` |
 | `GMA_TRANSPORT` | `stdio` | MCP transport: `stdio` (Claude Desktop, VS Code), `sse` (web clients), `streamable-http` (HTTP integrations) |
-| `GMA_SCOPE` | `tier:3` | OAuth tier (`tier:0`–`tier:5`) or explicit scopes |
+| `GMA_SCOPE` | `tier:0` | Scope tier (`tier:0`–`tier:5`) or explicit scopes |
 | `GMA_LICENSE_TIER` | `community` | `community` (free), `professional`, `enterprise` |
 | `GMA_TELEMETRY` | `1` | Set `0` to disable per-tool invocation recording |
 | `GMA_POLICY_STRICTNESS` | `warn` | `warn` (default) or `block` — controls policy rule enforcement |
@@ -894,9 +902,9 @@ GrandPA2-Buddy enforces a **3-layer permission model** — effective permissions
 scope ∩ ma2_rights ∩ console_floor = FINAL AUTHORITY
 ```
 
-### Layer 1 — OAuth Scope ([`src/auth.py`](src/auth.py))
+### Layer 1 — Scope Model Stub ([`src/auth.py`](src/auth.py))
 
-Every MCP tool is decorated with `@require_scope(OAuthScope.*)`. The OAuth layer maps six cumulative scope tiers to grandMA2 console users, each with a fixed native rights level. Set `GMA_SCOPE` to control which tier the session operates at:
+Every MCP tool is decorated with `@require_scope(OAuthScope.*)`. The current implementation is a local scope-model stub (real external OAuth token validation is future work). The scope layer maps six cumulative scope tiers to grandMA2 console users, each with a fixed native rights level. Set `GMA_SCOPE` to control which tier the session operates at:
 
 | `GMA_SCOPE` | Console user | MA2 Rights | Permitted operations |
 |-------------|-------------|-----------|---------------------|
@@ -1318,7 +1326,7 @@ ma2-onPC-MCP/
 │   ├── skill_improver.py                   # SkillImprover: repair suggestions + promotion candidates
 │   │
 │   │   # Security & Auth
-│   ├── auth.py                             # OAuth 2.1 scope enforcement
+│   ├── auth.py                             # Scope-model enforcement stub
 │   ├── credentials.py                      # OAuth tier → console credentials
 │   ├── rights.py                           # MA2 native rights + telnet feedback
 │   ├── session_manager.py                  # Telnet session pool (LRU + keepalive)
