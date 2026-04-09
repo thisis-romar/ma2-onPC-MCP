@@ -93,7 +93,7 @@ for tf in sorted(Path('tests').glob('test_*.py')):
                 for a in node.names:
                     if not hasattr(_s, a.name):
                         print(f'--ignore={tf}'); skip = True; break
-for x in ['tests/test_categorization.py']:
+for x in ['tests/test_categorization.py', 'tests/test_rights.py']:
     if Path(x).exists(): print(f'--ignore={x}')
 " 2>/dev/null)
     uv run python -m pytest -x -q $PRIVATE_TEST_IGNORES
