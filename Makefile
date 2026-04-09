@@ -16,6 +16,7 @@ install-hooks:
 	chmod +x .githooks/stop-git-check.sh
 	chmod +x .githooks/md-version-reminder.sh
 	chmod +x .githooks/pre-release
+	chmod +x .githooks/detect-claude-model.sh
 	@echo "Git hooks installed. Pre-commit: staging hygiene + IP checks + MD version discipline + RAG index. Pre-push: IP checks + test suite. Pre-release: version sync validation."
 
 release:

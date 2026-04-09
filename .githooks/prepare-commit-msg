@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # .githooks/prepare-commit-msg
-# Blocks trade secret language from commit messages.
+# 1. Blocks trade secret language from commit messages.
+# 2. Injects AI model attribution trailers for Claude Code commits.
 # Install with: make install-hooks
 
 COMMIT_MSG_FILE="$1"
+COMMIT_SOURCE="${2:-}"
+
+# ── Trade Secret Language Filter ────────────────────────────────────────
 
 # 12 trade secret patterns that must never appear in commit messages
 PATTERNS=(
@@ -28,3 +32,23 @@ for pattern in "${PATTERNS[@]}"; do
         exit 1
     fi
 done
+
+# ── AI Model Attribution ────────────────────────────────────────────────
+# Append structured trailers when committing from Claude Code.
+# Skip for merge/squash/amend commits (COMMIT_SOURCE = merge/squash/commit).
+
+if [ "${CLAUDECODE:-}" = "1" ] && [ "$COMMIT_SOURCE" != "merge" ]; then
+    # Only append if trailers not already present
+    if ! grep -q "^AI-Model:" "$COMMIT_MSG_FILE" 2>/dev/null; then
+        REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo ".")"
+        MODEL=$(bash "$REPO_ROOT/.githooks/detect-claude-model.sh" 2>/dev/null || echo "unknown")
+        SESSION_ID="${CLAUDE_CODE_SESSION_ID:-unknown}"
+        CC_VERSION="${CLAUDE_CODE_VERSION:-unknown}"
+
+        # Append trailers (blank line separator + trailers)
+        printf '\n' >> "$COMMIT_MSG_FILE"
+        printf 'AI-Model: %s\n' "$MODEL" >> "$COMMIT_MSG_FILE"
+        printf 'AI-Session: %s\n' "$SESSION_ID" >> "$COMMIT_MSG_FILE"
+        printf 'Claude-Code: %s\n' "$CC_VERSION" >> "$COMMIT_MSG_FILE"
+    fi
+fi
