@@ -9,6 +9,13 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
+# ── Gitflow Branch Guard ────────────────────────────────────────────────
+
+if ! .githooks/gitflow-guard.sh pre-push; then
+    echo "[pre-push] Gitflow branch checks FAILED. Push blocked."
+    exit 1
+fi
+
 FAIL=0
 
 # ── IP Protection Checks ────────────────────────────────────────────────
