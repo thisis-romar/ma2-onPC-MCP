@@ -201,7 +201,7 @@ class TestOperationMinRightCompleteness:
     def _get_all_tool_names() -> set[str]:
         """Extract all @mcp.tool() function names from server.py and orchestration."""
         tool_names = set()
-        for path in ("src/server.py", "src/private/server_orchestration_tools.py", "src/tools_community.py", "src/private/tools_professional.py", "src/private/tools_enterprise.py"):
+        for path in ("src/server.py", "src/private/server_orchestration_tools.py", "src/tools_community.py", "src/tools_graph.py", "src/private/tools_professional.py", "src/private/tools_enterprise.py"):
             with open(path) as f:
                 lines = f.readlines()
             for i, line in enumerate(lines):
@@ -213,10 +213,10 @@ class TestOperationMinRightCompleteness:
                             break
         return tool_names
 
-    def test_all_198_tools_mapped(self):
+    def test_all_207_tools_mapped(self):
         """Every registered MCP tool must have an entry in _OPERATION_MIN_RIGHT."""
         all_tools = self._get_all_tool_names()
-        assert len(all_tools) == 198, f"Expected 198 tools, found {len(all_tools)}"
+        assert len(all_tools) == 207, f"Expected 207 tools, found {len(all_tools)}"
         unmapped = all_tools - set(_OPERATION_MIN_RIGHT)
         assert unmapped == set(), (
             f"{len(unmapped)} tools missing from _OPERATION_MIN_RIGHT: "

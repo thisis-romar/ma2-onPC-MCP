@@ -287,4 +287,14 @@ TOOL_LICENSE_TIERS: dict[str, LicenseTier] = {
     "promote_session_to_skill": ENT,
     "get_improvement_suggestions": ENT,
     "approve_skill": ENT,
+    # ── graph intelligence ──────────────────────────────────────
+    "graph_list_repos": ENT,
+    "graph_analyze_repo": ENT,
+    "graph_query": ENT,
+    "graph_context": ENT,
+    "graph_impact": ENT,
+    "graph_detect_changes": ENT,
+    "graph_trace_process": ENT,
+    "graph_list_clusters": ENT,
+    "graph_generate_skills": ENT,
 }

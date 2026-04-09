@@ -41,6 +41,7 @@ logging.basicConfig(
 )
 
 import src.tools_community  # noqa: E402, F401 — registers 20 COMMUNITY tools on mcp
+import src.tools_graph  # noqa: E402, F401 — registers 9 ENTERPRISE graph tools on mcp
 
 # Paid-tier modules live in src/private/ (git submodule).
 # Graceful degradation: public-only clones serve 20 COMMUNITY tools.
