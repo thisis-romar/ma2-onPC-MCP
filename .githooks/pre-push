@@ -68,11 +68,36 @@ echo "[pre-push] IP protection checks passed."
 # ── Test Suite ───────────────────────────────────────────────────────────
 
 echo "[pre-push] Running test suite..."
-# Ignore test files that import from src/private/ (git submodule, may not be checked out).
-# Individual test-function ImportErrors from missing tools are tolerated (--maxfail=50).
-uv run python -m pytest -q --maxfail=50 \
-    --ignore-glob="tests/test_live_integration.py" \
-    --ignore-glob="tests/test_server_orchestration_tools.py"
+# When src/private/ submodule is not checked out, tests that import
+# PROFESSIONAL/ENTERPRISE tools fail. Skip those files automatically.
+if [ -f "src/private/tools_professional.py" ]; then
+    uv run python -m pytest -x -q
+else
+    echo "[pre-push] NOTE: src/private/ not found — skipping private-tool tests"
+    PRIVATE_TEST_IGNORES=$(uv run python -c "
+import ast, sys; from pathlib import Path
+try:
+    import src.server as _s
+except Exception:
+    sys.exit(0)
+for tf in sorted(Path('tests').glob('test_*.py')):
+    try: tree = ast.parse(tf.read_text())
+    except Exception: continue
+    skip = False
+    for node in ast.walk(tree):
+        if skip: break
+        if isinstance(node, ast.ImportFrom) and node.module:
+            if 'src.private' in node.module:
+                print(f'--ignore={tf}'); skip = True; break
+            if node.module == 'src.server' and node.names:
+                for a in node.names:
+                    if not hasattr(_s, a.name):
+                        print(f'--ignore={tf}'); skip = True; break
+for x in ['tests/test_categorization.py']:
+    if Path(x).exists(): print(f'--ignore={x}')
+" 2>/dev/null)
+    uv run python -m pytest -x -q $PRIVATE_TEST_IGNORES
+fi
 
 echo "[pre-push] Auditing CLAUDE.md / README.md counts..."
 uv run python scripts/audit_md_counts.py
