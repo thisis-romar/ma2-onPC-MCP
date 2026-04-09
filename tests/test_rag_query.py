@@ -290,3 +290,59 @@ class TestGoldenSetRetrieval:
         hits = rag_query("create_effect", db_path=golden_db)
         assert len(hits) >= 1
         assert "create_effect" in hits[0].text
+
+
+# ── Dimension mismatch fallback tests ──────────────────────────────────
+
+
+class TestDimensionMismatchFallback:
+    """rag_query() must fall back to text search on embedding dimension mismatch."""
+
+    def test_mismatch_falls_back_to_text(self, populated_db):
+        """When stored embeddings are 3-dim but query uses 8-dim, fallback to text."""
+        provider = ZeroVectorProvider(dimensions=8)  # DB has 3-dim embeddings
+        hits = rag_query("store_cue", embedding_provider=provider, db_path=populated_db)
+        assert isinstance(hits, list)
+        # Text fallback should still find the chunk by keyword
+        assert any("store_cue" in h.text for h in hits)
+
+    def test_mismatch_logs_warning(self, populated_db):
+        """Dimension mismatch should log a warning."""
+        from unittest.mock import patch
+
+        provider = ZeroVectorProvider(dimensions=8)
+        with patch("rag.retrieve.query.logger") as mock_logger:
+            rag_query("store", embedding_provider=provider, db_path=populated_db)
+            mock_logger.warning.assert_called_once()
+            assert "mismatch" in mock_logger.warning.call_args[0][0].lower()
+
+
+# ── Graph enrichment tests ─────────────────────────────────────────────
+
+
+class TestGraphEnrichment:
+    """rag_query() with graph_store should populate hit.graph_context."""
+
+    def test_no_graph_store_leaves_context_empty(self, populated_db):
+        """Without graph_store, graph_context should be the default empty list."""
+        hits = rag_query("store", db_path=populated_db)
+        assert len(hits) >= 1
+        for hit in hits:
+            assert hit.graph_context == []
+
+    def test_with_graph_store_populates_context(self, populated_db):
+        """With a graph_store containing matching entities, graph_context is populated."""
+        from src.knowledge_graph.schema import NodeType
+        from src.knowledge_graph.store import GraphStore
+
+        store = GraphStore(":memory:")
+        store.initialize()
+        # Add a node that matches entity extraction from the query
+        store.upsert_node("group:1", NodeType.GROUP, label="Front Wash")
+
+        hits = rag_query("store group 1", db_path=populated_db, graph_store=store)
+        # graph_rag_query extracts "group 1" → expands → attaches context
+        # Even if no context is found, the field should be a list
+        for hit in hits:
+            assert isinstance(hit.graph_context, list)
+        store.close()

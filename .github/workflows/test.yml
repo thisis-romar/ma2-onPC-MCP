@@ -36,6 +36,5 @@ jobs:
 
       - name: Run tests
         run: uv run python -m pytest tests/ -v --tb=short -m "not live" --maxfail=50
-        continue-on-error: true
         env:
           GMA_LICENSE_BYPASS: "1"

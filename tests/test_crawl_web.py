@@ -325,3 +325,73 @@ class TestDedupPages:
         ]
         result = _dedup_pages(pages)
         assert len(result) == 2
+
+
+# ---------------------------------------------------------------------------
+# robots.txt handling
+# ---------------------------------------------------------------------------
+
+
+class TestRobotsTxt:
+    """crawl_web must respect robots.txt and handle fetch failures gracefully."""
+
+    @patch("rag.ingest.crawl_web.httpx.Client")
+    def test_robots_disallow_skips_url(self, MockClient):
+        """When robots.txt disallows a path, that URL is skipped."""
+        client = MagicMock()
+        MockClient.return_value = client
+
+        robots_resp = MagicMock()
+        robots_resp.status_code = 200
+        robots_resp.text = "User-agent: *\nDisallow: /blocked/"
+
+        page_resp = MagicMock()
+        page_resp.status_code = 200
+        page_resp.text = "<html><body>hello</body></html>"
+        page_resp.headers = {"content-type": "text/html"}
+
+        def _get(url, **kwargs):
+            if "robots.txt" in url:
+                return robots_resp
+            return page_resp
+
+        client.get.side_effect = _get
+
+        pages = crawl_web(
+            start_urls=["http://example.com/blocked/page1"],
+            url_prefix=["http://example.com/"],
+            max_pages=5,
+        )
+        # The blocked URL should be skipped — no pages returned
+        assert len(pages) == 0
+
+    @patch("rag.ingest.crawl_web.httpx.Client")
+    def test_robots_fetch_failure_allows_all(self, MockClient):
+        """When robots.txt can't be fetched, all URLs are allowed."""
+        import httpx as _httpx
+
+        client = MagicMock()
+        MockClient.return_value = client
+
+        page_resp = MagicMock()
+        page_resp.status_code = 200
+        page_resp.text = (
+            "<html><body><p>Some meaningful content that is long enough to pass "
+            "the minimum length check for extraction purposes.</p></body></html>"
+        )
+        page_resp.headers = {"content-type": "text/html"}
+
+        def _get(url, **kwargs):
+            if "robots.txt" in url:
+                raise _httpx.ConnectError("connection refused")
+            return page_resp
+
+        client.get.side_effect = _get
+
+        pages = crawl_web(
+            start_urls=["http://example.com/page1"],
+            url_prefix=["http://example.com/"],
+            max_pages=1,
+        )
+        # robots.txt failed → allow_all → page should be crawled
+        assert len(pages) >= 1

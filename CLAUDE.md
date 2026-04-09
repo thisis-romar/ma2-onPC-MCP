@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.16.0
+version: 4.18.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-07T23:22:40Z
+last_updated: 2026-04-08T09:01:44Z
 ---
 
 # Project Rules
@@ -44,6 +44,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache; showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
+| `src/knowledge_graph/` | SQLite-backed knowledge graph: domain entity nodes (10 types), relationship edges (11 types), BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
@@ -84,6 +85,7 @@ date -u +%Y-%m-%dT%H:%M:%SZ
 ```bash
 uv run python -m pytest -v                                    # all tests
 uv run python -m pytest tests/test_vocab.py                   # subset
+uv run ruff check src/ tests/ rag/                            # lint (enforced by pre-commit hook)
 uv run python -m src.server                                   # start MCP server
 uv run python scripts/rag_ingest.py --root . --provider zero  # RAG ingest (zero-vector)
 make install-hooks                                             # git hooks (pre-commit/pre-push/stop)
@@ -156,6 +158,7 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 | `.claude/rules/rag-pipeline.md` | RAG ingest scripts, embedding providers, web docs |
 | `.claude/rules/markdown-frontmatter.md` | Front matter requirements for new/edited .md files |
 | `.claude/rules/content-filter-avoidance.md` | Workarounds for writing LICENSE/legal text files |
+| `.claude/rules/knowledge-graph-operations.md` | KG freshness rules, staleness mapping, lifecycle, safety |
 
 ---
 
@@ -176,4 +179,6 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not put MA2 operating knowledge into tool docstrings — put it in `.claude/skills/` instead.
 - Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_198_tools_mapped` will fail.
 - Do not set `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, or `GMA_LICENSE_BYPASS=1` in production — dev/test only.
+- Do not use graph query results for DESTRUCTIVE operations without verifying freshness — stale graph data may reference deleted console objects.
+- Do not mix embedding dimensions in the same RAG store — GitHub Models (1536-dim) and OpenRouter (2048-dim) are incompatible; use `rag_upgrade_embeddings.py --re-embed-all` to switch.
 

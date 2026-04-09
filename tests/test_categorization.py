@@ -612,6 +612,7 @@ class TestMCPToolWrappers:
 
         # Also reset server module cache
         import src.private.tools_enterprise as _te_mod  # noqa: E402
+
         monkeypatch.setattr(_te_mod, "_taxonomy_cache", None)
 
         self.taxonomy_path = out_path

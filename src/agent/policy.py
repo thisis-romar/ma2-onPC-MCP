@@ -4,7 +4,7 @@
 """Plan-level policy engine — extends command-level safety to full plans.
 
 Builds on src/vocab.py RiskTier classification to enforce governance rules
-across multi-step agent plans. Six rules:
+across multi-step agent plans. Eight rules:
 
 1. Staging: reads before writes before destructive (no interleaving)
 2. Verification: every DESTRUCTIVE step must be followed by a verification step
@@ -12,6 +12,8 @@ across multi-step agent plans. Six rules:
 4. Confidence gate: low-confidence goals route to discovery-only mode
 5. Connection safety: block new_show without preserve_connectivity
 6. Batch limit: many destructive steps require upfront plan confirmation
+7. Entity existence (graph): warn when steps reference entities not in the KG
+8. Executor availability (graph): warn when assigning to an occupied executor
 """
 
 from __future__ import annotations
@@ -20,9 +22,13 @@ import logging
 import os
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from src.agent.state import PlanStep, RunContext, StepStatus
 from src.vocab import RiskTier
+
+if TYPE_CHECKING:
+    from src.knowledge_graph.store import GraphStore
 
 logger = logging.getLogger(__name__)
 
@@ -78,14 +84,20 @@ class PolicyResult:
 
 
 class PolicyEngine:
-    """Plan-level governance extending vocab.py command safety."""
+    """Plan-level governance extending vocab.py command safety.
+
+    Optional ``graph_store`` enables graph-informed policy rules (7 and 8).
+    These rules are always ADVISORY (warnings), never blocking.
+    """
 
     def __init__(
         self,
         batch_limit: int = DEFAULT_BATCH_LIMIT,
         strictness: PolicyStrictness | None = None,
+        graph_store: GraphStore | None = None,
     ):
         self.batch_limit = batch_limit
+        self._graph_store = graph_store
         if strictness is not None:
             self.strictness = strictness
         else:
@@ -119,6 +131,12 @@ class PolicyEngine:
 
         # Rule 6: Batch limit
         self._check_batch_limit(plan, violations, warnings)
+
+        # Rule 7 & 8: Graph-informed checks (advisory only)
+        if self._graph_store is not None:
+            self._check_graph_entity_existence(plan, warnings)
+            self._check_graph_executor_availability(plan, warnings)
+            self._check_graph_freshness(plan, warnings)
 
         has_errors = any(v.severity == "error" for v in violations)
         approved = not has_errors
@@ -288,3 +306,90 @@ class PolicyEngine:
                 f"(limit={self.batch_limit}) — full plan confirmation required "
                 f"before execution begins"
             )
+
+    def _check_graph_entity_existence(
+        self,
+        plan: list[PlanStep],
+        warnings: list[str],
+    ) -> None:
+        """Rule 7: Warn when steps reference entities not in the knowledge graph.
+
+        Advisory only — never blocks execution.
+        """
+        from src.knowledge_graph.planning import PlanningQueries
+
+        pq = PlanningQueries(self._graph_store)  # type: ignore[arg-type]
+        step_dicts = [{"tool_name": s.tool_name, "tool_args": s.tool_args} for s in plan]
+        graph_warnings = pq.validate_plan_dependencies(step_dicts)
+        warnings.extend(graph_warnings)
+
+    def _check_graph_executor_availability(
+        self,
+        plan: list[PlanStep],
+        warnings: list[str],
+    ) -> None:
+        """Rule 8: Warn when assigning to an occupied executor slot.
+
+        Advisory only — never blocks execution.
+        """
+        from src.knowledge_graph.planning import PlanningQueries
+
+        pq = PlanningQueries(self._graph_store)  # type: ignore[arg-type]
+        for step in plan:
+            if step.tool_name in ("assign_executor", "assign_sequence_to_executor"):
+                exec_id = step.tool_args.get("executor_id") or step.tool_args.get("executor")
+                page = step.tool_args.get("page", 1)
+                if exec_id is not None:
+                    available, msg = pq.check_executor_available(int(exec_id), int(page))
+                    if not available and msg:
+                        warnings.append(msg)
+
+    def _check_graph_freshness(
+        self,
+        plan: list[PlanStep],
+        warnings: list[str],
+    ) -> None:
+        """Rule 9: Warn when DESTRUCTIVE steps reference stale graph entities.
+
+        CLAUDE.md: 'Do not use graph query results for DESTRUCTIVE operations
+        without verifying freshness — stale graph data may reference deleted
+        console objects.'
+
+        Advisory only — never blocks execution.
+        """
+        from datetime import UTC, datetime, timedelta
+
+        from src.knowledge_graph.schema import node_id
+
+        assert self._graph_store is not None  # caller guards  # noqa: S101
+        cutoff = (datetime.now(UTC) - timedelta(minutes=5)).isoformat()
+
+        # Map tool_args keys to node type prefixes
+        _ARG_TO_NODE_TYPE = {
+            "group_id": "group",
+            "group": "group",
+            "sequence_id": "sequence",
+            "sequence": "sequence",
+            "executor_id": "executor",
+            "executor": "executor",
+            "preset_id": "preset",
+            "preset": "preset",
+            "fixture_id": "fixture",
+            "world_id": "world",
+            "filter_id": "filter",
+        }
+
+        for step in plan:
+            if step.risk_tier != RiskTier.DESTRUCTIVE:
+                continue
+            for arg_key, node_type in _ARG_TO_NODE_TYPE.items():
+                obj_id = step.tool_args.get(arg_key)
+                if obj_id is None:
+                    continue
+                nid = node_id(node_type, obj_id)
+                if not self._graph_store.is_fresh(nid, cutoff):
+                    warnings.append(
+                        f"Stale graph data: {nid} referenced by DESTRUCTIVE step "
+                        f"'{step.description}' — verify object still exists on "
+                        f"console before proceeding"
+                    )

@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 198 MCP tools via Telnet
-version: 3.36.0
+version: 3.37.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-07T23:22:40Z
+last_updated: 2026-04-08T16:37:27Z
 ---
 
 <p align="center">
@@ -17,7 +17,7 @@ last_updated: 2026-04-07T23:22:40Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-198-brightgreen?style=for-the-badge" alt="198 MCP Tools"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3151-brightgreen?style=for-the-badge" alt="3151 Tests"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3353-brightgreen?style=for-the-badge" alt="3353 Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.35.3-purple?style=for-the-badge" alt="Version 3.35.3"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
@@ -135,6 +135,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | [`src/commands/`](src/commands/) | 262 exported command-builder functions, grouped by keyword type |
 | [`src/commands/busking.py`](src/commands/busking.py) | 6 busking/performance builders: effect assign, rate/speed, page release, fader zero |
 | [`src/categorization/`](src/categorization/) | ML tool categorization: K-Means clustering + auto-labeling |
+| [`src/knowledge_graph/`](src/knowledge_graph/) | SQLite-backed knowledge graph: 10 node types, 11 edge types, BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
 | [`src/telemetry.py`](src/telemetry.py) | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | [`src/skill.py`](src/skill.py) | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
 | [`src/skill_improver.py`](src/skill_improver.py) | `SkillImprover`: repair suggestions + promotion candidates (read-only) |
@@ -190,14 +191,15 @@ GMA_LICENSE_BYPASS=         # set "1" to bypass tier checks (dev only)
 # Transport
 GMA_TRANSPORT=stdio        # stdio (default), sse, or streamable-http
 
-# RAG Pipeline (optional)
-GITHUB_MODELS_TOKEN=                          # GitHub PAT with models:read scope
-RAG_EMBED_MODEL=openai/text-embedding-3-small # embedding model
-RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
+# RAG Pipeline (optional — pick one provider)
+GITHUB_MODELS_TOKEN=                          # GitHub PAT with models:read scope (1536-dim)
+OPENROUTER_API_KEY=                           # OpenRouter API key (2048-dim, alternative)
+RAG_EMBED_MODEL=openai/text-embedding-3-small # embedding model (GitHub Models default)
+RAG_EMBED_DIMENSIONS=1536                     # vector dimensions (1536 GitHub, 2048 OpenRouter)
 ```
 
 > [!NOTE]
-> Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](https://github.com/settings/tokens).
+> Get a GitHub PAT with the `models:read` scope at [github.com/settings/tokens](https://github.com/settings/tokens). Alternatively, use [openrouter.ai](https://openrouter.ai/) for the OpenRouter provider.
 
 | Level | Behavior |
 |-------|----------|
@@ -223,6 +225,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions
 | `GMA_RIGHTS_BYPASS` | _(unset)_ | Set `1` to bypass MA2 native rights (dev only) |
 | `GMA_LICENSE_BYPASS` | _(unset)_ | Set `1` to bypass license tier checks (dev only) |
 | `GITHUB_MODELS_TOKEN` | _(unset)_ | GitHub PAT with `models:read` scope for RAG embeddings (falls back to `GITHUB_TOKEN`) |
+| `OPENROUTER_API_KEY` | _(unset)_ | OpenRouter API key for RAG embeddings (2048-dim, alternative to GitHub Models) |
 | `LOG_LEVEL` | `INFO` | Python logging level |
 
 ## License Tiers
@@ -1033,11 +1036,15 @@ uv run python scripts/rag_query.py "store cue with fade" -v
 uv run python scripts/rag_query.py "store cue with fade"
 ```
 
-| Provider | Flag | Requires |
-|----------|------|----------|
-| GitHub Models | `--provider github` | `GITHUB_MODELS_TOKEN` |
-| Zero-vector stub | `--provider zero` | Nothing (for testing) |
-| Auto-detect | *(no flag)* | Uses GitHub if token set, otherwise zero-vector |
+| Provider | Flag | Requires | Dimensions |
+|----------|------|----------|------------|
+| GitHub Models | `--provider github` | `GITHUB_MODELS_TOKEN` | 1536 |
+| OpenRouter | `--provider openrouter` | `OPENROUTER_API_KEY` | 2048 |
+| Zero-vector stub | `--provider zero` | Nothing (for testing) | 1536 |
+| Auto-detect | *(no flag)* | Uses GitHub if token set, otherwise zero-vector | — |
+
+> [!WARNING]
+> GitHub Models (1536-dim) and OpenRouter (2048-dim) embeddings are **incompatible** in the same store. Use `rag_upgrade_embeddings.py --re-embed-all` when switching providers.
 
 <details>
 <summary>Pipeline stages</summary>
@@ -1049,7 +1056,7 @@ uv run python scripts/rag_query.py "store cue with fade"
 | Crawl | [`rag/ingest/crawl_repo.py`](rag/ingest/crawl_repo.py) | Walk repo files, respect ignore patterns |
 | Chunk | [`rag/ingest/chunk.py`](rag/ingest/chunk.py) | Split into overlapping token-bounded chunks |
 | Extract | [`rag/ingest/extract.py`](rag/ingest/extract.py) | Extract symbol names (functions, classes, headings) |
-| Embed | [`rag/ingest/embed.py`](rag/ingest/embed.py) | Generate vectors via GitHub Models API |
+| Embed | [`rag/ingest/embed.py`](rag/ingest/embed.py) | Generate vectors via GitHub Models or OpenRouter API |
 | Store | [`rag/store/sqlite.py`](rag/store/sqlite.py) | Write chunks + vectors to SQLite |
 
 **Retrieve**
@@ -1330,23 +1337,46 @@ ma2-onPC-MCP/
 │   └── categorization/                     # ML tool categorization (K-Means)
 │
 ├── rag/                                    # RAG pipeline
+│   ├── config.py                           # Pipeline constants (chunk size, top-k, rate limits)
+│   ├── types.py                            # Chunk, DocumentRecord, RagHit dataclasses
+│   ├── ignore.py                           # File ignore patterns
 │   ├── ingest/                             # crawl → chunk → embed → store
+│   │   ├── crawl_repo.py                   # Walk repo files, respect ignore patterns
+│   │   ├── crawl_web.py                    # Crawl HTML pages (robots.txt aware)
+│   │   ├── chunk.py                        # AST/heading/line-based chunking + merge
+│   │   ├── extract.py                      # Symbol extraction (functions, classes, headings)
+│   │   ├── embed.py                        # GitHub Models, OpenRouter, ZeroVector providers
+│   │   └── index.py                        # Orchestrate ingest pipeline
 │   ├── retrieve/                           # query → rerank
-│   └── store/                             # SQLite vector store (rag.db)
+│   │   ├── query.py                        # Embed query, cosine/text search, graph enrichment
+│   │   └── rerank.py                       # Keyword-overlap + tool body reranking
+│   ├── store/                              # SQLite vector store (rag.db)
+│   │   └── sqlite.py                       # RagStore: upsert, search, FTS5, stats
+│   └── utils/                              # Helpers (hash, lang detection, text normalization)
+│
+├── src/knowledge_graph/                    # Knowledge graph layer
+│   ├── schema.py                           # NodeType (10), EdgeType (11), Node/Edge dataclasses
+│   ├── store.py                            # GraphStore: SQLite CRUD, freshness, node_count
+│   ├── query.py                            # QueryEngine: BFS/DFS, neighbor lookup, multi-hop
+│   ├── planning.py                         # PlanningQueries: goal enrichment, plan validation
+│   ├── graph_rag.py                        # GraphRAG: entity extraction + graph-augmented retrieval
+│   └── sync.py                             # sync_snapshot(): hydrate graph from ConsoleStateSnapshot
+│
 ├── scripts/
 │   ├── rag_ingest.py                       # Ingest repo (zero-vector or real embeddings)
 │   ├── rag_ingest_web.py                   # Crawl MA2 help docs (daily batches)
+│   ├── rag_ingest_mcp_sdk.py               # Ingest MCP SDK source (~110 files)
 │   ├── rag_query.py                        # Query RAG store from CLI
 │   ├── bootstrap_console_users.py          # Create 5 console user accounts
 │   ├── create_matricks_library.py          # MAtricks combinatorial library (625 items)
 │   ├── create_filter_library.py            # Filter library XMLs (168 items with VTE)
 │   └── strategic_scan.py                   # Fast 4-phase console tree scan (~24 min)
-├── tests/                                  # 3104 tests (2026-04-06)
+├── tests/                                  # 3353 tests (2026-04-08)
 ├── doc/                                    # Command builders ref + cd-tree docs
 ├── vscode-mcp-provider/                    # VS Code MCP extension
 └── .claude/                                # Skills (playbooks) + scoped rules
     ├── skills/                             # 34 agent instruction modules
-    └── rules/                              # 5 scoped rule files (loaded on demand)
+    └── rules/                              # 7 scoped rule files (loaded on demand)
 ```
 
 ## Dependencies

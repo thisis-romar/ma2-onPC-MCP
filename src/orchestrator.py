@@ -297,6 +297,7 @@ class Orchestrator:
         parallel: bool = False,
         auto_hydrate: bool = True,
         agent_executor: Any | None = None,
+        graph_store: Any | None = None,
     ) -> None:
         self._call = tool_caller
         self._send = telnet_send
@@ -307,6 +308,7 @@ class Orchestrator:
         self._auto_hydrate = auto_hydrate and telnet_send is not None
         self._last_snapshot: ConsoleStateSnapshot | None = None
         self._agent_executor = agent_executor
+        self._graph_store = graph_store
 
     # ── Public properties ─────────────────────────────────────────────
 
@@ -360,6 +362,11 @@ class Orchestrator:
                 wm.baseline_showfile = snapshot.showfile  # showfile change detection
                 self._last_snapshot = snapshot          # cache for tool access
                 wm.rights_context = RightsContext.from_snapshot(snapshot)
+                # Sync knowledge graph from hydrated snapshot
+                if self._graph_store is not None:
+                    from src.knowledge_graph.sync import sync_snapshot as kg_sync
+                    kg_stats = kg_sync(self._graph_store, snapshot)
+                    logger.info("KG synced from snapshot: %s", kg_stats)
                 console_state_summary = snapshot.summary()
                 logger.info("Console state hydrated:\n%s", console_state_summary)
                 if snapshot.hydration_errors:

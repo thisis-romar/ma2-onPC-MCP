@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 
 from src.agent_memory import LongTermMemory
 from src.auth import OAuthScope, require_scope
+from src.knowledge_graph import GraphStore, set_graph_store
 from src.orchestrator import Orchestrator
 from src.server_core import (
     _get_sequence_for_executor,  # noqa: F401 — re-exported for tests
@@ -253,12 +254,18 @@ _GMA_PASSWORD = os.getenv("GMA_PASSWORD", "admin")
 
 _ltm = LongTermMemory()
 
+# Initialize the knowledge graph (in-memory, session-scoped).
+_graph_store = GraphStore(":memory:")
+_graph_store.initialize()
+set_graph_store(_graph_store)
+
 if _HAS_PRIVATE:
     _orchestrator = Orchestrator(
         tool_caller=_tool_caller,
         telnet_send=_telnet_send_fn,
         ltm=_ltm,
         parallel=False,
+        graph_store=_graph_store,
     )
 
     from src.private.server_orchestration_tools import register_orchestration_tools
@@ -304,7 +311,7 @@ def resource_vocab_summary() -> str:
     including it in a command string.  Tier determines whether confirm_destructive
     is required and which OAuthScope must be active.
     """
-    from src.vocab import classify_token, load_vocab
+    from src.vocab import classify_token, load_vocab  # noqa: F811
     spec = load_vocab()
     summary = {}
     all_keywords = list(spec.function_keywords.keys()) + list(spec.object_keywords.keys())
@@ -1823,7 +1830,7 @@ def _validate_license_tiers() -> None:
     flags tools whose names suggest they should be gated but are missing
     from the map — catching typos and oversight.
     """
-    from src.license_tiers import TOOL_LICENSE_TIERS
+    from src.license_tiers import TOOL_LICENSE_TIERS  # noqa: F811
 
     _DESTRUCTIVE_HINTS = {"store", "delete", "copy", "move", "assign",
                           "import", "export", "create", "remove"}

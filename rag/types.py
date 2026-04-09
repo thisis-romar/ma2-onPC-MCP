@@ -49,6 +49,7 @@ class RagHit:
     end_line: int
     score: float
     text: str
+    graph_context: list[dict] = field(default_factory=list)
 
 
 @dataclass

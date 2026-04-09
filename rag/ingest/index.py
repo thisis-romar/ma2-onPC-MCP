@@ -83,10 +83,11 @@ def ingest(
             if embedding_provider is not None:
                 texts = [c.text for c in chunks]
                 embeddings = embedding_provider.embed_many(texts)
-                assert len(embeddings) == len(chunks), (
-                    f"Embedding count mismatch: {len(embeddings)} embeddings "
-                    f"for {len(chunks)} chunks"
-                )
+                if len(embeddings) != len(chunks):
+                    raise ValueError(
+                        f"Embedding count mismatch: {len(embeddings)} embeddings "
+                        f"for {len(chunks)} chunks"
+                    )
                 model_name = embedding_provider.model_name
 
             # Store chunks

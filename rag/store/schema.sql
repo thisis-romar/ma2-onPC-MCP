@@ -40,6 +40,7 @@ CREATE INDEX IF NOT EXISTS idx_chunks_repo_ref ON chunks(repo_ref);
 CREATE INDEX IF NOT EXISTS idx_chunks_path ON chunks(path);
 CREATE INDEX IF NOT EXISTS idx_chunks_kind ON chunks(kind);
 CREATE INDEX IF NOT EXISTS idx_chunks_doc_id ON chunks(doc_id);
+CREATE INDEX IF NOT EXISTS idx_chunks_has_embedding ON chunks(repo_ref) WHERE embedding IS NOT NULL;
 
 -- FTS5 full-text index for fast text search
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(

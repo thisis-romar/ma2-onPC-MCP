@@ -208,6 +208,44 @@ class TestSearch:
         assert result[0].path == "src/commands/store.py"
 
 
+class TestGetStats:
+    """Verify get_stats returns all expected fields."""
+
+    def test_empty_stats(self, store):
+        stats = store.get_stats()
+        assert stats["documents"] == 0
+        assert stats["chunks"] == 0
+        assert stats["chunks_with_embeddings"] == 0
+        assert stats["avg_chunk_chars"] == 0.0
+        assert stats["chunks_by_kind"] == {}
+
+    def test_populated_stats(self, store):
+        doc = DocumentRecord(
+            doc_id="d1", repo_ref="main", path="server.py",
+            language="python", kind="source", file_hash="h1",
+        )
+        store.upsert_document(doc)
+        chunk1 = Chunk(
+            chunk_id="c1", doc_id="d1", path="server.py",
+            kind="source", language="python", text="a" * 100,
+            start_line=1, end_line=5, chunk_hash="ch1",
+        )
+        chunk2 = Chunk(
+            chunk_id="c2", doc_id="d1", path="server.py",
+            kind="test", language="python", text="b" * 200,
+            start_line=6, end_line=10, chunk_hash="ch2",
+        )
+        store.upsert_chunks([chunk1], embeddings=[[1.0, 0.0]], embedding_model="test", repo_ref="main")
+        store.upsert_chunks([chunk2], repo_ref="main")
+
+        stats = store.get_stats()
+        assert stats["documents"] == 1
+        assert stats["chunks"] == 2
+        assert stats["chunks_with_embeddings"] == 1
+        assert stats["avg_chunk_chars"] == 150.0
+        assert stats["chunks_by_kind"] == {"source": 1, "test": 1}
+
+
 class TestEmbeddingSerialization:
     def test_roundtrip(self):
         original = [1.0, 2.5, -3.14, 0.0]

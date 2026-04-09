@@ -11,6 +11,13 @@ from abc import ABC, abstractmethod
 
 import httpx
 
+from rag.config import (
+    DAILY_QUOTA_RETRY_AFTER,
+    EMBED_INTER_REQUEST_DELAY,
+    EMBED_TIMEOUT,
+    MAX_RETRY_WAIT,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -88,8 +95,8 @@ class GitHubModelsProvider(EmbeddingProvider):
         model: str = "openai/text-embedding-3-small",
         dimensions: int = 1536,
         batch_size: int = 32,
-        timeout: float = 60.0,
-        inter_request_delay: float = 4.0,
+        timeout: float = EMBED_TIMEOUT,
+        inter_request_delay: float = EMBED_INTER_REQUEST_DELAY,
     ) -> None:
         self._token = token
         self._model = model
@@ -101,6 +108,10 @@ class GitHubModelsProvider(EmbeddingProvider):
             headers={"Authorization": f"Bearer {token}"},
             timeout=timeout,
         )
+
+    def close(self) -> None:
+        """Close the underlying HTTP client to release connections."""
+        self._client.close()
 
     @property
     def model_name(self) -> str:
@@ -139,7 +150,12 @@ class GitHubModelsProvider(EmbeddingProvider):
         for i in range(0, len(unique_texts), self._batch_size):
             batch = unique_texts[i : i + self._batch_size]
             response = self._request_with_retry(batch)
-            data = response.json()["data"]
+            body = response.json()
+            data = body.get("data")
+            if not data:
+                raise RuntimeError(
+                    f"GitHub Models API returned no 'data' field: {body.get('error', body)}"
+                )
             batch_embeddings = [
                 item["embedding"]
                 for item in sorted(data, key=lambda x: x["index"])
@@ -179,8 +195,8 @@ class GitHubModelsProvider(EmbeddingProvider):
                 retry_after = response.headers.get("retry-after")
 
                 # --- Change 1: detect daily quota vs per-minute limit ---
-                if retry_after and float(retry_after) > 3600:
-                    hours = float(retry_after) / 3600
+                if retry_after and float(retry_after) > DAILY_QUOTA_RETRY_AFTER:
+                    hours = float(retry_after) / DAILY_QUOTA_RETRY_AFTER
                     raise RuntimeError(
                         f"GitHub Models daily quota exhausted "
                         f"(retry-after={float(retry_after):.0f}s, ~{hours:.1f}h). "
@@ -190,13 +206,13 @@ class GitHubModelsProvider(EmbeddingProvider):
                 if attempt == max_retries:
                     response.raise_for_status()
 
-                wait = min(float(retry_after), 120.0) if retry_after else delay
+                wait = min(float(retry_after), MAX_RETRY_WAIT) if retry_after else delay
                 logger.warning(
                     "Rate limited (%d), retrying in %.1fs (attempt %d/%d)",
                     response.status_code, wait, attempt + 1, max_retries,
                 )
                 time.sleep(wait)
-                delay = min(delay * 2, 60.0)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
                 continue
 
             response.raise_for_status()
@@ -225,8 +241,8 @@ class OpenRouterProvider(EmbeddingProvider):
         model: str = "nvidia/llama-nemotron-embed-vl-1b-v2:free",
         dimensions: int = 2048,
         batch_size: int = 32,
-        timeout: float = 60.0,
-        inter_request_delay: float = 4.0,
+        timeout: float = EMBED_TIMEOUT,
+        inter_request_delay: float = EMBED_INTER_REQUEST_DELAY,
     ) -> None:
         self._token = token
         self._model = model
@@ -238,6 +254,10 @@ class OpenRouterProvider(EmbeddingProvider):
             headers={"Authorization": f"Bearer {token}"},
             timeout=timeout,
         )
+
+    def close(self) -> None:
+        """Close the underlying HTTP client to release connections."""
+        self._client.close()
 
     @property
     def model_name(self) -> str:
@@ -275,7 +295,12 @@ class OpenRouterProvider(EmbeddingProvider):
         for i in range(0, len(unique_texts), self._batch_size):
             batch = unique_texts[i : i + self._batch_size]
             response = self._request_with_retry(batch)
-            data = response.json()["data"]
+            body = response.json()
+            data = body.get("data")
+            if not data:
+                raise RuntimeError(
+                    f"OpenRouter API returned no 'data' field: {body.get('error', body)}"
+                )
             batch_embeddings = [
                 item["embedding"]
                 for item in sorted(data, key=lambda x: x["index"])
@@ -310,8 +335,8 @@ class OpenRouterProvider(EmbeddingProvider):
             if response.status_code == 429 or response.status_code >= 500:
                 retry_after = response.headers.get("retry-after")
 
-                if retry_after and float(retry_after) > 3600:
-                    hours = float(retry_after) / 3600
+                if retry_after and float(retry_after) > DAILY_QUOTA_RETRY_AFTER:
+                    hours = float(retry_after) / DAILY_QUOTA_RETRY_AFTER
                     raise RuntimeError(
                         f"OpenRouter daily quota exhausted "
                         f"(retry-after={float(retry_after):.0f}s, ~{hours:.1f}h). "
@@ -321,13 +346,13 @@ class OpenRouterProvider(EmbeddingProvider):
                 if attempt == max_retries:
                     response.raise_for_status()
 
-                wait = min(float(retry_after), 120.0) if retry_after else delay
+                wait = min(float(retry_after), MAX_RETRY_WAIT) if retry_after else delay
                 logger.warning(
                     "Rate limited (%d), retrying in %.1fs (attempt %d/%d)",
                     response.status_code, wait, attempt + 1, max_retries,
                 )
                 time.sleep(wait)
-                delay = min(delay * 2, 60.0)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
                 continue
 
             response.raise_for_status()
