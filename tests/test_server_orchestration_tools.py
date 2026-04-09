@@ -43,7 +43,14 @@ from src.console_state import (
     ExecutorState,
     SequenceEntry,
 )
-from src.private.server_orchestration_tools import register_orchestration_tools
+
+try:
+    from src.private.server_orchestration_tools import register_orchestration_tools
+except ImportError as _import_err:
+    pytest.skip(
+        f"Orchestration tools tests require src/private/ submodule: {_import_err}",
+        allow_module_level=True,
+    )
 
 # ── Test helpers ──────────────────────────────────────────────────────────────
 

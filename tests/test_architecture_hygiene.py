@@ -356,6 +356,9 @@ class TestLicenseTierValidation:
         import ast
         from pathlib import Path
 
+        if not Path("src/private/tools_professional.py").exists():
+            pytest.skip("src/private/ submodule not checked out")
+
         from src.license_tiers import TOOL_LICENSE_TIERS
 
         server_path = Path("src/server.py")
@@ -365,7 +368,8 @@ class TestLicenseTierValidation:
         enterprise_path = Path("src/private/tools_enterprise.py")
 
         tool_names: set[str] = set()
-        for path in (server_path, orch_path, community_path, professional_path, enterprise_path):
+        all_paths = [p for p in (server_path, orch_path, community_path, professional_path, enterprise_path) if p.exists()]
+        for path in all_paths:
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
                 if isinstance(node, ast.AsyncFunctionDef):
@@ -387,13 +391,17 @@ class TestLicenseTierValidation:
         import ast
         from pathlib import Path
 
+        if not Path("src/private/server_orchestration_tools.py").exists():
+            pytest.skip("src/private/ submodule not checked out")
+
         from src.license_tiers import TOOL_LICENSE_TIERS
 
         _DESTRUCTIVE_HINTS = {"store", "delete", "copy", "move", "assign",
                               "import", "export", "create", "remove"}
 
         tool_names: set[str] = set()
-        for path in (Path("src/server.py"), Path("src/private/server_orchestration_tools.py")):
+        confirm_paths = [p for p in (Path("src/server.py"), Path("src/private/server_orchestration_tools.py")) if p.exists()]
+        for path in confirm_paths:
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
                 if isinstance(node, ast.AsyncFunctionDef):
