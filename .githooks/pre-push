@@ -81,6 +81,17 @@ if [ -f "CHANGELOG.md" ] && [ -f "pyproject.toml" ]; then
         echo "[pre-push] WARNING: CHANGELOG.md has no entry for v$V_PYPROJECT"
         echo "           Add a ## [$V_PYPROJECT] section before the next release."
     fi
+
+    # CHANGELOG front matter version should not wildly diverge from pyproject.toml
+    V_CHANGELOG_FM=$(grep -oP '^version:\s*\K[\d.]+' CHANGELOG.md | head -1)
+    if [ -n "$V_CHANGELOG_FM" ] && [ -n "$V_PYPROJECT" ]; then
+        MAJOR_PY=$(echo "$V_PYPROJECT" | cut -d. -f1)
+        MAJOR_CL=$(echo "$V_CHANGELOG_FM" | cut -d. -f1)
+        if [ "$MAJOR_PY" != "$MAJOR_CL" ]; then
+            echo "[pre-push] WARNING: CHANGELOG.md front matter version ($V_CHANGELOG_FM) has a different"
+            echo "           major version than pyproject.toml ($V_PYPROJECT). Check for drift."
+        fi
+    fi
 fi
 
 echo "[pre-push] All checks passed."
