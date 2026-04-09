@@ -10,6 +10,57 @@ cd "$REPO_ROOT"
 
 FAIL=0
 
+# ── Staging Hygiene ─────────────────────────────────────────────────────
+
+echo "[pre-commit] Running staging hygiene checks..."
+
+STAGED_ALL_HYGIENE=$(git diff --cached --name-only --diff-filter=ACM || true)
+if [ -n "$STAGED_ALL_HYGIENE" ]; then
+    # Block secrets and credential files
+    BLOCKED_PATTERNS='\.env$|\.env\.|\.key$|\.pem$|\.p12$|\.pfx$|credentials\.json|secrets\.json|\.secret$'
+    BLOCKED_FILES=$(echo "$STAGED_ALL_HYGIENE" | grep -iE "$BLOCKED_PATTERNS" || true)
+    if [ -n "$BLOCKED_FILES" ]; then
+        echo "ERROR: Secrets/credentials staged for commit:"
+        echo "$BLOCKED_FILES" | sed 's/^/  /'
+        FAIL=1
+    fi
+
+    # Block local artifacts that must never be committed
+    ARTIFACT_PATTERNS='^rag/store/|^agent_data/|^agent_traces/'
+    BLOCKED_ARTIFACTS=$(echo "$STAGED_ALL_HYGIENE" | grep -E "$ARTIFACT_PATTERNS" || true)
+    if [ -n "$BLOCKED_ARTIFACTS" ]; then
+        echo "ERROR: Local artifacts staged for commit:"
+        echo "$BLOCKED_ARTIFACTS" | sed 's/^/  /'
+        FAIL=1
+    fi
+
+    # Warn on large files (>1MB)
+    for f in $STAGED_ALL_HYGIENE; do
+        if [ -f "$f" ]; then
+            SIZE=$(wc -c < "$f" 2>/dev/null || echo 0)
+            if [ "$SIZE" -gt 1048576 ]; then
+                echo "WARNING: Large file staged ($(( SIZE / 1024 ))KB): $f"
+            fi
+        fi
+    done
+
+    # Block API keys/tokens in staged diffs
+    SECRET_PATTERNS='(ghp_[a-zA-Z0-9]{36}|sk-[a-zA-Z0-9]{32,}|AKIA[A-Z0-9]{16}|AIza[a-zA-Z0-9_-]{35})'
+    for f in $STAGED_ALL_HYGIENE; do
+        if git diff --cached -- "$f" | grep -qE "$SECRET_PATTERNS"; then
+            echo "ERROR: Potential API key/token detected in staged diff of $f"
+            FAIL=1
+        fi
+    done
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+    echo "[pre-commit] Staging hygiene checks FAILED. Commit blocked."
+    exit 1
+fi
+
+echo "[pre-commit] Staging hygiene checks passed."
+
 # ── IP Protection Checks ────────────────────────────────────────────────
 
 echo "[pre-commit] Running IP protection checks..."
@@ -104,6 +155,18 @@ if [ "$FAIL" -ne 0 ]; then
 fi
 
 echo "[pre-commit] IP protection checks passed."
+
+# ── Markdown Version Discipline ─────────────────────────────────────────
+
+STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM -- '*.md' || true)
+if [ -n "$STAGED_MD" ]; then
+    echo "[pre-commit] Checking markdown version discipline..."
+    if ! uv run python scripts/validate_md_versions.py --staged 2>&1; then
+        echo "[pre-commit] Markdown version discipline FAILED. Commit blocked."
+        exit 1
+    fi
+    echo "[pre-commit] Markdown version discipline passed."
+fi
 
 # ── Ruff Lint Check ──────────────────────────────────────────────────────
 

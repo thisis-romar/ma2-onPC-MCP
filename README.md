@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 198 MCP tools via Telnet
-version: 3.36.0
+version: 3.36.1
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-07T23:22:40Z
+last_updated: 2026-04-09T16:10:25Z
 ---
 
 <p align="center">
@@ -53,7 +53,7 @@ uv sync
 # 2. Configure
 cp .env.template .env        # then edit with your console IP
 
-# 3. Install git hooks (pre-commit: RAG index, pre-push: test suite, stop: git guard)
+# 3. Install git hooks (pre-commit: IP checks + MD version discipline + RAG index, pre-push: test suite, stop: git guard)
 make install-hooks
 
 # 4. Run
