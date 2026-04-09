@@ -11,12 +11,20 @@ as represented in the knowledge graph.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
 from .query import GraphQuery
-from .schema import EdgeType, node_id
+from .schema import EdgeType, NodeType, node_id
 from .store import GraphStore, Node
+
+_WORD_SPLIT_RE = re.compile(r"[_\s]+")
+
+
+def _tokenize(text: str) -> list[str]:
+    """Split text into lowercase tokens on whitespace and underscores."""
+    return [w for w in _WORD_SPLIT_RE.split(text.lower()) if w]
 
 
 @dataclass
@@ -213,3 +221,108 @@ class PlanningQueries:
                 )
 
         return warnings
+
+    # -- Skill & MCP metadata queries ----------------------------------------
+
+    def resolve_skill_for_task(
+        self,
+        task_description: str,
+        limit: int = 3,
+    ) -> list[EntityContext]:
+        """Find skill nodes matching a task description via label/props text search.
+
+        Performs a simple keyword overlap search across all SKILL nodes in
+        the graph.  For embedding-based search, use
+        ``SkillRegistry.search_semantic()`` instead.
+
+        Args:
+            task_description: Natural language task description.
+            limit: Maximum number of results to return.
+
+        Returns:
+            List of :class:`EntityContext` objects for matching skills.
+        """
+        task_words = set(_tokenize(task_description))
+        if not task_words:
+            return []
+
+        skill_nodes = self._store.get_nodes_by_type(NodeType.SKILL)
+        scored: list[tuple[int, Node]] = []
+
+        for node in skill_nodes:
+            # Build a searchable text from label + props
+            parts: list[str] = []
+            if node.label:
+                parts.append(node.label)
+            if node.props.get("applicable_context"):
+                parts.append(node.props["applicable_context"])
+            if node.props.get("description"):
+                parts.append(node.props["description"])
+            text_words = set(_tokenize(" ".join(parts)))
+
+            overlap = len(task_words & text_words)
+            if overlap > 0:
+                scored.append((overlap, node))
+
+        # Sort by overlap descending
+        scored.sort(key=lambda x: x[0], reverse=True)
+
+        results: list[EntityContext] = []
+        for _score, node in scored[:limit]:
+            edges_out = self._store.get_edges_from(node.node_id)
+            edges_in = self._store.get_edges_to(node.node_id)
+            related_types = list({e.edge_type for e in edges_out + edges_in})
+            results.append(EntityContext(
+                exists=True,
+                node_id=node.node_id,
+                node_type=node.node_type,
+                label=node.label,
+                props=node.props,
+                related_count=len(edges_out) + len(edges_in),
+                related_types=related_types,
+            ))
+
+        return results
+
+    def get_related_skills_for_tool(self, tool_name: str) -> list[EntityContext]:
+        """Find skills that implement a given tool (via IMPLEMENTS edges).
+
+        Looks up the MCP_TOOL node for ``tool_name`` and traverses incoming
+        IMPLEMENTS edges to find SKILL nodes.
+
+        Args:
+            tool_name: Name of the MCP tool.
+
+        Returns:
+            List of :class:`EntityContext` objects for related skills.
+        """
+        tool_nid = node_id(NodeType.MCP_TOOL, tool_name)
+        tool_node = self._store.get_node(tool_nid)
+        if tool_node is None:
+            return []
+
+        # Find incoming IMPLEMENTS edges (skill -> tool)
+        edges = self._store.get_edges_to(tool_nid, EdgeType.IMPLEMENTS)
+        results: list[EntityContext] = []
+
+        for edge in edges:
+            skill_node = self._store.get_node(edge.source_id)
+            if skill_node is None:
+                continue
+
+            skill_edges_out = self._store.get_edges_from(skill_node.node_id)
+            skill_edges_in = self._store.get_edges_to(skill_node.node_id)
+            related_types = list({
+                e.edge_type for e in skill_edges_out + skill_edges_in
+            })
+            results.append(EntityContext(
+                exists=True,
+                node_id=skill_node.node_id,
+                node_type=skill_node.node_type,
+                label=skill_node.label,
+                props=skill_node.props,
+                related_count=len(skill_edges_out) + len(skill_edges_in),
+                related_types=related_types,
+            ))
+
+        return results

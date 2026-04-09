@@ -20,12 +20,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .graph_rag import extract_entities, graph_rag_query
+from .mcp_metadata import MCPMetadata, extract_mcp_metadata
 from .parsers.extractor import ImportInfo, ModuleInfo, SymbolInfo, extract_module_info
 from .parsers.normalizer import normalize_to_graph
 from .parsers.repo_scanner import scan_repository
 from .planning import PlanningQueries
 from .query import GraphQuery, TraversalResult
+from .resource_sync import sync_resources
 from .schema import EdgeType, NodeType, node_id
+from .skill_sync import sync_skills
 from .store import Edge, GraphStore, Node
 from .sync import sync_snapshot
 
@@ -46,6 +49,13 @@ __all__ = [
     "TraversalResult",
     # Sync
     "sync_snapshot",
+    # Skill sync
+    "sync_skills",
+    # Resource sync
+    "sync_resources",
+    # MCP metadata
+    "extract_mcp_metadata",
+    "MCPMetadata",
     # GraphRAG
     "graph_rag_query",
     "extract_entities",
