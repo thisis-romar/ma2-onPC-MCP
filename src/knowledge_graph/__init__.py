@@ -20,6 +20,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .graph_rag import extract_entities, graph_rag_query
+from .parsers.extractor import ImportInfo, ModuleInfo, SymbolInfo, extract_module_info
+from .parsers.normalizer import normalize_to_graph
+from .parsers.repo_scanner import scan_repository
 from .planning import PlanningQueries
 from .query import GraphQuery, TraversalResult
 from .schema import EdgeType, NodeType, node_id
@@ -48,6 +51,13 @@ __all__ = [
     "extract_entities",
     # Planning
     "PlanningQueries",
+    # Code graph parsers
+    "extract_module_info",
+    "ModuleInfo",
+    "SymbolInfo",
+    "ImportInfo",
+    "normalize_to_graph",
+    "scan_repository",
     # Global accessor
     "get_graph_store",
     "set_graph_store",
