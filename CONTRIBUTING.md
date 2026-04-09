@@ -1,9 +1,9 @@
 ---
 title: Contributing to ma2-onPC-MCP
 description: Development setup, branch model, code conventions, test requirements, and skill contribution guide
-version: 3.27.0
+version: 3.28.0
 created: 2026-04-01T18:45:46Z
-last_updated: 2026-04-09T16:10:25Z
+last_updated: 2026-04-09T16:16:45Z
 ---
 
 # Contributing to ma2-onPC-MCP
@@ -139,6 +139,24 @@ last_updated: YYYY-MM-DDTHH:MM:SSZ
 1. Create `.claude/skills/<slug>/SKILL.md` following the format above.
 2. Update `tests/test_skill.py` count assertions to reflect the new total.
 3. Open a PR with the skill file and the test update.
+
+---
+
+## Release Workflow
+
+Releases are tagged from `main` and published via GitHub Actions.
+
+```bash
+# 1. Bump version in pyproject.toml, src/__init__.py, LICENSE, README badge
+# 2. Add CHANGELOG.md entry: ## [X.Y.Z] — YYYY-MM-DD — summary
+# 3. Commit all version changes
+# 4. Validate and tag
+make release VERSION=X.Y.Z
+# 5. Push tag (triggers .github/workflows/release.yml)
+git push origin main && git push origin vX.Y.Z
+```
+
+The `make release` command runs `.githooks/pre-release` which validates version sync across all 5 locations (pyproject.toml, src/\_\_init\_\_.py, LICENSE, README badge, CHANGELOG) before creating the tag.
 
 ---
 

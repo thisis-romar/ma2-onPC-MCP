@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.17.0
+version: 4.18.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-09T16:10:25Z
+last_updated: 2026-04-09T16:16:45Z
 ---
 
 # Project Rules
@@ -54,12 +54,14 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `.claude/rules/` | Scoped rule files (loaded on demand, not at startup) |
 | `.claude/skills/` | Instruction modules (playbooks injected as user messages) |
 | `.claude/settings.json` | Project-level Claude Code config — PostToolUse (MD version reminder) + Stop (commit/push guard) |
-| `.githooks/pre-commit` | IP checks + MD version discipline + ruff lint + RAG zero-vector ingest |
+| `.githooks/pre-commit` | Staging hygiene + IP checks + MD version discipline + ruff lint + RAG zero-vector ingest |
 | `.githooks/pre-push` | IP checks + `pytest -x -q` + `audit_md_counts.py` before every push |
 | `.githooks/md-version-reminder.sh` | Claude Code PostToolUse hook — advisory reminder for `.md` version bumps |
 | `.githooks/stop-git-check.sh` | Stop hook — flags uncommitted/unpushed work when Claude stops |
 | `scripts/validate_md_versions.py` | Staged `.md` file validation — catches missing bumps, regressions, skips, stale timestamps |
 | `scripts/audit_md_version_history.py` | Full git history audit — per-file scorecards and overall discipline score |
+| `.githooks/pre-release` | Pre-release validation — version sync across all 5 locations + CHANGELOG entry |
+| `.github/workflows/release.yml` | Tag-triggered release workflow — validates, tests, creates GitHub Release |
 | `src/agent/` | Agent harness — see Skill `agent-harness-operations` for details |
 
 ---
@@ -93,6 +95,8 @@ make install-hooks                                             # git hooks (pre-
 uv run python scripts/validate_md_versions.py --staged         # check staged .md version discipline
 uv run python scripts/audit_md_version_history.py              # audit .md version history (all files)
 uv run python scripts/audit_md_version_history.py --summary-only  # just scores
+bash .githooks/pre-release 3.36.0                                # validate before tagging
+make release VERSION=3.36.0                                      # validate + create tag
 uv run python scripts/audit_md_counts.py                      # audit MD counts (runs in pre-push)
 uv run python scripts/audit_md_counts.py --fix                # auto-fix stale counts
 ```
