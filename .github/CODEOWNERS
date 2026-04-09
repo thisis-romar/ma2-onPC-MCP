@@ -1,0 +1,33 @@
+# ma2-onPC-MCP CODEOWNERS — path-based reviewer assignment
+# All paths require primary maintainer review.
+
+# === Core Safety & Auth ===
+src/auth.py                               @thisis-romar
+src/rights.py                             @thisis-romar
+src/telnet_client.py                      @thisis-romar
+src/credentials.py                        @thisis-romar
+src/license.py                            @thisis-romar
+src/license_tiers.py                      @thisis-romar
+src/server.py                             @thisis-romar
+src/server_core.py                        @thisis-romar
+
+# === Tier-gated Tools ===
+src/private/                              @thisis-romar
+
+# === Command Builders (must stay pure) ===
+src/commands/                             @thisis-romar
+
+# === Agent Harness ===
+src/agent/                                @thisis-romar
+src/orchestrator.py                       @thisis-romar
+
+# === Project Metadata & Governance ===
+LICENSE                                   @thisis-romar
+CLAUDE.md                                 @thisis-romar
+README.md                                 @thisis-romar
+.github/                                  @thisis-romar
+.claude/                                  @thisis-romar
+.githooks/                                @thisis-romar
+
+# === Default fallback ===
+*                                         @thisis-romar
