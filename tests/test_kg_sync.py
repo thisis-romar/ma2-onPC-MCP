@@ -300,3 +300,179 @@ class TestFullSync:
         assert ft_nodes[0].label == "Generic Dimmer"
         # Total count should be different
         assert store.node_count() != first_count
+
+
+class TestIncrementalSync:
+    """Tests for incremental delta sync (pruning stale nodes/edges)."""
+
+    def test_prunes_removed_fixture_types(self, store):
+        """When fixture types are removed between syncs, stale nodes are pruned."""
+        snap1 = _make_snapshot(fixture_types=["Mac 700", "VL3000", "Generic Dimmer"])
+        sync_snapshot(store, snap1)
+        assert store.node_count(NodeType.FIXTURE_TYPE) == 3
+
+        # Second sync drops VL3000 and Generic Dimmer
+        snap2 = _make_snapshot(fixture_types=["Mac 700"])
+        counts = sync_snapshot(store, snap2)
+        assert store.node_count(NodeType.FIXTURE_TYPE) == 1
+        assert counts["pruned_nodes"] >= 2  # VL3000 + Generic Dimmer pruned
+
+    def test_prunes_removed_sequences_and_edges(self, store):
+        """When a sequence is removed, its node and edges are pruned."""
+        snap1 = _make_snapshot(
+            sequences=[
+                SequenceEntry(id=1, label="Show A"),
+                SequenceEntry(id=2, label="Show B"),
+            ],
+            sequence_cues=[
+                CueRecord(sequence_id=1, cue_number=1.0, label="Cue 1"),
+                CueRecord(sequence_id=2, cue_number=1.0, label="Cue 1"),
+            ],
+        )
+        sync_snapshot(store, snap1)
+        assert store.node_count(NodeType.SEQUENCE) == 2
+        assert store.node_count(NodeType.CUE) == 2
+
+        # Remove sequence 2 and its cues
+        snap2 = _make_snapshot(
+            sequences=[SequenceEntry(id=1, label="Show A")],
+            sequence_cues=[
+                CueRecord(sequence_id=1, cue_number=1.0, label="Cue 1"),
+            ],
+        )
+        counts = sync_snapshot(store, snap2)
+        assert store.node_count(NodeType.SEQUENCE) == 1
+        assert store.node_count(NodeType.CUE) == 1
+        assert counts["pruned_nodes"] >= 2  # sequence:2 + cue:2.1.0
+
+    def test_upsert_updates_existing_nodes(self, store):
+        """Incremental sync updates existing nodes rather than duplicating."""
+        snap1 = _make_snapshot(
+            sequences=[SequenceEntry(id=1, label="Old Name", chaser=False)],
+        )
+        sync_snapshot(store, snap1)
+        seq = store.get_node("sequence:1")
+        assert seq.label == "Old Name"
+        assert seq.props["chaser"] is False
+
+        # Sync again with updated label and property
+        snap2 = _make_snapshot(
+            sequences=[SequenceEntry(id=1, label="New Name", chaser=True)],
+        )
+        sync_snapshot(store, snap2)
+        seq = store.get_node("sequence:1")
+        assert seq.label == "New Name"
+        assert seq.props["chaser"] is True
+        assert store.node_count(NodeType.SEQUENCE) == 1  # no duplicates
+
+    def test_prunes_stale_executor_edges(self, store):
+        """When an executor's sequence changes, old edges are pruned."""
+        snap1 = _make_snapshot(
+            sequences=[
+                SequenceEntry(id=1, label="Seq A"),
+                SequenceEntry(id=2, label="Seq B"),
+            ],
+            executor_state={
+                1: ExecutorState(id=1, page=1, sequence_id=1, label="Exec"),
+            },
+        )
+        sync_snapshot(store, snap1)
+        # Executor 1 → Seq 1
+        edges = store.get_edges_from("executor:1.1", EdgeType.CONTROLS)
+        assert len(edges) == 1
+        assert edges[0].target_id == "sequence:1"
+
+        # Reassign executor to Seq 2
+        snap2 = _make_snapshot(
+            sequences=[
+                SequenceEntry(id=1, label="Seq A"),
+                SequenceEntry(id=2, label="Seq B"),
+            ],
+            executor_state={
+                1: ExecutorState(id=1, page=1, sequence_id=2, label="Exec"),
+            },
+        )
+        counts = sync_snapshot(store, snap2)
+        # Now executor 1 → Seq 2
+        edges = store.get_edges_from("executor:1.1", EdgeType.CONTROLS)
+        assert len(edges) == 1
+        assert edges[0].target_id == "sequence:2"
+        # Old edge should have been pruned
+        assert counts["pruned_edges"] >= 2  # old assigned_to + old controls
+
+    def test_counts_include_pruned(self, store):
+        """Returned counts include pruned_nodes and pruned_edges keys."""
+        snap = _make_snapshot()
+        counts = sync_snapshot(store, snap)
+        assert "pruned_nodes" in counts
+        assert "pruned_edges" in counts
+        assert counts["pruned_nodes"] >= 0
+        assert counts["pruned_edges"] >= 0
+
+
+class TestInstanceOfEdges:
+    """Tests for INSTANCE_OF edges linking fixtures to fixture types."""
+
+    def test_creates_instance_of_edges(self, store):
+        """Fixtures whose names match fixture type names get INSTANCE_OF edges."""
+        idx = PoolNameIndex()
+        idx.add_entry("Fixture", "Mac 700 #1", 1)
+        idx.add_entry("Fixture", "Mac 700 #2", 2)
+        idx.add_entry("Fixture", "VL3000 Front", 3)
+        snap = _make_snapshot(
+            name_index=idx,
+            fixture_types=["Mac 700", "VL3000"],
+        )
+        sync_snapshot(store, snap)
+
+        # Mac 700 fixtures → fixture_type:1
+        e1 = store.get_edges_from("fixture:1", EdgeType.INSTANCE_OF)
+        assert len(e1) == 1
+        assert e1[0].target_id == "fixture_type:1"
+
+        e2 = store.get_edges_from("fixture:2", EdgeType.INSTANCE_OF)
+        assert len(e2) == 1
+        assert e2[0].target_id == "fixture_type:1"
+
+        # VL3000 fixture → fixture_type:2
+        e3 = store.get_edges_from("fixture:3", EdgeType.INSTANCE_OF)
+        assert len(e3) == 1
+        assert e3[0].target_id == "fixture_type:2"
+
+    def test_no_instance_of_without_fixture_types(self, store):
+        """No INSTANCE_OF edges created when fixture_types list is empty."""
+        idx = PoolNameIndex()
+        idx.add_entry("Fixture", "Mac 700 #1", 1)
+        snap = _make_snapshot(name_index=idx, fixture_types=[])
+        sync_snapshot(store, snap)
+
+        edges = store.get_edges_from("fixture:1", EdgeType.INSTANCE_OF)
+        assert len(edges) == 0
+
+    def test_no_match_no_edge(self, store):
+        """Fixture names that don't match any type name get no INSTANCE_OF edge."""
+        idx = PoolNameIndex()
+        idx.add_entry("Fixture", "Unknown Fixture", 1)
+        snap = _make_snapshot(
+            name_index=idx,
+            fixture_types=["Mac 700", "VL3000"],
+        )
+        sync_snapshot(store, snap)
+
+        edges = store.get_edges_from("fixture:1", EdgeType.INSTANCE_OF)
+        assert len(edges) == 0
+
+    def test_longest_match_wins(self, store):
+        """When multiple type names could match, the longest prefix wins."""
+        idx = PoolNameIndex()
+        idx.add_entry("Fixture", "Mac 700 Wash #1", 1)
+        snap = _make_snapshot(
+            name_index=idx,
+            fixture_types=["Mac", "Mac 700", "Mac 700 Wash"],
+        )
+        sync_snapshot(store, snap)
+
+        edges = store.get_edges_from("fixture:1", EdgeType.INSTANCE_OF)
+        assert len(edges) == 1
+        # "Mac 700 Wash" is fixture_type:3 (3rd in list) — longest match
+        assert edges[0].target_id == "fixture_type:3"
