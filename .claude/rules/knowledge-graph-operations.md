@@ -1,9 +1,9 @@
 ---
 title: Knowledge Graph Developer Conventions
 description: Freshness rules, staleness mapping, graph lifecycle, and safety constraints for src/knowledge_graph/
-version: 1.0.0
+version: 1.1.0
 created: 2026-04-08T09:01:44Z
-last_updated: 2026-04-08T09:01:44Z
+last_updated: 2026-04-10T02:53:59Z
 ---
 
 # Knowledge Graph Developer Conventions
@@ -50,9 +50,21 @@ When the executor marks nodes stale after a DESTRUCTIVE step, it uses a tool-nam
 
 1. `GraphStore(":memory:")` — created during `AgentRuntime.__init__` or `Orchestrator.__init__`
 2. `store.initialize()` — creates tables, enables WAL mode
-3. `sync_snapshot(store, snapshot)` — populates/refreshes from `ConsoleStateSnapshot`
+3. `sync_snapshot(store, snapshot)` — incremental delta sync from `ConsoleStateSnapshot`
 4. Query/traverse/enrich — used by planner, policy, executor, GraphRAG
 5. `store.close()` — cleanup on shutdown
+
+---
+
+## Incremental delta sync
+
+`sync_snapshot()` uses incremental delta sync (not full-clear rebuild):
+
+1. **Upsert phase**: all nodes and edges from the snapshot are upserted (insert or update)
+2. **Prune phase**: nodes and edges not seen during this cycle are deleted
+3. **INSTANCE_OF edges**: fixture→fixture_type edges are created via name prefix matching
+
+This keeps the graph readable during sync and avoids destroying state that concurrent readers depend on. The returned `counts` dict includes `pruned_nodes` and `pruned_edges` alongside `nodes` and `edges`.
 
 ---
 
