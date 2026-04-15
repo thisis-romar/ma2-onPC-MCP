@@ -116,12 +116,11 @@ class TestGraphQuery:
             assert data["nodes"][0]["label"] == "src.server"
 
     @pytest.mark.asyncio
-    async def test_query_invalid_type_returns_empty(self, graph_store):
+    async def test_query_invalid_type_returns_error(self, graph_store):
         from src.tools_graph import graph_query
         with patch("src.tools_graph.get_graph_store", return_value=graph_store):
             data = json.loads(await graph_query(node_type="nonexistent_type"))
-            assert data["count"] == 0
-            assert data["nodes"] == []
+            assert "error" in data
 
 
 # ---------------------------------------------------------------------------
