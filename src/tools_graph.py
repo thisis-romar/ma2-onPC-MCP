@@ -94,6 +94,10 @@ async def graph_query(
     if store is None:
         return json.dumps({"error": "Graph store not initialized"})
 
+    valid_types = {t.value for t in NodeType}
+    if node_type not in valid_types:
+        return json.dumps({"error": f"Invalid node_type '{node_type}'. Valid: {sorted(valid_types)}"})
+
     nodes = store.get_nodes_by_type(node_type)
     if pattern:
         pat_lower = pattern.lower()

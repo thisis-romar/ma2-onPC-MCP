@@ -59,10 +59,12 @@ def trace_process(
             return
         visited.add(node_id)
         node = store.get_node(node_id)
+        if node is None:
+            return  # skip nodes not found in the store
         trace.steps.append(ProcessStep(
             node_id=node_id,
-            node_type=node.node_type if node else "unknown",
-            label=node.label if node else None,
+            node_type=node.node_type,
+            label=node.label,
             depth=depth,
             edge_type=via_edge,
         ))

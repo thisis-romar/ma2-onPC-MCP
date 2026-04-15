@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 
-from ..schema import EdgeType
+from ..schema import EdgeType, NodeType
 from ..store import GraphStore
 
 
@@ -75,7 +75,7 @@ def compute_blast_radius(
 
 def find_most_central(
     store: GraphStore,
-    node_type: str = "module",
+    node_type: NodeType | str = NodeType.MODULE,
     limit: int = 10,
 ) -> list[tuple[str, int]]:
     """Find nodes with the most incoming edges (degree centrality)."""

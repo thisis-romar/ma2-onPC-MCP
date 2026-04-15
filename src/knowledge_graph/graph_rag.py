@@ -18,21 +18,21 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .query import GraphQuery
-from .schema import node_id
+from .schema import NodeType, node_id
 from .store import GraphStore
 
 # Entity mention patterns — extract (node_type, identifier) pairs from text.
 # These are intentionally conservative to avoid false positives: they require
 # a type keyword followed by an ID or quoted name.
 _ENTITY_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    ("fixture", re.compile(r"\bfixture\s+(\d+)", re.IGNORECASE)),
-    ("group", re.compile(r"\bgroup\s+(\d+)", re.IGNORECASE)),
-    ("sequence", re.compile(r"\bsequence\s+(\d+)", re.IGNORECASE)),
-    ("executor", re.compile(r"\bexecutor\s+(\d+)", re.IGNORECASE)),
-    ("cue", re.compile(r"\bcue\s+([\d.]+)", re.IGNORECASE)),
-    ("preset", re.compile(r"\bpreset\s+([\d.]+)", re.IGNORECASE)),
-    ("world", re.compile(r"\bworld\s+(\d+)", re.IGNORECASE)),
-    ("filter", re.compile(r"\bfilter\s+(\d+)", re.IGNORECASE)),
+    (NodeType.FIXTURE, re.compile(r"\bfixture\s+(\d+)", re.IGNORECASE)),
+    (NodeType.GROUP, re.compile(r"\bgroup\s+(\d+)", re.IGNORECASE)),
+    (NodeType.SEQUENCE, re.compile(r"\bsequence\s+(\d+)", re.IGNORECASE)),
+    (NodeType.EXECUTOR, re.compile(r"\bexecutor\s+(\d+)", re.IGNORECASE)),
+    (NodeType.CUE, re.compile(r"\bcue\s+([\d.]+)", re.IGNORECASE)),
+    (NodeType.PRESET, re.compile(r"\bpreset\s+([\d.]+)", re.IGNORECASE)),
+    (NodeType.WORLD, re.compile(r"\bworld\s+(\d+)", re.IGNORECASE)),
+    (NodeType.FILTER, re.compile(r"\bfilter\s+(\d+)", re.IGNORECASE)),
 ]
 
 # Quoted name pattern: 'group "Front Wash"' → ("group", "Front Wash")
@@ -121,11 +121,11 @@ def extract_entities(text: str, store: GraphStore) -> list[EntityMention]:
     # Skill mentions: 'skill "busking"' or 'playbook "macro-advanced"'
     for match in _SKILL_PATTERN.finditer(text):
         name = match.group(1)
-        for node in store.get_nodes_by_type("skill"):
+        for node in store.get_nodes_by_type(NodeType.SKILL):
             if node.label and node.label.lower() == name.lower():
                 if node.node_id not in seen_node_ids:
                     mentions.append(EntityMention(
-                        node_type="skill", identifier=name, node_id=node.node_id,
+                        node_type=NodeType.SKILL, identifier=name, node_id=node.node_id,
                     ))
                     seen_node_ids.add(node.node_id)
                 break
@@ -133,20 +133,20 @@ def extract_entities(text: str, store: GraphStore) -> list[EntityMention]:
     # MCP resource URI mentions: 'ma2://docs/effects-reference'
     for match in _RESOURCE_URI_PATTERN.finditer(text):
         uri = match.group(0)
-        nid = node_id("mcp_resource", uri)
+        nid = node_id(NodeType.MCP_RESOURCE, uri)
         if nid not in seen_node_ids and store.get_node(nid) is not None:
             mentions.append(EntityMention(
-                node_type="mcp_resource", identifier=uri, node_id=nid,
+                node_type=NodeType.MCP_RESOURCE, identifier=uri, node_id=nid,
             ))
             seen_node_ids.add(nid)
 
     # MCP tool mentions: 'tool "store_current_cue"'
     for match in _TOOL_KEYWORD_PATTERN.finditer(text):
         name = match.group(1)
-        nid = node_id("mcp_tool", name)
+        nid = node_id(NodeType.MCP_TOOL, name)
         if nid not in seen_node_ids and store.get_node(nid) is not None:
             mentions.append(EntityMention(
-                node_type="mcp_tool", identifier=name, node_id=nid,
+                node_type=NodeType.MCP_TOOL, identifier=name, node_id=nid,
             ))
             seen_node_ids.add(nid)
 
