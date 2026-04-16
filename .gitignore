@@ -54,3 +54,6 @@ doc/audit-report.json
 # Agent harness runtime artifacts
 agent_data/
 agent_traces/
+
+# Graph intelligence persistent storage
+.graph/

@@ -361,11 +361,12 @@ class TestLicenseTierValidation:
         server_path = Path("src/server.py")
         orch_path = Path("src/private/server_orchestration_tools.py")
         community_path = Path("src/tools_community.py")
+        graph_path = Path("src/tools_graph.py")
         professional_path = Path("src/private/tools_professional.py")
         enterprise_path = Path("src/private/tools_enterprise.py")
 
         tool_names: set[str] = set()
-        for path in (server_path, orch_path, community_path, professional_path, enterprise_path):
+        for path in (server_path, orch_path, community_path, graph_path, professional_path, enterprise_path):
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
                 if isinstance(node, ast.AsyncFunctionDef):

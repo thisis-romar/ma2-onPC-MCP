@@ -19,10 +19,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from .analysis.change_detector import ChangeSet, detect_changes
+from .analysis.cluster_engine import ClusterResult, cluster_modules
+from .analysis.impact_engine import ImpactResult, compute_blast_radius
+from .analysis.process_engine import ProcessTrace, trace_process
 from .graph_rag import extract_entities, graph_rag_query
+from .mcp_metadata import MCPMetadata, extract_mcp_metadata
+from .parsers.extractor import ImportInfo, ModuleInfo, SymbolInfo, extract_module_info
+from .parsers.normalizer import normalize_to_graph
+from .parsers.repo_scanner import scan_repository
 from .planning import PlanningQueries
 from .query import GraphQuery, TraversalResult
+from .resource_sync import sync_resources
 from .schema import EdgeType, NodeType, node_id
+from .skill_sync import sync_skills
 from .store import Edge, GraphStore, Node
 from .sync import sync_snapshot
 
@@ -43,11 +53,34 @@ __all__ = [
     "TraversalResult",
     # Sync
     "sync_snapshot",
+    # Skill sync
+    "sync_skills",
+    # Resource sync
+    "sync_resources",
+    # MCP metadata
+    "extract_mcp_metadata",
+    "MCPMetadata",
     # GraphRAG
     "graph_rag_query",
     "extract_entities",
     # Planning
     "PlanningQueries",
+    # Code graph parsers
+    "extract_module_info",
+    "ModuleInfo",
+    "SymbolInfo",
+    "ImportInfo",
+    "normalize_to_graph",
+    "scan_repository",
+    # Analysis
+    "compute_blast_radius",
+    "ImpactResult",
+    "detect_changes",
+    "ChangeSet",
+    "trace_process",
+    "ProcessTrace",
+    "cluster_modules",
+    "ClusterResult",
     # Global accessor
     "get_graph_store",
     "set_graph_store",

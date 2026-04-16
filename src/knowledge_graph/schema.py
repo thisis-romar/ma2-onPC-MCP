@@ -27,6 +27,18 @@ class NodeType(StrEnum):
     WORLD = "world"
     FILTER = "filter"
 
+    # Code structure entities
+    MODULE = "module"              # Python module (.py file)
+    SYMBOL = "symbol"              # Function, class, or variable
+    PACKAGE = "package"            # Python package (directory with __init__.py)
+    CLUSTER = "cluster"            # Logical grouping (from clustering analysis)
+
+    # MCP metadata entities
+    SKILL = "skill"
+    MCP_TOOL = "mcp_tool"
+    MCP_RESOURCE = "mcp_resource"
+    MCP_PROMPT = "mcp_prompt"
+
 
 class EdgeType(StrEnum):
     """Relationship types between MA2 domain entities."""
@@ -53,6 +65,19 @@ class EdgeType(StrEnum):
 
     # Structural
     PART_OF = "part_of"              # cue_part → cue
+
+    # Code structure relationships
+    IMPORTS = "imports"            # module → module (import dependency)
+    CALLS = "calls"               # symbol → symbol (function call)
+    DEFINES = "defines"           # module → symbol (definition site)
+    CONTAINS = "contains"         # package → module | package → package
+
+    # MCP metadata relationships
+    IMPLEMENTS = "implements"            # skill → mcp_tool
+    DOCUMENTS = "documents"              # mcp_resource → mcp_tool
+    ORCHESTRATES = "orchestrates"        # mcp_prompt → mcp_tool | mcp_resource
+    IMPROVES_UPON = "improves_upon"      # skill → skill (version lineage)
+    CATEGORIZED_AS = "categorized_as"    # mcp_resource → mcp_resource (category grouping)
 
 
 def node_id(node_type: NodeType | str, obj_id: int | str) -> str:

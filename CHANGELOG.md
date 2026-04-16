@@ -1,9 +1,9 @@
 ---
 title: Changelog
 description: All notable changes to GrandPA2-Buddy, organized by version
-version: 5.0.0
+version: 3.36.0
 created: 2026-04-06T15:55:55Z
-last_updated: 2026-04-07T01:34:22Z
+last_updated: 2026-04-09T04:33:12Z
 ---
 
 # Changelog
@@ -19,6 +19,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Table of Contents
 
+- [3.36.0](#3360--2026-04-09) — Knowledge Graph: code graph indexing + skills/resources sync
 - [3.35.3](#3353--2026-04-07) — CLA file, version sync, CHANGELOG commit-SHA links, stale count fixes
 - [3.35.2](#3352--2026-04-06) — resume_agent_run tool, DomainPlanner 13 intents
 - [3.35.1](#3351--2026-04-06) — README gap fixes (env var table, agent docs, module table)
@@ -53,6 +54,27 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - [2.2.0](#220--2026-03-17) — ML categorization, safety gates
 - [2.1.0](#210--2026-03-16) — PresetType/Feature tools
 - [2.0.0](#200--2026-03-15) — First commit (tool 78)
+
+---
+
+## [3.36.0] — 2026-04-09
+
+### Added
+- **Knowledge Graph — code graph indexing**: `parsers/extractor.py` (AST symbol extraction), `parsers/normalizer.py` (graph node/edge creation), `parsers/repo_scanner.py` (recursive directory indexing), `parsers/repo_registry.py` (multi-repo tracking with git SHA)
+- **Knowledge Graph — MCP metadata sync**: `skill_sync.py`, `mcp_metadata.py`, `resource_sync.py` — index skills, tools, resources, prompts as graph nodes with IMPLEMENTS, DOCUMENTS, ORCHESTRATES, IMPROVES_UPON, CATEGORIZED_AS edges
+- **RAG ingest pipelines**: `ingest_skills.py` + `ingest_resources.py` for skills and MCP resource/prompt docstrings
+- **GraphRAG entity extraction**: skill, resource URI, and tool mention patterns
+- **Schema**: 8 new NodeTypes (MODULE, SYMBOL, PACKAGE, CLUSTER, SKILL, MCP_TOOL, MCP_RESOURCE, MCP_PROMPT) + 9 new EdgeTypes
+- **Planning**: `resolve_skill_for_task()`, `get_related_skills_for_tool()`
+- **Telemetry**: `skill_id` column in `tool_invocations` table
+- **Server wiring**: `sync_skills()` + `sync_resources()` at startup
+- 161 new tests across 6 test files
+
+### Fixed
+- CHANGELOG.md front-matter version 5.0.0 → 3.36.0
+- `doc/gap-audit.md`: "191 MCP tools" → "198 MCP tools"
+- `doc/openspace-comparison-audit.md`: "197 tools" → "198 tools"
+- CLAUDE.md architecture table updated with new modules
 
 ---
 

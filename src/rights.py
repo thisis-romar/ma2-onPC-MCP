@@ -271,6 +271,16 @@ _OPERATION_MIN_RIGHT: dict[str, MA2Right] = {
     "get_improvement_suggestions": MA2Right.NONE,
     "assert_showfile_unchanged":  MA2Right.NONE,
     "plan_agent_goal":            MA2Right.NONE,
+    # ── graph intelligence (NONE) — read-only code graph tools ──
+    "graph_list_repos":           MA2Right.NONE,
+    "graph_analyze_repo":         MA2Right.NONE,
+    "graph_query":                MA2Right.NONE,
+    "graph_context":              MA2Right.NONE,
+    "graph_impact":               MA2Right.NONE,
+    "graph_detect_changes":       MA2Right.NONE,
+    "graph_trace_process":        MA2Right.NONE,
+    "graph_list_clusters":        MA2Right.NONE,
+    "graph_generate_skills":      MA2Right.NONE,
     # ── playback (1) — executor control tools ────────────────────
     "clear_effects_on_page":      MA2Right.PLAYBACK,
     "control_chaser":             MA2Right.PLAYBACK,

@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.18.0
+version: 4.20.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-08T09:01:44Z
+last_updated: 2026-04-09T06:24:50Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **198 tools**, **17 resources**, **13 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
+MCP server exposing **207 tools**, **22 resources**, **16 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -22,7 +22,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 
 | Module | Role |
 |--------|------|
-| `src/server.py` | FastMCP server startup — 17 MCP resources + 13 MCP prompts, orchestrator wiring, re-exports |
+| `src/server.py` | FastMCP server startup — 22 MCP resources + 16 MCP prompts, orchestrator wiring, re-exports |
 | `src/server_core.py` | Shared infrastructure — `mcp` instance, `get_client()`, `_handle_errors`, pool helpers |
 | `src/tools_community.py` | 20 COMMUNITY tools (free tier, public repo) |
 | `src/private/tools_professional.py` | 124 PROFESSIONAL tools (paid tier, private submodule) |
@@ -44,7 +44,13 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/agent_memory.py` | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + DecisionCheckpoint cache; showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
 | `src/console_state.py` | ConsoleStateSnapshot: hydrates all 19 show-memory gaps; `parse_showfile_from_listvar()` |
 | `src/pool_name_index.py` | In-memory pool name/ID registry, zero-cost object resolution |
-| `src/knowledge_graph/` | SQLite-backed knowledge graph: domain entity nodes (10 types), relationship edges (11 types), BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
+| `src/knowledge_graph/` | SQLite-backed knowledge graph: 18 node types (10 console + 4 code + 4 MCP), 20 edge types (11 console + 4 code + 5 MCP), BFS/DFS traversal, GraphRAG, planning integration, freshness tracking |
+| `src/knowledge_graph/skill_sync.py` | Sync SkillRegistry → KG SKILL nodes + IMPROVES_UPON lineage + IMPLEMENTS (skill→tool) edges |
+| `src/knowledge_graph/mcp_metadata.py` | AST-extract `@mcp.tool/resource/prompt` decorators → `MCPMetadata` dataclass |
+| `src/knowledge_graph/resource_sync.py` | Sync MCP tools/resources/prompts → KG nodes + DOCUMENTS/ORCHESTRATES/CATEGORIZED_AS edges |
+| `src/knowledge_graph/parsers/` | Python AST symbol extraction (`extractor.py`), graph normalization (`normalizer.py`), repo scanning (`repo_scanner.py`), multi-repo tracking (`repo_registry.py`) |
+| `rag/ingest/ingest_skills.py` | Crawl `.claude/skills/` → RAG store (`repo_ref="skills"`) |
+| `rag/ingest/ingest_resources.py` | Index MCP resource/prompt docstrings → RAG store (`repo_ref="mcp-resources"`) |
 | `src/rights.py` | MA2 native rights enforcement, FeedbackClass, parse_telnet_feedback |
 | `src/telemetry.py` | Per-tool invocation recorder: `tool_invocations` table, latency, risk tier |
 | `src/skill.py` | `Skill` dataclass + `SkillRegistry`: versioned playbooks with lineage + filesystem skill fallback (`_load_filesystem_skill`, `_list_filesystem_skills`) |
@@ -177,7 +183,7 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not auto-promote Skills from `SkillImprover` output — promotion is operator-initiated via Tool 141.
 - Do not make MCP resources perform console side-effects — resources are read-only context.
 - Do not put MA2 operating knowledge into tool docstrings — put it in `.claude/skills/` instead.
-- Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_198_tools_mapped` will fail.
+- Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_207_tools_mapped` will fail.
 - Do not set `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, or `GMA_LICENSE_BYPASS=1` in production — dev/test only.
 - Do not use graph query results for DESTRUCTIVE operations without verifying freshness — stale graph data may reference deleted console objects.
 - Do not mix embedding dimensions in the same RAG store — GitHub Models (1536-dim) and OpenRouter (2048-dim) are incompatible; use `rag_upgrade_embeddings.py --re-embed-all` to switch.

@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
-description: AI agent for grandMA2 lighting consoles — 198 MCP tools via Telnet
-version: 3.37.0
+description: AI agent for grandMA2 lighting consoles — 207 MCP tools via Telnet
+version: 3.38.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-08T16:37:27Z
+last_updated: 2026-04-09T04:33:12Z
 ---
 
 <p align="center">
@@ -16,8 +16,8 @@ last_updated: 2026-04-08T16:37:27Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/thisis-romar/ma2-onPC-MCP/test.yml?style=for-the-badge&label=Tests" alt="Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-BSL_1.1-orange?style=for-the-badge" alt="License"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-198-brightgreen?style=for-the-badge" alt="198 MCP Tools"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3353-brightgreen?style=for-the-badge" alt="3353 Tests"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-207-brightgreen?style=for-the-badge" alt="207 MCP Tools"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3469-brightgreen?style=for-the-badge" alt="3469 Tests"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.35.3-purple?style=for-the-badge" alt="Version 3.35.3"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
@@ -25,19 +25,19 @@ last_updated: 2026-04-08T16:37:27Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Linting-Ruff-brightgreen?style=for-the-badge" alt="Ruff"></a>
 </p>
 
-**An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 198 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
+**An Agent Harness — and an embedded Agent core — for grandMA2 lighting consoles.** Exposes 207 grandMA2 commands as [Model Context Protocol](https://modelcontextprotocol.io/) tools so AI assistants (Claude Desktop, VS Code, etc.) can drive a lighting console via Telnet. Wire in an LLM client and the built-in orchestrator, task decomposer, and long-term memory turn it into a fully autonomous lighting agent.
 
 > **License:** This software is licensed under the [Business Source License 1.1](LICENSE). The original repository is [`thisis-romar/ma2-onPC-MCP`](https://github.com/thisis-romar/ma2-onPC-MCP). Change Date: 2028-04-02. After the Change Date, the software converts to Apache License 2.0.
 
 <table>
-<tr><td><b>Agent Harness</b></td><td>198 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
+<tr><td><b>Agent Harness</b></td><td>207 MCP tools covering every grandMA2 operation — playback, programming, user management, show files, busking, and more. Connect any MCP-compatible AI assistant and start controlling the console immediately.</td></tr>
 <tr><td><b>Embedded Agent Core</b></td><td>Orchestrator, task decomposer, working + long-term memory, and a skill registry with self-improvement suggestions. Inject a real LLM client and it becomes a fully autonomous lighting agent that plans, executes, remembers, and learns.</td></tr>
 <tr><td><b>3-layer permission model</b></td><td>OAuth scope ∩ MA2 native rights ∩ console floor — all three must agree. 198 tools mapped to a minimum <code>MA2Right</code> tier, three risk tiers (<code>SAFE_READ</code> / <code>SAFE_WRITE</code> / <code>DESTRUCTIVE</code>), and line-break injection rejected at the transport layer.</td></tr>
 <tr><td><b>A closed learning loop</b></td><td>Every tool call recorded to <code>tool_invocations</code>. SkillImprover surfaces repair suggestions from failure patterns and promotion candidates from high-quality sessions. Skills are versioned playbooks with full lineage tracking.</td></tr>
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
 </table>
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [198 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [207 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
 
 *The name is a play on "grandMA2" — [dedicated to someone special](DEDICATION.md).*
 
@@ -230,7 +230,7 @@ RAG_EMBED_DIMENSIONS=1536                     # vector dimensions (1536 GitHub, 
 
 ## License Tiers
 
-All 198 MCP tools are classified into three license tiers:
+All 207 MCP tools are classified into three license tiers:
 
 | Tier | Cost | Tools | Examples |
 |------|------|-------|----------|
@@ -911,7 +911,7 @@ Bootstrap the six console users on a fresh show with `python scripts/bootstrap_c
 
 ### Layer 2 — MA2 Native Rights ([`src/rights.py`](src/rights.py))
 
-All 198 tools are mapped in `_OPERATION_MIN_RIGHT` to a minimum `MA2Right` tier (NONE through ADMIN). At runtime, `_handle_errors` derives the session's `MA2Right` from the OAuth scope tier via `get_session_ma2_right()` and calls `is_permitted()` before any Telnet command is sent. A tool whose required right exceeds the session right returns `{"blocked": True, "required_ma2_right": "..."}`.
+All 207 tools are mapped in `_OPERATION_MIN_RIGHT` to a minimum `MA2Right` tier (NONE through ADMIN). At runtime, `_handle_errors` derives the session's `MA2Right` from the OAuth scope tier via `get_session_ma2_right()` and calls `is_permitted()` before any Telnet command is sent. A tool whose required right exceeds the session right returns `{"blocked": True, "required_ma2_right": "..."}`.
 
 The `check_permission()` utility provides a unified gate combining scope and rights checks in a single call. The full tool-to-right mapping is published in [`doc/ma2-rights-matrix.json`](doc/ma2-rights-matrix.json).
 

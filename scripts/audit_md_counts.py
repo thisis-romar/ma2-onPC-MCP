@@ -35,6 +35,7 @@ def _count_mcp_tools() -> int:
     total = 0
     for p in (REPO_ROOT / "src" / "server.py",
               REPO_ROOT / "src" / "tools_community.py",
+              REPO_ROOT / "src" / "tools_graph.py",
               REPO_ROOT / "src" / "private" / "tools_professional.py",
               REPO_ROOT / "src" / "private" / "tools_enterprise.py",
               REPO_ROOT / "src" / "private" / "server_orchestration_tools.py"):
