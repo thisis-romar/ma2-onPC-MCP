@@ -29,7 +29,13 @@ logger = logging.getLogger(__name__)
 _STRIP_TAGS = {"script", "style", "nav", "header", "footer", "noscript"}
 
 # CSS selectors for sidebar / navigation trees to remove
-_STRIP_SELECTORS = ["#offline-tree", ".topic-tree-container", ".jstree"]
+_STRIP_SELECTORS = [
+    "#offline-tree", ".topic-tree-container", ".jstree",
+    # Elgato help center
+    ".article-sidebar", ".article-votes", ".article-relatives",
+    # manuals.plus
+    ".sidebar", ".widget-area", "#secondary",
+]
 
 # CSS selectors for boilerplate elements within the content area
 _BOILERPLATE_SELECTORS = [
@@ -37,17 +43,27 @@ _BOILERPLATE_SELECTORS = [
     ".related-topics", ".related-links",
     ".feedback", ".was-helpful", ".rating",
     ".pagination", ".prev-next", ".topic-navigation",
+    # Elgato help center
+    ".article-footer", ".article-header .article-vote",
+    # manuals.plus
+    ".entry-meta", ".post-navigation", ".author-box",
 ]
 
 # Text patterns that indicate boilerplate paragraphs (matched at start of element text)
 _BOILERPLATE_TEXT_RE = re.compile(
     r"^\s*(Related Topics|See Also|Was this helpful|"
+    r"Share this article|Did you find|Return to top|"
     r"\u00a9|©|Copyright|All rights reserved)",
     re.IGNORECASE,
 )
 
 # Selectors to try for main content, in priority order
-_CONTENT_SELECTORS = [".topic-content", "main", "article", "[role='main']"]
+_CONTENT_SELECTORS = [
+    ".topic-content",                     # MA lighting help docs
+    ".article-body", ".article__body",    # Elgato / Zendesk help center
+    ".entry-content", ".post-content",    # manuals.plus / WordPress
+    "main", "article", "[role='main']",   # Generic fallback
+]
 
 _HEADING_RE = re.compile(r"^(h[1-6])$", re.IGNORECASE)
 
