@@ -615,3 +615,187 @@ class TestSemanticSearch:
             "SELECT embedding FROM skills WHERE id=?", (sk.id,)
         ).fetchone()
         assert row[0] is None
+
+
+# ---------------------------------------------------------------------------
+# v3 dataclass fields
+# ---------------------------------------------------------------------------
+
+class TestV3Fields:
+    """Tests for the 6 new Skill fields added in v3."""
+
+    def test_defaults(self):
+        """New fields have sensible defaults — existing code is unaffected."""
+        s = _make_skill()
+        assert s.min_right == "none"
+        assert s.tool_refs == ()
+        assert s.prompt_refs == ()
+        assert s.resource_refs == ()
+        assert s.domain_tags == frozenset()
+        assert s.context_mode == "inline"
+
+    def test_to_dict_includes_new_fields(self):
+        s = _make_skill(
+            tool_refs=("list_objects", "store_cue"),
+            domain_tags=frozenset({"playback", "cue"}),
+            min_right="presets",
+            context_mode="fork",
+        )
+        d = s.to_dict()
+        assert d["tool_refs"] == ["list_objects", "store_cue"]
+        assert d["domain_tags"] == ["cue", "playback"]  # sorted
+        assert d["min_right"] == "presets"
+        assert d["context_mode"] == "fork"
+        assert d["prompt_refs"] == []
+        assert d["resource_refs"] == []
+
+    def test_to_dict_defaults_serialized(self):
+        """Even default values are present in to_dict() output."""
+        s = _make_skill()
+        d = s.to_dict()
+        assert "min_right" in d
+        assert "tool_refs" in d
+        assert "domain_tags" in d
+        assert "context_mode" in d
+
+    def test_as_user_message_includes_tool_refs(self):
+        s = _make_skill(
+            name="my_skill", version=2, body="Do stuff",
+            tool_refs=("list_objects", "store_cue"),
+        )
+        msg = s.as_user_message()
+        assert "[Skill: my_skill v2]" in msg
+        assert "Do stuff" in msg
+        assert "[Referenced tools: list_objects, store_cue]" in msg
+
+    def test_as_user_message_no_tool_refs(self):
+        """When tool_refs is empty, no reference line appears."""
+        s = _make_skill(name="x", version=1, body="body text")
+        msg = s.as_user_message()
+        assert msg == "[Skill: x v1]\nbody text"
+        assert "Referenced tools" not in msg
+
+    def test_save_get_roundtrip_preserves_new_fields(self, reg):
+        s = _make_skill(
+            min_right="program",
+            tool_refs=("go_cue", "list_objects"),
+            prompt_refs=("cue_prompt",),
+            resource_refs=("console://status",),
+            domain_tags=frozenset({"playback", "timing"}),
+            context_mode="fork",
+        )
+        reg.save(s)
+        got = reg.get(s.id)
+        assert got is not None
+        assert got.min_right == "program"
+        assert got.tool_refs == ("go_cue", "list_objects")
+        assert got.prompt_refs == ("cue_prompt",)
+        assert got.resource_refs == ("console://status",)
+        assert got.domain_tags == frozenset({"playback", "timing"})
+        assert got.context_mode == "fork"
+
+    def test_save_get_roundtrip_defaults(self, reg):
+        """Default v3 field values survive a save/get round-trip."""
+        s = _make_skill()
+        reg.save(s)
+        got = reg.get(s.id)
+        assert got.min_right == "none"
+        assert got.tool_refs == ()
+        assert got.prompt_refs == ()
+        assert got.resource_refs == ()
+        assert got.domain_tags == frozenset()
+        assert got.context_mode == "inline"
+
+    def test_migration_creates_new_columns(self, tmp_path):
+        """Opening SkillRegistry twice doesn't fail — v3 migration is idempotent."""
+        db = tmp_path / "test_v3_migration.db"
+        r1 = SkillRegistry(db_path=db)
+        r1.close()
+        r2 = SkillRegistry(db_path=db)
+        # Verify columns exist by inserting a skill with v3 fields
+        s = _make_skill(min_right="admin", tool_refs=("t1",))
+        r2.save(s)
+        got = r2.get(s.id)
+        assert got.min_right == "admin"
+        assert got.tool_refs == ("t1",)
+        r2.close()
+
+
+# ---------------------------------------------------------------------------
+# get_descriptions — rights-filtered skill index
+# ---------------------------------------------------------------------------
+
+class TestGetDescriptions:
+    def test_returns_all_for_admin(self, reg):
+        reg.save(_make_skill(id=str(uuid.uuid4()), name="skill_a", description="Desc A"))
+        reg.save(_make_skill(id=str(uuid.uuid4()), name="skill_b", description="Desc B"))
+        out = reg.get_descriptions(session_right="admin")
+        assert "skill_a: Desc A" in out
+        assert "skill_b: Desc B" in out
+
+    def test_filters_by_min_right(self, reg):
+        reg.save(_make_skill(
+            id=str(uuid.uuid4()), name="read_skill",
+            description="safe", min_right="none",
+        ))
+        reg.save(_make_skill(
+            id=str(uuid.uuid4()), name="admin_skill",
+            description="needs admin", min_right="admin",
+        ))
+        out = reg.get_descriptions(session_right="playback")
+        assert "read_skill" in out
+        assert "admin_skill" not in out
+
+    def test_excludes_deprecated(self, reg):
+        s = _make_skill(
+            id=str(uuid.uuid4()), name="old_skill",
+            description="old",
+        )
+        reg.save(s)
+        reg.deprecate(s.id)
+        out = reg.get_descriptions(session_right="admin")
+        assert "old_skill" not in out
+
+    def test_includes_filesystem_skills(self, reg):
+        """Filesystem skills (min_right=none) should appear for any session_right."""
+        out = reg.get_descriptions(session_right="none")
+        # Filesystem skills have min_right="none" by default
+        assert len(out.strip().splitlines()) > 0
+
+
+# ---------------------------------------------------------------------------
+# get_usable with session_right
+# ---------------------------------------------------------------------------
+
+class TestGetUsableWithRight:
+    def test_returns_skill_when_right_sufficient(self, reg):
+        s = _make_skill(min_right="playback")
+        reg.save(s)
+        result = reg.get_usable(s.id, session_right="admin")
+        assert result is not None
+
+    def test_returns_none_when_right_insufficient(self, reg):
+        s = _make_skill(min_right="admin")
+        reg.save(s)
+        result = reg.get_usable(s.id, session_right="playback")
+        assert result is None
+
+    def test_returns_skill_when_right_equal(self, reg):
+        s = _make_skill(min_right="presets")
+        reg.save(s)
+        result = reg.get_usable(s.id, session_right="presets")
+        assert result is not None
+
+    def test_no_right_filter_when_none(self, reg):
+        """When session_right is not provided, no rights check is done."""
+        s = _make_skill(min_right="admin")
+        reg.save(s)
+        result = reg.get_usable(s.id)  # no session_right
+        assert result is not None
+
+    def test_destructive_unapproved_still_blocked(self, reg):
+        """Rights check does not bypass the approval requirement."""
+        s = _make_skill(safety_scope="DESTRUCTIVE", approved=False, min_right="none")
+        reg.save(s)
+        result = reg.get_usable(s.id, session_right="admin")
+        assert result is None

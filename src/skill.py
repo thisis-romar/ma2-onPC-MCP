@@ -21,6 +21,7 @@ the full ancestor chain.
 from __future__ import annotations
 
 import contextlib
+import json
 import logging
 import re
 import sqlite3
@@ -37,6 +38,14 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _DEFAULT_DB = Path(__file__).parent.parent / "rag" / "store" / "agent_memory.db"
+
+# Column list used in all SELECT queries (must match _row_to_skill)
+_SKILL_COLS = (
+    "id,version,parent_id,name,description,body,quality_score,"
+    "safety_scope,applicable_context,created_at,updated_at,"
+    "source_session_id,approved,min_right,tool_refs,prompt_refs,"
+    "resource_refs,domain_tags,context_mode"
+)
 
 # Root of the hand-authored instruction-module skills tree
 _SKILLS_DIR = Path(__file__).parent.parent / ".claude" / "skills"
@@ -68,12 +77,25 @@ class Skill:
     approved: bool                 # DESTRUCTIVE skills require True before use
     deprecated: bool = False       # True to hide from search/suggestions
 
+    # v3 fields — all have defaults so existing code is unaffected
+    min_right: str = "none"                    # MA2Right value string
+    tool_refs: tuple[str, ...] = ()            # tool names this skill references
+    prompt_refs: tuple[str, ...] = ()          # prompt names referenced
+    resource_refs: tuple[str, ...] = ()        # resource URIs referenced
+    domain_tags: frozenset[str] = frozenset()  # workflow domains
+    context_mode: str = "inline"               # "inline" | "fork"
+
     # ── Convenience ────────────────────────────────────────────────────
 
     def to_dict(self) -> dict:
         d = asdict(self)
         d["created_at_iso"] = _ts_iso(self.created_at)
         d["updated_at_iso"] = _ts_iso(self.updated_at)
+        # Serialize v3 fields for JSON compatibility
+        d["tool_refs"] = list(self.tool_refs)
+        d["prompt_refs"] = list(self.prompt_refs)
+        d["resource_refs"] = list(self.resource_refs)
+        d["domain_tags"] = sorted(self.domain_tags)
         return d
 
     def is_usable(self) -> bool:
@@ -92,7 +114,11 @@ class Skill:
         Callers should check ``is_usable()`` before injecting.  Use
         ``SkillRegistry.get_usable()`` for a safe combined fetch + guard.
         """
-        return f"[Skill: {self.name} v{self.version}]\n{self.body}"
+        header = f"[Skill: {self.name} v{self.version}]"
+        refs = ""
+        if self.tool_refs:
+            refs = f"\n[Referenced tools: {', '.join(self.tool_refs)}]"
+        return f"{header}\n{self.body}{refs}"
 
 
 def _ts_iso(ts: float) -> str:
@@ -161,6 +187,17 @@ class SkillRegistry:
             self._conn.execute(
                 "ALTER TABLE skills ADD COLUMN deprecated INTEGER NOT NULL DEFAULT 0"
             )
+        # v3 migrations
+        for stmt in (
+            "ALTER TABLE skills ADD COLUMN min_right TEXT DEFAULT 'none'",
+            "ALTER TABLE skills ADD COLUMN tool_refs TEXT DEFAULT ''",
+            "ALTER TABLE skills ADD COLUMN prompt_refs TEXT DEFAULT ''",
+            "ALTER TABLE skills ADD COLUMN resource_refs TEXT DEFAULT ''",
+            "ALTER TABLE skills ADD COLUMN domain_tags TEXT DEFAULT ''",
+            "ALTER TABLE skills ADD COLUMN context_mode TEXT DEFAULT 'inline'",
+        ):
+            with contextlib.suppress(sqlite3.OperationalError):
+                self._conn.execute(stmt)
         self._conn.commit()
 
     # ------------------------------------------------------------------ #
@@ -173,14 +210,21 @@ class SkillRegistry:
             "INSERT OR REPLACE INTO skills "
             "(id,version,parent_id,name,description,body,quality_score,"
             "safety_scope,applicable_context,created_at,updated_at,"
-            "source_session_id,approved) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "source_session_id,approved,min_right,tool_refs,prompt_refs,"
+            "resource_refs,domain_tags,context_mode) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 skill.id, skill.version, skill.parent_id,
                 skill.name, skill.description, skill.body,
                 skill.quality_score, skill.safety_scope, skill.applicable_context,
                 skill.created_at, skill.updated_at,
                 skill.source_session_id, int(skill.approved),
+                skill.min_right,
+                json.dumps(list(skill.tool_refs)),
+                json.dumps(list(skill.prompt_refs)),
+                json.dumps(list(skill.resource_refs)),
+                json.dumps(sorted(skill.domain_tags)),
+                skill.context_mode,
             ),
         )
         self._conn.commit()
@@ -312,9 +356,7 @@ class SkillRegistry:
         directory slug like ``"ma2-command-rules"`` (for filesystem skills).
         """
         row = self._conn.execute(
-            "SELECT id,version,parent_id,name,description,body,quality_score,"
-            "safety_scope,applicable_context,created_at,updated_at,"
-            "source_session_id,approved FROM skills WHERE id=?",
+            f"SELECT {_SKILL_COLS} FROM skills WHERE id=?",
             (skill_id,),
         ).fetchone()
         if row:
@@ -322,18 +364,40 @@ class SkillRegistry:
         # Filesystem fallback — treat skill_id as a directory slug
         return _load_filesystem_skill(skill_id)
 
-    def get_usable(self, skill_id: str) -> Skill | None:
+    def get_usable(
+        self, skill_id: str, session_right: str | None = None,
+    ) -> Skill | None:
         """
         Fetch a skill by id and return it only if ``is_usable()`` is True.
 
         Returns None when the skill is not found OR when it is a DESTRUCTIVE
         skill that has not yet been approved by a SYSTEM_ADMIN operator.
+        When *session_right* is provided, also filters by ``min_right``.
         This prevents callers from accidentally injecting un-approved playbooks.
         """
         skill = self.get(skill_id)
         if skill is None or not skill.is_usable():
             return None
+        if session_right is not None:
+            from src.rights import _RIGHT_ORDER
+            if _RIGHT_ORDER.get(skill.min_right, 0) > _RIGHT_ORDER.get(session_right, 0):
+                return None
         return skill
+
+    def get_descriptions(self, session_right: str = "admin") -> str:
+        """Compact skill index for system-prompt injection (~50-100 tokens each).
+
+        Returns one line per usable, non-deprecated skill whose ``min_right``
+        is at or below *session_right*.
+        """
+        from src.rights import _RIGHT_ORDER
+        session_tier = _RIGHT_ORDER.get(session_right, 0)
+        usable = [
+            s for s in self.list_all(limit=200)
+            if not s.deprecated
+            and _RIGHT_ORDER.get(s.min_right, 0) <= session_tier
+        ]
+        return "\n".join(f"- {s.name}: {s.description}" for s in usable)
 
     def search(self, query: str, limit: int = 10) -> list[Skill]:
         """Full-text search across name, description, and applicable_context.
@@ -342,9 +406,7 @@ class SkillRegistry:
         """
         pat = f"%{query}%"
         rows = self._conn.execute(
-            "SELECT id,version,parent_id,name,description,body,quality_score,"
-            "safety_scope,applicable_context,created_at,updated_at,"
-            "source_session_id,approved FROM skills "
+            f"SELECT {_SKILL_COLS} FROM skills "
             "WHERE (name LIKE ? OR description LIKE ? OR applicable_context LIKE ?) "
             "AND COALESCE(deprecated, 0) = 0 "
             "ORDER BY updated_at DESC LIMIT ?",
@@ -377,9 +439,7 @@ class SkillRegistry:
             return self.search(query, limit)
 
         rows = self._conn.execute(
-            "SELECT id,version,parent_id,name,description,body,quality_score,"
-            "safety_scope,applicable_context,created_at,updated_at,"
-            "source_session_id,approved,embedding FROM skills "
+            f"SELECT {_SKILL_COLS},embedding FROM skills "
             "WHERE embedding IS NOT NULL"
         ).fetchall()
 
@@ -427,9 +487,7 @@ class SkillRegistry:
     def list_all(self, limit: int = 50) -> list[Skill]:
         """Return all non-deprecated skills: DB skills first, then filesystem skills."""
         rows = self._conn.execute(
-            "SELECT id,version,parent_id,name,description,body,quality_score,"
-            "safety_scope,applicable_context,created_at,updated_at,"
-            "source_session_id,approved FROM skills "
+            f"SELECT {_SKILL_COLS} FROM skills "
             "WHERE COALESCE(deprecated, 0) = 0 "
             "ORDER BY updated_at DESC LIMIT ?",
             (limit,),
@@ -468,6 +526,8 @@ def _row_to_skill(row: tuple) -> Skill:
         id_, version, parent_id, name, description, body,
         quality_score, safety_scope, applicable_context,
         created_at, updated_at, source_session_id, approved,
+        min_right, tool_refs_json, prompt_refs_json,
+        resource_refs_json, domain_tags_json, context_mode,
     ) = row
     return Skill(
         id=id_,
@@ -483,6 +543,12 @@ def _row_to_skill(row: tuple) -> Skill:
         updated_at=float(updated_at or 0.0),
         source_session_id=source_session_id,
         approved=bool(approved),
+        min_right=min_right or "none",
+        tool_refs=tuple(json.loads(tool_refs_json)) if tool_refs_json else (),
+        prompt_refs=tuple(json.loads(prompt_refs_json)) if prompt_refs_json else (),
+        resource_refs=tuple(json.loads(resource_refs_json)) if resource_refs_json else (),
+        domain_tags=frozenset(json.loads(domain_tags_json)) if domain_tags_json else frozenset(),
+        context_mode=context_mode or "inline",
     )
 
 
