@@ -36,6 +36,10 @@ keyword_combos*.json
 macro_telnet_output.txt
 macro_v2_output.txt
 
+# Hook/test temp output
+push_out.txt
+test_results.txt
+
 # RAG database and crawl cache
 rag/store/*.db
 rag/store/web_crawl_cache.json
