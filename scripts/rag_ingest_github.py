@@ -33,7 +33,7 @@ def main() -> None:
     parser.add_argument("--db", default=str(RAG_DB_PATH), help="RAG database path")
     parser.add_argument(
         "--provider",
-        choices=["github", "openrouter", "zero"],
+        choices=["github", "openrouter", "gemini", "zero"],
         default=None,
         help="Embedding provider (default: auto-detect from env)",
     )

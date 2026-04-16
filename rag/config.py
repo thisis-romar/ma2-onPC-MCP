@@ -32,6 +32,7 @@ WEB_CRAWLER_USER_AGENT: str = "grandpa2-buddy-rag-crawler/1.0 (documentation ind
 # Embedding provider defaults
 EMBED_TIMEOUT: float = 60.0  # HTTP timeout for embedding API calls
 EMBED_INTER_REQUEST_DELAY: float = 4.0  # proactive pause between API calls
+GEMINI_EMBED_INTER_REQUEST_DELAY: float = 1.0  # Gemini: 1,500 RPM allows faster pacing
 
 # Embedding rate-limit thresholds
 DAILY_QUOTA_RETRY_AFTER: float = 3600.0  # seconds — above this means "come back tomorrow"

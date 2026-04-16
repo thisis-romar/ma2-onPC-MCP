@@ -109,7 +109,7 @@ def main() -> None:
     parser.add_argument("--ref", default="ma2-help-docs", help="Repo reference label (default: ma2-help-docs)")
     parser.add_argument("--db", default=str(RAG_DB_PATH), help=f"SQLite database path (default: {RAG_DB_PATH})")
     parser.add_argument(
-        "--provider", choices=["github", "openrouter", "zero"], default=None,
+        "--provider", choices=["github", "openrouter", "gemini", "zero"], default=None,
         help="Embedding provider (default: auto-detect from env vars)",
     )
     parser.add_argument("--delay", type=float, default=0.5, help="Delay between requests in seconds (default: 0.5)")

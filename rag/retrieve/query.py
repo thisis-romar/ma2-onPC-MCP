@@ -78,6 +78,9 @@ def rag_query(
     try:
         if embedding_provider is not None:
             try:
+                # Switch to query mode for asymmetric search (Gemini)
+                if hasattr(embedding_provider, "set_task_type"):
+                    embedding_provider.set_task_type("RETRIEVAL_QUERY")
                 query_embedding = embedding_provider.embed_one(query)
                 hits = store.search_by_embedding(
                     query_embedding, top_k=top_k * 2,

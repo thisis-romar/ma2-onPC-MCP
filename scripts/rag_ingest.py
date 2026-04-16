@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from rag.config import RAG_DB_PATH
 from rag.ingest.embed import (
     EmbeddingProvider,
+    GeminiProvider,
     GitHubModelsProvider,
     OpenRouterProvider,
     ZeroVectorProvider,
@@ -40,6 +41,7 @@ def make_provider(
     """Build an embedding provider from --provider flag and env vars."""
     github_token = os.environ.get("GITHUB_MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN")
     openrouter_token = os.environ.get("OPENROUTER_API_KEY")
+    gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     model = os.environ.get("RAG_EMBED_MODEL")
     dimensions_str = os.environ.get("RAG_EMBED_DIMENSIONS")
 
@@ -73,6 +75,21 @@ def make_provider(
             inter_request_delay=inter_request_delay,
         )
 
+    if choice == "gemini":
+        if not gemini_key:
+            print(
+                "Error: --provider gemini requires GEMINI_API_KEY or GOOGLE_API_KEY env var.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        return GeminiProvider(
+            api_key=gemini_key,
+            model=model or "text-embedding-004",
+            dimensions=int(dimensions_str) if dimensions_str else 768,
+            batch_size=batch_size,
+            inter_request_delay=inter_request_delay,
+        )
+
     if choice == "zero":
         return ZeroVectorProvider()
 
@@ -97,6 +114,16 @@ def make_provider(
             inter_request_delay=inter_request_delay,
         )
 
+    if gemini_key:
+        logger.info("Auto-detected GEMINI_API_KEY, using Gemini provider")
+        return GeminiProvider(
+            api_key=gemini_key,
+            model=model or "text-embedding-004",
+            dimensions=int(dimensions_str) if dimensions_str else 768,
+            batch_size=batch_size,
+            inter_request_delay=inter_request_delay,
+        )
+
     logger.warning("No embedding API token found — using zero-vector stub (no semantic search)")
     return ZeroVectorProvider()
 
@@ -108,7 +135,7 @@ def main() -> None:
     parser.add_argument("--db", default=str(RAG_DB_PATH), help=f"SQLite database path (default: {RAG_DB_PATH})")
     parser.add_argument(
         "--provider",
-        choices=["github", "openrouter", "zero"],
+        choices=["github", "openrouter", "gemini", "zero"],
         default=None,
         help="Embedding provider (default: auto-detect from env vars)",
     )

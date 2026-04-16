@@ -1,7 +1,7 @@
 # Copyright (c) 2025-2026 thisis-romar. All rights reserved.
 # Licensed under the Business Source License 1.1. See LICENSE file.
 
-"""Abstract embedding interface, zero-vector stub, GitHub Models & OpenRouter providers."""
+"""Abstract embedding interface, zero-vector stub, GitHub Models, OpenRouter & Gemini providers."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from rag.config import (
     DAILY_QUOTA_RETRY_AFTER,
     EMBED_INTER_REQUEST_DELAY,
     EMBED_TIMEOUT,
+    GEMINI_EMBED_INTER_REQUEST_DELAY,
     MAX_RETRY_WAIT,
 )
 
@@ -178,10 +179,21 @@ class GitHubModelsProvider(EmbeddingProvider):
         and immediate failure on daily quota exhaustion."""
         delay = 2.0
         for attempt in range(max_retries + 1):
-            response = self._client.post(
-                "/embeddings",
-                json={"input": batch, "model": self._model},
-            )
+            try:
+                response = self._client.post(
+                    "/embeddings",
+                    json={"input": batch, "model": self._model},
+                )
+            except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError) as exc:
+                if attempt == max_retries:
+                    raise
+                logger.warning(
+                    "Network error: %s, retrying in %.1fs (attempt %d/%d)",
+                    exc, delay, attempt + 1, max_retries,
+                )
+                time.sleep(delay)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
+                continue
 
             # Log rate-limit headers for observability (run with -v to see)
             rl_headers = {
@@ -320,10 +332,21 @@ class OpenRouterProvider(EmbeddingProvider):
         """POST embeddings request with exponential backoff on 429/5xx."""
         delay = 2.0
         for attempt in range(max_retries + 1):
-            response = self._client.post(
-                "/embeddings",
-                json={"input": batch, "model": self._model},
-            )
+            try:
+                response = self._client.post(
+                    "/embeddings",
+                    json={"input": batch, "model": self._model},
+                )
+            except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError) as exc:
+                if attempt == max_retries:
+                    raise
+                logger.warning(
+                    "Network error: %s, retrying in %.1fs (attempt %d/%d)",
+                    exc, delay, attempt + 1, max_retries,
+                )
+                time.sleep(delay)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
+                continue
 
             rl_headers = {
                 k: v for k, v in response.headers.items()
@@ -339,6 +362,203 @@ class OpenRouterProvider(EmbeddingProvider):
                     hours = float(retry_after) / DAILY_QUOTA_RETRY_AFTER
                     raise RuntimeError(
                         f"OpenRouter daily quota exhausted "
+                        f"(retry-after={float(retry_after):.0f}s, ~{hours:.1f}h). "
+                        f"Resume tomorrow or use --provider zero as fallback."
+                    )
+
+                if attempt == max_retries:
+                    response.raise_for_status()
+
+                wait = min(float(retry_after), MAX_RETRY_WAIT) if retry_after else delay
+                logger.warning(
+                    "Rate limited (%d), retrying in %.1fs (attempt %d/%d)",
+                    response.status_code, wait, attempt + 1, max_retries,
+                )
+                time.sleep(wait)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
+                continue
+
+            response.raise_for_status()
+            return response
+        return response  # unreachable, keeps type checker happy
+
+
+class GeminiProvider(EmbeddingProvider):
+    """Embedding provider using Google Gemini text-embedding-004.
+
+    Dimensions: 768 (default)
+    Endpoint: https://generativelanguage.googleapis.com/v1beta
+    Auth: API key as query parameter.
+
+    Supports asymmetric search via task_type parameter:
+    - RETRIEVAL_DOCUMENT: for indexing/storage (default)
+    - RETRIEVAL_QUERY: for search queries
+
+    Rate-limit strategy:
+    - inter_request_delay: 1.0s (1,500 RPM free tier is generous)
+    - batch_size=100: Gemini batchEmbedContents supports up to 100 items
+    - Dedup: identical texts in a batch are embedded once and reused.
+    - Daily quota detection: retry-after > 1h raises immediately.
+    """
+
+    GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
+
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "text-embedding-004",
+        dimensions: int = 768,
+        batch_size: int = 100,
+        timeout: float = EMBED_TIMEOUT,
+        inter_request_delay: float = GEMINI_EMBED_INTER_REQUEST_DELAY,
+        task_type: str = "RETRIEVAL_DOCUMENT",
+    ) -> None:
+        self._api_key = api_key
+        self._model = model
+        self._dimensions = dimensions
+        self._batch_size = batch_size
+        self._inter_request_delay = inter_request_delay
+        self._task_type = task_type
+        self._client = httpx.Client(
+            base_url=self.GEMINI_BASE_URL,
+            timeout=timeout,
+        )
+
+    def close(self) -> None:
+        """Close the underlying HTTP client to release connections."""
+        self._client.close()
+
+    def set_task_type(self, task_type: str) -> None:
+        """Switch between RETRIEVAL_DOCUMENT and RETRIEVAL_QUERY for asymmetric search."""
+        self._task_type = task_type
+
+    @property
+    def model_name(self) -> str:
+        return self._model
+
+    @property
+    def dimensions(self) -> int:
+        return self._dimensions
+
+    def embed_one(self, text: str) -> list[float]:
+        response = self._request_single_with_retry(text)
+        body = response.json()
+        embedding = body.get("embedding")
+        if not embedding:
+            raise RuntimeError(
+                f"Gemini API returned no 'embedding' field: {body.get('error', body)}"
+            )
+        return embedding["values"]
+
+    def embed_many(self, texts: list[str]) -> list[list[float]]:
+        """Embed texts with deduplication, pacing, and retry/backoff."""
+        if not texts:
+            return []
+
+        # Chunk-level deduplication
+        unique_texts: list[str] = []
+        unique_index: dict[str, int] = {}
+        for text in texts:
+            if text not in unique_index:
+                unique_index[text] = len(unique_texts)
+                unique_texts.append(text)
+
+        dedup_savings = len(texts) - len(unique_texts)
+        if dedup_savings:
+            logger.info(
+                "Dedup: skipped %d duplicate texts (%d unique of %d total)",
+                dedup_savings, len(unique_texts), len(texts),
+            )
+
+        # Embed unique texts in batches
+        unique_embeddings: list[list[float]] = []
+        for i in range(0, len(unique_texts), self._batch_size):
+            batch = unique_texts[i : i + self._batch_size]
+            response = self._request_batch_with_retry(batch)
+            body = response.json()
+            embeddings = body.get("embeddings")
+            if not embeddings:
+                raise RuntimeError(
+                    f"Gemini API returned no 'embeddings' field: {body.get('error', body)}"
+                )
+            # Gemini returns embeddings in request order (no index field)
+            batch_embeddings = [item["values"] for item in embeddings]
+            unique_embeddings.extend(batch_embeddings)
+            logger.debug(
+                "Embedded batch %d-%d (%d texts)", i, i + len(batch), len(batch)
+            )
+            if self._inter_request_delay > 0 and i + self._batch_size < len(unique_texts):
+                time.sleep(self._inter_request_delay)
+
+        return [unique_embeddings[unique_index[text]] for text in texts]
+
+    def _build_single_payload(self, text: str) -> dict:
+        """Build JSON payload for the single embedContent endpoint."""
+        return {
+            "model": f"models/{self._model}",
+            "content": {"parts": [{"text": text}]},
+            "taskType": self._task_type,
+        }
+
+    def _build_batch_payload(self, texts: list[str]) -> dict:
+        """Build JSON payload for the batchEmbedContents endpoint."""
+        return {
+            "requests": [
+                {
+                    "model": f"models/{self._model}",
+                    "content": {"parts": [{"text": text}]},
+                    "taskType": self._task_type,
+                }
+                for text in texts
+            ],
+        }
+
+    def _request_single_with_retry(
+        self, text: str, max_retries: int = 5
+    ) -> httpx.Response:
+        """POST single embedContent request with retry/backoff."""
+        url = f"/models/{self._model}:embedContent"
+        payload = self._build_single_payload(text)
+        return self._do_request(url, payload, max_retries)
+
+    def _request_batch_with_retry(
+        self, batch: list[str], max_retries: int = 5
+    ) -> httpx.Response:
+        """POST batchEmbedContents request with retry/backoff."""
+        url = f"/models/{self._model}:batchEmbedContents"
+        payload = self._build_batch_payload(batch)
+        return self._do_request(url, payload, max_retries)
+
+    def _do_request(
+        self, url: str, payload: dict, max_retries: int
+    ) -> httpx.Response:
+        """Execute an HTTP request with exponential backoff on 429/5xx."""
+        delay = 2.0
+        for attempt in range(max_retries + 1):
+            try:
+                response = self._client.post(
+                    url,
+                    json=payload,
+                    params={"key": self._api_key},
+                )
+            except (httpx.RemoteProtocolError, httpx.ReadError, httpx.ConnectError) as exc:
+                if attempt == max_retries:
+                    raise
+                logger.warning(
+                    "Network error: %s, retrying in %.1fs (attempt %d/%d)",
+                    exc, delay, attempt + 1, max_retries,
+                )
+                time.sleep(delay)
+                delay = min(delay * 2, MAX_RETRY_WAIT)
+                continue
+
+            if response.status_code == 429 or response.status_code >= 500:
+                retry_after = response.headers.get("retry-after")
+
+                if retry_after and float(retry_after) > DAILY_QUOTA_RETRY_AFTER:
+                    hours = float(retry_after) / DAILY_QUOTA_RETRY_AFTER
+                    raise RuntimeError(
+                        f"Gemini daily quota exhausted "
                         f"(retry-after={float(retry_after):.0f}s, ~{hours:.1f}h). "
                         f"Resume tomorrow or use --provider zero as fallback."
                     )

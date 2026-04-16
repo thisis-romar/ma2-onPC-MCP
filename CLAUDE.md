@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.20.0
+version: 4.20.1
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-09T06:24:50Z
+last_updated: 2026-04-16T23:09:53Z
 ---
 
 # Project Rules
@@ -186,5 +186,5 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_207_tools_mapped` will fail.
 - Do not set `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, or `GMA_LICENSE_BYPASS=1` in production — dev/test only.
 - Do not use graph query results for DESTRUCTIVE operations without verifying freshness — stale graph data may reference deleted console objects.
-- Do not mix embedding dimensions in the same RAG store — GitHub Models (1536-dim) and OpenRouter (2048-dim) are incompatible; use `rag_upgrade_embeddings.py --re-embed-all` to switch.
+- Do not mix embedding dimensions in the same RAG store — GitHub Models (1536-dim), OpenRouter (2048-dim), and Gemini (768-dim) are incompatible; use `rag_upgrade_embeddings.py --re-embed-all` to switch.
 

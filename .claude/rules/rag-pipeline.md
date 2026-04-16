@@ -1,9 +1,9 @@
 ---
 title: RAG Pipeline Developer Conventions
 description: How the crawl-chunk-embed-store-retrieve pipeline works and how to maintain it
-version: 1.2.0
+version: 1.3.0
 created: 2026-03-29T21:44:45Z
-last_updated: 2026-04-08T15:51:59Z
+last_updated: 2026-04-16T23:09:53Z
 ---
 
 # RAG Pipeline Developer Conventions
@@ -19,11 +19,11 @@ crawl → chunk → embed → store (SQLite) → query → rerank
 ```
 
 - Python files: AST-aware chunking. Markdown: heading-based. Everything else: line-based.
-- Embeddings: `GitHubModelsProvider` (requires `GITHUB_MODELS_TOKEN`, 1536-dim) or `OpenRouterProvider` (requires `OPENROUTER_API_KEY`, 2048-dim) or `ZeroVectorProvider` (CI/testing stub, 1536-dim zero vectors).
+- Embeddings: `GitHubModelsProvider` (requires `GITHUB_MODELS_TOKEN`, 1536-dim) or `OpenRouterProvider` (requires `OPENROUTER_API_KEY`, 2048-dim) or `GeminiProvider` (requires `GEMINI_API_KEY` or `GOOGLE_API_KEY`, 768-dim, supports asymmetric search via `task_type`) or `ZeroVectorProvider` (CI/testing stub, 1536-dim zero vectors).
 - The `search_codebase` MCP tool queries the store; auto-detects token and falls back to text search when absent.
 - Embedding API is rate-limited — 4s inter-request delay, batch_size=32 to stay within free tier limits.
 - Dimension mismatch between old zero-vector chunks and new real embeddings is handled gracefully.
-- **Dimension asymmetry**: GitHub Models uses 1536-dim, OpenRouter uses 2048-dim. Cannot mix in the same store — use `rag_upgrade_embeddings.py --re-embed-all` when switching providers.
+- **Dimension asymmetry**: GitHub Models uses 1536-dim, OpenRouter uses 2048-dim, Gemini uses 768-dim. Cannot mix in the same store — use `rag_upgrade_embeddings.py --re-embed-all` when switching providers.
 
 ---
 

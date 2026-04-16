@@ -47,7 +47,7 @@ if _env_file.exists():
             _key, _, _val = _line.partition("=")
             os.environ.setdefault(_key.strip(), _val.strip().strip('"'))
 
-from rag.ingest.embed import GitHubModelsProvider, OpenRouterProvider
+from rag.ingest.embed import GeminiProvider, GitHubModelsProvider, OpenRouterProvider
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=0, help="Max chunks to upgrade per run (0 = unlimited)")
     parser.add_argument("--embed-batch-size", type=int, default=32, help="Texts per embedding API call (default: 32)")
     parser.add_argument("--embed-delay", type=float, default=4.0, help="Seconds between API calls (default: 4.0)")
-    parser.add_argument("--provider", choices=["github", "openrouter"], default="github",
+    parser.add_argument("--provider", choices=["github", "openrouter", "gemini"], default="github",
                         help="Embedding provider (default: github)")
     parser.add_argument("--re-embed-all", action="store_true",
                         help="Re-embed ALL chunks, not just zero-vector (use when switching models/dimensions)")
@@ -81,7 +81,12 @@ def main() -> None:
     )
 
     # Resolve provider and token
-    if args.provider == "openrouter":
+    if args.provider == "gemini":
+        token = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        if not token:
+            logger.error("GEMINI_API_KEY or GOOGLE_API_KEY env var required for --provider gemini")
+            sys.exit(1)
+    elif args.provider == "openrouter":
         token = os.environ.get("OPENROUTER_API_KEY")
         if not token:
             logger.error("OPENROUTER_API_KEY env var required for --provider openrouter")
@@ -143,7 +148,13 @@ def main() -> None:
         con.close()
         return
 
-    if args.provider == "openrouter":
+    if args.provider == "gemini":
+        provider = GeminiProvider(
+            api_key=token,
+            batch_size=args.embed_batch_size,
+            inter_request_delay=args.embed_delay,
+        )
+    elif args.provider == "openrouter":
         provider = OpenRouterProvider(
             token=token,
             batch_size=args.embed_batch_size,
@@ -156,6 +167,11 @@ def main() -> None:
             inter_request_delay=args.embed_delay,
         )
     model_name = provider.model_name
+
+    # Disable the FTS update trigger — we only change embedding/embedding_model
+    # columns, not text, so re-indexing FTS is unnecessary and the trigger causes
+    # "SQL logic error" on content-synced FTS5 tables during UPDATE.
+    con.execute("DROP TRIGGER IF EXISTS chunks_fts_update")
 
     # Process in batches — commit after each batch so progress survives quota stops
     upgraded = 0
@@ -224,6 +240,14 @@ def main() -> None:
             upgraded / len(rows) * 100,
         )
 
+    # Restore the FTS update trigger
+    con.execute("""CREATE TRIGGER IF NOT EXISTS chunks_fts_update AFTER UPDATE ON chunks BEGIN
+        INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, text)
+            VALUES ('delete', old.rowid, old.chunk_id, old.text);
+        INSERT INTO chunks_fts(chunks_fts, rowid, chunk_id, text)
+            VALUES ('insert', new.rowid, new.chunk_id, new.text);
+    END""")
+    con.commit()
     con.close()
 
     remaining = total_zero - upgraded - failed if not args.re_embed_all else len(rows) - upgraded - failed
