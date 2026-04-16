@@ -168,20 +168,59 @@ def audit_circular_deps(store: GraphStore) -> dict:
 # ── Dimension 4: Orphan Modules ───────────────────────────────────────────
 
 def audit_orphan_modules(store: GraphStore) -> dict:
-    """Find source modules with zero incoming imports."""
+    """Find source modules with zero incoming imports.
+
+    Filters out false positives: __init__ packages (re-export hubs),
+    entry-point scripts, and modules whose parent package re-exports them.
+    """
+    all_modules = store.get_nodes_by_type(NodeType.MODULE)
+    module_labels = {m.label for m in all_modules if m.label}
+
     src_modules = [
-        m for m in store.get_nodes_by_type(NodeType.MODULE)
+        m for m in all_modules
         if m.label and m.label.startswith("src.") and not m.label.startswith("src.private")
     ]
 
     orphans = []
     for m in src_modules:
+        # Skip __init__ packages — they're re-export hubs, not leaf modules
+        if m.label.endswith(".__init__"):
+            continue
+        # Skip package directories (no symbols, just namespace)
+        edges_out = store.get_edges_from(m.node_id)
+        defines = [e for e in edges_out if e.edge_type == EdgeType.DEFINES]
+        contains = [e for e in edges_out if e.edge_type == EdgeType.CONTAINS]
+        if not defines and contains:
+            continue  # Pure package node
+
         edges_in = store.get_edges_to(m.node_id)
         imports_in = [e for e in edges_in if e.edge_type == EdgeType.IMPORTS]
         if not imports_in:
-            # Check if it defines any symbols
-            edges_out = store.get_edges_from(m.node_id)
-            defines = [e for e in edges_out if e.edge_type == EdgeType.DEFINES]
+            # Check if any ancestor __init__ or package imports this module
+            parts = m.label.split(".")
+            ancestor_imports = False
+            for depth in range(len(parts) - 1, 0, -1):
+                ancestor = ".".join(parts[:depth])
+                for suffix in ("", ".__init__"):
+                    ancestor_label = f"{ancestor}{suffix}"
+                    if ancestor_label not in module_labels:
+                        continue
+                    anc_nid = node_id(NodeType.MODULE, ancestor_label)
+                    anc_edges = store.get_edges_from(anc_nid)
+                    if any(e.edge_type == EdgeType.IMPORTS and e.target_id == m.node_id
+                           for e in anc_edges):
+                        ancestor_imports = True
+                        break
+                    # Also check CONTAINS edges (package → module)
+                    if any(e.edge_type == EdgeType.CONTAINS and e.target_id == m.node_id
+                           for e in anc_edges):
+                        ancestor_imports = True
+                        break
+                if ancestor_imports:
+                    break
+            if ancestor_imports:
+                continue  # Reachable via package hierarchy
+
             orphans.append({
                 "module": m.label,
                 "symbols_defined": len(defines),
@@ -210,19 +249,37 @@ def audit_test_coverage(store: GraphStore) -> dict:
     }
 
     # Derive expected test module names
-    # src.foo.bar → tests.test_foo_bar or tests.test_bar
+    # src.foo.bar → tests.test_foo_bar or tests.test_bar or tests.test_foo
     untested = []
     for src in sorted(src_modules):
-        # Skip __init__ and internal modules
+        # Skip __init__ packages, pure namespace modules, and private
         if src.endswith(".__init__") or ".private" in src:
             continue
+        # Skip pure package nodes (no symbols defined)
+        mod_node = store.get_node(node_id(NodeType.MODULE, src))
+        if mod_node:
+            edges_out = store.get_edges_from(mod_node.node_id)
+            defines = [e for e in edges_out if e.edge_type == EdgeType.DEFINES]
+            contains = [e for e in edges_out if e.edge_type == EdgeType.CONTAINS]
+            if not defines and contains:
+                continue  # Pure package, nothing to test
+
         # Generate possible test file names
         parts = src.replace("src.", "").replace(".", "_")
+        leaf = src.split(".")[-1]
+        parent = src.split(".")[-2] if len(src.split(".")) > 2 else ""
         candidates = [
             f"tests.test_{parts}",
-            f"tests.test_{src.split('.')[-1]}",
+            f"tests.test_{leaf}",
+            f"tests.test_{parent}_{leaf}" if parent else None,
+            f"tests.test_{parent}" if parent else None,
         ]
-        if not any(c in test_modules for c in candidates):
+        # Also check for partial matches (test file covers parent module)
+        found = any(c and c in test_modules for c in candidates)
+        if not found:
+            # Check if any test file name contains this module's leaf name
+            found = any(leaf in t for t in test_modules if len(leaf) > 3)
+        if not found:
             untested.append(src)
 
     return {
