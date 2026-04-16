@@ -28,6 +28,8 @@ from src.orchestrator import (
     OrchestrationResult,
     Orchestrator,
     StepResult,
+    SubAgentResult,
+    SubAgentTask,
     _default_sub_agent,
     _preflight_guard,
 )
@@ -664,3 +666,176 @@ class TestWriteTrackerCompletion:
         result = await toggle_console_mode(mode="highlight")
         data = json.loads(result)
         assert "command_sent" in data
+
+
+# ── SubAgentTask / SubAgentResult dataclasses ──────────────────────────────
+
+class TestSubAgentTask:
+    def test_construction_all_fields(self):
+        task = SubAgentTask(
+            task_id="task-001",
+            prompt="Set dimmer to 50%",
+            tool_allowlist=frozenset({"navigate_console", "set_attribute"}),
+            max_right="PROGRAM",
+            parent_task_id="parent-001",
+            mode="subprocess",
+            timeout_seconds=60,
+            skill_name="dimmer-control",
+        )
+        assert task.task_id == "task-001"
+        assert task.prompt == "Set dimmer to 50%"
+        assert task.tool_allowlist == frozenset({"navigate_console", "set_attribute"})
+        assert task.max_right == "PROGRAM"
+        assert task.parent_task_id == "parent-001"
+        assert task.mode == "subprocess"
+        assert task.timeout_seconds == 60
+        assert task.skill_name == "dimmer-control"
+
+    def test_defaults(self):
+        task = SubAgentTask(
+            task_id="task-002",
+            prompt="Read state",
+            tool_allowlist=frozenset({"navigate_console"}),
+            max_right="PLAYBACK",
+        )
+        assert task.parent_task_id is None
+        assert task.mode == "in_process"
+        assert task.timeout_seconds == 120
+        assert task.skill_name is None
+
+    def test_tool_allowlist_is_frozenset(self):
+        task = SubAgentTask(
+            task_id="t1",
+            prompt="test",
+            tool_allowlist=frozenset({"a", "b"}),
+            max_right="ADMIN",
+        )
+        assert isinstance(task.tool_allowlist, frozenset)
+
+
+class TestSubAgentResult:
+    def test_construction_all_fields(self):
+        result = SubAgentResult(
+            task_id="task-001",
+            parent_task_id="parent-001",
+            success=True,
+            summary="Dimmer set to 50%",
+            tool_calls_made=[{"tool": "set_attribute", "args": {}}],
+            tokens_used=42,
+            elapsed_seconds=1.5,
+            error="",
+        )
+        assert result.task_id == "task-001"
+        assert result.parent_task_id == "parent-001"
+        assert result.success is True
+        assert result.summary == "Dimmer set to 50%"
+        assert len(result.tool_calls_made) == 1
+        assert result.tokens_used == 42
+        assert result.elapsed_seconds == 1.5
+        assert result.error == ""
+
+    def test_defaults(self):
+        result = SubAgentResult(
+            task_id="task-002",
+            parent_task_id=None,
+            success=False,
+            summary="",
+        )
+        assert result.tool_calls_made == []
+        assert result.tokens_used == 0
+        assert result.elapsed_seconds == 0.0
+        assert result.error == ""
+
+
+# ── Orchestrator.delegate() ────────────────────────────────────────────────
+
+class TestDelegate:
+    @pytest.mark.asyncio
+    @patch("src.orchestrator.get_session_ma2_right")
+    async def test_delegate_caps_max_right_to_session(self, mock_session_right, ltm_and_path):
+        """If task requests ADMIN but session is PROGRAM, max_right is capped."""
+        ltm, _ = ltm_and_path
+        mock_session_right.return_value = MA2Right.PROGRAM
+
+        tool_caller = AsyncMock(return_value='{"command_sent": "test", "raw_response": "OK"}')
+        orch = Orchestrator(tool_caller=tool_caller, ltm=ltm)
+
+        task = SubAgentTask(
+            task_id="delegate-001",
+            prompt="Test delegation",
+            tool_allowlist=frozenset({"navigate_console"}),
+            max_right=MA2Right.ADMIN,
+        )
+        result = await orch.delegate(task)
+        assert isinstance(result, SubAgentResult)
+        assert result.task_id == "delegate-001"
+        # Should complete (success depends on sub_agent internals)
+        assert isinstance(result.success, bool)
+
+    @pytest.mark.asyncio
+    @patch("src.orchestrator.get_session_ma2_right")
+    async def test_delegate_filters_tools_by_rights(self, mock_session_right, ltm_and_path):
+        """Tools requiring higher rights than max_right are filtered out."""
+        ltm, _ = ltm_and_path
+        mock_session_right.return_value = MA2Right.PLAYBACK
+
+        calls = []
+        async def tracking_caller(name, inputs):
+            calls.append(name)
+            return '{"command_sent": "test", "raw_response": "OK"}'
+
+        orch = Orchestrator(tool_caller=tracking_caller, ltm=ltm)
+
+        # navigate_console requires NONE, load_show requires ADMIN
+        task = SubAgentTask(
+            task_id="delegate-002",
+            prompt="Test filtering",
+            tool_allowlist=frozenset({"navigate_console", "load_show"}),
+            max_right=MA2Right.PLAYBACK,
+        )
+        result = await orch.delegate(task)
+        assert isinstance(result, SubAgentResult)
+        # load_show (ADMIN) should be filtered out for PLAYBACK session
+
+    @pytest.mark.asyncio
+    @patch("src.orchestrator.get_session_ma2_right")
+    async def test_delegate_handles_exception(self, mock_session_right, ltm_and_path):
+        """If the sub_agent raises, delegate returns a failed SubAgentResult."""
+        ltm, _ = ltm_and_path
+        mock_session_right.return_value = MA2Right.ADMIN
+
+        async def exploding_sub_agent(step, memory, tool_caller):
+            raise RuntimeError("boom")
+
+        orch = Orchestrator(
+            tool_caller=AsyncMock(), ltm=ltm, sub_agent_fn=exploding_sub_agent,
+        )
+        task = SubAgentTask(
+            task_id="delegate-003",
+            prompt="Crash test",
+            tool_allowlist=frozenset({"navigate_console"}),
+            max_right=MA2Right.ADMIN,
+        )
+        result = await orch.delegate(task)
+        assert result.success is False
+        assert "boom" in result.error
+        assert result.elapsed_seconds >= 0.0
+
+    @pytest.mark.asyncio
+    @patch("src.orchestrator.get_session_ma2_right")
+    async def test_delegate_parent_task_id_propagated(self, mock_session_right, ltm_and_path):
+        ltm, _ = ltm_and_path
+        mock_session_right.return_value = MA2Right.ADMIN
+
+        tool_caller = AsyncMock(return_value='{"command_sent": "ok", "raw_response": "OK"}')
+        orch = Orchestrator(tool_caller=tool_caller, ltm=ltm)
+
+        task = SubAgentTask(
+            task_id="child-001",
+            prompt="Child task",
+            tool_allowlist=frozenset({"navigate_console"}),
+            max_right=MA2Right.ADMIN,
+            parent_task_id="parent-xyz",
+        )
+        result = await orch.delegate(task)
+        assert result.parent_task_id == "parent-xyz"

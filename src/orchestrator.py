@@ -16,6 +16,7 @@ Every sub-agent now starts with ground truth — no mid-task blind spots.
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import logging
 import time
 import uuid
@@ -28,9 +29,11 @@ from src.context import _current_session_id
 from .agent_memory import LongTermMemory, WorkingMemory
 from .console_state import ConsoleStateHydrator, ConsoleStateSnapshot, parse_showfile_from_listvar
 from .rights import (
+    _RIGHT_ORDER,
     FeedbackClass,
     MA2Right,
     RightsContext,
+    get_session_ma2_right,
     is_permitted,
     min_right_for_tool,
     parse_telnet_feedback,
@@ -269,6 +272,36 @@ class OrchestrationResult:
 
 
 # ---------------------------------------------------------------------------
+# Task-based subagent dataclasses
+# ---------------------------------------------------------------------------
+
+@dataclass
+class SubAgentTask:
+    """A bounded, task-based subagent work unit with rights ceiling."""
+    task_id: str                              # correlation ID for audit trail
+    prompt: str                               # full task description (the ONLY input)
+    tool_allowlist: frozenset[str]            # subset of parent's visible tools
+    max_right: str                            # MA2Right ceiling (e.g. "PROGRAM")
+    parent_task_id: str | None = None         # for audit chain reconstruction
+    mode: str = "in_process"                  # "in_process" | "subprocess"
+    timeout_seconds: int = 120
+    skill_name: str | None = None             # originating skill, if any
+
+
+@dataclass
+class SubAgentResult:
+    """Returned by a completed subagent."""
+    task_id: str
+    parent_task_id: str | None
+    success: bool
+    summary: str                              # concise result (injected into parent)
+    tool_calls_made: list[dict] = field(default_factory=list)
+    tokens_used: int = 0
+    elapsed_seconds: float = 0.0
+    error: str = ""
+
+
+# ---------------------------------------------------------------------------
 # Orchestrator
 # ---------------------------------------------------------------------------
 
@@ -328,6 +361,68 @@ class Orchestrator:
     ) -> None:
         """Register a new task decomposition rule at the front of the chain."""
         self._decomposer.register_rule(pattern, builder)
+
+    # ── Task-based subagent delegation ─────────────────────────────
+
+    async def delegate(self, task: SubAgentTask) -> SubAgentResult:
+        """Dispatch a task-based subagent with rights enforcement.
+
+        The subagent's max_right is capped at the session's current right.
+        Its tool_allowlist is filtered to only include tools permitted at max_right.
+        """
+        start = time.time()
+
+        # Enforce: subagent rights <= session rights
+        session_right = get_session_ma2_right()
+        session_tier = _RIGHT_ORDER.get(session_right, 0)
+        task_tier = _RIGHT_ORDER.get(task.max_right, 0)
+        if task_tier > session_tier:
+            task = dataclasses.replace(task, max_right=session_right)
+
+        # Filter tool allowlist by max_right ceiling
+        effective_right_tier = min(task_tier, session_tier)
+        filtered_tools = frozenset(
+            t for t in task.tool_allowlist
+            if _RIGHT_ORDER.get(min_right_for_tool(t), 0) <= effective_right_tier
+        )
+        task = dataclasses.replace(task, tool_allowlist=filtered_tools)
+
+        try:
+            result = await self._sub_agent(
+                SubTask(
+                    name=task.task_id,
+                    agent_role="SubAgent",
+                    description=task.prompt,
+                    allowed_risk=RiskTier.SAFE_WRITE,  # capped by rights
+                    mcp_tools=list(filtered_tools),
+                ),
+                WorkingMemory(
+                    session_id=task.task_id,
+                    task_description=task.prompt,
+                ),
+                self._call,
+            )
+            elapsed = time.time() - start
+            return SubAgentResult(
+                task_id=task.task_id,
+                parent_task_id=task.parent_task_id,
+                success=result.success,
+                summary=str(result.output) if result.output else result.error,
+                tool_calls_made=[],
+                tokens_used=result.tokens_used,
+                elapsed_seconds=elapsed,
+                error=result.error if not result.success else "",
+            )
+        except Exception as exc:
+            elapsed = time.time() - start
+            return SubAgentResult(
+                task_id=task.task_id,
+                parent_task_id=task.parent_task_id,
+                success=False,
+                summary="",
+                error=str(exc),
+                elapsed_seconds=elapsed,
+            )
 
     # ── Public API ───────────────────────────────────────────────────
 
