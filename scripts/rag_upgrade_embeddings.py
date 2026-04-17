@@ -47,7 +47,7 @@ if _env_file.exists():
             _key, _, _val = _line.partition("=")
             os.environ.setdefault(_key.strip(), _val.strip().strip('"'))
 
-from rag.ingest.embed import GeminiProvider, GitHubModelsProvider, OpenRouterProvider
+from rag.ingest.embed import GeminiProvider, GitHubModelsProvider, OpenRouterProvider, VoyageProvider
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=0, help="Max chunks to upgrade per run (0 = unlimited)")
     parser.add_argument("--embed-batch-size", type=int, default=32, help="Texts per embedding API call (default: 32)")
     parser.add_argument("--embed-delay", type=float, default=4.0, help="Seconds between API calls (default: 4.0)")
-    parser.add_argument("--provider", choices=["github", "openrouter", "gemini"], default="github",
+    parser.add_argument("--provider", choices=["github", "openrouter", "gemini", "voyage"], default="github",
                         help="Embedding provider (default: github)")
     parser.add_argument("--re-embed-all", action="store_true",
                         help="Re-embed ALL chunks, not just zero-vector (use when switching models/dimensions)")
@@ -90,6 +90,11 @@ def main() -> None:
         token = os.environ.get("OPENROUTER_API_KEY")
         if not token:
             logger.error("OPENROUTER_API_KEY env var required for --provider openrouter")
+            sys.exit(1)
+    elif args.provider == "voyage":
+        token = os.environ.get("VOYAGE_API_KEY")
+        if not token:
+            logger.error("VOYAGE_API_KEY env var required for --provider voyage")
             sys.exit(1)
     else:
         token = os.environ.get("GITHUB_MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN")
@@ -145,6 +150,19 @@ def main() -> None:
             by_repo[repo] = by_repo.get(repo, 0) + 1
         for repo, count in sorted(by_repo.items()):
             logger.info("  %s: %d chunks", repo, count)
+
+        # Quota estimation
+        batches = (len(rows) + args.embed_batch_size - 1) // args.embed_batch_size
+        avg_tokens = sum(len(text.split()) for _, text in rows) // max(len(rows), 1)
+        total_tokens = len(rows) * avg_tokens
+        runtime_secs = batches * args.embed_delay
+        logger.info("--- Quota Estimate ---")
+        logger.info("  API batches: %d (batch_size=%d)", batches, args.embed_batch_size)
+        logger.info("  Avg tokens/chunk: %d, total: ~%s", avg_tokens, f"{total_tokens:,}")
+        logger.info("  Est. runtime: %.0f min (at %.1fs delay)", runtime_secs / 60, args.embed_delay)
+        logger.info("  GitHub Models: ~150 batches/day => %.1f day(s)", max(batches / 150, 0.1))
+        logger.info("  OpenRouter free: ~200 req/min => %.0f min", batches / 200 + runtime_secs / 60)
+
         con.close()
         return
 
@@ -156,6 +174,12 @@ def main() -> None:
         )
     elif args.provider == "openrouter":
         provider = OpenRouterProvider(
+            token=token,
+            batch_size=args.embed_batch_size,
+            inter_request_delay=args.embed_delay,
+        )
+    elif args.provider == "voyage":
+        provider = VoyageProvider(
             token=token,
             batch_size=args.embed_batch_size,
             inter_request_delay=args.embed_delay,
