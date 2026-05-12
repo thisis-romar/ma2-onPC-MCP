@@ -62,3 +62,9 @@ agent_traces/
 
 # Graph intelligence persistent storage
 .graph/
+
+# graphify working files and generated output (temp/intermediate)
+.graphify_*.json
+.graphify_python
+.graphify_uncached.txt
+graphify-out/
