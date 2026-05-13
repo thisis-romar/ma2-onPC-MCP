@@ -40,8 +40,10 @@ macro_v2_output.txt
 push_out.txt
 test_results.txt
 
-# RAG database and crawl cache
+# RAG database and crawl cache (including SQLite WAL journal files)
 rag/store/*.db
+rag/store/*.db-shm
+rag/store/*.db-wal
 rag/store/web_crawl_cache.json
 
 # Tool categorization taxonomy (generated artifact)
