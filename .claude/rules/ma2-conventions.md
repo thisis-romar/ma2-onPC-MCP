@@ -1,9 +1,9 @@
 ---
 title: MA2 Command Conventions
 description: Live-verified MA2 command rules, quoting, navigation, and data directory layout
-version: 1.0.0
+version: 1.1.0
 created: 2026-03-29T21:44:45Z
-last_updated: 2026-03-29T21:44:45Z
+last_updated: 2026-05-13T11:00:00Z
 ---
 
 # MA2 Command Conventions
@@ -126,6 +126,26 @@ importexport/
   archive/        — old test files, audit artifacts
   styles/         — MA2 system XSL stylesheets (do not touch)
 ```
+
+---
+
+## Macro file-pair naming + base-config coupling
+
+For macros that create or destroy parametrized object families, ship a matched pair:
+
+| Role | File pattern | `<Macro name>` | Appearance |
+|---|---|---|---|
+| Build | `-Create <Feature> v<N>-.xml` | matches basename | vivid (e.g. `00cc88`) |
+| Cleanup | `-Delete <Feature> v<N>-.xml` | matches basename | red (`cc0044`) |
+
+Rules:
+1. Both files share a base-config `SetUserVar` block (lines 1-5 by convention). **Edit both files in lockstep** when relocating output slots — drift causes orphaned objects.
+2. Cleanup is **linear** (no `Go Macro` jumps) so it has no line-numbering fragility under future edits.
+3. Cleanup uses `Delete … Thru … /noconfirm` — idempotent, silently no-ops on empty slots.
+4. Cleanup range: `$end = $base + $maxFTscan - 1` (covers any build run up to `$maxFTscan` FTs without edits).
+5. Internal jump targets in the build macro follow **1-based line numbering**: `Go Macro 1."name".N` jumps to XML Macroline index `N-1`. When inserting lines, recompute all `Go Macro` targets via an index-shift table.
+
+Live reference: `macros/ft-pools/-Create FT_Pools v12-.xml` + `-Delete FT_Pools v12-.xml`.
 
 ---
 
