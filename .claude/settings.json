@@ -13,7 +13,9 @@
       "Read(//c/Users/romar/onPC-Telnet-mcp/**)",
       "Bash(grep -v '^$')",
       "Bash(git merge-tree *)",
-      "Bash(git ls-tree *)"
+      "Bash(git ls-tree *)",
+      "Read(//c/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/shows/**)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Macro 19 toronto\" --limit 3)"
     ]
   },
   "hooks": {
