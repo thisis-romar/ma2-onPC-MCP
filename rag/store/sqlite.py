@@ -183,8 +183,9 @@ class RagStore:
         the number of chunks scanned.  Without filters, scans all chunks
         (brute-force).
 
-        Raises ``ValueError`` if the query embedding dimension doesn't match
-        the stored embeddings (checked against the first stored chunk).
+        Silently skips chunks whose embedding dimension doesn't match the
+        query; logs a warning when any are skipped so stale zero-vector
+        chunks from the pre-commit hook are surfaced without crashing.
         """
         sql = (
             "SELECT c.chunk_id, c.path, c.kind, c.start_line, c.end_line, "
@@ -204,16 +205,15 @@ class RagStore:
         rows = self.conn.execute(sql, params).fetchall()
 
         query_dim = len(query_embedding)
+        skipped_dim = 0
         scored: list[RagHit] = []
         for chunk_id, path, kind, start_line, end_line, text, emb_blob in rows:
             if emb_blob is None:
                 continue
             stored = _blob_to_floats(emb_blob)
             if len(stored) != query_dim:
-                raise ValueError(
-                    f"Embedding dimension mismatch: query has {query_dim} dims, "
-                    f"stored chunk {chunk_id!r} has {len(stored)} dims"
-                )
+                skipped_dim += 1
+                continue
             score = _cosine_similarity(query_embedding, stored)
             scored.append(RagHit(
                 chunk_id=chunk_id,
@@ -225,6 +225,13 @@ class RagStore:
                 text=text,
             ))
 
+        if skipped_dim:
+            logger.warning(
+                "search_by_embedding: skipped %d chunk(s) with wrong dimension "
+                "(expected %d). Re-run rag_ingest.py --provider gemini to fix.",
+                skipped_dim,
+                query_dim,
+            )
         scored.sort(key=lambda h: h.score, reverse=True)
         return scored[:top_k]
 
