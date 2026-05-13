@@ -20,7 +20,7 @@
 			<info>COLOR INIT: hue cycle (36 deg = 360/10)</info>
 		</Macroline>
 		<Macroline index="4" delay="0.06">
-			<text>[$maxFTscan&lt;=$loopFT] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.101</text>
+			<text>[$maxFTscan&lt;=$loopFT] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.102</text>
 			<info>OUTER CHECK: all majors probed -&gt; END (line 101 = index 100)</info>
 		</Macroline>
 		<Macroline index="5" delay="0.06">
@@ -168,7 +168,7 @@
 			<info>LUMP SLOT ADVANCE: consume one slot for the lump (moved here from OUTER_INC so single + multi paths both advance correctly)</info>
 		</Macroline>
 		<Macroline index="41" delay="0.06">
-			<text>[$instanceCount&lt;=1] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.99</text>
+			<text>[$instanceCount&lt;=1] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.100</text>
 			<info>GATE: single instance -&gt; OUTER_INC (line 99 = index 98). Multi-instance falls through.</info>
 		</Macroline>
 		<Macroline index="42" delay="0.06">
@@ -192,7 +192,7 @@
 			<info>INNER INIT: instance loop counter, patch index, first-instance FT group tracker</info>
 		</Macroline>
 		<Macroline index="47" delay="0.06">
-			<text>[$loopInstance&gt;=$instanceCount] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.70</text>
+			<text>[$loopInstance&gt;=$instanceCount] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.71</text>
 			<info>INNER CHECK: all instances done -&gt; REORDER PHASE (line 70 = index 69)</info>
 		</Macroline>
 		<Macroline index="48" delay="0.06">
@@ -235,175 +235,179 @@
 			<text>Attribute 1 Thru At Release ; Store World $iw /o</text>
 			<info>INSTANCE: world from instance preset-recalled fixtures</info>
 		</Macroline>
-		<Macroline index="58" delay="0.06">
+		<Macroline index="58" delay="0.15">
+			<text>Store Preset 0.$ip /universal /o</text>
+			<info>INSTANCE: overwrite instance PT 0 as universal (selective was needed above to build FT group via recall; universal lets operators recall on any fixture)</info>
+		</Macroline>
+		<Macroline index="59" delay="0.06">
 			<text>SetUserVar $instName = &apos;&quot;FT &apos;</text>
 			<info>INSTANCE LABEL: open quote</info>
 		</Macroline>
-		<Macroline index="59" delay="0.06">
+		<Macroline index="60" delay="0.06">
 			<text>AddUserVar $instName = $loopFT ; AddUserVar $instName = &apos;.1.&apos;</text>
 			<info>INSTANCE LABEL: += major + minor separator</info>
 		</Macroline>
-		<Macroline index="60" delay="0.06">
+		<Macroline index="61" delay="0.06">
 			<text>AddUserVar $instName = $fixTypePatch ; AddUserVar $instName = &apos;&quot;&apos;</text>
 			<info>INSTANCE LABEL: += patch + close quote -&gt; &quot;FT N.1.Z&quot;</info>
 		</Macroline>
-		<Macroline index="61" delay="0.10">
+		<Macroline index="62" delay="0.10">
 			<text>Label Group $ig $instName /o ; Label Group $ifg $instName /o</text>
 			<info>INSTANCE LABEL: pool group + FT group</info>
 		</Macroline>
-		<Macroline index="62" delay="0.10">
+		<Macroline index="63" delay="0.10">
 			<text>Label Preset 0.$ip $instName /o ; Label World $iw $instName /o</text>
 			<info>INSTANCE LABEL: PT 0 preset + world</info>
 		</Macroline>
-		<Macroline index="63" delay="0.10">
+		<Macroline index="64" delay="0.10">
 			<text>Appearance Group $ig /h=$currentHue /s=60 /br=100 ; Appearance Group $ifg /h=$currentHue /s=60 /br=100</text>
 			<info>INSTANCE APPEARANCE: pastel (s=60) distinguishes per-instance from lump (s=100)</info>
 		</Macroline>
-		<Macroline index="64" delay="0.10">
+		<Macroline index="65" delay="0.10">
 			<text>Appearance Preset 0.$ip /h=$currentHue /s=60 /br=100 ; Appearance World $iw /h=$currentHue /s=60 /br=100</text>
 			<info>INSTANCE APPEARANCE: PT 0 preset + world pastel</info>
 		</Macroline>
-		<Macroline index="65" delay="0.06">
+		<Macroline index="66" delay="0.06">
 			<text>[$loopInstance&lt;=0] SetUserVar $firstInstFTGroup = $ifg</text>
 			<info>TRACK: record first instance FT group slot for REORDER phase (inst1 gives physCount via SelFix)</info>
 		</Macroline>
-		<Macroline index="66" delay="0.06">
+		<Macroline index="67" delay="0.06">
 			<text>ClearAll</text>
 			<info>INNER INC: clear</info>
 		</Macroline>
-		<Macroline index="67" delay="0.06">
+		<Macroline index="68" delay="0.06">
 			<text>AddUserVar $slotOffset = 1 ; AddUserVar $loopInstance = 1 ; AddUserVar $fixTypePatch = 1</text>
 			<info>INNER INC: advance slot (per instance), instance counter, patch index</info>
 		</Macroline>
-		<Macroline index="68" delay="0.06">
+		<Macroline index="69" delay="0.06">
 			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.48</text>
 			<info>INNER LOOP BACK -&gt; INNER CHECK (line 48 = index 47)</info>
 		</Macroline>
-		<Macroline index="69" delay="0.30">
+		<Macroline index="70" delay="0.30">
 			<text>ClearAll ; SelFix Group $firstInstFTGroup</text>
 			<info>REORDER: select instance 1 FT group (delay 0.30 for console to process SelFix)</info>
 		</Macroline>
-		<Macroline index="70" delay="0.10">
+		<Macroline index="71" delay="0.10">
 			<text>SetUserVar $physCount = $SELECTEDFIXTURESCOUNT</text>
 			<info>REORDER: physical fixture count = inst1 FT group size (valid because BlindEdit is OFF)</info>
 		</Macroline>
-		<Macroline index="71" delay="0.06">
+		<Macroline index="72" delay="0.06">
 			<text>SetUserVar $inst2FTGroup = $firstInstFTGroup ; AddUserVar $inst2FTGroup = 1</text>
 			<info>REORDER: inst2 FT group = firstInstFTGroup + 1 (instances are in consecutive slots)</info>
 		</Macroline>
-		<Macroline index="72" delay="0.30">
+		<Macroline index="73" delay="0.30">
 			<text>ClearAll ; SelFix Group $inst2FTGroup</text>
 			<info>REORDER: select instance 2 FT group</info>
 		</Macroline>
-		<Macroline index="73" delay="0.10">
+		<Macroline index="74" delay="0.10">
 			<text>SetUserVar $inst2Total = $SELECTEDFIXTURESCOUNT</text>
 			<info>REORDER: inst2 total sub-fixture count (= physCount * subsPerPhys)</info>
 		</Macroline>
-		<Macroline index="74" delay="0.06">
+		<Macroline index="75" delay="0.06">
 			<text>SetUserVar $subsPerPhys = 0 ; SetUserVar $divTemp = $inst2Total</text>
 			<info>DIV INIT: compute subsPerPhys = inst2Total / physCount via subtraction loop</info>
 		</Macroline>
-		<Macroline index="75" delay="0.06">
-			<text>[$divTemp&lt;=0] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.82</text>
+		<Macroline index="76" delay="0.06">
+			<text>[$divTemp&lt;=0] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.83</text>
 			<info>DIV CHECK: division done -&gt; MERGE INIT (line 82 = index 81)</info>
 		</Macroline>
-		<Macroline index="76" delay="0.06">
+		<Macroline index="77" delay="0.06">
 			<text>SetUserVar $divSub = 0</text>
 			<info>DIV SUB INIT: inner subtraction counter reset</info>
 		</Macroline>
-		<Macroline index="77" delay="0.06">
-			<text>[$divSub&gt;=$physCount] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.81</text>
+		<Macroline index="78" delay="0.06">
+			<text>[$divSub&gt;=$physCount] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.82</text>
 			<info>DIV SUB CHECK: subtracted physCount times -&gt; DIV INC (line 81 = index 80)</info>
 		</Macroline>
-		<Macroline index="78" delay="0.06">
+		<Macroline index="79" delay="0.06">
 			<text>AddUserVar $divTemp = -1 ; AddUserVar $divSub = 1</text>
 			<info>DIV SUB: subtract 1 from divTemp, advance inner counter</info>
 		</Macroline>
-		<Macroline index="79" delay="0.06">
-			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.78</text>
+		<Macroline index="80" delay="0.06">
+			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.79</text>
 			<info>DIV SUB LOOP BACK -&gt; DIV SUB CHECK (line 78 = index 77)</info>
 		</Macroline>
-		<Macroline index="80" delay="0.06">
-			<text>AddUserVar $subsPerPhys = 1 ; Go Macro 1.&quot;-Create FT_Pools v13-&quot;.76</text>
+		<Macroline index="81" delay="0.06">
+			<text>AddUserVar $subsPerPhys = 1 ; Go Macro 1.&quot;-Create FT_Pools v13-&quot;.77</text>
 			<info>DIV INC: count one division step, loop back to DIV CHECK (line 76 = index 75)</info>
 		</Macroline>
-		<Macroline index="81" delay="0.06">
+		<Macroline index="82" delay="0.06">
 			<text>SetUserVar $physLoop = 0</text>
 			<info>MERGE INIT: physical fixture walk counter</info>
 		</Macroline>
-		<Macroline index="82" delay="0.06">
-			<text>[$physLoop&gt;=$physCount] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.99</text>
+		<Macroline index="83" delay="0.06">
+			<text>[$physLoop&gt;=$physCount] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.100</text>
 			<info>MERGE CHECK: all physical fixtures merged -&gt; OUTER_INC (line 99 = index 98)</info>
 		</Macroline>
-		<Macroline index="83" delay="0.30">
+		<Macroline index="84" delay="0.30">
 			<text>ClearAll ; SelFix Group $firstInstFTGroup ; MAtricksReset ; MAtricksBlocks 1</text>
 			<info>MERGE: select inst1 FT group, set MAtricks to single-fixture blocks</info>
 		</Macroline>
-		<Macroline index="84" delay="0.06">
+		<Macroline index="85" delay="0.06">
 			<text>SetUserVar $nextCount = 0</text>
 			<info>MERGE NEXT1 INIT: Next-press counter for inst1 walk</info>
 		</Macroline>
-		<Macroline index="85" delay="0.10">
-			<text>[$nextCount&gt;$physLoop] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.89</text>
+		<Macroline index="86" delay="0.10">
+			<text>[$nextCount&gt;$physLoop] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.90</text>
 			<info>MERGE NEXT1 CHECK: reached target physical fixture -&gt; STORE1 (line 89 = index 88)</info>
 		</Macroline>
-		<Macroline index="86" delay="0.10">
+		<Macroline index="87" delay="0.10">
 			<text>Next ; AddUserVar $nextCount = 1</text>
 			<info>MERGE NEXT1: step to next single fixture, advance counter</info>
 		</Macroline>
-		<Macroline index="87" delay="0.06">
-			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.86</text>
+		<Macroline index="88" delay="0.06">
+			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.87</text>
 			<info>MERGE NEXT1 LOOP BACK -&gt; MERGE NEXT1 CHECK (line 86 = index 85)</info>
 		</Macroline>
-		<Macroline index="88" delay="0.30">
+		<Macroline index="89" delay="0.30">
 			<text>[$physLoop&lt;=0] Store Group $fg /o</text>
 			<info>MERGE STORE1: first physical fixture -&gt; overwrite lump FT group ($fg)</info>
 		</Macroline>
-		<Macroline index="89" delay="0.30">
+		<Macroline index="90" delay="0.30">
 			<text>[$physLoop&gt;0] Store Group $fg /merge</text>
 			<info>MERGE STORE1: subsequent physical fixture -&gt; merge into lump FT group</info>
 		</Macroline>
-		<Macroline index="90" delay="0.30">
+		<Macroline index="91" delay="0.30">
 			<text>ClearAll ; SelFix Group $inst2FTGroup ; MAtricksReset ; MAtricksBlocks $subsPerPhys</text>
 			<info>MERGE: select inst2 FT group, set MAtricks block size = subs per physical fixture</info>
 		</Macroline>
-		<Macroline index="91" delay="0.06">
+		<Macroline index="92" delay="0.06">
 			<text>SetUserVar $nextCount = 0</text>
 			<info>MERGE NEXT2 INIT: Next-press counter for inst2 block walk</info>
 		</Macroline>
-		<Macroline index="92" delay="0.10">
-			<text>[$nextCount&gt;$physLoop] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.96</text>
+		<Macroline index="93" delay="0.10">
+			<text>[$nextCount&gt;$physLoop] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.97</text>
 			<info>MERGE NEXT2 CHECK: reached target block -&gt; STORE2 (line 96 = index 95)</info>
 		</Macroline>
-		<Macroline index="93" delay="0.10">
+		<Macroline index="94" delay="0.10">
 			<text>Next ; AddUserVar $nextCount = 1</text>
 			<info>MERGE NEXT2: step to next block (each Next advances subsPerPhys subs), advance counter</info>
 		</Macroline>
-		<Macroline index="94" delay="0.06">
-			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.93</text>
+		<Macroline index="95" delay="0.06">
+			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.94</text>
 			<info>MERGE NEXT2 LOOP BACK -&gt; MERGE NEXT2 CHECK (line 93 = index 92)</info>
 		</Macroline>
-		<Macroline index="95" delay="0.30">
+		<Macroline index="96" delay="0.30">
 			<text>Store Group $fg /merge</text>
 			<info>MERGE STORE2: merge inst2 block (all subs for this physical fixture) into lump FT group</info>
 		</Macroline>
-		<Macroline index="96" delay="0.30">
+		<Macroline index="97" delay="0.30">
 			<text>MAtricksReset ; ClearAll ; AddUserVar $physLoop = 1</text>
 			<info>MERGE INC: reset MAtricks, clear, advance physical fixture counter</info>
 		</Macroline>
-		<Macroline index="97" delay="0.06">
-			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.83</text>
+		<Macroline index="98" delay="0.06">
+			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.84</text>
 			<info>MERGE LOOP BACK -&gt; MERGE CHECK (line 83 = index 82)</info>
 		</Macroline>
-		<Macroline index="98" delay="0.06">
+		<Macroline index="99" delay="0.06">
 			<text>AddUserVar $currentHue = $hueStep ; ClearAll</text>
 			<info>OUTER_INC: advance hue, clear selection. slotOffset was already advanced (lump at index 40, per-instance at index 67).</info>
 		</Macroline>
-		<Macroline index="99" delay="0.06">
+		<Macroline index="100" delay="0.06">
 			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.5</text>
 			<info>OUTER LOOP BACK -&gt; OUTER CHECK (line 5 = index 4)</info>
 		</Macroline>
-		<Macroline index="100" delay="0.10">
+		<Macroline index="101" delay="0.10">
 			<text>MAtricksReset ; ClearAll</text>
 			<info>END: reset MAtricks, clear selection. No BlindEdit Off (never turned it on).</info>
 		</Macroline>
