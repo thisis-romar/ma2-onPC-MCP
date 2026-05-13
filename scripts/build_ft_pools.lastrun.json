@@ -1,0 +1,111 @@
+{
+  "phase": 1,
+  "show": "19-toronto-v4-pre-refire",
+  "ft_majors": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "groups_created": [
+    11,
+    12,
+    13,
+    14,
+    17,
+    18,
+    19
+  ],
+  "ft_groups_created": [
+    1,
+    2,
+    3,
+    4,
+    7,
+    8,
+    9
+  ],
+  "per_instance_groups": {
+    "4.1.1": [
+      5
+    ],
+    "4.1.2": [
+      6
+    ]
+  },
+  "presets_created": {
+    "dimmer": [
+      11,
+      12,
+      13,
+      14,
+      17,
+      18,
+      19
+    ],
+    "color": [
+      11,
+      13,
+      14,
+      17,
+      18
+    ],
+    "all": [
+      11,
+      12,
+      13,
+      14,
+      17,
+      18,
+      19
+    ]
+  },
+  "presets_skipped": {
+    "dimmer": [],
+    "color": [
+      12,
+      19
+    ],
+    "all": []
+  },
+  "worlds_created": [
+    11,
+    12,
+    13,
+    14,
+    17,
+    18,
+    19
+  ],
+  "per_instance_worlds": {
+    "4.1.1": [
+      15
+    ],
+    "4.1.2": [
+      16
+    ]
+  },
+  "taxonomy_groups": {
+    "LED": [
+      101
+    ],
+    "LED.MOVERS": [
+      102
+    ],
+    "LED.WASH": [
+      103
+    ]
+  },
+  "errors": [],
+  "warnings": [],
+  "args": {
+    "ft_group_base": 1,
+    "pool_group_base": 11,
+    "preset_base": 11,
+    "world_base": 11,
+    "tag_group_base": 101
+  }
+}

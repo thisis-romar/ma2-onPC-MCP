@@ -11,6 +11,19 @@ Attribute discovery navigates EditSetup to determine which PTs a given FT actual
 exposes, so empty preset slots are never created. Physical vs virtual channels are
 detected via Coarse address — virtual (None) PAN/TILT channels do not count as movers.
 
+Multi-instance handling mirrors Macro 16's canonical Telnet behavior (live-captured
+2026-05-13):
+  - instance_count == 1: single-instance branch (pool group + FT group + world from
+    universal preset recall)
+  - instance_count == 2: multi-instance branch — lump objects labelled "FT N.1.0",
+    per-instance objects labelled "FT N.1.I", lump FT group rebuilt via MAtricks merge
+    to achieve physical fixture ordering across instances
+  - instance_count > 2: falls back to single-instance with a warning
+
+World store uses universal preset recall (ClearAll → Preset 0.N → Attribute … At Release
+→ Store World N /o) — NOT a raw FixtureType selection — so the world contains the full
+physical fixture count, not just 1 instance.
+
 Taxonomy groups are created at tag_group_base (default 101):
   LED       — has any colour attribute (COLORRGB1+ or COLORMIXER)
   LED.WASH  — LED + no physical PAN/TILT (static or virtual-pan LED)
@@ -101,9 +114,9 @@ PT_NUMBER = {"all": 0, "dimmer": 1, "position": 2, "gobo": 3,
 @dataclass
 class FTInfo:
     major: int
-    total_fixtures: int
-    attrs: dict[str, bool] = field(default_factory=dict)  # attr_name (upper) → is_physical
-    tags: list[str] = field(default_factory=list)          # taxonomy tags e.g. ["LED", "LED.MOVERS"]
+    instance_count: int         # $SELECTEDFIXTURESCOUNT after FixtureType N.1.1 Thru
+    attrs: dict[str, bool] = field(default_factory=dict)   # attr_name (upper) → is_physical
+    tags: list[str] = field(default_factory=list)           # taxonomy tags e.g. ["LED", "LED.MOVERS"]
 
 
 @dataclass
@@ -113,9 +126,11 @@ class FTPoolResult:
     ft_majors: list[int] = field(default_factory=list)
     groups_created: list[int] = field(default_factory=list)
     ft_groups_created: list[int] = field(default_factory=list)
+    per_instance_groups: dict[str, list[int]] = field(default_factory=dict)  # "N.1.I" → [grp]
     presets_created: dict[str, list[int]] = field(default_factory=dict)
     presets_skipped: dict[str, list[int]] = field(default_factory=dict)
     worlds_created: list[int] = field(default_factory=list)
+    per_instance_worlds: dict[str, list[int]] = field(default_factory=dict)  # "N.1.I" → [world]
     taxonomy_groups: dict[str, list[int]] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -173,16 +188,16 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
 
     attrs: dict[str, bool] = {}
     try:
-        # Navigate into the FT's first module's first mode
         for step in [
             "cd /",
             "cd EditSetup",
-            f"cd FixtureTypes",
+            "cd FixtureTypes",
             f"cd {major}",
             "cd 1",
             "cd 1",
         ]:
             await c.send_command_with_response(step, timeout=4.0)
+            await asyncio.sleep(0.08)
 
         listing = await c.send_command_with_response("list", timeout=5.0)
         for line in listing.split("\n"):
@@ -193,7 +208,6 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
                 is_physical = coarse != "None"
                 attrs[attr_name] = is_physical
 
-        # Return to root
         await c.send_command_with_response("cd /", timeout=3.0)
     except Exception as exc:
         log.warning("Attribute discovery failed for FT %d: %s", major, exc)
@@ -213,13 +227,7 @@ def _has_pt_attrs(ft_attrs: dict[str, bool], pt_name: str) -> bool:
 
 
 def _classify_ft(ft_attrs: dict[str, bool]) -> list[str]:
-    """Return taxonomy tags for an FT based on its attribute set.
-
-    Rules:
-    - LED   : has any colour attribute (COLORRGB1+, COLORMIXER, COLOR1, etc.)
-    - LED.MOVERS : LED + physical PAN + physical TILT
-    - LED.WASH   : LED + no physical PAN/TILT (static wash or virtual-pan)
-    """
+    """Return taxonomy tags for an FT based on its attribute set."""
     tags: list[str] = []
     has_color = bool(_COLOR_ATTRS.intersection(ft_attrs.keys()))
     if has_color:
@@ -231,6 +239,69 @@ def _classify_ft(ft_attrs: dict[str, bool]) -> list[str]:
         else:
             tags.append("LED.WASH")
     return tags
+
+
+# ---------------------------------------------------------------------------
+# Multi-instance merge helper
+# ---------------------------------------------------------------------------
+
+async def _matricks_merge_lump(
+    c: GMA2TelnetClient,
+    ft_lump_grp: int,
+    ft_inst1_grp: int,
+    ft_inst2_grp: int,
+    dry_run: bool,
+) -> None:
+    """Rebuild the lump FT group with physical fixture ordering using MAtricks walk.
+
+    Mirrors Macro 16 lines 71-99 (live-captured 2026-05-13):
+      For each physical fixture (physLoop 0..physCount-1):
+        1. Select instance-1 group, MAtricksBlocks 1 → walk to physLoop-th physical → Store /o or /merge
+        2. Select instance-2 group, MAtricksBlocks subsPerPhys → walk to physLoop-th block → Store /merge
+
+    Args:
+        ft_lump_grp:   Group slot for the lump FT group (will be overwritten then merged into)
+        ft_inst1_grp:  Group slot for per-instance group of instance 1 (firstInstFTGroup)
+        ft_inst2_grp:  Group slot for per-instance group of instance 2 (firstInstFTGroup + 1)
+    """
+    # Get physCount from instance-1 group fixture count
+    await _cmd(c, "ClearAll", dry_run, delay=0.10)
+    await _cmd(c, f"SelFix Group {ft_inst1_grp}", dry_run, delay=0.12)
+    phys_count = await _selected_count(c) if not dry_run else 4
+    log.info("    merge: inst1 group %d → physCount=%d", ft_inst1_grp, phys_count)
+
+    # Get inst2Total from instance-2 group fixture count
+    await _cmd(c, "ClearAll", dry_run, delay=0.10)
+    await _cmd(c, f"SelFix Group {ft_inst2_grp}", dry_run, delay=0.12)
+    inst2_total = await _selected_count(c) if not dry_run else 24
+    subs_per_phys = max(1, inst2_total // phys_count) if phys_count > 0 else 1
+    log.info("    merge: inst2 group %d → inst2Total=%d subsPerPhys=%d",
+             ft_inst2_grp, inst2_total, subs_per_phys)
+
+    for phys_loop in range(phys_count):
+        # Walk instance-1 group to the phys_loop-th physical fixture
+        await _cmd(c, "ClearAll", dry_run, delay=0.08)
+        await _cmd(c, f"SelFix Group {ft_inst1_grp}", dry_run, delay=0.10)
+        await _cmd(c, "MAtricksReset", dry_run, delay=0.08)
+        await _cmd(c, "MAtricksBlocks 1", dry_run, delay=0.08)
+        for _ in range(phys_loop + 1):
+            await _cmd(c, "Next", dry_run, delay=0.06)
+        store_flag = "/o" if phys_loop == 0 else "/merge"
+        await _cmd(c, f"Store Group {ft_lump_grp} {store_flag}", dry_run, delay=0.12)
+
+        # Walk instance-2 group to the phys_loop-th block
+        await _cmd(c, "ClearAll", dry_run, delay=0.08)
+        await _cmd(c, f"SelFix Group {ft_inst2_grp}", dry_run, delay=0.10)
+        await _cmd(c, "MAtricksReset", dry_run, delay=0.08)
+        await _cmd(c, f"MAtricksBlocks {subs_per_phys}", dry_run, delay=0.08)
+        for _ in range(phys_loop + 1):
+            await _cmd(c, "Next", dry_run, delay=0.06)
+        await _cmd(c, f"Store Group {ft_lump_grp} /merge", dry_run, delay=0.12)
+
+        await _cmd(c, "MAtricksReset", dry_run, delay=0.08)
+        await _cmd(c, "ClearAll", dry_run, delay=0.08)
+
+    log.info("    merge done: Group %d rebuilt with %d physical × 2 instances", ft_lump_grp, phys_count)
 
 
 # ---------------------------------------------------------------------------
@@ -254,11 +325,10 @@ async def build_ft_pools(
     result.show = await _listvar(c, "SHOWFILE")
     log.info("Show: %s", result.show)
 
-    # Determine which PT names to store based on phase
     if phase == 1:
-        pt_names = PT_NAMES_PHASE1  # dimmer + color (gated by attr check)
+        pt_names = PT_NAMES_PHASE1
     else:
-        pt_names = PT_NAMES_PHASE1 + PT_NAMES_PHASE2  # all 6 gated PTs
+        pt_names = PT_NAMES_PHASE1 + PT_NAMES_PHASE2
 
     for pt in pt_names + ["all"]:
         result.presets_created[pt] = []
@@ -276,8 +346,8 @@ async def build_ft_pools(
 
         attrs = await _get_ft_attributes(c, major, dry_run)
         tags = _classify_ft(attrs)
-        fts.append(FTInfo(major=major, total_fixtures=count, attrs=attrs, tags=tags))
-        log.info("  FT %d: %d fixtures  tags=%s", major, count, tags or ["(unclassified)"])
+        fts.append(FTInfo(major=major, instance_count=count, attrs=attrs, tags=tags))
+        log.info("  FT %d: %d instance(s)  tags=%s", major, count, tags or ["(unclassified)"])
 
     await _cmd(c, "ClearAll", dry_run)
 
@@ -292,60 +362,61 @@ async def build_ft_pools(
     log.info("Found %d FT majors — hue step %d°", len(fts), hue_step)
 
     # --- Build per-FT objects -----------------------------------------
+    # slot_offset is a running counter: each FT consumes 1 slot for single-instance,
+    # or (1 + instance_count) slots for multi-instance (lump + per-instance).
+    slot_offset = 0
+
     for i, ft in enumerate(fts):
-        offset = i
-        ft_grp  = ft_group_base  + offset
-        pool_grp = pool_group_base + offset
-        pslot    = preset_base    + offset
-        wslot    = world_base     + offset
+        ft_grp   = ft_group_base  + slot_offset
+        pool_grp = pool_group_base + slot_offset
+        pslot    = preset_base    + slot_offset
+        wslot    = world_base     + slot_offset
         hue = (i * hue_step) % 360
 
         vivid  = f"/h={hue} /s=100 /br=100"
         pastel = f"/h={hue} /s=60 /br=100"
-        ft_label = f'"FT {ft.major}"'
 
+        # Multi-instance: FT has >1 instance → lump + per-instance objects
+        is_multi = ft.instance_count >= 2
+        if ft.instance_count > 2:
+            result.warnings.append(
+                f"FT {ft.major}: {ft.instance_count} instances — only 2-instance merge supported; "
+                "falling back to single-instance lump"
+            )
+            is_multi = False
+
+        ft_label_lump = f'"FT {ft.major}.1.0"' if is_multi else f'"FT {ft.major}.1.1"'
         log.info(
-            "FT %d → ftgrp=%d poolgrp=%d preset=%d world=%d hue=%d  tags=%s",
-            ft.major, ft_grp, pool_grp, pslot, wslot, hue, ft.tags,
+            "FT %d → ftgrp=%d poolgrp=%d preset=%d world=%d hue=%d  instances=%d  tags=%s",
+            ft.major, ft_grp, pool_grp, pslot, wslot, hue, ft.instance_count, ft.tags,
         )
 
         # ----------------------------------------------------------------
-        # STORE SEQUENCE:
-        # (1) FixtureType + Attribute release → Store PT 0 ALL
-        # (2) Repeat select per gated PT
-        # (3) ClearAll + Preset 0.pslot recall → Store Group (FT) + Store World
-        #     Using preset recall (not FixtureType) to get full physical fixture set,
-        #     mirroring original Macro 16 lines 83→87 and v12 fix.
+        # 1. Pool group + PT 0 ALL preset (from FixtureType instance-1 selection)
         # ----------------------------------------------------------------
-
-        # -- Pool group (slot 11+offset) from FixtureType selection -----
         await _cmd(c, "ClearAll", dry_run)
         await _cmd(c, f"FixtureType {ft.major}.1.1 Thru", dry_run, delay=0.15)
         await _cmd(c, f"Store Group {pool_grp} /o", dry_run)
-        await _cmd(c, f"Label Group {pool_grp} {ft_label} /o", dry_run)
-        await _cmd(c, f"Appearance Group {pool_grp} {vivid}", dry_run)
-
-        # -- All preset PT 0 (universal) — same FixtureType selection ---
         await _cmd(c, "Attribute 1 Thru At Release", dry_run)
         await _cmd(c, f"Store Preset 0.{pslot} /universal /o", dry_run, delay=0.15)
         await _cmd(c, f'Label Preset 0.{pslot} "FT {ft.major} ALL" /o', dry_run)
         await _cmd(c, f"Appearance Preset 0.{pslot} {vivid}", dry_run)
         result.presets_created["all"].append(pslot)
 
-        # -- Gated presets PT 1-7 -------------------------------------
+        # ----------------------------------------------------------------
+        # 2. Gated presets PT 1-7 (from same instance-1 FixtureType selection)
+        # ----------------------------------------------------------------
         for pt_name in pt_names:
             pt_num = PT_NUMBER[pt_name]
             suffix = PT_LABEL_SUFFIX[pt_name]
             has_attr = _has_pt_attrs(ft.attrs, pt_name)
 
             if not has_attr and ft.attrs:
-                # attrs were discovered and FT lacks this PT's attributes
                 log.info("    skip PT %d (%s) — FT %d has no matching attrs", pt_num, pt_name, ft.major)
                 result.presets_skipped[pt_name].append(pslot)
                 continue
 
             if not ft.attrs and not dry_run:
-                # attr discovery failed (nav error) — store unconditionally as safe fallback
                 log.warning("    FT %d attr unknown — storing PT %d (%s) unconditionally", ft.major, pt_num, pt_name)
 
             await _cmd(c, "ClearAll", dry_run)
@@ -356,37 +427,110 @@ async def build_ft_pools(
             await _cmd(c, f"Appearance Preset {pt_num}.{pslot} {pastel}", dry_run)
             result.presets_created[pt_name].append(pslot)
 
-        # -- FT group + World via Preset 0 recall ----------------------
-        # CRITICAL: must use preset recall (not FixtureType) to populate programmer
-        # with the full physical fixture count before Store Group and Store World.
+        # ----------------------------------------------------------------
+        # 3. FT group + World via UNIVERSAL PRESET RECALL (not FixtureType).
+        #    ClearAll → Preset 0.N → expands to ALL physical fixtures of FT N
+        #    across all instances. This gives correct fixture counts in worlds
+        #    (e.g. 46 for FT 1, not 1 instance).  [Macro 16 lines 20-21]
+        # ----------------------------------------------------------------
         await _cmd(c, "ClearAll", dry_run)
-        await _cmd(c, f"Preset 0.{pslot}", dry_run, delay=0.25)
+        await _cmd(c, f"Preset 0.{pslot}", dry_run, delay=0.20)
         await _cmd(c, f"Store Group {ft_grp} /o", dry_run)
-        await _cmd(c, f"Label Group {ft_grp} {ft_label} /o", dry_run)
-        await _cmd(c, f"Appearance Group {ft_grp} {vivid}", dry_run)
         await _cmd(c, "Attribute 1 Thru At Release", dry_run)
         await _cmd(c, f"Store World {wslot} /o", dry_run, delay=0.15)
-        await _cmd(c, f"Label World {wslot} {ft_label} /o", dry_run)
+        await _cmd(c, f"Label Group {pool_grp} {ft_label_lump} /o", dry_run)
+        await _cmd(c, f"Label Group {ft_grp} {ft_label_lump} /o", dry_run)
+        await _cmd(c, f"Label Preset 0.{pslot} {ft_label_lump} /o", dry_run)
+        await _cmd(c, f"Label World {wslot} {ft_label_lump} /o", dry_run)
+        await _cmd(c, f"Appearance Group {pool_grp} {vivid}", dry_run)
+        await _cmd(c, f"Appearance Group {ft_grp} {vivid}", dry_run)
         await _cmd(c, f"Appearance World {wslot} {vivid}", dry_run)
+        await _cmd(c, "ClearAll", dry_run)
 
         result.ft_majors.append(ft.major)
         result.groups_created.append(pool_grp)
         result.ft_groups_created.append(ft_grp)
         result.worlds_created.append(wslot)
+        slot_offset += 1
 
+        # ----------------------------------------------------------------
+        # 4. Multi-instance branch: per-instance groups + MAtricks merge
+        #    Mirrors Macro 16 lines 36-99 (live-captured 2026-05-13).
+        # ----------------------------------------------------------------
+        if is_multi:
+            ft_inst_grp_first = -1
+            for inst in range(1, ft.instance_count + 1):
+                inst_ft_grp   = ft_group_base  + slot_offset
+                inst_pool_grp = pool_group_base + slot_offset
+                inst_pslot    = preset_base    + slot_offset
+                inst_wslot    = world_base     + slot_offset
+                inst_label    = f'"FT {ft.major}.1.{inst}"'
+
+                log.info(
+                    "  inst %d → ftgrp=%d poolgrp=%d preset=%d world=%d",
+                    inst, inst_ft_grp, inst_pool_grp, inst_pslot, inst_wslot,
+                )
+
+                # Per-instance pool group + PT 0 preset (from single-instance FixtureType)
+                await _cmd(c, "ClearAll", dry_run)
+                await _cmd(c, f"FixtureType {ft.major}.1.{inst}", dry_run, delay=0.15)
+                await _cmd(c, f"Store Group {inst_pool_grp} /o", dry_run)
+                await _cmd(c, "Attribute 1 Thru At Release", dry_run)
+                await _cmd(c, f"Store Preset 0.{inst_pslot} /universal /o", dry_run, delay=0.15)
+
+                # Per-instance FT group + World from preset recall
+                await _cmd(c, "ClearAll", dry_run)
+                await _cmd(c, f"Preset 0.{inst_pslot}", dry_run, delay=0.15)
+                await _cmd(c, f"Store Group {inst_ft_grp} /o", dry_run)
+                await _cmd(c, "Attribute 1 Thru At Release", dry_run)
+                await _cmd(c, f"Store World {inst_wslot} /o", dry_run, delay=0.15)
+
+                # Labels + appearance (pastel to signal sub-instance)
+                await _cmd(c, f"Label Group {inst_pool_grp} {inst_label} /o", dry_run)
+                await _cmd(c, f"Label Group {inst_ft_grp} {inst_label} /o", dry_run)
+                await _cmd(c, f"Label Preset 0.{inst_pslot} {inst_label} /o", dry_run)
+                await _cmd(c, f"Label World {inst_wslot} {inst_label} /o", dry_run)
+                await _cmd(c, f"Appearance Group {inst_pool_grp} {pastel}", dry_run)
+                await _cmd(c, f"Appearance Group {inst_ft_grp} {pastel}", dry_run)
+                await _cmd(c, f"Appearance Preset 0.{inst_pslot} {pastel}", dry_run)
+                await _cmd(c, f"Appearance World {inst_wslot} {pastel}", dry_run)
+                await _cmd(c, "ClearAll", dry_run)
+
+                key = f"{ft.major}.1.{inst}"
+                result.per_instance_groups.setdefault(key, []).append(inst_ft_grp)
+                result.per_instance_worlds.setdefault(key, []).append(inst_wslot)
+
+                if inst == 1:
+                    ft_inst_grp_first = inst_ft_grp
+
+                slot_offset += 1
+
+            # MAtricks merge: rebuild lump FT group with physical ordering
+            if ft_inst_grp_first >= 0:
+                log.info("  FT %d: running MAtricks merge on Group %d ...", ft.major, ft_grp)
+                await _matricks_merge_lump(
+                    c,
+                    ft_lump_grp=ft_grp,
+                    ft_inst1_grp=ft_inst_grp_first,
+                    ft_inst2_grp=ft_inst_grp_first + 1,
+                    dry_run=dry_run,
+                )
+
+    # --- End: cleanup + MAtricksReset ---------------------------------
+    await _cmd(c, "MAtricksReset", dry_run)
     await _cmd(c, "ClearAll", dry_run)
 
     # --- Taxonomy groups -----------------------------------------------
-    # Build one Group per tag, containing all FTs with that tag.
-    # tag_group_base offsets: LED=+0, LED.MOVERS=+1, LED.WASH=+2
     tag_offsets = {"LED": 0, "LED.MOVERS": 1, "LED.WASH": 2}
     tag_members: dict[str, list[int]] = {t: [] for t in tag_offsets}
 
-    for i, ft in enumerate(fts):
+    for idx, ft in enumerate(fts):
         for tag in ft.tags:
             if tag in tag_members:
-                # Use pool group slot as the member (so operators can use group recall)
-                tag_members[tag].append(pool_group_base + i)
+                tag_members[tag].append(pool_group_base + sum(
+                    (1 + (f.instance_count if f.instance_count >= 2 else 0))
+                    for f in fts[:idx]
+                ))
 
     for tag, member_slots in tag_members.items():
         if not member_slots:
@@ -394,13 +538,11 @@ async def build_ft_pools(
         grp_slot = tag_group_base + tag_offsets[tag]
         log.info("Taxonomy group %r → Group %d (members: %s)", tag, grp_slot, member_slots)
 
-        # Store by recalling each member pool group in sequence
         await _cmd(c, "ClearAll", dry_run)
         for mslot in member_slots:
             await _cmd(c, f"SelFix Group {mslot}", dry_run, delay=0.08)
         await _cmd(c, f"Store Group {grp_slot} /o", dry_run)
         await _cmd(c, f'Label Group {grp_slot} "{tag}" /o', dry_run)
-        # Taxonomy groups: neutral grey appearance so they stand apart from per-FT colours
         await _cmd(c, f"Appearance Group {grp_slot} /color=666666", dry_run)
 
         if tag not in result.taxonomy_groups:
@@ -426,7 +568,7 @@ async def main() -> None:
     parser.add_argument("--preset-base", type=int, default=11)
     parser.add_argument("--world-base", type=int, default=11)
     parser.add_argument("--tag-group-base", type=int, default=101,
-                        help="Starting Group slot for taxonomy groups LED/LED.MOVERS/LED.WASH (default 101)")
+                        help="Starting Group slot for taxonomy groups (default 101)")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -463,6 +605,14 @@ async def main() -> None:
             if slots:
                 print(f"    PT {PT_NUMBER.get(pt, '?')} ({pt}): {slots}")
     print(f"  Worlds:     {result.worlds_created}")
+    if result.per_instance_groups:
+        print(f"  Per-instance FT groups:")
+        for key, grps in sorted(result.per_instance_groups.items()):
+            print(f"    FT {key}: {grps}")
+    if result.per_instance_worlds:
+        print(f"  Per-instance worlds:")
+        for key, worlds in sorted(result.per_instance_worlds.items()):
+            print(f"    FT {key}: {worlds}")
     if result.taxonomy_groups:
         print(f"  Taxonomy groups:")
         for tag, slots in result.taxonomy_groups.items():
