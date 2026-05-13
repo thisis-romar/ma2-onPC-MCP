@@ -105,6 +105,19 @@ PT_LABEL_SUFFIX = {"dimmer": "D", "position": "P", "gobo": "G", "color": "C",
                    "beam": "B", "focus": "F", "control": "X"}
 PT_NUMBER = {"all": 0, "dimmer": 1, "position": 2, "gobo": 3,
              "color": 4, "beam": 5, "focus": 6, "control": 7}
+PT_NUM_TO_NAME = {v: k for k, v in PT_NUMBER.items() if k != "all"}
+PT_OFFICIAL_NAMES = {1: "Dimmer", 2: "Position", 3: "Gobo", 4: "Color",
+                     5: "Beam", 6: "Focus", 7: "Control"}
+# Appearance colors matching MA2 UI preset-type palette conventions
+PT_APPEARANCE_COLORS = {
+    "dimmer":   "/color=ffcc00",
+    "position": "/color=0088ff",
+    "gobo":     "/color=88cc00",
+    "color":    "/color=ff44ff",
+    "beam":     "/color=ff6600",
+    "focus":    "/color=00cc88",
+    "control":  "/color=888888",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -131,7 +144,8 @@ class FTPoolResult:
     presets_skipped: dict[str, list[int]] = field(default_factory=dict)
     worlds_created: list[int] = field(default_factory=list)
     per_instance_worlds: dict[str, list[int]] = field(default_factory=dict)  # "N.1.I" → [world]
-    taxonomy_groups: dict[str, list[int]] = field(default_factory=dict)
+    attr_groups: dict[str, int] = field(default_factory=dict)   # "Color" → grp_slot
+    attr_worlds: dict[str, int] = field(default_factory=dict)   # "Color" → world_slot
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -197,7 +211,7 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
             "cd 1",
         ]:
             await c.send_command_with_response(step, timeout=4.0)
-            await asyncio.sleep(0.08)
+            await asyncio.sleep(0.15)
 
         listing = await c.send_command_with_response("list", timeout=5.0)
         for line in listing.split("\n"):
@@ -209,6 +223,7 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
                 attrs[attr_name] = is_physical
 
         await c.send_command_with_response("cd /", timeout=3.0)
+        await asyncio.sleep(0.30)
     except Exception as exc:
         log.warning("Attribute discovery failed for FT %d: %s", major, exc)
         try:
@@ -305,6 +320,76 @@ async def _matricks_merge_lump(
 
 
 # ---------------------------------------------------------------------------
+# Attribute cross-FT group + world builder
+# ---------------------------------------------------------------------------
+
+async def _build_attribute_groups_and_worlds(
+    c: GMA2TelnetClient,
+    fts: list[FTInfo],
+    ft_pslot_map: dict[int, int],
+    attr_group_base: int,
+    attr_world_base: int,
+    result: "FTPoolResult",
+    dry_run: bool,
+) -> None:
+    """Create one Group + one World per MA2 PresetType (PT 1-7).
+
+    Each group/world contains ALL fixtures from FTs that expose that PT's
+    attribute set.  Group built via Preset-recall + /merge chain so subfixture
+    expansion is correct.  World built from SelFix on the combined group.
+
+    Slot layout (default bases: attr_group_base=101, attr_world_base=51):
+        PT 1 Dimmer   → Group 102 / World 52
+        PT 2 Position → Group 103 / World 53
+        PT 3 Gobo     → Group 104 / World 54
+        PT 4 Color    → Group 105 / World 55
+        PT 5 Beam     → Group 106 / World 56
+        PT 6 Focus    → Group 107 / World 57
+        PT 7 Control  → Group 108 / World 58
+    """
+    for pt_num in range(1, 8):
+        pt_name = PT_NUM_TO_NAME[pt_num]
+        pt_official = PT_OFFICIAL_NAMES[pt_num]
+        color = PT_APPEARANCE_COLORS[pt_name]
+
+        qualifying = [ft for ft in fts if _has_pt_attrs(ft.attrs, pt_name) or not ft.attrs]
+        if not qualifying:
+            log.info("Attr PT %d (%s): no qualifying FTs — skipping", pt_num, pt_official)
+            continue
+
+        attr_grp = attr_group_base + pt_num
+        attr_wld = attr_world_base + pt_num
+        ft_majors = [ft.major for ft in qualifying]
+        log.info(
+            "Attr PT %d %-10s → Group %-4d + World %-4d (FTs %s)",
+            pt_num, pt_official, attr_grp, attr_wld, ft_majors,
+        )
+
+        # Build combined group via Preset 0.N recall + /merge per FT
+        first = True
+        for ft in qualifying:
+            pslot = ft_pslot_map[ft.major]
+            flag = "/o" if first else "/merge"
+            await _cmd(c, "ClearAll", dry_run)
+            await _cmd(c, f"Preset 0.{pslot}", dry_run, delay=0.20)
+            await _cmd(c, f"Store Group {attr_grp} {flag}", dry_run)
+            first = False
+
+        await _cmd(c, f'Label Group {attr_grp} "{pt_official}" /o', dry_run)
+        await _cmd(c, f"Appearance Group {attr_grp} {color}", dry_run)
+        result.attr_groups[pt_official] = attr_grp
+
+        # Build world from the combined group
+        await _cmd(c, "ClearAll", dry_run)
+        await _cmd(c, f"SelFix Group {attr_grp}", dry_run, delay=0.15)
+        await _cmd(c, f"Store World {attr_wld} /o", dry_run, delay=0.15)
+        await _cmd(c, f'Label World {attr_wld} "{pt_official}" /o', dry_run)
+        await _cmd(c, f"Appearance World {attr_wld} {color}", dry_run)
+        await _cmd(c, "ClearAll", dry_run)
+        result.attr_worlds[pt_official] = attr_wld
+
+
+# ---------------------------------------------------------------------------
 # Core builder
 # ---------------------------------------------------------------------------
 
@@ -316,7 +401,8 @@ async def build_ft_pools(
     pool_group_base: int = 11,
     preset_base: int = 11,
     world_base: int = 11,
-    tag_group_base: int = 101,
+    attr_group_base: int = 101,
+    attr_world_base: int = 51,
     dry_run: bool = False,
 ) -> FTPoolResult:
     result = FTPoolResult(phase=phase)
@@ -365,12 +451,14 @@ async def build_ft_pools(
     # slot_offset is a running counter: each FT consumes 1 slot for single-instance,
     # or (1 + instance_count) slots for multi-instance (lump + per-instance).
     slot_offset = 0
+    ft_pslot_map: dict[int, int] = {}   # ft.major → pslot (for attr groups later)
 
     for i, ft in enumerate(fts):
         ft_grp   = ft_group_base  + slot_offset
         pool_grp = pool_group_base + slot_offset
         pslot    = preset_base    + slot_offset
         wslot    = world_base     + slot_offset
+        ft_pslot_map[ft.major] = pslot
         hue = (i * hue_step) % 360
 
         vivid  = f"/h={hue} /s=100 /br=100"
@@ -520,34 +608,14 @@ async def build_ft_pools(
     await _cmd(c, "MAtricksReset", dry_run)
     await _cmd(c, "ClearAll", dry_run)
 
-    # --- Taxonomy groups -----------------------------------------------
-    tag_offsets = {"LED": 0, "LED.MOVERS": 1, "LED.WASH": 2}
-    tag_members: dict[str, list[int]] = {t: [] for t in tag_offsets}
-
-    for idx, ft in enumerate(fts):
-        for tag in ft.tags:
-            if tag in tag_members:
-                tag_members[tag].append(pool_group_base + sum(
-                    (1 + (f.instance_count if f.instance_count >= 2 else 0))
-                    for f in fts[:idx]
-                ))
-
-    for tag, member_slots in tag_members.items():
-        if not member_slots:
-            continue
-        grp_slot = tag_group_base + tag_offsets[tag]
-        log.info("Taxonomy group %r → Group %d (members: %s)", tag, grp_slot, member_slots)
-
-        await _cmd(c, "ClearAll", dry_run)
-        for mslot in member_slots:
-            await _cmd(c, f"SelFix Group {mslot}", dry_run, delay=0.08)
-        await _cmd(c, f"Store Group {grp_slot} /o", dry_run)
-        await _cmd(c, f'Label Group {grp_slot} "{tag}" /o', dry_run)
-        await _cmd(c, f"Appearance Group {grp_slot} /color=666666", dry_run)
-
-        if tag not in result.taxonomy_groups:
-            result.taxonomy_groups[tag] = []
-        result.taxonomy_groups[tag].append(grp_slot)
+    # --- Attribute groups + worlds (PT 1-7) ----------------------------
+    await _build_attribute_groups_and_worlds(
+        c, fts, ft_pslot_map,
+        attr_group_base=attr_group_base,
+        attr_world_base=attr_world_base,
+        result=result,
+        dry_run=dry_run,
+    )
 
     await _cmd(c, "ClearAll", dry_run)
     return result
@@ -567,8 +635,10 @@ async def main() -> None:
     parser.add_argument("--pool-group-base", type=int, default=11)
     parser.add_argument("--preset-base", type=int, default=11)
     parser.add_argument("--world-base", type=int, default=11)
-    parser.add_argument("--tag-group-base", type=int, default=101,
-                        help="Starting Group slot for taxonomy groups (default 101)")
+    parser.add_argument("--attr-group-base", type=int, default=101,
+                        help="Group slot base for PT attribute groups (base+1=Dimmer … base+7=Control)")
+    parser.add_argument("--attr-world-base", type=int, default=51,
+                        help="World slot base for PT attribute worlds (base+1=Dimmer … base+7=Control)")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -585,7 +655,8 @@ async def main() -> None:
             pool_group_base=args.pool_group_base,
             preset_base=args.preset_base,
             world_base=args.world_base,
-            tag_group_base=args.tag_group_base,
+            attr_group_base=args.attr_group_base,
+            attr_world_base=args.attr_world_base,
             dry_run=args.dry_run,
         )
 
@@ -613,10 +684,14 @@ async def main() -> None:
         print(f"  Per-instance worlds:")
         for key, worlds in sorted(result.per_instance_worlds.items()):
             print(f"    FT {key}: {worlds}")
-    if result.taxonomy_groups:
-        print(f"  Taxonomy groups:")
-        for tag, slots in result.taxonomy_groups.items():
-            print(f"    {tag}: Group {slots}")
+    if result.attr_groups:
+        print(f"  Attribute groups (PT 1-7):")
+        for name, slot in sorted(result.attr_groups.items(), key=lambda x: PT_NUMBER.get(x[0].lower(), 99)):
+            print(f"    PT {PT_NUMBER.get(name.lower(), '?')} {name}: Group {slot}")
+    if result.attr_worlds:
+        print(f"  Attribute worlds (PT 1-7):")
+        for name, slot in sorted(result.attr_worlds.items(), key=lambda x: PT_NUMBER.get(x[0].lower(), 99)):
+            print(f"    PT {PT_NUMBER.get(name.lower(), '?')} {name}: World {slot}")
     if result.warnings:
         for w in result.warnings:
             print(f"  WARN:  {w}")
@@ -632,7 +707,8 @@ async def main() -> None:
             "pool_group_base": args.pool_group_base,
             "preset_base": args.preset_base,
             "world_base": args.world_base,
-            "tag_group_base": args.tag_group_base,
+            "attr_group_base": args.attr_group_base,
+            "attr_world_base": args.attr_world_base,
         }
         LASTRUN_PATH.write_text(json.dumps(lastrun, indent=2))
         log.info("Saved %s", LASTRUN_PATH)
