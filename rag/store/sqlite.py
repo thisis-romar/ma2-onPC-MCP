@@ -102,6 +102,14 @@ class RagStore:
         ).fetchone()
         return row[0] if row else None
 
+    def get_embedding_model_for_doc(self, doc_id: str) -> str | None:
+        """Return the embedding_model of existing chunks for a document, or None."""
+        row = self.conn.execute(
+            "SELECT embedding_model FROM chunks WHERE doc_id = ? LIMIT 1",
+            (doc_id,),
+        ).fetchone()
+        return row[0] if row else None
+
     # ------------------------------------------------------------------
     # Chunks
     # ------------------------------------------------------------------
