@@ -47,13 +47,26 @@ async def _cmd(c: GMA2TelnetClient, cmd: str, dry_run: bool) -> str:
 async def cleanup(c: GMA2TelnetClient, lastrun: dict, *, dry_run: bool) -> list[str]:
     errors: list[str] = []
 
-    groups = sorted(set(lastrun.get("groups_created", [])))
+    # Collect all group IDs: pool groups + FT groups + per-instance groups + attr groups
+    group_ids: set[int] = set()
+    group_ids.update(lastrun.get("groups_created", []))
+    group_ids.update(lastrun.get("ft_groups_created", []))
+    for slots in lastrun.get("per_instance_groups", {}).values():
+        group_ids.update(slots)
+    group_ids.update(lastrun.get("attr_groups", {}).values())
+
+    # Collect all world IDs: lump worlds + per-instance worlds + attr worlds
+    world_ids: set[int] = set()
+    world_ids.update(lastrun.get("worlds_created", []))
+    for slots in lastrun.get("per_instance_worlds", {}).values():
+        world_ids.update(slots)
+    world_ids.update(lastrun.get("attr_worlds", {}).values())
+
     presets: dict[str, list[int]] = lastrun.get("presets_created", {})
-    worlds = sorted(set(lastrun.get("worlds_created", [])))
 
     # Delete Groups
-    for g in groups:
-        resp = await _cmd(c, f"Delete Group {g}", dry_run)
+    for g in sorted(group_ids):
+        await _cmd(c, f"Delete Group {g}", dry_run)
         log.info("Deleted Group %d%s", g, " [DRY]" if dry_run else "")
 
     # Delete Presets by PresetType key
@@ -62,12 +75,12 @@ async def cleanup(c: GMA2TelnetClient, lastrun: dict, *, dry_run: bool) -> list[
     for pt_name, slots in presets.items():
         pt_num = pt_map.get(pt_name, 0)
         for s in sorted(set(slots)):
-            resp = await _cmd(c, f"Delete Preset {pt_num}.{s}", dry_run)
+            await _cmd(c, f"Delete Preset {pt_num}.{s}", dry_run)
             log.info("Deleted Preset %d.%d%s", pt_num, s, " [DRY]" if dry_run else "")
 
     # Delete Worlds
-    for w in worlds:
-        resp = await _cmd(c, f"Delete World {w}", dry_run)
+    for w in sorted(world_ids):
+        await _cmd(c, f"Delete World {w}", dry_run)
         log.info("Deleted World %d%s", w, " [DRY]" if dry_run else "")
 
     await _cmd(c, "ClearAll", dry_run)
