@@ -14,9 +14,9 @@ from src.commands.constants import (
     FILTER_COLORS,
     FILTER_VTE_COMBOS,
     HARDKEY_CHAINS,
-    MA2RIGHT_TO_OAUTH_SCOPE,
     MA2_BOOTSTRAP_USERS,
     MA2_RIGHTS_LEVELS,
+    MA2RIGHT_TO_OAUTH_SCOPE,
     MA_KEY_COMBOS,
     OAUTH_TIER_SCOPES,
     PRESET_TYPES,
@@ -95,7 +95,7 @@ class TestExecutorPrioritiesAndOptions:
 
     def test_priority_values_content(self):
         expected = {"super", "swap", "htp", "high", "normal", "low"}
-        assert EXECUTOR_PRIORITY_VALUES == expected
+        assert expected == EXECUTOR_PRIORITY_VALUES
 
     def test_assign_option_names_is_frozenset(self):
         assert isinstance(EXECUTOR_ASSIGN_OPTION_NAMES, frozenset)
