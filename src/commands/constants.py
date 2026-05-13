@@ -16,6 +16,7 @@ and filter attribute groupings.
 # These mappings convert human-readable names to numeric IDs.
 
 PRESET_TYPES = {
+    "all": 0,       # Cross-feature "All attributes" pool (PresetType 0)
     "dimmer": 1,
     "position": 2,
     "gobo": 3,

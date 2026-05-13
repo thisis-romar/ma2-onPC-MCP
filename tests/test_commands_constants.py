@@ -132,6 +132,9 @@ class TestPresetTypes:
     def test_dimmer_is_1(self):
         assert PRESET_TYPES["dimmer"] == 1
 
+    def test_all_is_0(self):
+        assert PRESET_TYPES["all"] == 0
+
 
 class TestStoreOptions:
     """STORE_*_OPTIONS tests."""
