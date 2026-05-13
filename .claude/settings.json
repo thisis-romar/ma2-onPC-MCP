@@ -1,16 +1,24 @@
 {
-    "$schema": "https://json.schemastore.org/claude-code-settings.json",
-    "hooks": {
-        "Stop": [
-            {
-                "matcher": "",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "bash .githooks/stop-git-check.sh"
-                    }
-                ]
-            }
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Store Group overwrite /o\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Store Preset /merge global cross-pool\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Appearance color hue saturation brightness HSB\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"SaveShow backup before macro destructive\")"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .githooks/stop-git-check.sh"
+          }
         ]
-    }
+      }
+    ]
+  }
 }
