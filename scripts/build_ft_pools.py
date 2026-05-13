@@ -732,8 +732,14 @@ async def main() -> None:
 
     # ------------------------------------------------------------------
     # CONNECTION 3: build objects (programmer-active)
+    # Give MA2 a moment to release the Telnet port after connection 2
+    # (WinError 64 drops the session; MA2 needs ~5s to become ready again)
     # ------------------------------------------------------------------
     log.info("=== Connection 3: build FT pools ===")
+    if not args.dry_run:
+        log.info("Waiting 6s for MA2 to release port after attribute discovery ...")
+        await asyncio.sleep(6.0)
+
     if args.dry_run:
         # Dry-run: simulate connection 3 without opening a real socket
         result = await build_ft_pools(
@@ -749,21 +755,36 @@ async def main() -> None:
             dry_run=True,
         )
     else:
-        async with GMA2TelnetClient(GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD) as c:
-            await c.send_command_with_response("BlindEdit On", timeout=5.0)
-            result = await build_ft_pools(
-                c,
-                fts,
-                phase=args.phase,
-                ft_group_base=args.ft_group_base,
-                pool_group_base=args.pool_group_base,
-                preset_base=args.preset_base,
-                world_base=args.world_base,
-                attr_group_base=args.attr_group_base,
-                attr_world_base=args.attr_world_base,
-                dry_run=False,
-            )
-            await c.send_command_with_response("BlindEdit Off", timeout=5.0)
+        # Retry connection 3 up to 3 times in case MA2 is still recovering
+        result = None
+        for _attempt in range(3):
+            try:
+                async with GMA2TelnetClient(GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD) as c:
+                    await c.send_command_with_response("BlindEdit On", timeout=5.0)
+                    result = await build_ft_pools(
+                        c,
+                        fts,
+                        phase=args.phase,
+                        ft_group_base=args.ft_group_base,
+                        pool_group_base=args.pool_group_base,
+                        preset_base=args.preset_base,
+                        world_base=args.world_base,
+                        attr_group_base=args.attr_group_base,
+                        attr_world_base=args.attr_world_base,
+                        dry_run=False,
+                    )
+                    await c.send_command_with_response("BlindEdit Off", timeout=5.0)
+                break  # success — exit retry loop
+            except ConnectionError as exc:
+                log.warning("Connection 3 attempt %d failed: %s", _attempt + 1, exc)
+                if _attempt < 2:
+                    log.info("  Retrying in 5s ...")
+                    await asyncio.sleep(5.0)
+                else:
+                    raise
+        if result is None:
+            log.error("Connection 3 never succeeded — aborting.")
+            sys.exit(1)
 
     print("\n=== FT Pool Build Result ===")
     print(f"  Show:       {result.show}")
