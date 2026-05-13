@@ -5,7 +5,9 @@
       "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Store Group overwrite /o\")",
       "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Store Preset /merge global cross-pool\")",
       "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Appearance color hue saturation brightness HSB\")",
-      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"SaveShow backup before macro destructive\")"
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"SaveShow backup before macro destructive\")",
+      "Bash(git fetch *)",
+      "Bash(git log *)"
     ]
   },
   "hooks": {
