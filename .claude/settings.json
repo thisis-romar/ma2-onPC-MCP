@@ -15,7 +15,21 @@
       "Bash(git merge-tree *)",
       "Bash(git ls-tree *)",
       "Read(//c/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/shows/**)",
-      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Macro 19 toronto\" --limit 3)"
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Macro 19 toronto\" --limit 3)",
+      "Read(//c/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/**)",
+      "Bash(mkdir -p /tmp/macro19)",
+      "Bash(cp \"C:/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/shows/19-toronto-2025-09-09-v4.show.gz\" /tmp/macro19/show.gz)",
+      "Bash(gunzip -kf show.gz)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" branch -a)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" show origin/remote-main:src/server.py)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" show origin/claude/compare-repo-commits-Kp8rt:src/private/tools_professional.py)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" show main:src/server.py)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" grep -n -E \"def \\(export_objects|import_objects\\)\" main -- 'src/*.py')",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" log --all --oneline -S \"def export_objects\" -- 'src/**/*.py')",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree main:src/private/)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree origin/remote-main:src/private/)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree origin/claude/compare-repo-commits-Kp8rt:src/private/)",
+      "Bash(awk '/^async def export_objects/,/^async def import_objects/')"
     ]
   },
   "hooks": {
