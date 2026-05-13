@@ -196,6 +196,10 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
 
     Navigates cd EditSetup → FixtureTypes → major → 1 → 1 → list.
     Falls back to empty dict on navigation failure (non-fatal).
+
+    NOTE: called only from discover_all_ft_attributes() which uses a dedicated
+    short-lived connection so the cd EditSetup navigation never runs alongside
+    programmer commands.
     """
     if dry_run:
         return {}
@@ -210,10 +214,10 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
             "cd 1",
             "cd 1",
         ]:
-            await c.send_command_with_response(step, timeout=4.0)
-            await asyncio.sleep(0.15)
+            await c.send_command_with_response(step, timeout=5.0)
+            await asyncio.sleep(0.25)
 
-        listing = await c.send_command_with_response("list", timeout=5.0)
+        listing = await c.send_command_with_response("list", timeout=6.0)
         for line in listing.split("\n"):
             m = _CHANTYPE_RE.search(line)
             if m:
@@ -222,8 +226,8 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
                 is_physical = coarse != "None"
                 attrs[attr_name] = is_physical
 
-        await c.send_command_with_response("cd /", timeout=3.0)
-        await asyncio.sleep(0.30)
+        await c.send_command_with_response("cd /", timeout=4.0)
+        await asyncio.sleep(1.0)   # let the console fully reset before next FT
     except Exception as exc:
         log.warning("Attribute discovery failed for FT %d: %s", major, exc)
         try:
@@ -233,6 +237,31 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
 
     log.debug("  FT %d attrs: %s", major, attrs)
     return attrs
+
+
+async def discover_all_ft_attributes(
+    host: str, port: int, user: str, password: str,
+    ft_majors: list[int],
+) -> dict[int, dict[str, bool]]:
+    """Open a dedicated connection just for attribute discovery, then close it.
+
+    Isolates the cd EditSetup navigation from the programmer-active build
+    connection so MA2 doesn't forcibly drop the Telnet session mid-build.
+    """
+    result: dict[int, dict[str, bool]] = {}
+    log.info("Attribute discovery: opening dedicated connection for %d FTs ...", len(ft_majors))
+    try:
+        async with GMA2TelnetClient(host, port, user, password) as c:
+            for major in ft_majors:
+                attrs = await _get_ft_attributes(c, major, dry_run=False)
+                result[major] = attrs
+                log.info("  FT %d attrs: %s", major,
+                         {k: v for k, v in attrs.items()} or "(none)")
+    except Exception as exc:
+        log.warning("Attribute discovery connection failed: %s — proceeding without attrs", exc)
+    log.info("Attribute discovery complete (%d/%d FTs got attrs)",
+             sum(1 for v in result.values() if v), len(ft_majors))
+    return result
 
 
 def _has_pt_attrs(ft_attrs: dict[str, bool], pt_name: str) -> bool:
@@ -390,11 +419,39 @@ async def _build_attribute_groups_and_worlds(
 
 
 # ---------------------------------------------------------------------------
-# Core builder
+# FT probe (connection 1)
+# ---------------------------------------------------------------------------
+
+async def _probe_ft_majors(c: GMA2TelnetClient, max_scan: int = MAX_FT_SCAN) -> dict[int, int]:
+    """Probe FT majors 1..max_scan via FixtureType N.1.1 Thru.
+
+    Returns {major: instance_count} for every major that yields
+    SELECTEDFIXTURESCOUNT > 0.  Each probe is a short-lived selection —
+    no programmer state is persisted after this function returns.
+    """
+    active: dict[int, int] = {}
+    log.info("Probing FT majors 1..%d ...", max_scan)
+    for major in range(1, max_scan + 1):
+        await c.send_command_with_response("ClearAll", timeout=4.0)
+        await asyncio.sleep(0.10)
+        await c.send_command_with_response(f"FixtureType {major}.1.1 Thru", timeout=4.0)
+        await asyncio.sleep(0.15)
+        count = await _selected_count(c)
+        if count > 0:
+            active[major] = count
+            log.info("  FT %d → %d instance(s)", major, count)
+    await c.send_command_with_response("ClearAll", timeout=4.0)
+    log.info("Probe complete: %d active FT major(s): %s", len(active), sorted(active))
+    return active
+
+
+# ---------------------------------------------------------------------------
+# Core builder (connection 3 — programmer-active build)
 # ---------------------------------------------------------------------------
 
 async def build_ft_pools(
     c: GMA2TelnetClient,
+    fts: list[FTInfo],
     *,
     phase: int = 1,
     ft_group_base: int = 1,
@@ -406,10 +463,9 @@ async def build_ft_pools(
     dry_run: bool = False,
 ) -> FTPoolResult:
     result = FTPoolResult(phase=phase)
-
-    # --- Read show name ------------------------------------------------
-    result.show = await _listvar(c, "SHOWFILE")
-    log.info("Show: %s", result.show)
+    if not dry_run and c is not None:
+        result.show = await _listvar(c, "SHOWFILE")
+    log.info("Show: %s", result.show or "(dry-run)")
 
     if phase == 1:
         pt_names = PT_NAMES_PHASE1
@@ -420,29 +476,14 @@ async def build_ft_pools(
         result.presets_created[pt] = []
         result.presets_skipped[pt] = []
 
-    # --- Enumerate active FT majors + discover attributes ---------------
-    log.info("Scanning FT majors 1..%d (attr discovery) ...", MAX_FT_SCAN)
-    fts: list[FTInfo] = []
-    for major in range(1, MAX_FT_SCAN + 1):
-        await _cmd(c, "ClearAll", dry_run)
-        await _cmd(c, f"FixtureType {major}.1.1 Thru", dry_run, delay=0.12)
-        count = await _selected_count(c)
-        if count == 0:
-            continue
-
-        attrs = await _get_ft_attributes(c, major, dry_run)
-        tags = _classify_ft(attrs)
-        fts.append(FTInfo(major=major, instance_count=count, attrs=attrs, tags=tags))
-        log.info("  FT %d: %d instance(s)  tags=%s", major, count, tags or ["(unclassified)"])
-
-    await _cmd(c, "ClearAll", dry_run)
-
     if not fts:
         msg = "No fixture types found — is a show loaded with patched fixtures?"
         log.warning(msg)
-        if not dry_run:
-            result.errors.append(msg)
+        result.errors.append(msg)
         return result
+
+    for ft in fts:
+        log.info("  FT %d: %d instance(s)  tags=%s", ft.major, ft.instance_count, ft.tags or ["(unclassified)"])
 
     hue_step = max(1, 360 // len(fts))
     log.info("Found %d FT majors — hue step %d°", len(fts), hue_step)
@@ -647,9 +688,57 @@ async def main() -> None:
 
     log.info("build_ft_pools — phase=%d dry_run=%s", args.phase, args.dry_run)
 
-    async with GMA2TelnetClient(GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD) as c:
+    # ------------------------------------------------------------------
+    # CONNECTION 1: probe active FT majors + instance counts
+    # Must close before connection 2 opens (MA2 allows only 1 client).
+    # ------------------------------------------------------------------
+    if args.dry_run:
+        instance_counts: dict[int, int] = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1}
+        log.info("[DRY] Skipping probe — using synthetic FT map: %s", instance_counts)
+    else:
+        log.info("=== Connection 1: FT probe ===")
+        async with GMA2TelnetClient(GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD) as c1:
+            instance_counts = await _probe_ft_majors(c1, max_scan=MAX_FT_SCAN)
+        if not instance_counts:
+            log.error("No active FT majors found — aborting.")
+            sys.exit(1)
+
+    active_majors = sorted(instance_counts)
+
+    # ------------------------------------------------------------------
+    # CONNECTION 2: attribute discovery via cd EditSetup
+    # Dedicated short-lived connection — cd EditSetup causes MA2 to drop
+    # sessions when mixed with programmer commands.
+    # ------------------------------------------------------------------
+    log.info("=== Connection 2: attribute discovery ===")
+    all_attrs = await discover_all_ft_attributes(
+        GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD, active_majors
+    )
+
+    # ------------------------------------------------------------------
+    # Assemble FTInfo list from probe + discovery results
+    # ------------------------------------------------------------------
+    fts: list[FTInfo] = []
+    for major in active_majors:
+        attrs = all_attrs.get(major, {})
+        tags = _classify_ft(attrs)
+        fts.append(FTInfo(
+            major=major,
+            instance_count=instance_counts[major],
+            attrs=attrs,
+            tags=tags,
+        ))
+    log.info("FT inventory: %s", [(ft.major, ft.instance_count, ft.tags) for ft in fts])
+
+    # ------------------------------------------------------------------
+    # CONNECTION 3: build objects (programmer-active)
+    # ------------------------------------------------------------------
+    log.info("=== Connection 3: build FT pools ===")
+    if args.dry_run:
+        # Dry-run: simulate connection 3 without opening a real socket
         result = await build_ft_pools(
-            c,
+            None,  # type: ignore[arg-type]
+            fts,
             phase=args.phase,
             ft_group_base=args.ft_group_base,
             pool_group_base=args.pool_group_base,
@@ -657,8 +746,24 @@ async def main() -> None:
             world_base=args.world_base,
             attr_group_base=args.attr_group_base,
             attr_world_base=args.attr_world_base,
-            dry_run=args.dry_run,
+            dry_run=True,
         )
+    else:
+        async with GMA2TelnetClient(GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD) as c:
+            await c.send_command_with_response("BlindEdit On", timeout=5.0)
+            result = await build_ft_pools(
+                c,
+                fts,
+                phase=args.phase,
+                ft_group_base=args.ft_group_base,
+                pool_group_base=args.pool_group_base,
+                preset_base=args.preset_base,
+                world_base=args.world_base,
+                attr_group_base=args.attr_group_base,
+                attr_world_base=args.attr_world_base,
+                dry_run=False,
+            )
+            await c.send_command_with_response("BlindEdit Off", timeout=5.0)
 
     print("\n=== FT Pool Build Result ===")
     print(f"  Show:       {result.show}")
