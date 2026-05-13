@@ -1,9 +1,9 @@
 ---
 title: Group Audit Transcript — nomad22-may11 + 19-toronto-v4
 description: Chronological log of group audit, camera-safety pre-flight, and Macro 16/17 dependency analysis
-version: 1.3.0
+version: 1.4.0
 created: 2026-05-11T16:44:00Z
-last_updated: 2026-05-13T00:41:00Z
+last_updated: 2026-05-13T02:37:32Z
 ---
 
 # Group Audit Transcript — `nomad22-may11.show.gz`
@@ -452,3 +452,167 @@ Caveats:
 |---|---|---|
 | 16 — `-Create FT_Pools-` | **RUN** | `SaveShow` first; accept group 11–19 regeneration |
 | 17 — `Global ALL Preset` | **RUN** | Confirm `0.10` is empty/expendable; run after Macro 16 |
+
+---
+
+## Section 6.C — Live Execution Log: Macros 16 + 1 (2026-05-12)
+
+> Added 2026-05-13. Live execution on `19-toronto-2025-09-09-v4.show.gz`. Includes Macro 16 full run, Macro 1 cleanup run, and a cross-show interoperability audit.
+
+### Pre-execution state
+
+| Variable | Value | Source |
+|---|---|---|
+| `$SHOWFILE` | `19-toronto-2025-09-09-v4` | `ListVar` via Telnet |
+| `$USER` | `administrator` | `ListVar` |
+| `$USERRIGHTS` | `Admin` | `ListVar` |
+| `$SELECTEDEXEC` | `1.1.1` | `ListVar` |
+| `$FT_TOTALCOUNT` | 8 (FT majors 1–7 + 1 residual) | Inferred from Macro 16 output |
+| Backup created | `19-toronto-pre-macro16.show.gz` | `SaveShow "19-toronto-pre-macro16"` via `send_raw_command` |
+
+> **Note:** `SaveShow "19-toronto-pre-macro16"` both saved and renamed the loaded show. After this command, `$SHOWFILE` became `19-toronto-pre-macro16`. The original file `19-toronto-2025-09-09-v4.show.gz` was preserved (1 backup write). All subsequent work is on the renamed show.
+
+---
+
+### Macro 16 — `-Create FT_Pools-` (103 lines, live execution)
+
+**Method:** `Go Macro 16` via raw Telnet. Custom `stream_for()` reader with `silence_after=6.0s` / `max_seconds=120s` (standard `send_command_with_response` `subsequent_timeout=0.1s` was too short for async macro output).
+
+**Runtime:** ~87 seconds.
+
+**FT iterations observed:** 8 (FT major 1 through 7, plus FT 7 multi-instance pass).
+
+#### Objects created
+
+| Object type | Slots occupied | Count | Naming pattern |
+|---|---|---|---|
+| Groups (lump, cross-FT) | 1–9 | 9 | `FT N.1.1` (bold lump per FT) |
+| Groups (numbered pool) | 11–19 | 9 | `FT N.M.K` with instance suffix |
+| Presets (FT-scoped, pool 0) | 0.11–0.19 | 9 | Cross-pool color/position |
+| Worlds | 11–19 | 9 | FT-scoped world mask |
+
+**Hue progression (51° step):** FT1=0°, FT2=51°, FT3=102°, FT4=153°, FT5=204°, FT6=255°, FT7=306°.
+- Lump group appearance: saturation=100 (vivid)
+- Instance group appearance: saturation=60 (pastel)
+
+#### Telnet response summary
+
+All 103 macro lines executed without `ERROR` or `DENIED` feedback. No `Error #72 COMMAND NOT EXECUTED` or `Error #14 OBJECT DOES NOT EXIST` lines observed. Final console response: `BlindEdit Off` confirming line 102 (index 102) executed.
+
+---
+
+### Macro 1 — cleanup (8 lines, live execution)
+
+**Method:** `Go Macro 1` via raw Telnet. Runtime: ~4.4 seconds.
+
+#### Macro body (from `macro_1_inspect.xml`)
+
+| Line (index) | Command | Risk tier | Result |
+|---|---|---|---|
+| 0 | `Delete Group 11 Thru 22` | DESTRUCTIVE | OK — groups 11–19 deleted (22 was empty, no error) |
+| 1 | `Delete Preset 0.11 Thru 0.22` | DESTRUCTIVE | OK — presets 0.11–0.19 deleted |
+| 2 | `Delete Group 1 Thru 10` | DESTRUCTIVE | OK — lump groups 1–9 deleted |
+| 3 | `Delete World 11 Thru 22` | DESTRUCTIVE | OK — worlds 11–19 deleted |
+| 4 | `ClearAll` | SAFE_WRITE | OK |
+| 5 | `Off Macro 1."::Auto Create Multi-Pool Objects::"` (disabled) | — | SKIPPED (line disabled) |
+| 6 | `Off Macro 1."::Auto Create Multi-Pool(s)::"` | SAFE_WRITE | Error #14 OBJECT DOES NOT EXIST — non-fatal; named target not loaded |
+| 7 | `Off Macro 1."::Auto Create Multi-Pool(s)::-1"` | SAFE_WRITE | Error #14 OBJECT DOES NOT EXIST — non-fatal; named target not loaded |
+
+**Post-cleanup verification:** `list group` showed only Group 99 remaining. All slots 1–22 cleared. Presets 0.11–0.22 gone. Error #14 on lines 6–7 is expected: those lines reference alternate macro name variants that don't exist in this show's macro pool — they are guard-off commands for a different show context.
+
+---
+
+### Macro architecture patterns (derived from live execution)
+
+#### Dynamic (reads from console state)
+
+The macro reads the selected fixtures count after filtering by FixtureType 1, then loops through to increment the FT major value and calculate the instance count based on that selection.
+
+Specifically:
+- Line 1: `SetUserVar $FTiterations = $SELECTEDFIXTURESCOUNT` — captures the full fixture count into a user variable immediately after selection.
+- Line 2: `AddUserVar $FTiterations = -2` — subtracts 2 from the count. This hardcoded −2 correction accounts for the show's architecture: FT1 (index 1) is a system/utility type that the loop skips, and the count includes a fencepost offset. The result is the number of "real" FT iterations the loop will perform.
+- Each iteration: `FixtureType $fixTypeMajor.$fixTypeMinor.1 Thru` selects all fixtures of that type, then `SetUserVar $instanceCount = $SELECTEDFIXTURESCOUNT` reads the instance count for that FT from the selection state.
+
+This pattern means the macro is **fully data-driven from the live patch** — it does not hardcode fixture counts or FT counts, only the starting slot index (11) and the −2 correction. Any show with a different fixture architecture will produce different iteration counts from the same macro body.
+
+#### Dual-group model
+
+For each FT, two groups are created at different slot ranges:
+- **Lump group** (slot 1–9): all instances of one FT in a single group. Named `FT N.1.1`.
+- **Pool groups** (slot 11–19): per-instance groups. Named with instance suffix.
+
+The two ranges are maintained in parallel via `$IntGroupPool` (starts at 11) and the loop counter (starts at 1). This mirrors the MA2 dual-group workflow where the lump group drives intensity and the pool groups drive FT-specific attributes.
+
+#### Create/destroy pair
+
+Macro 16 (`-Create FT_Pools-`) and Macro 1 (`-cleanup macro-`) are designed as a matched bracket pair. Macro 1's delete commands exactly mirror Macro 16's store commands: Groups 1–10 + 11–22, Presets 0.11–0.22, Worlds 11–22. Macro 1 lines 6–7 (`Off Macro 1."::Auto Create Multi-Pool Objects::"`) are safety guards for stopping the create macro if it was running under a different name — they are expected to produce Error #14 in any show where those alternate names don't exist.
+
+#### Self-referencing Goto loop
+
+Macro 16 drives its inner loops via `Go Macro 1."-Create FT_Pools-".N` (1-based line index). The outer FT loop jumps back to line 4 (index 3); the inner instance loop jumps back to line 46 (index 45). This is a purely imperative loop structure — no structured `For/EndFor` construct exists in MA2 macro syntax.
+
+#### Hue-step coloring
+
+The hue step of **51°** divides the 360° color wheel into 7 approximately equal bands (51 × 7 = 357, close to 360). This ensures that 7 distinct FTs receive visually distinct hues. The 8th FT wraps back near 0°. Saturation is intentionally different between lump groups (s=100, vivid) and instance groups (s=60, pastel) to visually distinguish "all of a type" from "a specific instance."
+
+---
+
+### Critical interoperability issues
+
+The following issues were identified during the interoperability audit comparing Macro 16/1 behavior in `19-toronto-2025-09-09-v4` against the target `nomad-main.show.gz` architecture.
+
+#### Hardcoded assumptions (known risks before transfer)
+
+| Assumption | Value | Risk level | Impact if violated |
+|---|---|---|---|
+| FT major starting index | 1 (loop begins at `$fixTypeMajor = 1`) | HIGH | If nomad-main FT majors don't start at 1 or have gaps, wrong fixtures selected per iteration |
+| FT minor index | 1 (`$fixTypeMinor = 1` hardcoded throughout) | HIGH | If any FT uses minor > 1 for the "main" mode, those fixtures will not be selected |
+| Patch address | 1 (`.1` appended to every FT selection) | MEDIUM | If patch starts at ≠ 1 for any FT, those fixtures will not be selected |
+| Group slots | 1–10 (lump) and 11–22 (pool) | HIGH | If nomad-main already uses these slots for non-FT_Pool content, content will be silently overwritten |
+| Preset slots | 0.11–0.22 | HIGH | Same overwrite risk |
+| World slots | 11–22 | HIGH | Same overwrite risk |
+| −2 correction | `AddUserVar $FTiterations = -2` | MEDIUM | Calibrated to 19-toronto architecture (FT1 = system type, skip). If nomad-main has no system FT or more/fewer skip-types, loop count will be off by that delta |
+
+#### FT major contiguity requirement
+
+Macro 16 increments `$fixTypeMajor` by 1 on each outer loop pass (`AddUserVar $fixTypeMajor = $loopFT` where `$loopFT` steps 1, 2, 3…). This requires FT majors to be **contiguous starting from 1**. Any gap (e.g. FT majors 1, 2, 4 with no 3) will cause the loop to attempt `FixtureType 3.1.1 Thru` on an empty slot — which produces zero fixtures for that iteration and a zero-fixture group/preset/world written to that pool slot.
+
+**Mitigation:** Before firing Macro 16 on nomad-main, run `list fixturetype` and confirm the FT table is contiguous from major 1 to N.
+
+#### Preset 0.10 collision (Macro 17)
+
+Macro 17 stores all FT selections into cross-pool preset **0.10** unconditionally on the first FT iteration (`Store Preset 0.10 /o /global`). The `/o` (overwrite) flag provides no warning. If nomad-main already has content at 0.10, it will be silently replaced.
+
+**Mitigation:** `list preset 0.10` before running Macro 17.
+
+#### Pre-flight checklist (before firing Macros 16+1 on nomad-main)
+
+1. `list fixturetype` — confirm FT majors are contiguous 1..N.
+2. `list group 1 thru 10` — confirm lump slots are empty.
+3. `list group 11 thru 22` — confirm pool slots are empty or expendable.
+4. `list preset 0.10` — confirm slot is empty or expendable (for Macro 17).
+5. `list preset 0.11 thru 0.22` — confirm cross-pool preset slots are empty.
+6. `list world 11 thru 22` — confirm world slots are empty.
+
+If any check reveals occupied slots that must be preserved, relocate them first or adjust macro start indices (requires macro edit).
+
+#### Capacity bounds
+
+With start slot 11 and the slot increment of +1 per FT, the macro can handle at most **11 FTs** before the pool group slots reach 22 (the apparent upper bound of the Delete range in Macro 1). On `19-toronto-v4`, 7 FT iterations were observed, well within this bound. `nomad-main.show.gz` (5.0 MB vs 25.4 MB for 19-toronto-v4) is a smaller show — fewer FTs are likely.
+
+---
+
+### Nomad-main compatibility assessment
+
+Based on the interoperability audit:
+
+| Criterion | Assessment |
+|---|---|
+| Show complexity | nomad-main is ~5 MB vs 25.4 MB for 19-toronto — likely ≤ 5 FTs, well within slot capacity |
+| FT architecture | Unknown until `list fixturetype` is run — must verify contiguity |
+| Slot collision (groups 1–22) | Unknown — must verify via pre-flight checklist |
+| Slot collision (presets 0.10–0.22) | Unknown — must verify |
+| Slot collision (worlds 11–22) | Unknown — must verify |
+| −2 correction calibration | Potentially wrong for nomad-main architecture — verify FT1 is a skip-type or adjust |
+
+**Overall verdict:** Transfer of XML files is low-risk and already planned (Section 11 of the plan). Firing Macro 16 on nomad-main requires completing the 6-step pre-flight checklist above before execution.

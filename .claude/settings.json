@@ -29,7 +29,9 @@
       "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree main:src/private/)",
       "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree origin/remote-main:src/private/)",
       "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree origin/claude/compare-repo-commits-Kp8rt:src/private/)",
-      "Bash(awk '/^async def export_objects/,/^async def import_objects/')"
+      "Bash(awk '/^async def export_objects/,/^async def import_objects/')",
+      "Bash(grep -E \"\\\\.py$\")",
+      "Bash(grep \"\\\\.py$\")"
     ]
   },
   "hooks": {
