@@ -63,45 +63,45 @@
 			<text>Store Group $cg /o</text>
 			<info>LUMP: store pool group from FixtureType Thru selection (all instances)</info>
 		</Macroline>
-		<Macroline index="15" delay="0.06">
-			<text>Attribute 1 Thru At Release</text>
-			<info>LUMP: release all attributes so preset captures full attribute surface</info>
+		<Macroline index="15" delay="0.15">
+			<text>Attribute 1 Thru At Release ; Store Preset 0.$cp /o</text>
+			<info>LUMP PT 0 ALL: release attrs + store full-surface selective preset in one line</info>
 		</Macroline>
-		<Macroline index="16" delay="0.15">
-			<text>Store Preset 0.$cp /universal /o</text>
-			<info>LUMP PT 0 ALL: cross-feature universal preset</info>
+		<Macroline index="16" delay="0.20">
+			<text>ClearAll ; Preset 0.$cp</text>
+			<info>LUMP: recall PT 0 ALL so PT 1-7 draw from same fixture population (MA2 auto-filters by PT on store)</info>
 		</Macroline>
 		<Macroline index="17" delay="0.15">
-			<text>Store Preset 1.$cp /universal /o</text>
+			<text>Store Preset 1.$cp /o</text>
 			<info>LUMP PT 1 DIMMER</info>
 		</Macroline>
 		<Macroline index="18" delay="0.15">
-			<text>Store Preset 2.$cp /universal /o</text>
+			<text>Store Preset 2.$cp /o</text>
 			<info>LUMP PT 2 POSITION</info>
 		</Macroline>
 		<Macroline index="19" delay="0.15">
-			<text>Store Preset 3.$cp /universal /o</text>
+			<text>Store Preset 3.$cp /o</text>
 			<info>LUMP PT 3 GOBO</info>
 		</Macroline>
 		<Macroline index="20" delay="0.15">
-			<text>Store Preset 4.$cp /universal /o</text>
+			<text>Store Preset 4.$cp /o</text>
 			<info>LUMP PT 4 COLOR</info>
 		</Macroline>
 		<Macroline index="21" delay="0.15">
-			<text>Store Preset 5.$cp /universal /o</text>
+			<text>Store Preset 5.$cp /o</text>
 			<info>LUMP PT 5 BEAM</info>
 		</Macroline>
 		<Macroline index="22" delay="0.15">
-			<text>Store Preset 6.$cp /universal /o</text>
+			<text>Store Preset 6.$cp /o</text>
 			<info>LUMP PT 6 FOCUS</info>
 		</Macroline>
 		<Macroline index="23" delay="0.15">
-			<text>Store Preset 7.$cp /universal /o</text>
+			<text>Store Preset 7.$cp /o</text>
 			<info>LUMP PT 7 CONTROL</info>
 		</Macroline>
 		<Macroline index="24" delay="0.10">
-			<text>ClearAll ; Preset 0.$cp ; Store Group $fg /o</text>
-			<info>LUMP: FT group from PT 0 preset recall (expands full physical fixture count into programmer)</info>
+			<text>Store Group $fg /o</text>
+			<info>LUMP: FT group from recalled programmer (PT 0 recalled at index 16 -- same full fixture population)</info>
 		</Macroline>
 		<Macroline index="25" delay="0.15">
 			<text>Attribute 1 Thru At Release ; Store World $cw /o</text>
@@ -224,8 +224,8 @@
 			<info>INSTANCE: store pool group from single-instance FixtureType selection</info>
 		</Macroline>
 		<Macroline index="55" delay="0.15">
-			<text>Attribute 1 Thru At Release ; Store Preset 0.$ip /universal /o</text>
-			<info>INSTANCE: release attrs + store PT 0 ALL universal preset</info>
+			<text>Attribute 1 Thru At Release ; Store Preset 0.$ip /o</text>
+			<info>INSTANCE: release attrs + store PT 0 ALL selective preset</info>
 		</Macroline>
 		<Macroline index="56" delay="0.20">
 			<text>ClearAll ; Preset 0.$ip ; Store Group $ifg /o</text>
