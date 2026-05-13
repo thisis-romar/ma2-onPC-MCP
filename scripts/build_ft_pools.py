@@ -699,21 +699,22 @@ async def build_ft_pools(
                     inst, inst_ft_grp, inst_pool_grp, inst_pslot, inst_wslot,
                 )
 
-                # Per-instance pool group + FT group from DIRECT FixtureType selection.
-                # (Preset recall path gives physCount=0 in MAtricks merge because
-                # universal preset expands to all matching fixtures, not just this
-                # instance.  Direct selection mirrors Macro 16's approach.)
+                # Mirrors Macro 16 lines 191→247:
+                #   FixtureType N.1.inst (NO Thru) selects this instance only.
+                #   Per-instance preset stored from that selection.
+                #   Per-instance FT group stored from PRESET RECALL — not from
+                #   FixtureType selection — so SelFix on the group later yields
+                #   real fixture IDs and correct $SELECTEDFIXTURESCOUNT.
                 await _cmd(c, "ClearAll", dry_run)
-                await _cmd(c, f"FixtureType {ft.major}.1.{inst} Thru", dry_run, delay=0.20)
+                await _cmd(c, f"FixtureType {ft.major}.1.{inst}", dry_run, delay=0.20)
                 await _cmd(c, f"Store Group {inst_pool_grp} /o", dry_run)
-                await _cmd(c, f"Store Group {inst_ft_grp} /o", dry_run)
-                # PT 0 universal preset stored from same selection
                 await _cmd(c, "Attribute 1 Thru At Release", dry_run)
                 await _cmd(c, f"Store Preset 0.{inst_pslot} /universal /o", dry_run, delay=0.15)
 
-                # World via preset recall for correct subfixture expansion
+                # FT group + World from per-instance preset recall
                 await _cmd(c, "ClearAll", dry_run)
                 await _cmd(c, f"Preset 0.{inst_pslot}", dry_run, delay=0.20)
+                await _cmd(c, f"Store Group {inst_ft_grp} /o", dry_run)
                 await _cmd(c, "Attribute 1 Thru At Release", dry_run)
                 await _cmd(c, f"Store World {inst_wslot} /o", dry_run, delay=0.15)
 
@@ -869,7 +870,6 @@ async def main() -> None:
         for _attempt in range(3):
             try:
                 async with GMA2TelnetClient(GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD) as c:
-                    await c.send_command_with_response("BlindEdit On", timeout=5.0)
                     result = await build_ft_pools(
                         c,
                         fts,
@@ -882,7 +882,6 @@ async def main() -> None:
                         attr_world_base=args.attr_world_base,
                         dry_run=False,
                     )
-                    await c.send_command_with_response("BlindEdit Off", timeout=5.0)
                 break  # success — exit retry loop
             except ConnectionError as exc:
                 log.warning("Connection 3 attempt %d failed: %s", _attempt + 1, exc)
