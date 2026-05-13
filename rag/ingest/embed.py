@@ -515,7 +515,7 @@ class GeminiProvider(EmbeddingProvider):
         }
 
     def _request_single_with_retry(
-        self, text: str, max_retries: int = 5
+        self, text: str, max_retries: int = 8
     ) -> httpx.Response:
         """POST single embedContent request with retry/backoff."""
         url = f"/models/{self._model}:embedContent"
@@ -523,7 +523,7 @@ class GeminiProvider(EmbeddingProvider):
         return self._do_request(url, payload, max_retries)
 
     def _request_batch_with_retry(
-        self, batch: list[str], max_retries: int = 5
+        self, batch: list[str], max_retries: int = 8
     ) -> httpx.Response:
         """POST batchEmbedContents request with retry/backoff."""
         url = f"/models/{self._model}:batchEmbedContents"
