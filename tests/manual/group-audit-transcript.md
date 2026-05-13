@@ -1,9 +1,9 @@
 ---
 title: Group Audit Transcript — nomad22-may11 + 19-toronto-v4
 description: Chronological log of group audit, camera-safety pre-flight, and Macro 16/17 dependency analysis
-version: 1.4.0
+version: 1.5.0
 created: 2026-05-11T16:44:00Z
-last_updated: 2026-05-13T02:37:32Z
+last_updated: 2026-05-13T19:16:06Z
 ---
 
 # Group Audit Transcript — `nomad22-may11.show.gz`
@@ -616,3 +616,192 @@ Based on the interoperability audit:
 | −2 correction calibration | Potentially wrong for nomad-main architecture — verify FT1 is a skip-type or adjust |
 
 **Overall verdict:** Transfer of XML files is low-risk and already planned (Section 11 of the plan). Firing Macro 16 on nomad-main requires completing the 6-step pre-flight checklist above before execution.
+
+---
+
+### 6.D  Macro 16 re-fire — canonical multi-instance reference (2026-05-13)
+
+> Added 2026-05-13. Re-fire of the original Macro 16 on show `19-toronto-v4-pre-refire` after cleanup via Macro 21. Purpose: capture a canonical Telnet stream for Python port validation. Python port committed as `4e1828d` (`scripts/build_ft_pools.py`).
+
+**Header block:**
+
+| Field | Value |
+|---|---|
+| Show | `19-toronto-v4-pre-refire` |
+| Macro fired | `-Create FT_Pools-` (Macro 16, 103 macrolines) |
+| Cleanup macro | Macro 21 (`-Delete FT_Pools v12-`, 22 lines, 36 output lines) fired first |
+| Build log | `c:\tmp\macro16-refire\build-feedback.log` (599 lines) |
+| Cleanup log | `c:\tmp\macro16-refire\cleanup-feedback.log` (36 lines) |
+
+---
+
+#### Cleanup run (Macro 21, pre-build)
+
+Macro 21 is the v12 delete macro. Key differences from Macro 1 used in 6.C: uses `/noconfirm`, covers a wider slot range (`$maxFTscan=30` → deletes Groups 1–30 + 11–40, Presets 0–7.11–40, Worlds 11–40), and wraps all destructive work in `BlindEdit On/Off`.
+
+Notable: `Delete Group 11 Thru 40` fired but returned `WARNING, NO OBJECTS FOUND FOR DELETE` — confirming the pool group range was already clear at run time. All other deletes executed silently (no errors = objects found and deleted).
+
+---
+
+#### FT inventory (from build log — `$instanceCount` per `FixtureType N.1.1 Thru`)
+
+| FT major | `instanceCount` | Lump group | Pool group(s) | Preset(s) | World(s) | Fixture count in world |
+|---|---|---|---|---|---|---|
+| 1 | 1 | Group 1 | Group 11 | 0.11 | World 11 | 46 |
+| 2 | 1 | Group 2 | Group 12 | 0.12 | World 12 | 1 |
+| 3 | 1 | Group 3 | Group 13 | 0.13 | World 13 | 6 |
+| 4 | 2 | Group 4 (lump) | Groups 14 (pool-lump), 15 (inst1), 16 (inst2) | 0.14, 0.15, 0.16 | Worlds 14 (lump), 15 (inst1), 16 (inst2) | 28 (lump), 4 (inst1), 24 (inst2) |
+| 5 | 1 | Group 7 | Group 17 | 0.17 | World 17 | 6 |
+| 6 | 1 | Group 8 | Group 18 | 0.18 | World 18 | 4 |
+| 7 | 1 | Group 9 | Group 19 | 0.19 | World 19 | 1 |
+
+`$instanceCount` is set from `$SELECTEDFIXTURESCOUNT` immediately after `FixtureType N.1.1 Thru` — it counts physical instances (sub-rig splits), not total fixture count. FT4 has 2 physical instances; all others have 1.
+
+---
+
+#### Single-instance pattern (FT 1, log lines 15–51)
+
+Representative command sequence for any single-instance FT (hue=0° shown; hue increments by 51° each FT):
+
+```
+FixtureType 1.1.1 Thru               ← probe: $instanceCount = "1"
+Store Group 11 /o                     ← pool group (slot 11)
+Attribute 1 Thru At Release
+Store Preset 0.11 /o                  ← cross-pool preset
+ClearAll ; Preset 0.11                ← recall preset to populate programmer
+Store Group 1 /o                      ← lump group (slot 1)
+Attribute 1 Thru At Release
+Store World 11 /o                     ← world (slot 11), fixture count = 46
+Appearance Group 11 /h=0 /s=100 /br=100
+Appearance Group 1  /h=0 /s=100 /br=100
+Appearance Preset 0.11 /h=0 /s=100 /br=100
+Appearance World 11  /h=0 /s=100 /br=100
+ClearAll
+Label Group 1  "FT 1.1.1" /o
+Label Preset 0.11 "FT 1.1.1" /o
+Label World 11  "FT 1.1.1" /o
+```
+
+Because `instanceCount == 1`, the macro takes the single-instance branch (line 27 → line 29) and skips the inner instance loop. The lump group and pool group receive identical labels `"FT N.1.1"`.
+
+---
+
+#### Multi-instance pattern (FT 4, `instanceCount=2`, log lines 129–479)
+
+FT 4 is the only multi-instance FT in this show. Full sequence:
+
+**Phase 1 — lump objects (store before instance loop):**
+
+```
+FixtureType 4.1.1 Thru               ← probe: $instanceCount = "2"
+Store Group 14 /o                     ← pool-lump group (slot 14)
+Attribute 1 Thru At Release
+Store Preset 0.14 /o                  ← cross-pool lump preset
+ClearAll ; Preset 0.14
+Store Group 4 /o                      ← lump group (slot 4)
+Attribute 1 Thru At Release
+Store World 14 /o                     ← lump world (28 fixtures)
+Appearance Group 14 /h=153 /s=100 /br=100
+Appearance Group 4  /h=153 /s=100 /br=100
+Appearance Preset 0.14 /h=153 /s=100 /br=100
+Appearance World 14  /h=153 /s=100 /br=100
+ClearAll
+Label Group 4  "FT 4.1.0" /o         ← lump label uses .1.0 suffix
+Label Preset 0.14 "FT 4.1.0" /o
+Label World 14  "FT 4.1.0" /o
+Label Group 14  "FT 4.1.0" /o
+```
+
+**Phase 2 — instance loop (inst1 = patch 1, inst2 = patch 2):**
+
+```
+-- inst1 (fixTypePatch=1) --
+FixtureType 4.1.1
+Store Group 15 /o
+Attribute 1 Thru At Release
+Store Preset 0.15 /o
+Label Preset 0.15 "FT 4.1.1" /o
+ClearAll ; Preset 0.15
+Store Group 5 /o
+Attribute 1 Thru At Release
+Store World 15 /o                     ← inst1 world (4 fixtures)
+Label World 15  "FT 4.1.1" /o
+Label Group 5   "FT 4.1.1" /o
+Appearance Group 15 /h=153 /s=60 /br=100
+Appearance Group 5  /h=153 /s=60 /br=100
+Appearance Preset 0.15 /h=153 /s=60 /br=100
+Appearance World 15  /h=153 /s=60 /br=100
+
+-- inst2 (fixTypePatch=2) --
+FixtureType 4.1.2
+Store Group 16 /o
+Attribute 1 Thru At Release
+Store Preset 0.16 /o
+Label Preset 0.16 "FT 4.1.2" /o
+ClearAll ; Preset 0.16
+Store Group 6 /o
+Attribute 1 Thru At Release
+Store World 16 /o                     ← inst2 world (24 fixtures)
+Label World 16  "FT 4.1.2" /o
+Label Group 6   "FT 4.1.2" /o
+Appearance Group 16 /h=153 /s=60 /br=100
+Appearance Group 6  /h=153 /s=60 /br=100
+Appearance Preset 0.16 /h=153 /s=60 /br=100
+Appearance World 16  /h=153 /s=60 /br=100
+```
+
+**Phase 3 — MAtricks merge loop (`physCount=4`, `inst2Total=24`, `subsPerPhys=6`):**
+
+The merge loop rebuilds the lump group (Group 4) by iterating over each physical body. `physCount` is read from `$SELECTEDFIXTURESCOUNT` after `SelFix Group 5` (inst1 group). `inst2Total` comes from `SelFix Group 6` (inst2 group). `subsPerPhys = inst2Total / physCount = 24 / 4 = 6`.
+
+```
+-- physLoop 0 (first physical body) --
+ClearAll ; SelFix Group 5 ; MAtricksReset ; MAtricksBlocks 1
+Next                                  ← walk inst1 to physical body 0
+Store Group 4 /o                      ← first physical: overwrite
+
+ClearAll ; SelFix Group 6 ; MAtricksReset ; MAtricksBlocks 6
+Next                                  ← walk inst2 to physical body 0
+Store Group 4 /merge
+
+MAtricksReset ; ClearAll ; $physLoop += 1
+
+-- physLoop 1..3 (remaining physical bodies) --
+[same pattern but Store Group 4 /merge for inst1 also]
+MAtricksBlocks 1  → Next × (physLoop+1) to reach body physLoop
+Store Group 4 /merge
+
+MAtricksBlocks 6  → Next × (physLoop+1) to reach body physLoop
+Store Group 4 /merge
+```
+
+The `Next` counter increases by 1 each physLoop iteration — physLoop 0 calls `Next` once, physLoop 1 calls it twice, etc. This is MA2's only mechanism for indexed MAtricks traversal (no direct index addressing).
+
+---
+
+#### Key findings
+
+1. **World store via preset recall, not FixtureType:** The canonical pattern is `ClearAll ; Preset 0.N ; Store World N /o`. This expands all physical fixtures of the FT into the programmer (46, 1, 6, 28, 6, 4, 1 for FTs 1–7). Using `FixtureType N.1.1 Thru` followed immediately by `Store World` gives only 1 fixture instance — wrong for worlds.
+
+2. **`$instanceCount` semantics:** `FixtureType N.1.1 Thru` followed by `SetUserVar $instanceCount = $SELECTEDFIXTURESCOUNT` returns the number of physical instances (sub-rig splits in the patch), not the total fixture count. FT4 returns 2; all others return 1 in this show.
+
+3. **Multi-instance label convention:** The lump group/preset/world for a multi-instance FT uses the `.1.0` suffix (`"FT N.1.0"`), not `.1.1`. Per-instance objects use `.1.1`, `.1.2`, etc.
+
+4. **MAtricks merge — `physCount` from inst1 group, not FT selection:** `physCount = $SELECTEDFIXTURESCOUNT` is read after `SelFix Group $firstInstFTGroup` (the inst1 lump group), not from the FT selection. For FT4 this yields physCount=4 (4 physical bodies each contributing sub-fixtures to inst1).
+
+5. **No `$SELECTEDFIXTURESCOUNT` from `FixtureType` for world counts:** The world fixture counts (46/1/6/28) are produced by the preset recall path, not by FixtureType selection.
+
+---
+
+#### Python port verification (`scripts/build_ft_pools.py`, commit `4e1828d`)
+
+| Check | Result |
+|---|---|
+| World fixture counts match canonical | FTs 1–7: 46 / 1 / 6 / 28 / 6 / 4 / 1 — verified |
+| FT4 group slots | Group 4 (lump), 5 (inst1), 6 (inst2) — correct |
+| FT4 pool group slots | Group 14 (pool-lump), 15 (inst1), 16 (inst2) — correct |
+| FT4 world fixture counts | World 14 = 28 (lump), World 15 = 4 (inst1), World 16 = 24 (inst2) — correct |
+| MAtricks merge phys params | physCount=4, inst2Total=24, subsPerPhys=6 — matches log |
+| Single-instance label | `"FT N.1.1"` on lump and pool group — correct |
+| Multi-instance lump label | `"FT N.1.0"` — correct |
+| Appearance saturation | Lump s=100 (vivid), instance s=60 (pastel) — correct |
