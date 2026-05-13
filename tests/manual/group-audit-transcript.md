@@ -1,9 +1,9 @@
 ---
 title: Group Audit Transcript — nomad22-may11 + 19-toronto-v4
 description: Chronological log of group audit, camera-safety pre-flight, and Macro 16/17 dependency analysis
-version: 1.2.0
+version: 1.3.0
 created: 2026-05-11T16:44:00Z
-last_updated: 2026-05-11T19:55:00Z
+last_updated: 2026-05-13T00:41:00Z
 ---
 
 # Group Audit Transcript — `nomad22-may11.show.gz`
@@ -369,3 +369,86 @@ Both macros iterate over fixture types. They **require** all fixture types to be
 #### Group 99 — retraction
 
 An earlier assertion that "Group 99 = Live Test Group" was carried forward from a prior session without a fresh `info group 99` to confirm it. **That claim is retracted.** Group 99's actual state in this show is unconfirmed and must be verified via `info group 99` before being relied upon.
+
+---
+
+### 6.B — Decision Matrix: Run / Edit / Skip
+
+> Added 2026-05-13. Based on Section 6.A reconstruction + RAG-assisted syntax classification.
+> Console state cross-check limited to what was captured in Sections 1–5 (live `list`/`info` queries from 2026-05-11). No additional live queries were issued for this section.
+
+#### Prerequisite: save a named backup
+
+Before running either macro:
+
+```
+SaveShow "nomad-main-pre-ft-pools"
+```
+
+This is mandatory. Both macros issue `Store … /o` commands that silently overwrite pool content with no undo path.
+
+---
+
+#### Macro 16 — `-Create FT_Pools-`: line classification
+
+| Action category | MA2 command form | Risk tier | Classification | Condition |
+|---|---|---|---|---|
+| Variable setup | `SetVar $X 0`, `AddVar $Y 1` | SAFE_WRITE | **run** | No pool state change |
+| FT selection | `SelFix $M.$N.1`, `SelFix $M.$N.$K` | SAFE_READ | **run** | Read-only selection |
+| Loop control | `Goto "-Create FT_Pools-".N` | SAFE_WRITE | **run** | Internal self-goto |
+| Count read | `SetVar $instanceCount $SELECTEDFIXTURESCOUNT` | SAFE_READ | **run** | Read system var, no write |
+| **Store group (overwrite)** | `Store Group $currentGroup /o` | DESTRUCTIVE | **run after SaveShow** | Overwrites groups 11+; current groups 11–19 have `[Preset]` suffix labels that will be replaced |
+| **Store cross-pool preset (overwrite)** | `Store Preset 0.$currentPreset /o` | DESTRUCTIVE | **run after SaveShow** | Overwrites pool-0 presets at slots 11+ |
+| **Store FT-scoped preset (overwrite)** | `Store Preset $currentPreset /o` | DESTRUCTIVE | **run after SaveShow** | Overwrites FT-scoped preset pool at slots 11+ |
+| Appearance | `Appearance Group/Preset $id /h=H /s=S /br=B` | SAFE_WRITE | **run** | Cosmetic color only; HSB 0–100 scale confirmed |
+| Label | `Label Group/Preset $id "$name"` | SAFE_WRITE | **run** | Cosmetic only |
+
+**Verdict for Macro 16: RUN — after `SaveShow`.**
+
+Caveats:
+1. Groups 11–19 will be regenerated. The `[Preset]` suffix on existing labels will be replaced with `"FT N.M.K"` / `"FT N.1.1"`.
+2. Cross-pool presets (pool 0) at slots 11+ will be overwritten. Verify nothing important occupies those slots in the target show.
+3. All patched fixture types are processed without a world-filter guard. If any FT should be excluded (e.g. a hazard-class FT), you must either unpatch it before running or manually delete its generated group/preset afterward.
+4. Slot numbering starts at 11 (`$IntGroupPool = 11`). If the target show has more FTs than slots allow (>~90 FTs), slot arithmetic could overflow — unlikely for nomad-main.
+
+---
+
+#### Macro 17 — `Global ALL Preset`: line classification
+
+| Action category | MA2 command form | Risk tier | Classification | Condition |
+|---|---|---|---|---|
+| Variable setup | `SetVar $isFirst 1`, `SetVar $loopFT 0` | SAFE_WRITE | **run** | — |
+| FT selection | `SelFix $fixTypeMajor.1.1` | SAFE_READ | **run** | — |
+| **Store preset (first FT, overwrite)** | `Store Preset 0.10 /o /global` | DESTRUCTIVE | **run after checking slot 10** | Overwrites cross-pool preset 0.10 unconditionally; verify target show has nothing critical there |
+| **Store preset (subsequent FTs, merge)** | `Store Preset 0.10 /merge /global` | DESTRUCTIVE | **run** | Merges all FTs into the same preset — expected behavior |
+| Loop control | `Goto "Global ALL Preset".5` | SAFE_WRITE | **run** | Internal self-goto |
+| Label | `Label Preset 0.10 "Global ALL (FT2+)" /o` | SAFE_WRITE | **run** | Cosmetic |
+
+**Verdict for Macro 17: RUN — after confirming cross-pool preset 0.10 is empty or expendable.**
+
+Caveats:
+1. Preset `0.10` in the **target show** must be checked before running. In the audit show (`nomad22-may11`), preset 0.10 was not listed among the known presets, so it is likely empty — but this was not confirmed by a direct `info preset 0.10` call.
+2. Macro 17 depends implicitly on the fixture-type loop established by Macro 16's context. Run Macro 16 first.
+
+---
+
+#### Transfer procedure (Macros 16 + 17 → `nomad-main.show.gz`)
+
+1. **Confirm target show is loaded.** `list showfile` or check `$SHOWFILE` variable.
+2. **Save backup:** `SaveShow "nomad-main-pre-ft-pools"`.
+3. **Check slot 0.10:** `list preset 0.10` — confirm empty or expendable.
+4. **Check groups 11–19:** `list group 11 thru 19` — document what will be overwritten.
+5. **Load macros** if not already present. Macros 16 and 17 must be in the macro pool of the loaded show. If transferring from `19-toronto-v4`, use PSR macro import (see Skill `psr-show-migration`).
+6. **Run Macro 16:** `Call Macro 16`. Monitor telnet output for errors. Expected runtime: ~5–15 s depending on FT count.
+7. **Run Macro 17:** `Call Macro 17`. Expected runtime: <5 s.
+8. **Verify:** `list group 11 thru 20`, `list preset 0.10`, `list preset 0.11 thru 20`. Check labels match expected `FT N.M.K` pattern.
+9. **Save:** `SaveShow "nomad-main-ft-pools"`.
+
+---
+
+#### Final run/skip summary
+
+| Macro | Verdict | Pre-condition |
+|---|---|---|
+| 16 — `-Create FT_Pools-` | **RUN** | `SaveShow` first; accept group 11–19 regeneration |
+| 17 — `Global ALL Preset` | **RUN** | Confirm `0.10` is empty/expendable; run after Macro 16 |
