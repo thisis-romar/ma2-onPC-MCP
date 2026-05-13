@@ -1,0 +1,74 @@
+{
+  "19-toronto-v4-pre-buildftp": {
+    "1": {
+      "DIM": false,
+      "PAN": false,
+      "TILT": false,
+      "COLORRGB1": false,
+      "COLORRGB2": false,
+      "COLORRGB3": false,
+      "COLORRGB5": false
+    },
+    "2": {
+      "DIM": true
+    },
+    "3": {
+      "PAN": true,
+      "TILT": true,
+      "DIM": true,
+      "COLORRGB1": true,
+      "COLORRGB2": true,
+      "COLORRGB3": true,
+      "COLORRGB4": true,
+      "COLORRGB5": true,
+      "COLORMIXER": true,
+      "ZOOM": true,
+      "FOCUS": true,
+      "SHUTTER": true,
+      "IRIS": true,
+      "DUMMY": true,
+      "FIXTUREGLOBALRESET": true
+    },
+    "4": {
+      "DIM": true,
+      "COLORMIXER": true,
+      "EFFECTMACROS": true,
+      "INTENSITYMSPEED": true
+    },
+    "5": {
+      "PAN": true,
+      "TILT": true,
+      "COLORRGB1": true,
+      "COLORRGB2": true,
+      "COLORRGB3": true,
+      "GOBO1": true,
+      "GOBO2": true,
+      "PRISMA1": true,
+      "FOCUS": true,
+      "ZOOM": true,
+      "SHUTTER": true,
+      "DIM": true,
+      "IRIS": true,
+      "FROST": true,
+      "DUMMY": true,
+      "FIXTUREGLOBALRESET": true
+    },
+    "6": {
+      "PAN": true,
+      "TILT": true,
+      "DIM": true,
+      "SHUTTER": true,
+      "COLOR1": true,
+      "GOBO1": true,
+      "PRISMA1": true,
+      "DUMMY": true,
+      "FIXTUREGLOBALRESET": true
+    },
+    "7": {
+      "DIM": true,
+      "BYPASS": true,
+      "CLEAR": true,
+      "CROSSFADER": true
+    }
+  }
+}

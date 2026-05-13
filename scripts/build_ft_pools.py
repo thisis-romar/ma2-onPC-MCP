@@ -65,7 +65,12 @@ GMA_USER = dotenv.get_key(".env", "GMA_USER") or "administrator"
 GMA_PASSWORD = dotenv.get_key(".env", "GMA_PASSWORD") or ""
 
 LASTRUN_PATH = Path(__file__).parent / "build_ft_pools.lastrun.json"
+ATTRS_CACHE_PATH = Path(__file__).parent / "ft_attrs_cache.json"
 MAX_FT_SCAN = 30
+
+# Max FTs to navigate via cd EditSetup per Telnet connection.
+# MA2 kills the listener after ~3-4 navigations; 2 is safe.
+_EDITSETUP_BATCH_SIZE = 2
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -239,28 +244,118 @@ async def _get_ft_attributes(c: GMA2TelnetClient, major: int, dry_run: bool) -> 
     return attrs
 
 
+def _load_attrs_cache(show_name: str) -> dict[int, dict[str, bool]] | None:
+    """Return cached attribute dict for this show, or None on miss/error."""
+    if not ATTRS_CACHE_PATH.exists():
+        return None
+    try:
+        data = json.loads(ATTRS_CACHE_PATH.read_text())
+        entry = data.get(show_name)
+        if entry is None:
+            return None
+        # Stored as {str(major): {attr: is_physical}} — convert keys to int
+        return {int(k): {a: bool(v) for a, v in attrs.items()} for k, attrs in entry.items()}
+    except Exception as exc:
+        log.warning("Attrs cache read error: %s", exc)
+        return None
+
+
+def _save_attrs_cache(show_name: str, attrs_by_major: dict[int, dict[str, bool]]) -> None:
+    """Merge new entries into the cache file under show_name."""
+    try:
+        data: dict = {}
+        if ATTRS_CACHE_PATH.exists():
+            try:
+                data = json.loads(ATTRS_CACHE_PATH.read_text())
+            except Exception:
+                pass
+        # Convert int keys to str for JSON serialisation
+        data[show_name] = {str(k): v for k, v in attrs_by_major.items()}
+        ATTRS_CACHE_PATH.write_text(json.dumps(data, indent=2))
+        log.info("Attrs cache saved for show '%s' (%d FTs)", show_name, len(attrs_by_major))
+    except Exception as exc:
+        log.warning("Attrs cache write error: %s", exc)
+
+
 async def discover_all_ft_attributes(
     host: str, port: int, user: str, password: str,
     ft_majors: list[int],
+    show_name: str = "",
 ) -> dict[int, dict[str, bool]]:
-    """Open a dedicated connection just for attribute discovery, then close it.
+    """Return attribute dicts for all active FT majors.
 
-    Isolates the cd EditSetup navigation from the programmer-active build
-    connection so MA2 doesn't forcibly drop the Telnet session mid-build.
+    Cache-first: if ft_attrs_cache.json has an entry keyed by show_name
+    that covers all requested majors, return it immediately with zero
+    Telnet activity.
+
+    On cache miss: navigate cd EditSetup in batches of _EDITSETUP_BATCH_SIZE
+    FTs per connection to avoid killing the MA2 Telnet listener (~3-4
+    navigations is the threshold at which MA2 drops/kills the session).
+    Opens a fresh connection per batch, waits 4s between batches.
+    Results are merged into the cache after each batch.
     """
     result: dict[int, dict[str, bool]] = {}
-    log.info("Attribute discovery: opening dedicated connection for %d FTs ...", len(ft_majors))
-    try:
-        async with GMA2TelnetClient(host, port, user, password) as c:
-            for major in ft_majors:
-                attrs = await _get_ft_attributes(c, major, dry_run=False)
-                result[major] = attrs
-                log.info("  FT %d attrs: %s", major,
-                         {k: v for k, v in attrs.items()} or "(none)")
-    except Exception as exc:
-        log.warning("Attribute discovery connection failed: %s — proceeding without attrs", exc)
-    log.info("Attribute discovery complete (%d/%d FTs got attrs)",
-             sum(1 for v in result.values() if v), len(ft_majors))
+
+    # --- Cache check ---------------------------------------------------
+    if show_name:
+        cached = _load_attrs_cache(show_name)
+        if cached is not None and all(m in cached for m in ft_majors):
+            log.info("Attr cache HIT for show '%s' — skipping cd EditSetup entirely", show_name)
+            return {m: cached[m] for m in ft_majors}
+        if cached:
+            # Partial hit — take what we have, discover the rest
+            for m in ft_majors:
+                if m in cached:
+                    result[m] = cached[m]
+                    log.info("  FT %d: from cache", m)
+            ft_majors = [m for m in ft_majors if m not in result]
+            log.info("Attr cache partial hit: %d FTs cached, %d need discovery", len(result), len(ft_majors))
+        else:
+            log.info("Attr cache MISS for show '%s' — running cd EditSetup in batches", show_name)
+    else:
+        log.info("No show name supplied — running cd EditSetup (no cache key)")
+
+    if not ft_majors:
+        return result
+
+    # --- Batched cd EditSetup discovery --------------------------------
+    batches = [
+        ft_majors[i : i + _EDITSETUP_BATCH_SIZE]
+        for i in range(0, len(ft_majors), _EDITSETUP_BATCH_SIZE)
+    ]
+    log.info(
+        "Attribute discovery: %d FTs → %d batch(es) of ≤%d (dedicated connections)",
+        len(ft_majors), len(batches), _EDITSETUP_BATCH_SIZE,
+    )
+
+    for batch_idx, batch in enumerate(batches):
+        if batch_idx > 0:
+            log.info("  Waiting 4s before next batch ...")
+            await asyncio.sleep(4.0)
+        log.info("  Batch %d/%d — FTs %s", batch_idx + 1, len(batches), batch)
+        try:
+            async with GMA2TelnetClient(host, port, user, password) as c:
+                for major in batch:
+                    attrs = await _get_ft_attributes(c, major, dry_run=False)
+                    result[major] = attrs
+                    log.info("    FT %d attrs: %s", major, attrs or "(none)")
+        except Exception as exc:
+            log.warning("Batch %d connection failed: %s — FTs %s get empty attrs", batch_idx + 1, exc, batch)
+            for major in batch:
+                if major not in result:
+                    result[major] = {}
+
+        # Persist partial results after each batch so a crash mid-run
+        # doesn't lose work already done.
+        if show_name:
+            all_so_far = (_load_attrs_cache(show_name) or {})
+            all_so_far.update({m: result[m] for m in batch if m in result})
+            _save_attrs_cache(show_name, all_so_far)
+
+    log.info(
+        "Attribute discovery complete (%d/%d FTs got attrs)",
+        sum(1 for v in result.values() if v), len(ft_majors) + len([m for m in result if m not in ft_majors]),
+    )
     return result
 
 
@@ -310,13 +405,17 @@ async def _matricks_merge_lump(
     """
     # Get physCount from instance-1 group fixture count
     await _cmd(c, "ClearAll", dry_run, delay=0.10)
-    await _cmd(c, f"SelFix Group {ft_inst1_grp}", dry_run, delay=0.12)
+    await _cmd(c, f"SelFix Group {ft_inst1_grp}", dry_run, delay=0.30)
+    if not dry_run:
+        await asyncio.sleep(0.20)   # let SELECTEDFIXTURESCOUNT update
     phys_count = await _selected_count(c) if not dry_run else 4
     log.info("    merge: inst1 group %d → physCount=%d", ft_inst1_grp, phys_count)
 
     # Get inst2Total from instance-2 group fixture count
     await _cmd(c, "ClearAll", dry_run, delay=0.10)
-    await _cmd(c, f"SelFix Group {ft_inst2_grp}", dry_run, delay=0.12)
+    await _cmd(c, f"SelFix Group {ft_inst2_grp}", dry_run, delay=0.30)
+    if not dry_run:
+        await asyncio.sleep(0.20)
     inst2_total = await _selected_count(c) if not dry_run else 24
     subs_per_phys = max(1, inst2_total // phys_count) if phys_count > 0 else 1
     log.info("    merge: inst2 group %d → inst2Total=%d subsPerPhys=%d",
@@ -600,17 +699,21 @@ async def build_ft_pools(
                     inst, inst_ft_grp, inst_pool_grp, inst_pslot, inst_wslot,
                 )
 
-                # Per-instance pool group + PT 0 preset (from single-instance FixtureType)
+                # Per-instance pool group + FT group from DIRECT FixtureType selection.
+                # (Preset recall path gives physCount=0 in MAtricks merge because
+                # universal preset expands to all matching fixtures, not just this
+                # instance.  Direct selection mirrors Macro 16's approach.)
                 await _cmd(c, "ClearAll", dry_run)
-                await _cmd(c, f"FixtureType {ft.major}.1.{inst}", dry_run, delay=0.15)
+                await _cmd(c, f"FixtureType {ft.major}.1.{inst} Thru", dry_run, delay=0.20)
                 await _cmd(c, f"Store Group {inst_pool_grp} /o", dry_run)
+                await _cmd(c, f"Store Group {inst_ft_grp} /o", dry_run)
+                # PT 0 universal preset stored from same selection
                 await _cmd(c, "Attribute 1 Thru At Release", dry_run)
                 await _cmd(c, f"Store Preset 0.{inst_pslot} /universal /o", dry_run, delay=0.15)
 
-                # Per-instance FT group + World from preset recall
+                # World via preset recall for correct subfixture expansion
                 await _cmd(c, "ClearAll", dry_run)
-                await _cmd(c, f"Preset 0.{inst_pslot}", dry_run, delay=0.15)
-                await _cmd(c, f"Store Group {inst_ft_grp} /o", dry_run)
+                await _cmd(c, f"Preset 0.{inst_pslot}", dry_run, delay=0.20)
                 await _cmd(c, "Attribute 1 Thru At Release", dry_run)
                 await _cmd(c, f"Store World {inst_wslot} /o", dry_run, delay=0.15)
 
@@ -692,27 +795,33 @@ async def main() -> None:
     # CONNECTION 1: probe active FT majors + instance counts
     # Must close before connection 2 opens (MA2 allows only 1 client).
     # ------------------------------------------------------------------
+    show_name: str = ""
     if args.dry_run:
         instance_counts: dict[int, int] = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1}
+        show_name = "dry-run"
         log.info("[DRY] Skipping probe — using synthetic FT map: %s", instance_counts)
     else:
         log.info("=== Connection 1: FT probe ===")
         async with GMA2TelnetClient(GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD) as c1:
             instance_counts = await _probe_ft_majors(c1, max_scan=MAX_FT_SCAN)
+            show_name = await _listvar(c1, "SHOWFILE")
         if not instance_counts:
             log.error("No active FT majors found — aborting.")
             sys.exit(1)
+        log.info("Show: %s", show_name)
 
     active_majors = sorted(instance_counts)
 
     # ------------------------------------------------------------------
-    # CONNECTION 2: attribute discovery via cd EditSetup
-    # Dedicated short-lived connection — cd EditSetup causes MA2 to drop
-    # sessions when mixed with programmer commands.
+    # CONNECTION 2: attribute discovery (cache-first, batched cd EditSetup fallback)
+    # Cache keyed by show name — on a hit, zero Telnet activity here.
+    # On a miss, opens a fresh connection per batch of 2 FTs to stay
+    # below the ~3-4 navigation threshold that kills the MA2 listener.
     # ------------------------------------------------------------------
     log.info("=== Connection 2: attribute discovery ===")
     all_attrs = await discover_all_ft_attributes(
-        GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD, active_majors
+        GMA_HOST, GMA_PORT, GMA_USER, GMA_PASSWORD, active_majors,
+        show_name=show_name,
     )
 
     # ------------------------------------------------------------------
