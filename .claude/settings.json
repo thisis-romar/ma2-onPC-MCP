@@ -7,7 +7,13 @@
       "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Appearance color hue saturation brightness HSB\")",
       "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"SaveShow backup before macro destructive\")",
       "Bash(git fetch *)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(sort -u git log main..origin/remote-main --name-only --pretty=format:)",
+      "Bash(sort -u comm -12 /tmp/main_unique.txt /tmp/rm_unique.txt)",
+      "Read(//c/Users/romar/onPC-Telnet-mcp/**)",
+      "Bash(grep -v '^$')",
+      "Bash(git merge-tree *)",
+      "Bash(git ls-tree *)"
     ]
   },
   "hooks": {
