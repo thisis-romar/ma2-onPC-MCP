@@ -414,8 +414,8 @@ def _mock_gemini_batch_response(embeddings: list[list[float]]) -> httpx.Response
 class TestGeminiProvider:
     def test_properties(self):
         p = GeminiProvider(api_key="test-key")
-        assert p.model_name == "text-embedding-004"
-        assert p.dimensions == 768
+        assert p.model_name == "gemini-embedding-001"
+        assert p.dimensions == 3072
 
     def test_custom_properties(self):
         p = GeminiProvider(

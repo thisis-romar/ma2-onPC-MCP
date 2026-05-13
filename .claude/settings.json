@@ -31,7 +31,17 @@
       "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree origin/claude/compare-repo-commits-Kp8rt:src/private/)",
       "Bash(awk '/^async def export_objects/,/^async def import_objects/')",
       "Bash(grep -E \"\\\\.py$\")",
-      "Bash(grep \"\\\\.py$\")"
+      "Bash(grep \"\\\\.py$\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m src.server)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest -x -q)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_tools.py tests/test_rights.py tests/test_orchestrator.py -x -q)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest -q --tb=short)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_rag_embed.py::TestGeminiProvider::test_properties -v)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_rag_embed.py -q)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_rag_embed.py::TestGeminiProvider -v)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_skill.py::TestFilesystemSkillLoading -v --tb=short)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest \"tests/test_skill.py::TestSearch::test_search_empty_query\" \"tests/test_skill.py::TestListAll::test_returns_db_plus_filesystem\" \"tests/test_skill.py::TestListAll::test_empty_db_returns_filesystem_skills\" -v --tb=short)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_skill.py tests/test_rag_embed.py -q --tb=line)"
     ]
   },
   "hooks": {
