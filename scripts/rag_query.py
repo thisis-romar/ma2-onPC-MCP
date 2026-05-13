@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from rag.config import DEFAULT_TOP_K, RAG_DB_PATH
 from rag.ingest.embed import (
     EmbeddingProvider,
+    GeminiProvider,
     GitHubModelsProvider,
     ZeroVectorProvider,
 )
@@ -35,9 +36,19 @@ def make_provider(choice: str | None) -> EmbeddingProvider | None:
 
     Returns None when no provider is selected (text-only search).
     """
+    gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     token = os.environ.get("GITHUB_MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN")
     model = os.environ.get("RAG_EMBED_MODEL", "openai/text-embedding-3-small")
     dimensions = int(os.environ.get("RAG_EMBED_DIMENSIONS", "1536"))
+
+    if choice == "gemini":
+        if not gemini_key:
+            print(
+                "Error: --provider gemini requires GEMINI_API_KEY or GOOGLE_API_KEY env var.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        return GeminiProvider(api_key=gemini_key)
 
     if choice == "github":
         if not token:
@@ -51,7 +62,10 @@ def make_provider(choice: str | None) -> EmbeddingProvider | None:
     if choice == "zero":
         return ZeroVectorProvider()
 
-    # Auto-detect: use GitHub Models if token is set, otherwise text search
+    # Auto-detect: Gemini > GitHub Models > text search
+    if gemini_key:
+        logger.info("Auto-detected GEMINI_API_KEY, using Gemini provider")
+        return GeminiProvider(api_key=gemini_key)
     if token:
         logger.info("Auto-detected GITHUB_MODELS_TOKEN, using GitHub Models provider")
         return GitHubModelsProvider(token=token, model=model, dimensions=dimensions)
@@ -66,7 +80,7 @@ def main() -> None:
     parser.add_argument("--db", default=str(RAG_DB_PATH), help=f"SQLite database path (default: {RAG_DB_PATH})")
     parser.add_argument(
         "--provider",
-        choices=["github", "zero"],
+        choices=["gemini", "github", "zero"],
         default=None,
         help="Embedding provider (default: auto-detect from env, falls back to text search)",
     )

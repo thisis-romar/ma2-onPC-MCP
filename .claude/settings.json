@@ -41,7 +41,8 @@
       "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_rag_embed.py::TestGeminiProvider -v)",
       "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_skill.py::TestFilesystemSkillLoading -v --tb=short)",
       "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest \"tests/test_skill.py::TestSearch::test_search_empty_query\" \"tests/test_skill.py::TestListAll::test_returns_db_plus_filesystem\" \"tests/test_skill.py::TestListAll::test_empty_db_returns_filesystem_skills\" -v --tb=short)",
-      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_skill.py tests/test_rag_embed.py -q --tb=line)"
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_skill.py tests/test_rag_embed.py -q --tb=line)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"store preset\")"
     ]
   },
   "hooks": {
