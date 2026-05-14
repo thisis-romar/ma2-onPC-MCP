@@ -20,20 +20,20 @@
 			<info>CONFIG: preset slot N (0.N..7.N) + world slot base. Edit in lockstep with -Delete FT_Pools v13-.</info>
 		</Macroline>
 		<Macroline index="4" delay="0.06">
-			<text>SetUserVar $loopFT = 0 ; SetUserVar $slotOffset = 0</text>
-			<info>OUTER INIT: probe FT counter + sequential slot offset (shared by lump + per-instance)</info>
+			<text>SetUserVar $loopFT = 1 ; SetUserVar $slotOffset = 0</text>
+			<info>OUTER INIT: loopFT starts at 1 (iterates 1..maxFTscan, mirroring Macro 16's tail-increment pattern)</info>
 		</Macroline>
 		<Macroline index="5" delay="0.06">
 			<text>SetUserVar $currentHue = 0 ; SetUserVar $hueStep = 36</text>
 			<info>COLOR INIT: hue cycle (36 deg = 360/10)</info>
 		</Macroline>
 		<Macroline index="6" delay="0.06">
-			<text>[$maxFTscan&lt;=$loopFT] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.104</text>
-			<info>OUTER CHECK: all majors probed -&gt; END (line 104 = index 103)</info>
+			<text>[$loopFT&lt;=$maxFTscan] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.9</text>
+			<info>OUTER CHECK CONTINUE: in-range -&gt; jump to PROBE (line 9 = index 8). Mirrors Macro 16 index 8.</info>
 		</Macroline>
 		<Macroline index="7" delay="0.06">
-			<text>AddUserVar $loopFT = 1</text>
-			<info>OUTER: advance to next FT major (probes 1..maxFTscan)</info>
+			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.104</text>
+			<info>OUTER CHECK EXIT: fell through from CONTINUE -&gt; all FTs processed -&gt; END (line 104 = index 103). Mirrors Macro 16 index 9.</info>
 		</Macroline>
 		<Macroline index="8" delay="0.06">
 			<text>ClearAll</text>
@@ -48,8 +48,8 @@
 			<info>PROBE: capture instance count (Thru gives number of instances, not physical fixture count)</info>
 		</Macroline>
 		<Macroline index="11" delay="0.06">
-			<text>[$instanceCount&lt;=0] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.7</text>
-			<info>PROBE SKIP: empty major -&gt; OUTER CHECK (line 7 = index 6). No slot advance on skip.</info>
+			<text>[$instanceCount&lt;=0] Go Macro 1.&quot;-Create FT_Pools v13-&quot;.102</text>
+			<info>PROBE SKIP: empty major -&gt; OUTER_INC (line 102 = index 101). loopFT advance happens there in tail.</info>
 		</Macroline>
 		<Macroline index="12" delay="0.06">
 			<text>SetUserVar $cg = $poolGroupBase ; AddUserVar $cg = $slotOffset</text>
@@ -408,8 +408,8 @@
 			<info>MERGE LOOP BACK -&gt; MERGE CHECK (line 86 = index 85)</info>
 		</Macroline>
 		<Macroline index="101" delay="0.06">
-			<text>AddUserVar $currentHue = $hueStep ; ClearAll</text>
-			<info>OUTER_INC: advance hue, clear selection. slotOffset was already advanced (lump at index 42, per-instance at index 70).</info>
+			<text>AddUserVar $loopFT = 1 ; AddUserVar $currentHue = $hueStep ; ClearAll</text>
+			<info>OUTER_INC: tail-increment loopFT (mirroring Macro 16 index 99), advance hue, clear.</info>
 		</Macroline>
 		<Macroline index="102" delay="0.06">
 			<text>Go Macro 1.&quot;-Create FT_Pools v13-&quot;.7</text>
