@@ -82,8 +82,8 @@
 			<info>BLK2 PANSPEED: select all FT lump pool groups</info>
 		</Macroline>
 		<Macroline index="19" delay="0.10">
-			<text>Attribute &quot;PANSPEED&quot; At 50 ; SelFix</text>
-			<info>BLK2 PANSPEED: probe + reselect capable</info>
+			<text>Attribute &quot;POSITIONMSPEED&quot; At 50 ; SelFix</text>
+			<info>BLK2 POSITIONMSPEED: probe + reselect capable</info>
 		</Macroline>
 		<Macroline index="20" delay="0.06">
 			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.26</text>
