@@ -536,12 +536,12 @@
 		</Macroline>
 
 		<Macroline index="129" delay="0.06">
-			<text>SetUserVar $i = 1</text>
-			<info>TYPE LOOP INIT: iterate i=1..$maxFTscan</info>
+			<text>SetUserVar $i = 1 ; SetUserVar $typeSlot = 50</text>
+			<info>TYPE LOOP INIT: iterate i=1..$maxFTscan; $typeSlot=50 is the first free group slot</info>
 		</Macroline>
 		<Macroline index="130" delay="0.06">
-			<text>[$i &gt; $maxFTscan] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.137</text>
-			<info>TYPE LOOP EXIT: all FTs done → footer ClearAll (index 136 = line 137)</info>
+			<text>[$i &gt; $maxFTscan] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.141</text>
+			<info>TYPE LOOP EXIT: all FTs done → footer ClearAll (index 140 = line 141)</info>
 		</Macroline>
 		<Macroline index="131" delay="0.06">
 			<text>ClearAll</text>
@@ -552,23 +552,39 @@
 			<info>TYPE LOOP: select FT $i instance 1 (delay 0.20 to settle). $SELECTEDFIXTURESCOUNT = instance count.</info>
 		</Macroline>
 		<Macroline index="133" delay="0.06">
-			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.136</text>
-			<info>TYPE LOOP: FT $i empty → AddUserVar (index 135 = line 136). NO SelFix: programmer empty after ClearAll.</info>
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.140</text>
+			<info>TYPE LOOP: FT $i empty → increment (index 139 = line 140). NO SelFix: programmer empty after ClearAll.</info>
 		</Macroline>
 		<Macroline index="134" delay="0.06">
-			<text>Store Group &quot;Type: FT $i&quot; /o</text>
-			<info>TYPE LOOP: store type group for FT $i</info>
+			<text>Store Group $typeSlot /o</text>
+			<info>TYPE LOOP: store type group at slot $typeSlot</info>
 		</Macroline>
 		<Macroline index="135" delay="0.06">
+			<text>SetUserVar $typeName = &apos;&quot;Type: FT &apos;</text>
+			<info>TYPE LOOP: build label — $typeName starts as "Type: FT  (opening dquote via v13 pattern)</info>
+		</Macroline>
+		<Macroline index="136" delay="0.06">
+			<text>AddUserVar $typeName = $i</text>
+			<info>TYPE LOOP: append FT number to label string</info>
+		</Macroline>
+		<Macroline index="137" delay="0.06">
+			<text>AddUserVar $typeName = &apos;&quot;&apos;</text>
+			<info>TYPE LOOP: close label string — $typeName is now "Type: FT N"</info>
+		</Macroline>
+		<Macroline index="138" delay="0.06">
+			<text>Label Group $typeSlot $typeName /o ; AddUserVar $typeSlot = 1</text>
+			<info>TYPE LOOP: label type group with $typeName + advance slot counter</info>
+		</Macroline>
+		<Macroline index="139" delay="0.06">
 			<text>AddUserVar $i = 1 ; Go Macro 1.&quot;-Create Attr Groups v1-&quot;.131</text>
 			<info>TYPE LOOP: increment $i → exit check (index 130 = line 131)</info>
 		</Macroline>
 
-		<Macroline index="136" delay="0.06">
+		<Macroline index="140" delay="0.06">
 			<text>ClearAll</text>
 			<info>FOOTER</info>
 		</Macroline>
-		<Macroline index="137" delay="0.06">
+		<Macroline index="141" delay="0.06">
 			<text>Menu Off &quot;CommandlineResponse&quot;</text>
 			<info>FOOTER</info>
 		</Macroline>
