@@ -4,6 +4,19 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-time"],
       "env": {}
+    },
+    "windows-mcp": {
+      "command": "C:\\Users\\romar\\.local\\bin\\uv.exe",
+      "args": [
+        "--directory",
+        "C:\\Users\\romar\\AppData\\Roaming\\Claude\\Claude Extensions\\ant.dir.cursortouch.windows-mcp",
+        "run",
+        "windows-mcp"
+      ],
+      "env": {
+        "MODE": "local",
+        "ANONYMIZED_TELEMETRY": "true"
+      }
     }
   }
 }
