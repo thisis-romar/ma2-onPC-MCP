@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd" major_vers="3" minor_vers="9" stream_vers="60">
+	<Info datetime="2026-05-15T00:00:00" showfile="" />
+	<Macro index="0" name="-Create Attr Groups v1-">
+		<Appearance Color="0088ff" />
+		<Macroline index="0" delay="0.06">
+			<text>Menu On &quot;CommandlineResponse&quot;</text>
+			<info>HEADER</info>
+		</Macroline>
+		<Macroline index="1" delay="0.06">
+			<text>ClearAll</text>
+			<info>HEADER: clear before probe</info>
+		</Macroline>
+		<Macroline index="2" delay="0.06">
+			<text>ClearAll</text>
+			<info>PROBE: separate line (same-line collapses to 1 subfixture)</info>
+		</Macroline>
+		<Macroline index="3" delay="0.20">
+			<text>FixtureType 1 Thru</text>
+			<info>PROBE: select all FT instances (delay 0.20 to settle)</info>
+		</Macroline>
+		<Macroline index="4" delay="0.10">
+			<text>SetUserVar $maxFTscan = $SELECTEDFIXTURESCOUNT</text>
+			<info>CONFIG: store FT instance count</info>
+		</Macroline>
+		<Macroline index="5" delay="0.06">
+			<text>ClearAll</text>
+			<info>CONFIG: clear probe selection</info>
+		</Macroline>
+		<Macroline index="6" delay="0.06">
+			<text>SetUserVar $poolGroupBase = 11</text>
+			<info>CONFIG: v13 lump pool groups start at 11. Edit in lockstep with -Delete Attr Groups v1-.</info>
+		</Macroline>
+		<Macroline index="7" delay="0.06">
+			<text>SetUserVar $poolEnd = $maxFTscan</text>
+			<info>CONFIG: poolEnd = maxFTscan + 10 = poolGroupBase + maxFTscan - 1 (avoids negative AddUserVar)</info>
+		</Macroline>
+		<Macroline index="8" delay="0.06">
+			<text>AddUserVar $poolEnd = 10</text>
+			<info>CONFIG: poolEnd += 10 (= poolGroupBase-1 = 11-1). For maxFTscan=8: Group 11 Thru 18.</info>
+		</Macroline>
+
+		<Macroline index="9" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK1 PAN</info>
+		</Macroline>
+		<Macroline index="10" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK1 PAN: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="11" delay="0.10">
+			<text>Attribute &quot;PAN&quot; At 50 ; SelFix</text>
+			<info>BLK1 PAN: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="12" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.18</text>
+			<info>BLK1 PAN: skip if none → BLK2 (index 17 = line 18)</info>
+		</Macroline>
+		<Macroline index="13" delay="0.06">
+			<text>Store Group &quot;Attr: Movers (Pan/Tilt)&quot; /o</text>
+			<info>BLK1 PAN: store group from SelFix selection</info>
+		</Macroline>
+		<Macroline index="14" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK1 PAN: release all attributes for release-state preset</info>
+		</Macroline>
+		<Macroline index="15" delay="0.06">
+			<text>Store Preset 2.101 /selective /o</text>
+			<info>BLK1 PAN: release-state selective preset 2.101</info>
+		</Macroline>
+		<Macroline index="16" delay="0.06">
+			<text>Label Preset 2.101 &quot;Movers (Pan/Tilt)&quot; ; ClearAll</text>
+			<info>BLK1 PAN: label + clear</info>
+		</Macroline>
+
+		<Macroline index="17" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK2 PANSPEED</info>
+		</Macroline>
+		<Macroline index="18" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK2 PANSPEED: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="19" delay="0.10">
+			<text>Attribute &quot;PANSPEED&quot; At 50 ; SelFix</text>
+			<info>BLK2 PANSPEED: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="20" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.26</text>
+			<info>BLK2 PANSPEED: skip if none → BLK3 (index 25 = line 26)</info>
+		</Macroline>
+		<Macroline index="21" delay="0.06">
+			<text>Store Group &quot;Attr: Position Speed&quot; /o</text>
+			<info>BLK2 PANSPEED: store group</info>
+		</Macroline>
+		<Macroline index="22" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK2 PANSPEED: release state</info>
+		</Macroline>
+		<Macroline index="23" delay="0.06">
+			<text>Store Preset 2.102 /selective /o</text>
+			<info>BLK2 PANSPEED: selective preset 2.102</info>
+		</Macroline>
+		<Macroline index="24" delay="0.06">
+			<text>Label Preset 2.102 &quot;Position Speed&quot; ; ClearAll</text>
+			<info>BLK2 PANSPEED: label + clear</info>
+		</Macroline>
+
+		<Macroline index="25" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK3 DIM</info>
+		</Macroline>
+		<Macroline index="26" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK3 DIM: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="27" delay="0.10">
+			<text>Attribute &quot;DIM&quot; At 50 ; SelFix</text>
+			<info>BLK3 DIM: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="28" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.34</text>
+			<info>BLK3 DIM: skip if none → BLK4 (index 33 = line 34)</info>
+		</Macroline>
+		<Macroline index="29" delay="0.06">
+			<text>Store Group &quot;Attr: Dimmer&quot; /o</text>
+			<info>BLK3 DIM: store group</info>
+		</Macroline>
+		<Macroline index="30" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK3 DIM: release state</info>
+		</Macroline>
+		<Macroline index="31" delay="0.06">
+			<text>Store Preset 1.101 /universal /o</text>
+			<info>BLK3 DIM: universal preset 1.101</info>
+		</Macroline>
+		<Macroline index="32" delay="0.06">
+			<text>Label Preset 1.101 &quot;Dimmer&quot; ; ClearAll</text>
+			<info>BLK3 DIM: label + clear</info>
+		</Macroline>
+
+		<Macroline index="33" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK4 SHUTTER</info>
+		</Macroline>
+		<Macroline index="34" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK4 SHUTTER: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="35" delay="0.10">
+			<text>Attribute &quot;SHUTTER&quot; At 50 ; SelFix</text>
+			<info>BLK4 SHUTTER: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="36" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.42</text>
+			<info>BLK4 SHUTTER: skip if none → BLK5 (index 41 = line 42)</info>
+		</Macroline>
+		<Macroline index="37" delay="0.06">
+			<text>Store Group &quot;Attr: Shutter/Strobe&quot; /o</text>
+			<info>BLK4 SHUTTER: store group</info>
+		</Macroline>
+		<Macroline index="38" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK4 SHUTTER: release state</info>
+		</Macroline>
+		<Macroline index="39" delay="0.06">
+			<text>Store Preset 5.101 /global /o</text>
+			<info>BLK4 SHUTTER: global preset 5.101</info>
+		</Macroline>
+		<Macroline index="40" delay="0.06">
+			<text>Label Preset 5.101 &quot;Shutter/Strobe&quot; ; ClearAll</text>
+			<info>BLK4 SHUTTER: label + clear</info>
+		</Macroline>
+
+		<Macroline index="41" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK5 STROBEDURATION</info>
+		</Macroline>
+		<Macroline index="42" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK5 STROBEDURATION: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="43" delay="0.10">
+			<text>Attribute &quot;STROBEDURATION&quot; At 50 ; SelFix</text>
+			<info>BLK5 STROBEDURATION: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="44" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.50</text>
+			<info>BLK5 STROBEDURATION: skip if none → BLK6 (index 49 = line 50)</info>
+		</Macroline>
+		<Macroline index="45" delay="0.06">
+			<text>Store Group &quot;Attr: Strobe Duration&quot; /o</text>
+			<info>BLK5 STROBEDURATION: store group</info>
+		</Macroline>
+		<Macroline index="46" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK5 STROBEDURATION: release state</info>
+		</Macroline>
+		<Macroline index="47" delay="0.06">
+			<text>Store Preset 5.102 /global /o</text>
+			<info>BLK5 STROBEDURATION: global preset 5.102</info>
+		</Macroline>
+		<Macroline index="48" delay="0.06">
+			<text>Label Preset 5.102 &quot;Strobe Duration&quot; ; ClearAll</text>
+			<info>BLK5 STROBEDURATION: label + clear</info>
+		</Macroline>
+
+		<Macroline index="49" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK6 COLOR1</info>
+		</Macroline>
+		<Macroline index="50" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK6 COLOR1: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="51" delay="0.10">
+			<text>Attribute &quot;COLOR1&quot; At 50 ; SelFix</text>
+			<info>BLK6 COLOR1: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="52" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.58</text>
+			<info>BLK6 COLOR1: skip if none → BLK7 (index 57 = line 58)</info>
+		</Macroline>
+		<Macroline index="53" delay="0.06">
+			<text>Store Group &quot;Attr: Color Wheel (C1)&quot; /o</text>
+			<info>BLK6 COLOR1: store group</info>
+		</Macroline>
+		<Macroline index="54" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK6 COLOR1: release state</info>
+		</Macroline>
+		<Macroline index="55" delay="0.06">
+			<text>Store Preset 4.101 /global /o</text>
+			<info>BLK6 COLOR1: global preset 4.101</info>
+		</Macroline>
+		<Macroline index="56" delay="0.06">
+			<text>Label Preset 4.101 &quot;Color Wheel (C1)&quot; ; ClearAll</text>
+			<info>BLK6 COLOR1: label + clear</info>
+		</Macroline>
+
+		<Macroline index="57" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK7 COLORRGB1</info>
+		</Macroline>
+		<Macroline index="58" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK7 COLORRGB1: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="59" delay="0.10">
+			<text>Attribute &quot;COLORRGB1&quot; At 50 ; SelFix</text>
+			<info>BLK7 COLORRGB1: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="60" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.66</text>
+			<info>BLK7 COLORRGB1: skip if none → BLK8 (index 65 = line 66)</info>
+		</Macroline>
+		<Macroline index="61" delay="0.06">
+			<text>Store Group &quot;Attr: Color Mix (RGB)&quot; /o</text>
+			<info>BLK7 COLORRGB1: store group</info>
+		</Macroline>
+		<Macroline index="62" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK7 COLORRGB1: release state</info>
+		</Macroline>
+		<Macroline index="63" delay="0.06">
+			<text>Store Preset 4.102 /global /o</text>
+			<info>BLK7 COLORRGB1: global preset 4.102</info>
+		</Macroline>
+		<Macroline index="64" delay="0.06">
+			<text>Label Preset 4.102 &quot;Color Mix (RGB)&quot; ; ClearAll</text>
+			<info>BLK7 COLORRGB1: label + clear</info>
+		</Macroline>
+
+		<Macroline index="65" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK8 COLORMIXER</info>
+		</Macroline>
+		<Macroline index="66" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK8 COLORMIXER: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="67" delay="0.10">
+			<text>Attribute &quot;COLORMIXER&quot; At 50 ; SelFix</text>
+			<info>BLK8 COLORMIXER: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="68" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.74</text>
+			<info>BLK8 COLORMIXER: skip if none → BLK9 (index 73 = line 74)</info>
+		</Macroline>
+		<Macroline index="69" delay="0.06">
+			<text>Store Group &quot;Attr: Color Mixer (CMY)&quot; /o</text>
+			<info>BLK8 COLORMIXER: store group</info>
+		</Macroline>
+		<Macroline index="70" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK8 COLORMIXER: release state</info>
+		</Macroline>
+		<Macroline index="71" delay="0.06">
+			<text>Store Preset 4.103 /global /o</text>
+			<info>BLK8 COLORMIXER: global preset 4.103</info>
+		</Macroline>
+		<Macroline index="72" delay="0.06">
+			<text>Label Preset 4.103 &quot;Color Mixer (CMY)&quot; ; ClearAll</text>
+			<info>BLK8 COLORMIXER: label + clear</info>
+		</Macroline>
+
+		<Macroline index="73" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK9 GOBO1</info>
+		</Macroline>
+		<Macroline index="74" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK9 GOBO1: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="75" delay="0.10">
+			<text>Attribute &quot;GOBO1&quot; At 50 ; SelFix</text>
+			<info>BLK9 GOBO1: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="76" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.82</text>
+			<info>BLK9 GOBO1: skip if none → BLK10 (index 81 = line 82)</info>
+		</Macroline>
+		<Macroline index="77" delay="0.06">
+			<text>Store Group &quot;Attr: Gobo 1&quot; /o</text>
+			<info>BLK9 GOBO1: store group</info>
+		</Macroline>
+		<Macroline index="78" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK9 GOBO1: release state</info>
+		</Macroline>
+		<Macroline index="79" delay="0.06">
+			<text>Store Preset 3.101 /global /o</text>
+			<info>BLK9 GOBO1: global preset 3.101</info>
+		</Macroline>
+		<Macroline index="80" delay="0.06">
+			<text>Label Preset 3.101 &quot;Gobo 1&quot; ; ClearAll</text>
+			<info>BLK9 GOBO1: label + clear</info>
+		</Macroline>
+
+		<Macroline index="81" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK10 GOBO2</info>
+		</Macroline>
+		<Macroline index="82" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK10 GOBO2: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="83" delay="0.10">
+			<text>Attribute &quot;GOBO2&quot; At 50 ; SelFix</text>
+			<info>BLK10 GOBO2: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="84" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.90</text>
+			<info>BLK10 GOBO2: skip if none → BLK11 (index 89 = line 90)</info>
+		</Macroline>
+		<Macroline index="85" delay="0.06">
+			<text>Store Group &quot;Attr: Gobo 2&quot; /o</text>
+			<info>BLK10 GOBO2: store group</info>
+		</Macroline>
+		<Macroline index="86" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK10 GOBO2: release state</info>
+		</Macroline>
+		<Macroline index="87" delay="0.06">
+			<text>Store Preset 3.102 /global /o</text>
+			<info>BLK10 GOBO2: global preset 3.102</info>
+		</Macroline>
+		<Macroline index="88" delay="0.06">
+			<text>Label Preset 3.102 &quot;Gobo 2&quot; ; ClearAll</text>
+			<info>BLK10 GOBO2: label + clear</info>
+		</Macroline>
+
+		<Macroline index="89" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK11 PRISMA1</info>
+		</Macroline>
+		<Macroline index="90" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK11 PRISMA1: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="91" delay="0.10">
+			<text>Attribute &quot;PRISMA1&quot; At 50 ; SelFix</text>
+			<info>BLK11 PRISMA1: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="92" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.98</text>
+			<info>BLK11 PRISMA1: skip if none → BLK12 (index 97 = line 98)</info>
+		</Macroline>
+		<Macroline index="93" delay="0.06">
+			<text>Store Group &quot;Attr: Prism&quot; /o</text>
+			<info>BLK11 PRISMA1: store group</info>
+		</Macroline>
+		<Macroline index="94" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK11 PRISMA1: release state</info>
+		</Macroline>
+		<Macroline index="95" delay="0.06">
+			<text>Store Preset 5.103 /global /o</text>
+			<info>BLK11 PRISMA1: global preset 5.103</info>
+		</Macroline>
+		<Macroline index="96" delay="0.06">
+			<text>Label Preset 5.103 &quot;Prism&quot; ; ClearAll</text>
+			<info>BLK11 PRISMA1: label + clear</info>
+		</Macroline>
+
+		<Macroline index="97" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK12 FOCUS</info>
+		</Macroline>
+		<Macroline index="98" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK12 FOCUS: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="99" delay="0.10">
+			<text>Attribute &quot;FOCUS&quot; At 50 ; SelFix</text>
+			<info>BLK12 FOCUS: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="100" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.106</text>
+			<info>BLK12 FOCUS: skip if none → BLK13 (index 105 = line 106)</info>
+		</Macroline>
+		<Macroline index="101" delay="0.06">
+			<text>Store Group &quot;Attr: Focus&quot; /o</text>
+			<info>BLK12 FOCUS: store group</info>
+		</Macroline>
+		<Macroline index="102" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK12 FOCUS: release state</info>
+		</Macroline>
+		<Macroline index="103" delay="0.06">
+			<text>Store Preset 6.101 /selective /o</text>
+			<info>BLK12 FOCUS: selective preset 6.101</info>
+		</Macroline>
+		<Macroline index="104" delay="0.06">
+			<text>Label Preset 6.101 &quot;Focus&quot; ; ClearAll</text>
+			<info>BLK12 FOCUS: label + clear</info>
+		</Macroline>
+
+		<Macroline index="105" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK13 ZOOM</info>
+		</Macroline>
+		<Macroline index="106" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK13 ZOOM: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="107" delay="0.10">
+			<text>Attribute &quot;ZOOM&quot; At 50 ; SelFix</text>
+			<info>BLK13 ZOOM: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="108" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.114</text>
+			<info>BLK13 ZOOM: skip if none → BLK14 (index 113 = line 114)</info>
+		</Macroline>
+		<Macroline index="109" delay="0.06">
+			<text>Store Group &quot;Attr: Zoom&quot; /o</text>
+			<info>BLK13 ZOOM: store group</info>
+		</Macroline>
+		<Macroline index="110" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK13 ZOOM: release state</info>
+		</Macroline>
+		<Macroline index="111" delay="0.06">
+			<text>Store Preset 5.104 /global /o</text>
+			<info>BLK13 ZOOM: global preset 5.104</info>
+		</Macroline>
+		<Macroline index="112" delay="0.06">
+			<text>Label Preset 5.104 &quot;Zoom&quot; ; ClearAll</text>
+			<info>BLK13 ZOOM: label + clear</info>
+		</Macroline>
+
+		<Macroline index="113" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK14 IRIS</info>
+		</Macroline>
+		<Macroline index="114" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK14 IRIS: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="115" delay="0.10">
+			<text>Attribute &quot;IRIS&quot; At 50 ; SelFix</text>
+			<info>BLK14 IRIS: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="116" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.122</text>
+			<info>BLK14 IRIS: skip if none → BLK15 (index 121 = line 122)</info>
+		</Macroline>
+		<Macroline index="117" delay="0.06">
+			<text>Store Group &quot;Attr: Iris&quot; /o</text>
+			<info>BLK14 IRIS: store group</info>
+		</Macroline>
+		<Macroline index="118" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK14 IRIS: release state</info>
+		</Macroline>
+		<Macroline index="119" delay="0.06">
+			<text>Store Preset 5.105 /global /o</text>
+			<info>BLK14 IRIS: global preset 5.105</info>
+		</Macroline>
+		<Macroline index="120" delay="0.06">
+			<text>Label Preset 5.105 &quot;Iris&quot; ; ClearAll</text>
+			<info>BLK14 IRIS: label + clear</info>
+		</Macroline>
+
+		<Macroline index="121" delay="0.06">
+			<text>ClearAll</text>
+			<info>BLK15 FROST</info>
+		</Macroline>
+		<Macroline index="122" delay="0.06">
+			<text>Group $poolGroupBase Thru $poolEnd</text>
+			<info>BLK15 FROST: select all FT lump pool groups</info>
+		</Macroline>
+		<Macroline index="123" delay="0.10">
+			<text>Attribute &quot;FROST&quot; At 50 ; SelFix</text>
+			<info>BLK15 FROST: probe + reselect capable</info>
+		</Macroline>
+		<Macroline index="124" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.130</text>
+			<info>BLK15 FROST: skip if none → type loop init (index 129 = line 130)</info>
+		</Macroline>
+		<Macroline index="125" delay="0.06">
+			<text>Store Group &quot;Attr: Frost&quot; /o</text>
+			<info>BLK15 FROST: store group</info>
+		</Macroline>
+		<Macroline index="126" delay="0.06">
+			<text>Attribute 1 Thru At Release</text>
+			<info>BLK15 FROST: release state</info>
+		</Macroline>
+		<Macroline index="127" delay="0.06">
+			<text>Store Preset 5.106 /global /o</text>
+			<info>BLK15 FROST: global preset 5.106</info>
+		</Macroline>
+		<Macroline index="128" delay="0.06">
+			<text>Label Preset 5.106 &quot;Frost&quot; ; ClearAll</text>
+			<info>BLK15 FROST: label + clear</info>
+		</Macroline>
+
+		<Macroline index="129" delay="0.06">
+			<text>SetUserVar $i = 1</text>
+			<info>TYPE LOOP INIT: iterate i=1..$maxFTscan</info>
+		</Macroline>
+		<Macroline index="130" delay="0.06">
+			<text>[$i &gt; $maxFTscan] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.137</text>
+			<info>TYPE LOOP EXIT: all FTs done → footer ClearAll (index 136 = line 137)</info>
+		</Macroline>
+		<Macroline index="131" delay="0.06">
+			<text>ClearAll</text>
+			<info>TYPE LOOP: clear before FixtureType probe</info>
+		</Macroline>
+		<Macroline index="132" delay="0.20">
+			<text>FixtureType $i.1.1 Thru</text>
+			<info>TYPE LOOP: select FT $i instance 1 (delay 0.20 to settle). $SELECTEDFIXTURESCOUNT = instance count.</info>
+		</Macroline>
+		<Macroline index="133" delay="0.06">
+			<text>[$SELECTEDFIXTURESCOUNT&lt;=0] Go Macro 1.&quot;-Create Attr Groups v1-&quot;.136</text>
+			<info>TYPE LOOP: FT $i empty → AddUserVar (index 135 = line 136). NO SelFix: programmer empty after ClearAll.</info>
+		</Macroline>
+		<Macroline index="134" delay="0.06">
+			<text>Store Group &quot;Type: FT $i&quot; /o</text>
+			<info>TYPE LOOP: store type group for FT $i</info>
+		</Macroline>
+		<Macroline index="135" delay="0.06">
+			<text>AddUserVar $i = 1 ; Go Macro 1.&quot;-Create Attr Groups v1-&quot;.131</text>
+			<info>TYPE LOOP: increment $i → exit check (index 130 = line 131)</info>
+		</Macroline>
+
+		<Macroline index="136" delay="0.06">
+			<text>ClearAll</text>
+			<info>FOOTER</info>
+		</Macroline>
+		<Macroline index="137" delay="0.06">
+			<text>Menu Off &quot;CommandlineResponse&quot;</text>
+			<info>FOOTER</info>
+		</Macroline>
+	</Macro>
+</MA>

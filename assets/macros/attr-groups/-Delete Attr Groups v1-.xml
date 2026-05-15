@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd" major_vers="3" minor_vers="9" stream_vers="60">
+	<Info datetime="2026-05-15T00:00:00" showfile="" />
+	<Macro index="0" name="-Delete Attr Groups v1-">
+		<Appearance Color="cc0044" />
+		<Macroline index="0" delay="0.06">
+			<text>Menu On "CommandlineResponse"</text>
+			<info>HEADER: enable feedback. Pair file = -Create Attr Groups v1-. Linear - no jumps.</info>
+		</Macroline>
+		<Macroline index="1" delay="0.06">
+			<text>Delete Group "Attr: *" /noconfirm</text>
+			<info>DELETE: all groups named "Attr: ..." (idempotent - no-ops if not found)</info>
+		</Macroline>
+		<Macroline index="2" delay="0.06">
+			<text>Delete Group "Type: FT *" /noconfirm</text>
+			<info>DELETE: all groups named "Type: FT N" (idempotent)</info>
+		</Macroline>
+		<Macroline index="3" delay="0.06">
+			<text>Delete Preset 1.101 /noconfirm</text>
+			<info>DELETE: Dimmer release preset (PT 1)</info>
+		</Macroline>
+		<Macroline index="4" delay="0.06">
+			<text>Delete Preset 2.101 Thru 2.102 /noconfirm</text>
+			<info>DELETE: Position presets (Pan/Tilt + Position Speed)</info>
+		</Macroline>
+		<Macroline index="5" delay="0.06">
+			<text>Delete Preset 3.101 Thru 3.102 /noconfirm</text>
+			<info>DELETE: Gobo presets (Gobo 1 + Gobo 2)</info>
+		</Macroline>
+		<Macroline index="6" delay="0.06">
+			<text>Delete Preset 4.101 Thru 4.103 /noconfirm</text>
+			<info>DELETE: Color presets (Color Wheel + Color Mix RGB + Color Mixer CMY)</info>
+		</Macroline>
+		<Macroline index="7" delay="0.06">
+			<text>Delete Preset 5.101 Thru 5.106 /noconfirm</text>
+			<info>DELETE: Beam presets (Shutter/Strobe + Strobe Duration + Prism + Zoom + Iris + Frost)</info>
+		</Macroline>
+		<Macroline index="8" delay="0.06">
+			<text>Delete Preset 6.101 /noconfirm</text>
+			<info>DELETE: Focus release preset (PT 6)</info>
+		</Macroline>
+		<Macroline index="9" delay="0.06">
+			<text>Menu Off "CommandlineResponse"</text>
+			<info>FOOTER: disable feedback</info>
+		</Macroline>
+	</Macro>
+</MA>
