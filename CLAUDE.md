@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.20.1
+version: 4.20.2
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-16T23:09:53Z
+last_updated: 2026-05-16T16:19:04Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **207 tools**, **22 resources**, **16 prompts**, and **34 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
+MCP server exposing **207 tools**, **22 resources**, **16 prompts**, and **36 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
