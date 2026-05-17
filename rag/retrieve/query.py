@@ -85,6 +85,9 @@ def rag_query(
                 query_embedding, top_k=top_k * 2,
                 repo_ref=repo_ref, kind=kind,
             )
+            if not hits:
+                # Dimension mismatch or empty index — fall back to text search
+                hits = store.search_by_text(query, top_k=top_k * 2)
         else:
             hits = store.search_by_text(query, top_k=top_k * 2)
 
