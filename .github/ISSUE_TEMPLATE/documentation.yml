@@ -1,0 +1,44 @@
+name: Documentation issue
+description: Report missing, unclear, or outdated documentation
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Documentation area
+      description: Which documentation is affected?
+      options:
+        - CLAUDE.md (architecture / project rules)
+        - README.md (setup / getting started)
+        - CONTRIBUTING.md (development guide)
+        - .claude/rules/ (scoped convention files)
+        - .claude/skills/ (instruction modules)
+        - doc/ (reference documentation)
+        - Tool docstrings
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong?
+      description: What is missing, unclear, or incorrect?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested fix
+      description: What should the documentation say instead?
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical (blocks understanding of core architecture)
+        - High (important for a specific workflow)
+        - Medium (helpful but workaroundable)
+        - Low (nice-to-have clarification)
+    validations:
+      required: true
