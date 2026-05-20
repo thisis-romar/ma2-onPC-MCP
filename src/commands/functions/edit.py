@@ -1013,3 +1013,54 @@ def extract() -> str:
     """
     return "Extract"
 
+
+# ============================================================================
+# LOCK / UNLOCK POOL OBJECTS
+# ============================================================================
+
+
+def lock_object(object_type: str, object_id: int | str) -> str:
+    """
+    Lock a pool object to prevent accidental edits.
+
+    Syntax confirmed against grandMA2 v3.9.60 via CmdHelp and live console.
+    Works on any pool type: World, Sequence, Preset, Group, Effect, etc.
+
+    Args:
+        object_type: Pool type keyword (e.g. "World", "Sequence", "Preset")
+        object_id: Numeric ID or name of the object
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> lock_object("World", 2)
+        'Lock World 2'
+        >>> lock_object("Sequence", 10)
+        'Lock Sequence 10'
+    """
+    return f"Lock {object_type} {object_id}"
+
+
+def unlock_object(object_type: str, object_id: int | str) -> str:
+    """
+    Unlock a pool object to allow editing.
+
+    Syntax confirmed against grandMA2 v3.9.60 via CmdHelp and live console.
+    Always re-lock after editing with lock_object().
+
+    Args:
+        object_type: Pool type keyword (e.g. "World", "Sequence", "Preset")
+        object_id: Numeric ID or name of the object
+
+    Returns:
+        str: MA command string
+
+    Examples:
+        >>> unlock_object("World", 2)
+        'Unlock World 2'
+        >>> unlock_object("Sequence", 10)
+        'Unlock Sequence 10'
+    """
+    return f"Unlock {object_type} {object_id}"
+
