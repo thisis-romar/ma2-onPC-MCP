@@ -12,7 +12,8 @@ Live-validated on grandMA2 onPC 3.9.60.65. Key findings:
   (/data/ma/actual/gma2/...) fails for imports. Default routing is reliable.
 - Import requires a destination (At ObjectType N); omitting it gives Error #28.
 - MA2 routes files to type-specific subfolders automatically:
-    macros/, effects/, plugins/, matricks/, masks/ — or importexport/ (default)
+    macros/, effects/, plugins/, matricks/, masks/, colors/ (gel), fixtures/ (fixture)
+    — or importexport/ (default for all other types)
 
 Fixture type import (EditSetup/FixtureTypes context):
 - Key format: "manufacturer@fixture@mode"  e.g. "Martin@Mac700Profile_Extended@Extended"
@@ -29,14 +30,38 @@ Included functions:
 - import_layer_cmd: Build Import command for a fixture layer XML file (EditSetup/Layers context)
 """
 
-# Object types that can be exported (validated live on MA2 3.9.60.65)
+# Object types that can be exported (validated live on MA2 3.9.60.65 via probe_export_types.py)
+# Original 20 types confirmed OK; new types added after live export probe 2026-05-20.
+# Types marked EMPTY_SLOT: command accepted by MA2 but no objects existed in show during probe.
 EXPORT_OBJECT_TYPES = {
-    "group", "preset", "macro", "effect", "sequence", "view", "page",
-    "camera", "layout", "form", "plugin", "matricks", "mask", "image",
+    # Cue / playback
+    "group", "preset", "macro", "effect", "sequence",
+    # Show structure
+    "view", "page", "camera", "layout", "form",
+    # Utility / special
+    "plugin", "matricks", "mask", "image",
     "executor", "timecode", "userprofile", "channel", "screen", "filter",
+    # Fixture / patch data (probe EXPORT_OK 2026-05-20)
+    "fixture",          # routes to fixtures/ subfolder
+    "gel",              # routes to colors/ subfolder; exports entire GelPool
+    # World / filter pool (probe EXPORT_OK 2026-05-20)
+    "world",
+    # Timing / dynamics (probe EXPORT_OK 2026-05-20)
+    "fadepath",
+    # DMX control (probe EXPORT_OK 2026-05-20)
+    "profile",          # DMX_Profile dimmer curve
+    # 3D visualizer objects (probe EXPORT_OK 2026-05-20)
+    "item3d", "surface", "model",
+    # User accounts (probe EXPORT_OK 2026-05-20)
+    "user",
+    # Special masters container (probe EXPORT_OK 2026-05-20; exports all 11 master slots together)
+    "specialmaster",
+    # Scheduling / capture (probe EXPORT_EMPTY_SLOT 2026-05-20: command accepted, pool was empty)
+    "agenda", "dmxsnapshot", "flightrecording",
 }
 
 # Object types that can be imported (Screen excluded — Error #16 RESIZE FORBIDDEN)
+# Note: newly probed EXPORT_OK types are NOT added here until import viability is separately probed.
 IMPORT_OBJECT_TYPES = {
     "group", "preset", "macro", "effect", "sequence", "view", "page",
     "camera", "layout", "form", "plugin", "matricks", "mask", "image",
@@ -51,6 +76,8 @@ IMPORT_EXPORT_SUBFOLDERS = {
     "plugin": "plugins/",
     "matricks": "matricks/",
     "mask": "masks/",
+    "gel": "colors/",       # probe confirmed: Gel routes to colors/ not importexport/
+    "fixture": "fixtures/", # probe confirmed: Fixture routes to fixtures/ not importexport/
     # all others → importexport/
 }
 
