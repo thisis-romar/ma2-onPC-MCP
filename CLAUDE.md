@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.20.1
+version: 4.21.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-04-16T23:09:53Z
+last_updated: 2026-06-11T14:00:55Z
 ---
 
 # Project Rules
@@ -25,6 +25,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/server.py` | FastMCP server startup — 22 MCP resources + 16 MCP prompts, orchestrator wiring, re-exports |
 | `src/server_core.py` | Shared infrastructure — `mcp` instance, `get_client()`, `_handle_errors`, pool helpers |
 | `src/tools_community.py` | 20 COMMUNITY tools (free tier, public repo) |
+| `src/tools_graph.py` | 9 ENTERPRISE graph-intelligence tools (SAFE_READ, public repo) — registered in `server.py` |
 | `src/private/tools_professional.py` | 124 PROFESSIONAL tools (paid tier, private submodule) |
 | `src/private/tools_enterprise.py` | 20 ENTERPRISE tools (premium tier, private submodule) |
 | `src/private/server_orchestration_tools.py` | 34 ENTERPRISE agentic tools (private submodule) |
@@ -83,6 +84,21 @@ When writing or editing any `.md` file, call `get_current_time` first and use th
 ```bash
 date -u +%Y-%m-%dT%H:%M:%SZ
 ```
+
+---
+
+## Repository Setup (first clone)
+
+`src/private/` is a **git submodule** ([`ma2-onPC-MCP-private.git`](https://github.com/thisis-romar/ma2-onPC-MCP-private)) holding 178 of the 207 tools (PROFESSIONAL + ENTERPRISE + orchestration). A fresh clone has it **empty**. Until you initialize it:
+
+- `scripts/audit_md_counts.py` crashes with `FileNotFoundError: src/private/tools_professional.py` (so the **pre-push hook fails too**).
+- Only the 20 COMMUNITY + 9 graph tools load; the documented 207 count does not match disk.
+
+```bash
+git submodule update --init src/private   # REQUIRED before running tests / audit / full server
+```
+
+Working in the **public/COMMUNITY tree only**? That's a valid mode — but skip the audit script and expect the reduced tool count.
 
 ---
 
@@ -175,6 +191,7 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not hardcode `GMA_HOST`, `GMA_PORT`, or credentials — always read from env vars.
 - Do not set `confirm_destructive=True` inside server tool implementations.
 - Do not commit `rag/store/rag.db` or `rag/store/web_crawl_cache.json` — local artifacts.
+- Do not commit client/engagement-specific scripts to the tree — keep them in the gitignored `_local/` directory, kept separate from this BSL-licensed product.
 - Do not edit `src/grandMA2_v3_9_telnet_keyword_vocabulary.json` manually.
 - Do not call `new_show` with `preserve_connectivity=False` unless the user explicitly accepts Telnet will be disabled.
 - Do not pass pre-quoted strings to `quote_name()` — pass raw names only.

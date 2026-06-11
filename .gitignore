@@ -1,3 +1,6 @@
+# Client/engagement-specific scratch work (keep out of the BSL product tree)
+_local/
+
 # env
 .env
 
