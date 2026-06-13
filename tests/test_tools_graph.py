@@ -1,12 +1,12 @@
 # Copyright (c) 2025-2026 thisis-romar. All rights reserved.
 # Licensed under the Business Source License 1.1. See LICENSE file.
 
-"""Tests for the 9 MCP graph tools in src/tools_graph.py."""
+"""Tests for the 12 MCP graph tools in src/tools_graph.py."""
 
 from __future__ import annotations
 
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -274,3 +274,189 @@ class TestGraphGenerateSkills:
         with patch("src.tools_graph.get_graph_store", return_value=graph_store):
             data = json.loads(await graph_generate_skills(cluster_id="cluster:nope"))
             assert data["count"] == 0
+
+
+# ---------------------------------------------------------------------------
+# graph_rag_query_tool
+# ---------------------------------------------------------------------------
+
+class TestGraphRagQueryTool:
+    @pytest.mark.asyncio
+    async def test_store_none(self):
+        from src.tools_graph import graph_rag_query_tool
+        with patch("src.tools_graph.get_graph_store", return_value=None):
+            data = json.loads(await graph_rag_query_tool(query="test"))
+            assert data.get("error") == "Graph store not initialized"
+
+    @pytest.mark.asyncio
+    async def test_success_with_results(self, graph_store):
+        from src.tools_graph import graph_rag_query_tool
+        mock_ctx = MagicMock()
+        mock_ctx.to_dict.return_value = {
+            "entity": {"node_id": "module:src.server", "label": "src.server"},
+            "neighbors": [],
+            "edges": [],
+        }
+        with (
+            patch("src.tools_graph.get_graph_store", return_value=graph_store),
+            patch("src.knowledge_graph.graph_rag_query", return_value=[mock_ctx]),
+        ):
+            data = json.loads(await graph_rag_query_tool(query="server tools", max_depth=1))
+            assert data["query"] == "server tools"
+            assert data["entities_found"] == 1
+            assert data["contexts"][0]["entity"]["label"] == "src.server"
+
+    @pytest.mark.asyncio
+    async def test_empty_results(self, graph_store):
+        from src.tools_graph import graph_rag_query_tool
+        with (
+            patch("src.tools_graph.get_graph_store", return_value=graph_store),
+            patch("src.knowledge_graph.graph_rag_query", return_value=[]),
+        ):
+            data = json.loads(await graph_rag_query_tool(query="nothing matches"))
+            assert data["entities_found"] == 0
+            assert data["contexts"] == []
+
+    @pytest.mark.asyncio
+    async def test_passes_max_depth(self, graph_store):
+        from src.tools_graph import graph_rag_query_tool
+        with (
+            patch("src.tools_graph.get_graph_store", return_value=graph_store),
+            patch("src.knowledge_graph.graph_rag_query", return_value=[]) as mock_rag,
+        ):
+            await graph_rag_query_tool(query="q", max_depth=5)
+            mock_rag.assert_called_once_with("q", graph_store, max_depth=5)
+
+
+# ---------------------------------------------------------------------------
+# graph_upsert_node
+# ---------------------------------------------------------------------------
+
+class TestGraphUpsertNode:
+    @pytest.mark.asyncio
+    async def test_store_none(self):
+        from src.tools_graph import graph_upsert_node
+        with patch("src.tools_graph.get_graph_store", return_value=None):
+            data = json.loads(await graph_upsert_node(
+                node_id="skill:test", node_type="skill", label="Test Skill"))
+            assert data.get("error") == "Graph store not initialized"
+
+    @pytest.mark.asyncio
+    async def test_invalid_node_type(self, graph_store):
+        from src.tools_graph import graph_upsert_node
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            data = json.loads(await graph_upsert_node(
+                node_id="x:y", node_type="not_a_real_type", label="x"))
+            assert "error" in data
+            assert "not_a_real_type" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_invalid_props_json(self, graph_store):
+        from src.tools_graph import graph_upsert_node
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            data = json.loads(await graph_upsert_node(
+                node_id="skill:x", node_type="skill", label="x", props="{bad json}"))
+            assert "error" in data
+            assert "Invalid props JSON" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_success_inserts_node(self, graph_store):
+        from src.tools_graph import graph_upsert_node
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            data = json.loads(await graph_upsert_node(
+                node_id="skill:ft-pools",
+                node_type="skill",
+                label="FT Pools",
+                props='{"version": "13"}',
+            ))
+            assert data["upserted"] is True
+            assert data["node_id"] == "skill:ft-pools"
+            assert data["node_type"] == "skill"
+            assert data["label"] == "FT Pools"
+        # Verify the node actually landed in the store
+        node = graph_store.get_node("skill:ft-pools")
+        assert node is not None
+        assert node.label == "FT Pools"
+        assert node.props.get("version") == "13"
+
+    @pytest.mark.asyncio
+    async def test_idempotent_update(self, graph_store):
+        from src.tools_graph import graph_upsert_node
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            await graph_upsert_node(
+                node_id="skill:dup", node_type="skill", label="Original")
+            data = json.loads(await graph_upsert_node(
+                node_id="skill:dup", node_type="skill", label="Updated"))
+            assert data["upserted"] is True
+            assert data["label"] == "Updated"
+
+    @pytest.mark.asyncio
+    async def test_empty_label_stored_as_none(self, graph_store):
+        from src.tools_graph import graph_upsert_node
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            data = json.loads(await graph_upsert_node(
+                node_id="cluster:anon", node_type="cluster", label=""))
+            assert data["upserted"] is True
+
+
+# ---------------------------------------------------------------------------
+# graph_add_edge
+# ---------------------------------------------------------------------------
+
+class TestGraphAddEdge:
+    @pytest.mark.asyncio
+    async def test_store_none(self):
+        from src.tools_graph import graph_add_edge
+        with patch("src.tools_graph.get_graph_store", return_value=None):
+            data = json.loads(await graph_add_edge(
+                source_id="a", target_id="b", edge_type="imports"))
+            assert data.get("error") == "Graph store not initialized"
+
+    @pytest.mark.asyncio
+    async def test_invalid_edge_type(self, graph_store):
+        from src.tools_graph import graph_add_edge
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            data = json.loads(await graph_add_edge(
+                source_id="module:src.server", target_id="module:src.tools",
+                edge_type="not_a_real_edge"))
+            assert "error" in data
+            assert "not_a_real_edge" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_invalid_props_json(self, graph_store):
+        from src.tools_graph import graph_add_edge
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            data = json.loads(await graph_add_edge(
+                source_id="module:src.server", target_id="module:src.tools",
+                edge_type="imports", props="{bad}"))
+            assert "error" in data
+            assert "Invalid props JSON" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_success_adds_edge(self, graph_store):
+        from src.tools_graph import graph_add_edge
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            data = json.loads(await graph_add_edge(
+                source_id="module:src.server",
+                target_id="cluster:core",
+                edge_type="categorized_as",
+                props='{"confidence": 0.9}',
+            ))
+            assert data["upserted"] is True
+            assert data["source_id"] == "module:src.server"
+            assert data["target_id"] == "cluster:core"
+            assert data["edge_type"] == "categorized_as"
+
+    @pytest.mark.asyncio
+    async def test_idempotent_edge(self, graph_store):
+        from src.tools_graph import graph_add_edge
+        with patch("src.tools_graph.get_graph_store", return_value=graph_store):
+            r1 = json.loads(await graph_add_edge(
+                source_id="module:src.server", target_id="module:src.tools",
+                edge_type="calls"))
+            r2 = json.loads(await graph_add_edge(
+                source_id="module:src.server", target_id="module:src.tools",
+                edge_type="calls"))
+            assert r1["upserted"] is True
+            assert r2["upserted"] is True
+            assert r1["edge_id"] == r2["edge_id"]
