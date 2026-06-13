@@ -216,7 +216,7 @@ class TestConfigConstants:
         from rag.config import MAX_RETRY_WAIT
 
         assert isinstance(MAX_RETRY_WAIT, float)
-        assert MAX_RETRY_WAIT == 120.0
+        assert MAX_RETRY_WAIT == 300.0
 
 
 # ── RAG: FTS5 rebuild warning ────────────────────────────────────────────

@@ -1,9 +1,9 @@
 ---
 title: MA2 Command Conventions
 description: Live-verified MA2 command rules, quoting, navigation, and data directory layout
-version: 1.0.0
+version: 1.2.0
 created: 2026-03-29T21:44:45Z
-last_updated: 2026-03-29T21:44:45Z
+last_updated: 2026-05-13T12:30:00Z
 ---
 
 # MA2 Command Conventions
@@ -129,6 +129,26 @@ importexport/
 
 ---
 
+## Macro file-pair naming + base-config coupling
+
+For macros that create or destroy parametrized object families, ship a matched pair:
+
+| Role | File pattern | `<Macro name>` | Appearance |
+|---|---|---|---|
+| Build | `-Create <Feature> v<N>-.xml` | matches basename | vivid (e.g. `00cc88`) |
+| Cleanup | `-Delete <Feature> v<N>-.xml` | matches basename | red (`cc0044`) |
+
+Rules:
+1. Both files share a base-config `SetUserVar` block (lines 1-5 by convention). **Edit both files in lockstep** when relocating output slots — drift causes orphaned objects.
+2. Cleanup is **linear** (no `Go Macro` jumps) so it has no line-numbering fragility under future edits.
+3. Cleanup uses `Delete … Thru … /noconfirm` — idempotent, silently no-ops on empty slots.
+4. Cleanup range: `$end = $base + $maxFTscan - 1` (covers any build run up to `$maxFTscan` FTs without edits).
+5. Internal jump targets in the build macro follow **1-based line numbering**: `Go Macro 1."name".N` jumps to XML Macroline index `N-1`. When inserting lines, recompute all `Go Macro` targets via an index-shift table.
+
+Live reference: `macros/ft-pools/-Create FT_Pools v12-.xml` + `-Delete FT_Pools v12-.xml`.
+
+---
+
 ## Macro Store Group timing (live-verified 2026-03-13)
 
 | Pattern | Result |
@@ -141,6 +161,29 @@ importexport/
 **Rule:** When adding features to a working macro, insert new lines around existing logic — do not modify lines that perform critical Store operations.
 
 **Jump target convention:** `Go Macro 1."name".N` targets Line N (1-based) = XML index N-1. When inserting lines, use an index shift table to remap all jump targets.
+
+---
+
+## Store World — must follow preset recall for correct fixture expansion (live-verified 2026-05-13)
+
+`Store World N /o` stores only the fixtures **currently in the programmer**. Two patterns produce very different results:
+
+| Pattern | Fixtures in world |
+|---------|------------------|
+| `FixtureType X.1.1 Thru` → `Store World N /o` | **1 fixture instance** (FixtureType selects 1 instance, not all physical fixtures) |
+| `ClearAll ; Preset 0.N ; Store World N /o` | **Full FT fixture set** (universal preset recall expands ALL matching fixtures into programmer) |
+| `Attribute 1 Thru At Release` (after preset recall) → `Store World N /o` | **Full FT fixture set** — `Attribute … At Release` does NOT change fixture selection count |
+
+**Rule (mirrors original `-Create FT_Pools-` Macro 16 lines 83→87):**
+
+```
+ClearAll ; Preset 0.$cp ; Store Group $fg /o          ← FT group from preset recall
+Attribute 1 Thru At Release ; Store World $cw /o      ← World from same expanded selection
+```
+
+Always store the world AFTER `Preset 0.$cp` recall, not after `FixtureType`. The universal preset recall is what populates the programmer with the full physical fixture count (e.g. 46 fixtures for FT 1 vs. 1 for raw FixtureType selection).
+
+**`FixtureType X.M.I Thru` behavior:** selects 1 fixture instance; `$SELECTEDFIXTURESCOUNT` updates to instance count (1 or 2), NOT the full physical fixture count. Use as a probe only — never as the basis for Store World.
 
 ---
 

@@ -5,7 +5,7 @@
 
 import pytest
 
-from src.knowledge_graph.planning import EntityContext, GoalEnrichment, PlanningQueries
+from src.knowledge_graph.planning import EntityContext, PlanningQueries
 from src.knowledge_graph.schema import EdgeType, NodeType, node_id
 from src.knowledge_graph.store import GraphStore
 

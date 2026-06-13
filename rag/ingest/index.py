@@ -8,7 +8,7 @@ from pathlib import Path
 from rag.config import RAG_DB_PATH
 from rag.ingest.chunk import chunk_file
 from rag.ingest.crawl_repo import crawl_repo
-from rag.ingest.embed import EmbeddingProvider
+from rag.ingest.embed import EmbeddingProvider, ZeroVectorProvider
 from rag.store.sqlite import RagStore
 from rag.types import DocumentRecord, IngestResult, RepoFile
 from rag.utils.hash import sha256
@@ -55,6 +55,18 @@ def ingest(
                 result.files_skipped += 1
                 logger.debug("Skipped (unchanged): %s", file.path)
                 continue
+
+            # Quota-awareness: never overwrite real embeddings with zero vectors.
+            # Leave the doc hash stale so the next real-provider ingest re-processes it.
+            if isinstance(embedding_provider, ZeroVectorProvider):
+                existing_model = store.get_embedding_model_for_doc(doc_id)
+                if existing_model and existing_model != "zero-vector-stub":
+                    result.files_skipped += 1
+                    logger.debug(
+                        "Preserved real embeddings (%s) for changed file: %s",
+                        existing_model, file.path,
+                    )
+                    continue
 
             # Upsert document
             doc = DocumentRecord(

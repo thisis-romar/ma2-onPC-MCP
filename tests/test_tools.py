@@ -3639,14 +3639,14 @@ class TestAssignExecutorPropertyTool:
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
         mock_get_client.return_value = mock_client
-        result = await assign_executor_property(executor_id=1, option="width", value=2, confirm_destructive=True, page=1)
+        result = await assign_executor_property(executor_id=1, property_name="width", value=2, confirm_destructive=True, page=1)
         data = json.loads(result)
         assert data["command_sent"] == "Assign Executor 1.1 /width=2"
 
     @pytest.mark.asyncio
     async def test_assign_executor_property_invalid_option(self):
         from src.server import assign_executor_property
-        result = await assign_executor_property(executor_id=1, option="badoption", value="on", confirm_destructive=True)
+        result = await assign_executor_property(executor_id=1, property_name="badoption", value="on", confirm_destructive=True)
         data = json.loads(result)
         assert data["blocked"] is True
         assert "badoption" in data["error"]
@@ -3658,7 +3658,7 @@ class TestAssignExecutorPropertyTool:
         mock_client = MagicMock()
         mock_client.send_command_with_response = AsyncMock(return_value="[channel]>")
         mock_get_client.return_value = mock_client
-        result = await assign_executor_property(executor_id=3, option="ratemaster", value="rate_individual", confirm_destructive=True)
+        result = await assign_executor_property(executor_id=3, property_name="ratemaster", value="rate_individual", confirm_destructive=True)
         data = json.loads(result)
         assert data["command_sent"] == "Assign Executor 1.3 /ratemaster=rate_individual"
 

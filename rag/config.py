@@ -36,7 +36,7 @@ GEMINI_EMBED_INTER_REQUEST_DELAY: float = 1.0  # Gemini: 1,500 RPM allows faster
 
 # Embedding rate-limit thresholds
 DAILY_QUOTA_RETRY_AFTER: float = 3600.0  # seconds — above this means "come back tomorrow"
-MAX_RETRY_WAIT: float = 120.0  # max seconds to sleep on a single retry backoff
+MAX_RETRY_WAIT: float = 300.0  # max seconds to sleep on a single retry backoff
 
 # Reranking
 RERANK_BODY_OVERLAP_WEIGHT: float = 0.5  # half-weight bonus for tool body keyword overlap

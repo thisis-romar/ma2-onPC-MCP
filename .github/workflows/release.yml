@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Validate tag matches pyproject.toml
+        run: |
+          V_PYPROJECT=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+          if [ "$V_PYPROJECT" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "ERROR: Tag v${{ steps.version.outputs.VERSION }} does not match pyproject.toml version=$V_PYPROJECT"
+            exit 1
+          fi
+
+      - name: Validate tag matches src/__init__.py
+        run: |
+          V_INIT=$(grep -oP '__version__\s*=\s*"\K[^"]+' src/__init__.py | head -1)
+          if [ "$V_INIT" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "ERROR: Tag v${{ steps.version.outputs.VERSION }} does not match src/__init__.py __version__=$V_INIT"
+            exit 1
+          fi
+
+      - name: Validate CHANGELOG entry exists
+        run: |
+          if ! grep -q "## \[${{ steps.version.outputs.VERSION }}\]" CHANGELOG.md; then
+            echo "ERROR: CHANGELOG.md is missing ## [${{ steps.version.outputs.VERSION }}] section"
+            exit 1
+          fi
+
+      - name: Validate LICENSE version
+        run: |
+          V_LICENSE=$(grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' LICENSE | head -1)
+          if [ "$V_LICENSE" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "ERROR: LICENSE version v$V_LICENSE does not match release ${{ steps.version.outputs.VERSION }}"
+            exit 1
+          fi
+
+      - name: Validate README badge version
+        run: |
+          V_BADGE=$(grep -oP 'Version-\K[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1)
+          if [ "$V_BADGE" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "ERROR: README badge version $V_BADGE does not match release ${{ steps.version.outputs.VERSION }}"
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Lint check
+        run: uv run ruff check src/ tests/ rag/
+
+      - name: Run tests
+        run: uv run python -m pytest tests/ -v --tb=short -m "not live" -x
+        env:
+          GMA_LICENSE_BYPASS: "1"
+
+      - name: Extract CHANGELOG section for release notes
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          # Extract from ## [X.Y.Z] to next ## (or end of file)
+          sed -n "/^## \[$VERSION\]/,/^## \[/p" CHANGELOG.md | head -n -1 > /tmp/release_notes.md
+          # If empty, use a default
+          if [ ! -s /tmp/release_notes.md ]; then
+            echo "## Release v$VERSION" > /tmp/release_notes.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

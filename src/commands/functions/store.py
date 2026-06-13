@@ -506,6 +506,8 @@ def store_preset(
         'store preset 1.3'
         >>> store_preset("dimmer", 3, global_scope=True)
         'store preset 1.3 /global'
+        >>> store_preset("all", 11, universal=True, overwrite=True)
+        'store preset 0.11 /universal /overwrite'
     """
     type_num = PRESET_TYPES.get(preset_type.lower(), 1)
     cmd = f"store preset {type_num}.{preset_id}"

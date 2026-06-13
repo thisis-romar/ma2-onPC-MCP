@@ -84,8 +84,8 @@ def make_provider(
             sys.exit(1)
         return GeminiProvider(
             api_key=gemini_key,
-            model=model or "text-embedding-004",
-            dimensions=int(dimensions_str) if dimensions_str else 768,
+            model=model or "gemini-embedding-001",
+            dimensions=int(dimensions_str) if dimensions_str else 3072,
             batch_size=batch_size,
             inter_request_delay=inter_request_delay,
         )
@@ -118,8 +118,8 @@ def make_provider(
         logger.info("Auto-detected GEMINI_API_KEY, using Gemini provider")
         return GeminiProvider(
             api_key=gemini_key,
-            model=model or "text-embedding-004",
-            dimensions=int(dimensions_str) if dimensions_str else 768,
+            model=model or "gemini-embedding-001",
+            dimensions=int(dimensions_str) if dimensions_str else 3072,
             batch_size=batch_size,
             inter_request_delay=inter_request_delay,
         )

@@ -311,10 +311,10 @@ class TestDimensionMismatchFallback:
         from unittest.mock import patch
 
         provider = ZeroVectorProvider(dimensions=8)
-        with patch("rag.retrieve.query.logger") as mock_logger:
+        with patch("rag.store.sqlite.logger") as mock_logger:
             rag_query("store", embedding_provider=provider, db_path=populated_db)
             mock_logger.warning.assert_called_once()
-            assert "mismatch" in mock_logger.warning.call_args[0][0].lower()
+            assert "dimension" in mock_logger.warning.call_args[0][0].lower()
 
 
 # ── Graph enrichment tests ─────────────────────────────────────────────

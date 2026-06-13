@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# .githooks/pre-release
+# Pre-release validation: enforce version consistency before tagging.
+# Run manually before git tag: bash .githooks/pre-release [version]
+#
+# Checks:
+#   1. pyproject.toml version matches target
+#   2. src/__init__.py version matches target
+#   3. LICENSE version matches target
+#   4. README badge version matches target
+#   5. CHANGELOG.md has entry for target version
+#   6. Working tree is clean (no uncommitted changes)
+#   7. All tests pass
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+VERSION="${1:-}"
+if [ -z "$VERSION" ]; then
+    echo "Usage: bash .githooks/pre-release [version]"
+    echo "Example: bash .githooks/pre-release 3.36.0"
+    exit 1
+fi
+
+# Normalize version (strip leading 'v' if present)
+VERSION="${VERSION#v}"
+
+echo "[pre-release] Validating release v$VERSION..."
+FAIL=0
+
+# 1. pyproject.toml
+V_PYPROJECT=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+if [ "$V_PYPROJECT" != "$VERSION" ]; then
+    echo "ERROR: pyproject.toml version=$V_PYPROJECT does not match release $VERSION"
+    FAIL=1
+else
+    echo "  OK: pyproject.toml = $VERSION"
+fi
+
+# 2. src/__init__.py
+V_INIT=$(grep -oP '__version__\s*=\s*"\K[^"]+' src/__init__.py | head -1)
+if [ "$V_INIT" != "$VERSION" ]; then
+    echo "ERROR: src/__init__.py __version__=$V_INIT does not match release $VERSION"
+    FAIL=1
+else
+    echo "  OK: src/__init__.py = $VERSION"
+fi
+
+# 3. LICENSE
+V_LICENSE=$(grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' LICENSE | head -1)
+if [ "$V_LICENSE" != "$VERSION" ]; then
+    echo "ERROR: LICENSE version v$V_LICENSE does not match release $VERSION"
+    FAIL=1
+else
+    echo "  OK: LICENSE = $VERSION"
+fi
+
+# 4. README badge
+V_BADGE=$(grep -oP 'Version-\K[0-9]+\.[0-9]+\.[0-9]+' README.md | head -1)
+if [ "$V_BADGE" != "$VERSION" ]; then
+    echo "ERROR: README badge version $V_BADGE does not match release $VERSION"
+    FAIL=1
+else
+    echo "  OK: README badge = $VERSION"
+fi
+
+# 5. CHANGELOG entry
+if ! grep -q "## \[$VERSION\]" CHANGELOG.md; then
+    echo "ERROR: CHANGELOG.md is missing ## [$VERSION] section"
+    FAIL=1
+else
+    echo "  OK: CHANGELOG.md has [$VERSION] entry"
+fi
+
+# 6. Clean working tree
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "ERROR: Working tree has uncommitted changes. Commit or stash before releasing."
+    FAIL=1
+else
+    echo "  OK: Working tree is clean"
+fi
+
+# 7. No unpushed commits
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if git rev-parse "origin/$CURRENT_BRANCH" >/dev/null 2>&1; then
+    UNPUSHED=$(git log "origin/$CURRENT_BRANCH..HEAD" --oneline 2>/dev/null)
+    if [ -n "$UNPUSHED" ]; then
+        echo "ERROR: Unpushed commits on $CURRENT_BRANCH:"
+        echo "$UNPUSHED" | sed 's/^/  /'
+        FAIL=1
+    else
+        echo "  OK: No unpushed commits"
+    fi
+else
+    echo "WARNING: Branch $CURRENT_BRANCH has no remote tracking — push before tagging"
+fi
+
+# 8. Check if tag already exists
+if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+    echo "ERROR: Tag v$VERSION already exists"
+    FAIL=1
+else
+    echo "  OK: Tag v$VERSION does not exist yet"
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+    echo ""
+    echo "[pre-release] Validation FAILED. Do not tag."
+    exit 1
+fi
+
+echo ""
+echo "[pre-release] All checks passed. Safe to tag:"
+echo "  git tag -a v$VERSION -m \"Release v$VERSION\""
+echo "  git push origin main && git push origin v$VERSION"
+exit 0

@@ -77,19 +77,16 @@ def rag_query(
 
     try:
         if embedding_provider is not None:
-            try:
-                # Switch to query mode for asymmetric search (Gemini)
-                if hasattr(embedding_provider, "set_task_type"):
-                    embedding_provider.set_task_type("RETRIEVAL_QUERY")
-                query_embedding = embedding_provider.embed_one(query)
-                hits = store.search_by_embedding(
-                    query_embedding, top_k=top_k * 2,
-                    repo_ref=repo_ref, kind=kind,
-                )
-            except ValueError:
-                logger.warning(
-                    "Embedding dimension mismatch — falling back to text search"
-                )
+            # Switch to query mode for asymmetric search (Gemini)
+            if hasattr(embedding_provider, "set_task_type"):
+                embedding_provider.set_task_type("RETRIEVAL_QUERY")
+            query_embedding = embedding_provider.embed_one(query)
+            hits = store.search_by_embedding(
+                query_embedding, top_k=top_k * 2,
+                repo_ref=repo_ref, kind=kind,
+            )
+            if not hits:
+                # Dimension mismatch or empty index — fall back to text search
                 hits = store.search_by_text(query, top_k=top_k * 2)
         else:
             hits = store.search_by_text(query, top_k=top_k * 2)

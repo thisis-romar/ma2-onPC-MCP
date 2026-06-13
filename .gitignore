@@ -43,8 +43,10 @@ macro_v2_output.txt
 push_out.txt
 test_results.txt
 
-# RAG database and crawl cache
+# RAG database and crawl cache (including SQLite WAL journal files)
 rag/store/*.db
+rag/store/*.db-shm
+rag/store/*.db-wal
 rag/store/web_crawl_cache.json
 
 # Tool categorization taxonomy (generated artifact)
@@ -55,6 +57,7 @@ src/categorization/taxonomy.json
 doc/grandMA2_KMeans_Complete.json
 .claude/settings.local.json
 .claude/worktrees/
+.claude/scheduled_tasks.lock
 
 # Audit report (generated artifact)
 doc/audit-report.json
@@ -65,3 +68,9 @@ agent_traces/
 
 # Graph intelligence persistent storage
 .graph/
+
+# graphify working files and generated output (temp/intermediate)
+.graphify_*.json
+.graphify_python
+.graphify_uncached.txt
+graphify-out/

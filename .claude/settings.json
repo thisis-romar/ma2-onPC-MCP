@@ -1,16 +1,61 @@
 {
-    "$schema": "https://json.schemastore.org/claude-code-settings.json",
-    "hooks": {
-        "Stop": [
-            {
-                "matcher": "",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "bash .githooks/stop-git-check.sh"
-                    }
-                ]
-            }
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Store Group overwrite /o\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Store Preset /merge global cross-pool\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Appearance color hue saturation brightness HSB\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"SaveShow backup before macro destructive\")",
+      "Bash(git fetch *)",
+      "Bash(git log *)",
+      "Bash(sort -u git log main..origin/remote-main --name-only --pretty=format:)",
+      "Bash(sort -u comm -12 /tmp/main_unique.txt /tmp/rm_unique.txt)",
+      "Read(//c/Users/romar/onPC-Telnet-mcp/**)",
+      "Bash(grep -v '^$')",
+      "Bash(git merge-tree *)",
+      "Bash(git ls-tree *)",
+      "Read(//c/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/shows/**)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"Macro 19 toronto\" --limit 3)",
+      "Read(//c/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/**)",
+      "Bash(mkdir -p /tmp/macro19)",
+      "Bash(cp \"C:/ProgramData/MA Lighting Technologies/grandma/gma2_V_3.9.60/shows/19-toronto-2025-09-09-v4.show.gz\" /tmp/macro19/show.gz)",
+      "Bash(gunzip -kf show.gz)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" branch -a)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" show origin/remote-main:src/server.py)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" show origin/claude/compare-repo-commits-Kp8rt:src/private/tools_professional.py)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" show main:src/server.py)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" grep -n -E \"def \\(export_objects|import_objects\\)\" main -- 'src/*.py')",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" log --all --oneline -S \"def export_objects\" -- 'src/**/*.py')",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree main:src/private/)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree origin/remote-main:src/private/)",
+      "Bash(git -C \"C:/Users/romar/onPC-Telnet-mcp\" ls-tree origin/claude/compare-repo-commits-Kp8rt:src/private/)",
+      "Bash(awk '/^async def export_objects/,/^async def import_objects/')",
+      "Bash(grep -E \"\\\\.py$\")",
+      "Bash(grep \"\\\\.py$\")",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m src.server)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest -x -q)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_tools.py tests/test_rights.py tests/test_orchestrator.py -x -q)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest -q --tb=short)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_rag_embed.py::TestGeminiProvider::test_properties -v)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_rag_embed.py -q)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_rag_embed.py::TestGeminiProvider -v)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_skill.py::TestFilesystemSkillLoading -v --tb=short)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest \"tests/test_skill.py::TestSearch::test_search_empty_query\" \"tests/test_skill.py::TestListAll::test_returns_db_plus_filesystem\" \"tests/test_skill.py::TestListAll::test_empty_db_returns_filesystem_skills\" -v --tb=short)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python -m pytest tests/test_skill.py tests/test_rag_embed.py -q --tb=line)",
+      "Bash(PYTHONIOENCODING=utf-8 uv run python scripts/rag_query.py \"store preset\")"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .githooks/stop-git-check.sh"
+          }
         ]
-    }
+      }
+    ]
+  }
 }

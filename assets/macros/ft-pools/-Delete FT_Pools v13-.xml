@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd" major_vers="3" minor_vers="9" stream_vers="60">
+	<Info datetime="2026-05-13T19:00:00" showfile="19-toronto-2025-09-09-v4-ft-pools" />
+	<Macro index="16" name="-Delete FT_Pools v13-">
+		<Appearance Color="cc0044" />
+		<Macroline index="0" delay="0.06">
+			<text>BlindEdit On</text>
+			<info>v13 DELETE START: enter blind edit</info>
+		</Macroline>
+		<Macroline index="1" delay="0.06">
+			<text>SetUserVar $maxFTscan = 30 ; SetUserVar $ftGroupBase = 1 ; SetUserVar $poolGroupBase = 11</text>
+			<info>CONFIG: must match -Create FT_Pools v13- exactly. Edit both files in lockstep.</info>
+		</Macroline>
+		<Macroline index="2" delay="0.06">
+			<text>SetUserVar $presetBase = 11 ; SetUserVar $worldBase = 11</text>
+			<info>CONFIG: preset slot base + world slot base</info>
+		</Macroline>
+		<Macroline index="3" delay="0.06">
+			<text>SetUserVar $deleteRange = 90</text>
+			<info>DELETE RANGE: 90 slots covers 30 FTs x 3 instances each. Wider than maxFTscan because multi-instance FTs consume multiple slotOffset steps.</info>
+		</Macroline>
+		<Macroline index="4" delay="0.06">
+			<text>SetUserVar $ftGroupEnd = $ftGroupBase ; AddUserVar $ftGroupEnd = $deleteRange ; AddUserVar $ftGroupEnd = -1</text>
+			<info>COMPUTE: ftGroupEnd = ftGroupBase + deleteRange - 1</info>
+		</Macroline>
+		<Macroline index="5" delay="0.06">
+			<text>SetUserVar $poolGroupEnd = $poolGroupBase ; AddUserVar $poolGroupEnd = $deleteRange ; AddUserVar $poolGroupEnd = -1</text>
+			<info>COMPUTE: poolGroupEnd = poolGroupBase + deleteRange - 1</info>
+		</Macroline>
+		<Macroline index="6" delay="0.06">
+			<text>SetUserVar $presetEnd = $presetBase ; AddUserVar $presetEnd = $deleteRange ; AddUserVar $presetEnd = -1</text>
+			<info>COMPUTE: presetEnd = presetBase + deleteRange - 1</info>
+		</Macroline>
+		<Macroline index="7" delay="0.06">
+			<text>SetUserVar $worldEnd = $worldBase ; AddUserVar $worldEnd = $deleteRange ; AddUserVar $worldEnd = -1</text>
+			<info>COMPUTE: worldEnd = worldBase + deleteRange - 1</info>
+		</Macroline>
+		<Macroline index="8" delay="0.20">
+			<text>Delete Group $ftGroupBase Thru $ftGroupEnd /noconfirm</text>
+			<info>DELETE: lump + per-instance FT groups</info>
+		</Macroline>
+		<Macroline index="9" delay="0.20">
+			<text>Delete Group $poolGroupBase Thru $poolGroupEnd /noconfirm</text>
+			<info>DELETE: lump + per-instance pool groups</info>
+		</Macroline>
+		<Macroline index="10" delay="0.20">
+			<text>Delete Preset 0.$presetBase Thru 0.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 0 ALL presets</info>
+		</Macroline>
+		<Macroline index="11" delay="0.20">
+			<text>Delete Preset 1.$presetBase Thru 1.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 1 DIMMER presets</info>
+		</Macroline>
+		<Macroline index="12" delay="0.20">
+			<text>Delete Preset 2.$presetBase Thru 2.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 2 POSITION presets</info>
+		</Macroline>
+		<Macroline index="13" delay="0.20">
+			<text>Delete Preset 3.$presetBase Thru 3.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 3 GOBO presets</info>
+		</Macroline>
+		<Macroline index="14" delay="0.20">
+			<text>Delete Preset 4.$presetBase Thru 4.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 4 COLOR presets</info>
+		</Macroline>
+		<Macroline index="15" delay="0.20">
+			<text>Delete Preset 5.$presetBase Thru 5.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 5 BEAM presets</info>
+		</Macroline>
+		<Macroline index="16" delay="0.20">
+			<text>Delete Preset 6.$presetBase Thru 6.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 6 FOCUS presets</info>
+		</Macroline>
+		<Macroline index="17" delay="0.20">
+			<text>Delete Preset 7.$presetBase Thru 7.$presetEnd /noconfirm</text>
+			<info>DELETE: PT 7 CONTROL presets</info>
+		</Macroline>
+		<Macroline index="18" delay="0.20">
+			<text>Delete World $worldBase Thru $worldEnd /noconfirm</text>
+			<info>DELETE: lump + per-instance worlds</info>
+		</Macroline>
+		<Macroline index="19" delay="0.10">
+			<text>ClearAll ; BlindEdit Off</text>
+			<info>END: clear programmer, exit blind edit</info>
+		</Macroline>
+	</Macro>
+</MA>
