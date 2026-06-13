@@ -2,10 +2,10 @@
 # Licensed under the Business Source License 1.1. See LICENSE file.
 
 """
-tools_graph.py — 9 ENTERPRISE MCP tools for the Graph Intelligence Layer.
+tools_graph.py — 12 ENTERPRISE MCP tools for the Graph Intelligence Layer.
 
-All tools are SAFE_READ (no console I/O). They query the in-memory
-knowledge graph populated at server startup.
+SAFE_READ tools query the in-memory knowledge graph populated at server startup.
+SYSTEM_ADMIN tools (graph_upsert_node, graph_add_edge) write to the graph.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from src.knowledge_graph import get_graph_store
 from src.knowledge_graph.parsers.repo_registry import RepoRegistry
 from src.knowledge_graph.parsers.repo_scanner import scan_repository
 from src.knowledge_graph.query import GraphQuery
-from src.knowledge_graph.schema import NodeType
+from src.knowledge_graph.schema import EdgeType, NodeType
 
 mcp = _sc.mcp
 _handle_errors = _sc._handle_errors  # noqa: SLF001
@@ -252,3 +252,119 @@ async def graph_generate_skills(cluster_id: str = "") -> str:
         })
 
     return json.dumps({"suggestions": suggestions, "count": len(suggestions)})
+
+
+@mcp.tool()
+@require_scope(OAuthScope.STATE_READ)
+@_handle_errors
+async def graph_rag_query_tool(query: str, max_depth: int = 2) -> str:
+    """Query the knowledge graph using RAG over node neighborhood contexts.
+
+    Resolves entity mentions in the query to graph nodes, then expands each
+    match to depth max_depth. Use alongside graph_query() for hybrid search.
+
+    Args:
+        query: Natural language query (e.g. "tools that use telnet", "skill for gobo presets").
+        max_depth: Neighborhood depth to expand around each matched entity.
+    """
+    store = get_graph_store()
+    if store is None:
+        return json.dumps({"error": "Graph store not initialized"})
+
+    from src.knowledge_graph import graph_rag_query  # local import to avoid circular at load time
+    contexts = graph_rag_query(query, store, max_depth=max_depth)
+    return json.dumps({
+        "query": query,
+        "entities_found": len(contexts),
+        "contexts": [c.to_dict() for c in contexts],
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SYSTEM_ADMIN)
+@_handle_errors
+async def graph_upsert_node(
+    node_id: str,
+    node_type: str,
+    label: str = "",
+    props: str = "{}",
+) -> str:
+    """Insert or update a node in the knowledge graph.
+
+    Idempotent — calling twice with the same node_id updates the existing node.
+    Use to push external entities (e.g. graphify clusters, skill centroids) into the repo KG.
+
+    Args:
+        node_id: Unique ID, conventionally "type:name" (e.g. "cluster:auth", "skill:ft-pools").
+        node_type: One of the NodeType values: fixture, group, sequence, cue, executor, preset,
+            user, world, filter, module, symbol, package, cluster, skill, mcp_tool,
+            mcp_resource, mcp_prompt, fixture_type.
+        label: Human-readable name shown in graph visualizations.
+        props: JSON object of additional properties (arbitrary key-value pairs).
+    """
+    store = get_graph_store()
+    if store is None:
+        return json.dumps({"error": "Graph store not initialized"})
+
+    valid_types = {t.value for t in NodeType}
+    if node_type not in valid_types:
+        return json.dumps({"error": f"Invalid node_type '{node_type}'. Valid: {sorted(valid_types)}"})
+
+    try:
+        props_dict = json.loads(props)
+    except json.JSONDecodeError as exc:
+        return json.dumps({"error": f"Invalid props JSON: {exc}"})
+
+    node = store.upsert_node(node_id, node_type, label=label or None, props=props_dict)
+    return json.dumps({
+        "upserted": True,
+        "node_id": node.node_id,
+        "node_type": node.node_type,
+        "label": node.label,
+    })
+
+
+@mcp.tool()
+@require_scope(OAuthScope.SYSTEM_ADMIN)
+@_handle_errors
+async def graph_add_edge(
+    source_id: str,
+    target_id: str,
+    edge_type: str,
+    props: str = "{}",
+) -> str:
+    """Add or update a directed edge between two nodes in the knowledge graph.
+
+    Idempotent — (source_id, target_id, edge_type) is a unique constraint; calling
+    twice updates the edge props. Both nodes must already exist (use graph_upsert_node first).
+
+    Args:
+        source_id: Source node ID (must exist in the graph).
+        target_id: Target node ID (must exist in the graph).
+        edge_type: One of the EdgeType values: member_of, instance_of, patched_to,
+            assigned_to, has_cue, controls, uses_preset, has_role, scoped_by,
+            filtered_by, part_of, imports, calls, defines, contains, implements,
+            documents, orchestrates, improves_upon, categorized_as.
+        props: JSON object of additional edge properties.
+    """
+    store = get_graph_store()
+    if store is None:
+        return json.dumps({"error": "Graph store not initialized"})
+
+    valid_edge_types = {t.value for t in EdgeType}
+    if edge_type not in valid_edge_types:
+        return json.dumps({"error": f"Invalid edge_type '{edge_type}'. Valid: {sorted(valid_edge_types)}"})
+
+    try:
+        props_dict = json.loads(props)
+    except json.JSONDecodeError as exc:
+        return json.dumps({"error": f"Invalid props JSON: {exc}"})
+
+    edge = store.upsert_edge(source_id, target_id, edge_type, props=props_dict)
+    return json.dumps({
+        "upserted": True,
+        "edge_id": edge.edge_id,
+        "source_id": edge.source_id,
+        "target_id": edge.target_id,
+        "edge_type": edge.edge_type,
+    })

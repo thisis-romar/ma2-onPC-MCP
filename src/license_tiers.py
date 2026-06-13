@@ -297,4 +297,7 @@ TOOL_LICENSE_TIERS: dict[str, LicenseTier] = {
     "graph_trace_process": ENT,
     "graph_list_clusters": ENT,
     "graph_generate_skills": ENT,
+    "graph_rag_query_tool": ENT,
+    "graph_upsert_node": ENT,
+    "graph_add_edge": ENT,
 }

@@ -281,6 +281,9 @@ _OPERATION_MIN_RIGHT: dict[str, MA2Right] = {
     "graph_trace_process":        MA2Right.NONE,
     "graph_list_clusters":        MA2Right.NONE,
     "graph_generate_skills":      MA2Right.NONE,
+    "graph_rag_query_tool":       MA2Right.NONE,
+    "graph_upsert_node":          MA2Right.NONE,
+    "graph_add_edge":             MA2Right.NONE,
     # ── playback (1) — executor control tools ────────────────────
     "clear_effects_on_page":      MA2Right.PLAYBACK,
     "control_chaser":             MA2Right.PLAYBACK,

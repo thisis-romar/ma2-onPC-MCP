@@ -1,16 +1,16 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.21.0
+version: 4.22.0
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-06-11T14:00:55Z
+last_updated: 2026-06-13T01:45:00Z
 ---
 
 # Project Rules
 
 ## Project Identity
 
-MCP server exposing **207 tools**, **22 resources**, **16 prompts**, and **36 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
+MCP server exposing **210 tools**, **22 resources**, **16 prompts**, and **36 skills** so AI assistants can control a grandMA2 lighting console via Telnet. Includes an **agent harness** (`src/agent/`) for autonomous multi-step execution with planning, policy enforcement, verification, and audit traces.
 
 Central rule: **planner decides → skills carry instructions → subagents execute in isolation → tools take narrow actions → memory stores distilled checkpoints**.
 
@@ -25,7 +25,7 @@ All network I/O is isolated in `src/telnet_client.py`. Command builders in `src/
 | `src/server.py` | FastMCP server startup — 22 MCP resources + 16 MCP prompts, orchestrator wiring, re-exports |
 | `src/server_core.py` | Shared infrastructure — `mcp` instance, `get_client()`, `_handle_errors`, pool helpers |
 | `src/tools_community.py` | 20 COMMUNITY tools (free tier, public repo) |
-| `src/tools_graph.py` | 9 ENTERPRISE graph-intelligence tools (SAFE_READ, public repo) — registered in `server.py` |
+| `src/tools_graph.py` | 12 ENTERPRISE graph-intelligence tools (SAFE_READ + SYSTEM_ADMIN write, public repo) — registered in `server.py` |
 | `src/private/tools_professional.py` | 124 PROFESSIONAL tools (paid tier, private submodule) |
 | `src/private/tools_enterprise.py` | 20 ENTERPRISE tools (premium tier, private submodule) |
 | `src/private/server_orchestration_tools.py` | 34 ENTERPRISE agentic tools (private submodule) |
@@ -89,7 +89,7 @@ date -u +%Y-%m-%dT%H:%M:%SZ
 
 ## Repository Setup (first clone)
 
-`src/private/` is a **git submodule** ([`ma2-onPC-MCP-private.git`](https://github.com/thisis-romar/ma2-onPC-MCP-private)) holding 178 of the 207 tools (PROFESSIONAL + ENTERPRISE + orchestration). A fresh clone has it **empty**. Until you initialize it:
+`src/private/` is a **git submodule** ([`ma2-onPC-MCP-private.git`](https://github.com/thisis-romar/ma2-onPC-MCP-private)) holding 178 of the 210 tools (PROFESSIONAL + ENTERPRISE + orchestration). A fresh clone has it **empty**. Until you initialize it:
 
 - `scripts/audit_md_counts.py` crashes with `FileNotFoundError: src/private/tools_professional.py` (so the **pre-push hook fails too**).
 - Only the 20 COMMUNITY + 9 graph tools load; the documented 207 count does not match disk.
