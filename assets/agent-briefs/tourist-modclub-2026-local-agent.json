@@ -1,0 +1,282 @@
+{
+  "meta": {
+    "brief_version": "1.0.0",
+    "created": "2026-06-26T19:54:02Z",
+    "event": "TOURIST @ Mod Club, Toronto",
+    "date": "2026-06-26",
+    "client": "Backliner Inc.",
+    "ld_tech": "Romar Johnson / Emblem Projects Inc.",
+    "target_showfile": "TOURIST_ModClub_20260626_FloorPkg",
+    "branch": "claude/blissful-franklin-p48s7l",
+    "plan_version": "4.1.0"
+  },
+
+  "console": {
+    "host": "127.0.0.1",
+    "port": 30000,
+    "user": "administrator",
+    "version": "3.9.60.65",
+    "telnet": "enabled",
+    "env_var_host": "GMA_HOST",
+    "env_var_port": "GMA_PORT"
+  },
+
+  "phase_order": ["audit", "load_synrgy", "import_profiles", "patch", "groups", "presets", "executors", "validate", "save"],
+
+  "phases": {
+    "audit": {
+      "id": 1,
+      "label": "Baseline audit",
+      "risk": "SAFE_READ",
+      "gate": "none",
+      "tools": ["hydrate_console_state", "get_showfile_info", "assert_showfile_unchanged", "list_fixtures", "list_universes", "list_preset_pool", "get_park_ledger"],
+      "pass_condition": "23 or fewer fixtures, Universe 1 only, no blocking RED findings",
+      "skip_if": "baseline already hydrated this session"
+    },
+    "load_synrgy": {
+      "id": 2,
+      "label": "Load SYNRGY show file",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "tools": ["save_show", "list_show_files", "load_show", "hydrate_console_state"],
+      "target_file": "splittheviews1.8.0",
+      "fallback_file": "img03829dimensionupdaterefactor1.8.0redonblackfull",
+      "skip_if": "SYNRGY file not on machine — proceed direct to phase import_profiles on current show"
+    },
+    "import_profiles": {
+      "id": 3,
+      "label": "Import fixture type profiles",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "tools": ["import_fixture_type", "list_fixture_types"],
+      "profiles": [
+        {
+          "key": "nuoma",
+          "import_string": "nuoma@nuoma_rgbw_par@8_bit",
+          "display_name": "Nuoma RGBW Par",
+          "mode": "8 bit",
+          "source_xml": "importexport/nuoma@nuoma_rgbw_par@8_bit.xml"
+        },
+        {
+          "key": "dragon",
+          "import_string": "dragon@dragon_tilt_strobe_working@15ch",
+          "display_name": "Dragon Tilt Strobe Working",
+          "mode": "15ch",
+          "source_xml": "importexport/dragon@dragon_tilt_strobe_working@15ch.xml"
+        },
+        {
+          "key": "spartan",
+          "import_string": "acme@spartan_hybrid@extended_24ch",
+          "display_name": "Acme Spartan Hybrid",
+          "mode": "Extended 24ch",
+          "source": "ma2_library",
+          "note": "Check library first via list_fixture_types before importing"
+        }
+      ]
+    },
+    "patch": {
+      "id": 4,
+      "label": "Patch 23 fixtures — Universe 1",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "tools": ["patch_fixture"],
+      "confirm_destructive": true,
+      "verify_after": "list_fixtures — expect 23 fixtures, no address overlap, highest address 271"
+    },
+    "groups": {
+      "id": 5,
+      "label": "Create groups via macro",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "method": "fire_macro",
+      "macro_file": "assets/macros/tourist-modclub-2026/-Create TOURIST Groups v1-.xml",
+      "macro_import_path": "C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/macros/",
+      "tools": ["import_macro", "fire_macro", "list_group"],
+      "verify_after": "list_group — expect groups 1-8 and 11-18 populated"
+    },
+    "presets": {
+      "id": 6,
+      "label": "Build color and position presets",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "tools": ["store_preset", "list_preset_pool"],
+      "skills": ["color-preset-creator", "constrained-color-design"]
+    },
+    "executors": {
+      "id": 7,
+      "label": "Rebuild busking executor layout",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "tools": ["assign_executor", "store_sequence"],
+      "skills": ["busking", "executors"]
+    },
+    "validate": {
+      "id": 8,
+      "label": "Final health check",
+      "risk": "SAFE_READ",
+      "gate": "none",
+      "tools": ["hydrate_console_state", "list_fixtures", "list_preset_pool", "list_group", "get_park_ledger"],
+      "pass_condition": "GREEN overall, 23 fixtures patched U1, groups 1-8+11-18 exist, presets populated"
+    },
+    "save": {
+      "id": 9,
+      "label": "Save final show file",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "tools": ["save_show"],
+      "save_name": "TOURIST_ModClub_20260626_FloorPkg"
+    }
+  },
+
+  "fixtures": {
+    "universe": 1,
+    "total_count": 23,
+    "highest_address": 271,
+    "spare_from": 272,
+    "pars": [
+      {"ma2_id": 8011, "fig_id": "PAR-01", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 1 USR Top",   "universe": 1, "address": 1},
+      {"ma2_id": 8012, "fig_id": "PAR-02", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 1 USR Mid",   "universe": 1, "address": 9},
+      {"ma2_id": 8021, "fig_id": "PAR-03", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 2 USC-R Top", "universe": 1, "address": 17},
+      {"ma2_id": 8022, "fig_id": "PAR-04", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 2 USC-R Mid", "universe": 1, "address": 25},
+      {"ma2_id": 8031, "fig_id": "PAR-05", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 3 USC-L Top", "universe": 1, "address": 33},
+      {"ma2_id": 8032, "fig_id": "PAR-06", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 3 USC-L Mid", "universe": 1, "address": 41},
+      {"ma2_id": 8041, "fig_id": "PAR-07", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 4 USL Top",   "universe": 1, "address": 49},
+      {"ma2_id": 8042, "fig_id": "PAR-08", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 4 USL Mid",   "universe": 1, "address": 57},
+      {"ma2_id": 8051, "fig_id": "PAR-09", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 5 DSR Top",   "universe": 1, "address": 65},
+      {"ma2_id": 8052, "fig_id": "PAR-10", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 5 DSR Mid",   "universe": 1, "address": 73},
+      {"ma2_id": 8061, "fig_id": "PAR-11", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 6 DSC-R Top", "universe": 1, "address": 81},
+      {"ma2_id": 8062, "fig_id": "PAR-12", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 6 DSC-R Mid", "universe": 1, "address": 89},
+      {"ma2_id": 8071, "fig_id": "PAR-13", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 7 DSC-L Top", "universe": 1, "address": 97},
+      {"ma2_id": 8072, "fig_id": "PAR-14", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 7 DSC-L Mid", "universe": 1, "address": 105},
+      {"ma2_id": 8081, "fig_id": "PAR-15", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 8 DSL Top",   "universe": 1, "address": 113},
+      {"ma2_id": 8082, "fig_id": "PAR-16", "type": "Nuoma RGBW Par", "mode": "8 bit", "position": "Pole 8 DSL Mid",   "universe": 1, "address": 121}
+    ],
+    "spartans": [
+      {"ma2_id": 9011, "fig_id": "SPT-01", "type": "Acme Spartan Hybrid", "mode": "Extended 24ch", "position": "Deck SL-inner", "universe": 1, "address": 129, "reset_ch": 152, "circuit": "C"},
+      {"ma2_id": 9021, "fig_id": "SPT-02", "type": "Acme Spartan Hybrid", "mode": "Extended 24ch", "position": "Deck C-SL",    "universe": 1, "address": 153, "reset_ch": 176, "circuit": "C"},
+      {"ma2_id": 9031, "fig_id": "SPT-03", "type": "Acme Spartan Hybrid", "mode": "Extended 24ch", "position": "Deck C-SR",    "universe": 1, "address": 177, "reset_ch": 200, "circuit": "D"},
+      {"ma2_id": 9041, "fig_id": "SPT-04", "type": "Acme Spartan Hybrid", "mode": "Extended 24ch", "position": "Deck SR-inner","universe": 1, "address": 201, "reset_ch": 224, "circuit": "D"}
+    ],
+    "dragons": [
+      {"ma2_id": 7011, "fig_id": "DRG-01", "type": "Dragon Tilt Strobe Working", "mode": "15ch", "position": "Deck SL risers", "universe": 1, "address": 225, "circuit": "E"},
+      {"ma2_id": 7021, "fig_id": "DRG-02", "type": "Dragon Tilt Strobe Working", "mode": "15ch", "position": "Deck Centre",    "universe": 1, "address": 241, "circuit": "E"},
+      {"ma2_id": 7031, "fig_id": "DRG-03", "type": "Dragon Tilt Strobe Working", "mode": "15ch", "position": "Deck SR risers", "universe": 1, "address": 257, "circuit": "E"}
+    ]
+  },
+
+  "groups": {
+    "type_zone": [
+      {"id": 1,  "name": "All Pars",          "fixtures": [8011,8012,8021,8022,8031,8032,8041,8042,8051,8052,8061,8062,8071,8072,8081,8082]},
+      {"id": 2,  "name": "Pars Upstage",       "fixtures": [8011,8012,8021,8022,8031,8032,8041,8042]},
+      {"id": 3,  "name": "Pars Downstage",     "fixtures": [8051,8052,8061,8062,8071,8072,8081,8082]},
+      {"id": 4,  "name": "All Spartans",       "fixtures": [9011,9021,9031,9041]},
+      {"id": 5,  "name": "Spartans SL",        "fixtures": [9011,9021]},
+      {"id": 6,  "name": "Spartans SR",        "fixtures": [9031,9041]},
+      {"id": 7,  "name": "All Dragons",        "fixtures": [7011,7021,7031]},
+      {"id": 8,  "name": "All",                "fixtures": [8011,8012,8021,8022,8031,8032,8041,8042,8051,8052,8061,8062,8071,8072,8081,8082,9011,9021,9031,9041,7011,7021,7031]}
+    ],
+    "per_pole": [
+      {"id": 11, "name": "Pole 1 USR",  "fixtures": [8011,8012]},
+      {"id": 12, "name": "Pole 2 USC-R","fixtures": [8021,8022]},
+      {"id": 13, "name": "Pole 3 USC-L","fixtures": [8031,8032]},
+      {"id": 14, "name": "Pole 4 USL",  "fixtures": [8041,8042]},
+      {"id": 15, "name": "Pole 5 DSR",  "fixtures": [8051,8052]},
+      {"id": 16, "name": "Pole 6 DSC-R","fixtures": [8061,8062]},
+      {"id": 17, "name": "Pole 7 DSC-L","fixtures": [8071,8072]},
+      {"id": 18, "name": "Pole 8 DSL",  "fixtures": [8081,8082]}
+    ]
+  },
+
+  "presets_to_build": {
+    "nuoma_color": [
+      {"id": "4.1",  "name": "Full White",    "r": 255, "g": 255, "b": 255, "w": 255},
+      {"id": "4.2",  "name": "Warm White",    "r": 255, "g": 200, "b": 100, "w": 200},
+      {"id": "4.3",  "name": "Deep Red",      "r": 255, "g": 0,   "b": 0,   "w": 0},
+      {"id": "4.4",  "name": "Deep Blue",     "r": 0,   "g": 0,   "b": 255, "w": 0},
+      {"id": "4.5",  "name": "Deep Green",    "r": 0,   "g": 255, "b": 0,   "w": 0},
+      {"id": "4.6",  "name": "Cyan",          "r": 0,   "g": 255, "b": 255, "w": 0},
+      {"id": "4.7",  "name": "Amber",         "r": 255, "g": 140, "b": 0,   "w": 80},
+      {"id": "4.8",  "name": "Deep Magenta",  "r": 255, "g": 0,   "b": 200, "w": 0}
+    ],
+    "spartan_color": [
+      {"id": "4.11", "name": "Open White",    "cy": 0,   "m": 0,   "y": 0,   "cto": 0},
+      {"id": "4.12", "name": "Warm White",    "cy": 0,   "m": 0,   "y": 0,   "cto": 255},
+      {"id": "4.13", "name": "Deep Red",      "cy": 0,   "m": 100, "y": 100, "cto": 0},
+      {"id": "4.14", "name": "Deep Blue",     "cy": 100, "m": 60,  "y": 0,   "cto": 0},
+      {"id": "4.15", "name": "Green",         "cy": 100, "m": 0,   "y": 100, "cto": 0},
+      {"id": "4.16", "name": "Deep Magenta",  "cy": 0,   "m": 100, "y": 0,   "cto": 0}
+    ],
+    "spartan_position": [
+      {"id": "2.1",  "name": "Straight Up",   "pan": 128, "tilt": 0},
+      {"id": "2.2",  "name": "Down Stage",    "pan": 128, "tilt": 80},
+      {"id": "2.3",  "name": "Up Stage",      "pan": 128, "tilt": 176},
+      {"id": "2.4",  "name": "SL Wash",       "pan": 80,  "tilt": 100},
+      {"id": "2.5",  "name": "SR Wash",       "pan": 176, "tilt": 100}
+    ],
+    "dragon_color": [
+      {"id": "4.21", "name": "Full White",    "r": 255, "g": 255, "b": 255},
+      {"id": "4.22", "name": "Deep Red",      "r": 255, "g": 0,   "b": 0},
+      {"id": "4.23", "name": "Deep Blue",     "r": 0,   "g": 0,   "b": 255},
+      {"id": "4.24", "name": "Cyan",          "r": 0,   "g": 255, "b": 255},
+      {"id": "4.25", "name": "Amber",         "r": 255, "g": 150, "b": 0}
+    ],
+    "dragon_tilt": [
+      {"id": "2.11", "name": "Floor",         "tilt": 0},
+      {"id": "2.12", "name": "Level",         "tilt": 128},
+      {"id": "2.13", "name": "Ceiling",       "tilt": 255},
+      {"id": "2.14", "name": "Audience",      "tilt": 80},
+      {"id": "2.15", "name": "Backlight",     "tilt": 200}
+    ]
+  },
+
+  "channel_maps": {
+    "nuoma_rgbw_par_8ch": {
+      "ch1": "Effect Macros", "ch2": "Effect Index", "ch3": "Shutter",
+      "ch4": "Dim", "ch5": "R", "ch6": "G", "ch7": "B", "ch8": "W",
+      "WARN": "Ch4=Dim NOT Ch1. Ch1 is macro select."
+    },
+    "spartan_extended_24ch": {
+      "ch1": "Pan", "ch3": "Tilt", "ch6": "Dim", "ch7": "Shutter",
+      "ch8": "Colour Wheel", "ch9": "Cyan", "ch10": "Magenta", "ch11": "Yellow",
+      "ch12": "CTO", "ch13": "Static Gobo", "ch15": "Rotating Gobo",
+      "ch21": "Focus", "ch22": "Zoom", "ch24": "Lamp/Reset",
+      "CAUTION": "Ch24=255 resets fixture. Hold 3s. Stagger strikes 30s apart."
+    },
+    "dragon_tilt_strobe_15ch": {
+      "ch1": "Tilt", "ch2": "Position Mode", "ch3": "Dim",
+      "ch4": "Strobe", "ch5": "Effect Macros", "ch6": "Effect Rate",
+      "ch7": "R", "ch8": "G", "ch9": "B",
+      "ch10": "Dim3", "ch11": "Strobe2", "ch12": "FxMacros3",
+      "ch13": "FxRate3", "ch14": "Dim2", "ch15": "Reserved",
+      "NOTE": "Tilt center=DMX128. RGB not CMY. Tilt-only no Pan."
+    }
+  },
+
+  "safety_rules": [
+    "assert_showfile_unchanged before every DESTRUCTIVE phase",
+    "save_show before load_show — always",
+    "never confirm_destructive automatically — operator gates each phase",
+    "spartan ch24=255 only if fixture stuck — not routine",
+    "stagger spartan strikes 30s minimum — never simultaneous",
+    "dragon profile: dragon_tilt_strobe_working 15ch only — no generic JDC1",
+    "new_show must use preserve_connectivity=True or Telnet drops",
+    "no GFCI circuits for Spartans — inrush will nuisance-trip"
+  ],
+
+  "fastest_triage_path": {
+    "description": "Skip SYNRGY load if file not on machine — patch direct on current show",
+    "steps": [
+      "1. hydrate_console_state()",
+      "2. import_fixture_type('nuoma@nuoma_rgbw_par@8_bit')",
+      "3. import_fixture_type('dragon@dragon_tilt_strobe_working@15ch')",
+      "4. patch all 23 fixtures from fixtures[] block above",
+      "5. fire -Create TOURIST Groups v1- macro",
+      "6. build presets from presets_to_build[] block above",
+      "7. save_show('TOURIST_ModClub_20260626_FloorPkg')"
+    ],
+    "estimated_time": "15-25 min with live console responses",
+    "gate_count": 4,
+    "skip_phases": ["load_synrgy"],
+    "skip_reason": "SYNRGY show adds cue structure but patch/groups/presets can be built fresh"
+  }
+}
