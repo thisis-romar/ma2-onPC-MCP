@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd" major_vers="3" minor_vers="9" stream_vers="60">
+	<Info datetime="2026-06-26T18:13:53" showfile="TOURIST_ModClub_20260626_FloorPkg" />
+	<Macro index="0" name="-Delete TOURIST Groups v1-">
+		<Appearance Color="cc0044" />
+
+		<!-- Deletes all TOURIST floor package groups. Idempotent — silent no-op if slots are empty. -->
+		<!-- Edit in lockstep with -Create TOURIST Groups v1- if group IDs change. -->
+		<Macroline index="0" delay="0.06">
+			<text>Delete Group 1 Thru 8 /noconfirm</text>
+			<info>DELETE type+zone groups (1-8)</info>
+		</Macroline>
+		<Macroline index="1" delay="0.06">
+			<text>Delete Group 11 Thru 18 /noconfirm</text>
+			<info>DELETE per-pole groups (11-18)</info>
+		</Macroline>
+		<Macroline index="2" delay="0.06">
+			<text>ClearAll</text>
+			<info>FOOTER: clear programmer</info>
+		</Macroline>
+	</Macro>
+</MA>
