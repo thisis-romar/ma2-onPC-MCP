@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- TOURIST @ The Mod Club · June 26, 2026 · Drawing 3: Deck Fixtures Detail -->
 <!-- 4× Acme Spartan Hybrid · 3× Dragon Tilt Strobe · ch 129–271 · B2 SR→SL -->
-<svg viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New',Courier,monospace">
+<svg viewBox="0 0 1100 638" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New',Courier,monospace">
 
   <!-- Background -->
   <rect width="1100" height="620" fill="#070c16"/>
@@ -153,5 +153,8 @@
   <text x="550" y="591" text-anchor="middle" font-size="8" fill="#2a3a4a">Dragon tilt range: DMX 0 = max tilt one dir · DMX 128 = centre/level · DMX 255 = max tilt other dir</text>
   <text x="550" y="604" text-anchor="middle" font-size="8" fill="#2a3040">Dragon is RGB (not CMY) · Ch3=Dim · Ch4=Strobe · Rebuild all color presets from scratch</text>
   <text x="550" y="617" text-anchor="middle" font-size="8" fill="#1a2030">Spartan Ch24: ⚠ 255=RESET (hold 3s) · strike individually · 10 min warmup · no GFCI circuits</text>
+
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="633" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
 
 </svg>

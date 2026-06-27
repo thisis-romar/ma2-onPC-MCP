@@ -232,4 +232,7 @@
   <text x="600" y="820" text-anchor="middle" font-size="8" fill="#2a3a4a">Badge format on each fixture: Group numbers it belongs to  ·  Macro: -Create TOURIST Groups v1-  ·  Cleanup: -Delete TOURIST Groups v1-</text>
   <text x="600" y="836" text-anchor="middle" font-size="8" fill="#2a3a4a">MAtricks busking: MAtricksInterleave 8 · MAtricksBlocks 2 · use Groups 11–18 (SR→SL pole order) for spatial depth effects</text>
 
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="848" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
+
 </svg>

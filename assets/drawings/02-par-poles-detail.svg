@@ -172,4 +172,7 @@
   <text x="550" y="660" text-anchor="middle" font-size="8" fill="#2a3a4a">Ch map per fixture: Ch1 FxMacro · Ch2 FxIdx · Ch3 Shutter · Ch4 DIM · Ch5 R · Ch6 G · Ch7 B · Ch8 W</text>
   <text x="550" y="672" text-anchor="middle" font-size="8" fill="#1a3050">⚠ Ch4 = Dimmer (not Ch1). Open shutter: Ch3=255, Ch4=255, Ch8=255 for full white.</text>
 
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="677" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
+
 </svg>

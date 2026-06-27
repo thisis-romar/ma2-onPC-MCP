@@ -2,7 +2,7 @@
   "meta": {
     "report_type": "project_status_kv",
     "report_version": "1.0.0",
-    "generated_at": "2026-06-27T04:27:51Z",
+    "generated_at": "2026-06-27T05:36:26Z",
     "event": "TOURIST (William Phillips) @ The Mod Club",
     "venue": "The Mod Club, 722 College St, Toronto, ON",
     "show_date": "2026-06-26",
@@ -12,11 +12,10 @@
     "company": "Emblem Projects Inc.",
     "production_design": "SYNRGY",
     "target_showfile": "TOURIST_ModClub_20260626_FloorPkg",
-    "plan_version": "4.1.0",
+    "plan_version": "4.2.0",
     "branch": "claude/blissful-franklin-p48s7l",
     "repo": "thisis-romar/ma2-onPC-MCP"
   },
-
   "console": {
     "software": "grandMA2 onPC",
     "version": "3.9.60.65",
@@ -30,7 +29,6 @@
     "mcp_connected_from_cloud": false,
     "mcp_connected_locally": "PENDING_LOCAL_AGENT"
   },
-
   "phases": [
     {
       "id": 0,
@@ -48,7 +46,13 @@
       "risk": "SAFE_READ",
       "gate": "none",
       "block_reason": "MA2 MCP tools not reachable from cloud session — requires local agent with MCP server running",
-      "tools": ["hydrate_console_state", "get_showfile_info", "list_fixtures", "list_preset_pool", "get_park_ledger"]
+      "tools": [
+        "hydrate_console_state",
+        "get_showfile_info",
+        "list_fixtures",
+        "list_preset_pool",
+        "get_park_ledger"
+      ]
     },
     {
       "id": 2,
@@ -95,7 +99,24 @@
       "prerequisite": "phase_3B_complete",
       "macro_ready": true,
       "macro_file": "assets/macros/tourist-modclub-2026/-Create TOURIST Groups v1-.xml",
-      "groups_to_create": [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18]
+      "groups_to_create": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ]
     },
     {
       "id": 5,
@@ -121,11 +142,26 @@
       "prerequisite": "phase_4_complete",
       "parallel_with": "phase_5",
       "executors": [
-        {"slot": 1, "purpose": "Song loader macro"},
-        {"slot": "2-8", "purpose": "Effect executors"},
-        {"slot": 9, "purpose": "Group master — All Pars (Group 1)"},
-        {"slot": 10, "purpose": "Group master — All Spartans (Group 4)"},
-        {"slot": 11, "purpose": "Dragon tilt + strobe + color master (Group 7)"}
+        {
+          "slot": 1,
+          "purpose": "Song loader macro"
+        },
+        {
+          "slot": "2-8",
+          "purpose": "Effect executors"
+        },
+        {
+          "slot": 9,
+          "purpose": "Group master — All Pars (Group 1)"
+        },
+        {
+          "slot": 10,
+          "purpose": "Group master — All Spartans (Group 4)"
+        },
+        {
+          "slot": 11,
+          "purpose": "Dragon tilt + strobe + color master (Group 7)"
+        }
       ]
     },
     {
@@ -135,31 +171,55 @@
       "risk": "SAFE_READ_then_DESTRUCTIVE",
       "gate": "operator_confirm_save_only",
       "prerequisite": "phases_5_and_6_complete",
-      "health_check_targets": ["GREEN_showfile", "GREEN_patch_23fx", "GREEN_presets", "GREEN_executors", "GREEN_park_ledger"]
+      "health_check_targets": [
+        "GREEN_showfile",
+        "GREEN_patch_23fx",
+        "GREEN_presets",
+        "GREEN_executors",
+        "GREEN_park_ledger"
+      ]
     }
   ],
-
   "assets": {
     "branch": "claude/blissful-franklin-p48s7l",
     "drawings": [
       {
         "path": "assets/drawings/01-stage-overview.svg",
         "purpose": "Full rig plan — all 23 fixtures, zone labels, DMX addresses, circuit runs",
-        "status": "COMMITTED",
+        "status": "COMMITTED — dimension footer added 2026-06-27",
         "has_xy_centroids": false,
         "centroid_note": "Schematic layout only. XY coordinates in metres not computed — awaiting measured stage dims from operator."
       },
       {
         "path": "assets/drawings/02-par-poles-detail.svg",
         "purpose": "8 poles detail — TOP/MID layout, Ch4=Dim warning, shutter-open sequence",
-        "status": "COMMITTED",
+        "status": "COMMITTED — dimension footer added 2026-06-27",
         "has_xy_centroids": false
       },
       {
         "path": "assets/drawings/03-deck-fixtures-detail.svg",
         "purpose": "Spartans (circuit C/D, reset DMX addresses) + Dragons (circuit E, tilt range, RGB map)",
+        "status": "COMMITTED — dimension footer added 2026-06-27",
+        "has_xy_centroids": false
+      },
+      {
+        "path": "assets/drawings/04-group-layout.svg",
+        "purpose": "Group membership annotated plan — Groups 1-8 (type/zone) + Groups 11-18 (per-pole for MAtricks)",
         "status": "COMMITTED",
         "has_xy_centroids": false
+      },
+      {
+        "path": "assets/drawings/05-dmx-channel-map.svg",
+        "purpose": "Full U1 DMX strip — 512ch, 23 fixture bars with addresses, attribute callouts, spare region",
+        "status": "COMMITTED",
+        "has_xy_centroids": false
+      },
+      {
+        "path": "assets/drawings/06-dimensioned-plan.svg",
+        "purpose": "Dimensioned plan — SYNRGY Rev C confirmed dims, red centroid crosshairs, scale bar, notes block",
+        "status": "COMMITTED",
+        "has_xy_centroids": true,
+        "centroid_note": "X CONFIRMED (bay centres 1219/3658/6096/8534mm from SR). Y PARTIAL (FV row gap unknown). Z CONFIRMED (2600mm pole, 1000mm unit top)."
       }
     ],
     "patch_sheets": [
@@ -230,7 +290,6 @@
       }
     ]
   },
-
   "fixture_summary": {
     "total_count": 23,
     "universe": 1,
@@ -238,7 +297,10 @@
     "highest_address": 271,
     "spare_channels": 241,
     "spare_from_address": 272,
-    "address_gaps": [240, 256],
+    "address_gaps": [
+      240,
+      256
+    ],
     "gap_note": "Single-channel Dragon 16ch-spacing artifacts — leave as-is",
     "by_type": {
       "nuoma_rgbw_par": {
@@ -280,7 +342,6 @@
       "distro_required": "60A three-phase service"
     }
   },
-
   "dmx_routing": {
     "option": "B2 — 3-zone active splitter runs",
     "splitter": "3-way active isolated DMX splitter",
@@ -316,39 +377,118 @@
     "total_cables": 24,
     "total_length_m": 83.5
   },
-
   "centroid_status": {
-    "computed": false,
-    "in_svgs": false,
-    "in_patch_sheet": false,
-    "what_exists": "Schematic pixel positions in SVG viewBox (1100x780px) and descriptive labels (USR, USC-R, etc.)",
-    "what_is_missing": "Real-world XY coordinates in metres per fixture centroid",
-    "needed_to_compute": {
-      "stage_width_m": "UNKNOWN — estimated 10-12m, midpoint 11m used for cabling estimate",
-      "stage_depth_us_ds_m": "UNKNOWN — estimated 6-7m, midpoint 6.5m used for cabling estimate",
-      "reference_point": "UNKNOWN — SR wing + plaster line vs centre line + plaster line",
-      "pole_spacing_m": "DERIVED from stage width once confirmed",
-      "deck_fixture_positions_m": "DERIVED from stage width once confirmed"
+    "computed": "PARTIAL",
+    "x_confirmed": true,
+    "y_confirmed": false,
+    "z_confirmed": true,
+    "source": "SYNRGY Split The Views 1.8.0 Rev C Centroids production drawings",
+    "confirmed_at": "2026-06-27",
+    "confirmed_dimensions": {
+      "overall_width": "32'-0\" (9,754mm)",
+      "bay_width": "8'-0\" (2,438mm) × 4 bays",
+      "row_depth": "4'-0\" (1,219mm) each row",
+      "pole_height": "2,600mm (base deck to pole top)",
+      "unit_top_height": "1,000mm above base deck",
+      "vertical_riser_width": "4'-0\" (1,219mm) each",
+      "vertical_riser_depth": "8'-0\" (2,438mm) each"
     },
-    "cable_length_accuracy": "ESTIMATED ±15% — based on stage midpoint dimensions, not measured centroids",
-    "action": "Operator to provide measured stage width + depth + reference point preference"
+    "bay_centres_from_sr": {
+      "bay_1_usr_dsr": "1,219mm",
+      "bay_2_uscr_dscr": "3,658mm",
+      "bay_3_uscl_dscl": "6,096mm",
+      "bay_4_usl_dsl": "8,534mm"
+    },
+    "y_axis": {
+      "ds_pole_row": "Y ≈ 610mm (centre of 4'-0\" DS deck)",
+      "us_pole_row": "Y ≈ 1,829mm + FV_gap (FIELD VERIFY)",
+      "deck_level": "Y = 0 (floor reference)"
+    },
+    "z_axis": {
+      "pole_top": "2,600mm",
+      "unit_top": "1,000mm above base deck"
+    },
+    "field_verify_items": [
+      "Row gap: separation between US and DS horizontal deck rows",
+      "Riser gap: separation between SR and SL vertical riser decks"
+    ],
+    "drawing_06": "assets/drawings/06-dimensioned-plan.svg — dimensioned plan with centroid crosshairs",
+    "cable_length_accuracy": "IMPROVED — X confirmed, Y/riser gap still estimated until load-in"
   },
-
   "open_items": [
-    {"priority": "P0", "item": "Console source", "detail": "SYNRGY bringing own console or using grandMA2 onPC?", "owner": "Ask Andrew Graham-Hussey"},
-    {"priority": "P0", "item": "Spartan power connector", "detail": "powerCON True1 or Edison/NEMA?", "owner": "Ask Andrew"},
-    {"priority": "P0", "item": "Dragon power connector", "detail": "TBC", "owner": "Verify at load-in"},
-    {"priority": "P0", "item": "Distro box", "detail": "Backliner supply or venue?", "owner": "Ask Andrew"},
-    {"priority": "P0", "item": "208V at deck level", "detail": "L6-30 drops at stage level, not just dimmer rack", "owner": "Confirm with Mod Club"},
-    {"priority": "P0", "item": "GFCI status", "detail": "Stage circuits must NOT be GFCI — Spartan inrush will nuisance-trip", "owner": "Confirm with Mod Club"},
-    {"priority": "P1", "item": "Spartan LCD mode", "detail": "Confirm Extended 24ch on each unit display", "owner": "Verify at load-in"},
-    {"priority": "P1", "item": "Dragon LCD mode", "detail": "Confirm 15ch on each unit display before patching", "owner": "Verify at load-in"},
-    {"priority": "P1", "item": "Dragon tilt mechanical range", "detail": "Test DMX 0 / 128 / 255 to confirm physical stops", "owner": "Verify at load-in"},
-    {"priority": "P1", "item": "Ceiling clearance", "detail": "1922 heritage building — 2.44m poles, confirm fit", "owner": "Measure or ask venue LD"},
-    {"priority": "P1", "item": "Stage dimensions", "detail": "Measured width + depth required to compute fixture centroids and validate cable lengths", "owner": "Operator to measure at load-in"},
-    {"priority": "NICE", "item": "Mod Club hazer", "detail": "Venue-owned — reserve U1 ch 480-490 if venue fires during show", "owner": "Confirm with venue"}
+    {
+      "priority": "P0",
+      "item": "Console source",
+      "detail": "SYNRGY bringing own console or using grandMA2 onPC?",
+      "owner": "Ask Andrew Graham-Hussey"
+    },
+    {
+      "priority": "P0",
+      "item": "Spartan power connector",
+      "detail": "powerCON True1 or Edison/NEMA?",
+      "owner": "Ask Andrew"
+    },
+    {
+      "priority": "P0",
+      "item": "Dragon power connector",
+      "detail": "TBC",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P0",
+      "item": "Distro box",
+      "detail": "Backliner supply or venue?",
+      "owner": "Ask Andrew"
+    },
+    {
+      "priority": "P0",
+      "item": "208V at deck level",
+      "detail": "L6-30 drops at stage level, not just dimmer rack",
+      "owner": "Confirm with Mod Club"
+    },
+    {
+      "priority": "P0",
+      "item": "GFCI status",
+      "detail": "Stage circuits must NOT be GFCI — Spartan inrush will nuisance-trip",
+      "owner": "Confirm with Mod Club"
+    },
+    {
+      "priority": "P1",
+      "item": "Spartan LCD mode",
+      "detail": "Confirm Extended 24ch on each unit display",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P1",
+      "item": "Dragon LCD mode",
+      "detail": "Confirm 15ch on each unit display before patching",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P1",
+      "item": "Dragon tilt mechanical range",
+      "detail": "Test DMX 0 / 128 / 255 to confirm physical stops",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P1",
+      "item": "Ceiling clearance",
+      "detail": "1922 heritage building — 2.44m poles, confirm fit",
+      "owner": "Measure or ask venue LD"
+    },
+    {
+      "priority": "P1",
+      "item": "Stage dimensions",
+      "detail": "X CONFIRMED from SYNRGY Rev C drawings. FV gap still needed at load-in for Y centroid completion.",
+      "owner": "Operator to measure at load-in"
+    },
+    {
+      "priority": "NICE",
+      "item": "Mod Club hazer",
+      "detail": "Venue-owned — reserve U1 ch 480-490 if venue fires during show",
+      "owner": "Confirm with venue"
+    }
   ],
-
   "local_agent": {
     "session_name": "Kill em and explain",
     "platform": "Windows (grandMA2 onPC machine)",

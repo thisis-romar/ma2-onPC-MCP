@@ -202,4 +202,7 @@
   <text x="445" y="752" font-size="8" fill="#4a6a8a">Dragon Tilt Strobe 15ch</text>
   <text x="710" y="752" font-size="8" fill="#2a3a4a">U1 ch 1–271 used · 241 spare · 53% utilized</text>
 
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="765" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
+
 </svg>

@@ -346,4 +346,7 @@
   <text x="700" y="480" text-anchor="middle" font-size="8" fill="#2a3a4a">Option B2: Deck fixtures addressed SR→SL for cable efficiency · All 23 fixtures on Universe 1 · grandMA2 onPC v3.9.60.65</text>
   <text x="700" y="495" text-anchor="middle" font-size="8" fill="#2a3a4a">TOURIST @ The Mod Club · 722 College St Toronto · June 26, 2026 · LX Tech: Romar Johnson (Emblem Projects Inc.) for Backliner Inc.</text>
 
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="508" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
+
 </svg>
