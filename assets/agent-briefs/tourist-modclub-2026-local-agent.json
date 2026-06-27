@@ -267,16 +267,37 @@
     "description": "Skip SYNRGY load if file not on machine — patch direct on current show",
     "steps": [
       "1. hydrate_console_state()",
-      "2. import_fixture_type('nuoma@nuoma_rgbw_par@8_bit')",
-      "3. import_fixture_type('dragon@dragon_tilt_strobe_working@15ch')",
-      "4. patch all 23 fixtures from fixtures[] block above",
-      "5. fire -Create TOURIST Groups v1- macro",
-      "6. build presets from presets_to_build[] block above",
-      "7. save_show('TOURIST_ModClub_20260626_FloorPkg')"
+      "2. copy fixture profile XMLs to importexport/ (see fixture_profile_copy_instructions)",
+      "3. import_fixture_type('nuoma@nuoma_rgbw_par@8_bit')",
+      "4. import_fixture_type('dragon@dragon_tilt_strobe_working@15ch')",
+      "5. patch all 23 fixtures from fixtures[] block above",
+      "6. fire -Create TOURIST Groups v1- macro",
+      "7. build presets from presets_to_build[] block above",
+      "8. save_show('TOURIST_ModClub_20260626_FloorPkg')"
     ],
     "estimated_time": "15-25 min with live console responses",
     "gate_count": 4,
     "skip_phases": ["load_synrgy"],
     "skip_reason": "SYNRGY show adds cue structure but patch/groups/presets can be built fresh"
+  },
+
+  "fixture_profile_copy_instructions": {
+    "error_resolved": "Error #23: FILE NOT FOUND on Import nuoma@nuoma_rgbw_par@8_bit and dragon@dragon_tilt_strobe_working@15ch",
+    "root_cause": "Import manufacturer@fixture@mode resolves XML files from MA2 importexport/ directory — files were not present",
+    "profile_files": [
+      "nuoma@nuoma_rgbw_par@8_bit.xml",
+      "dragon@dragon_tilt_strobe_working@15ch.xml"
+    ],
+    "source_in_repo": "assets/fixture-profiles/",
+    "copy_to_windows": "C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\",
+    "ma2_short_path": "C:/ProgramData/MALIGH~1/grandma/gma2_V_3.9.60/IMPORT~1/",
+    "powershell_copy_command": "Copy-Item 'assets\\fixture-profiles\\*.xml' 'C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\'",
+    "import_commands_in_ma2": [
+      "Import \"nuoma@nuoma_rgbw_par@8_bit\"",
+      "Import \"dragon@dragon_tilt_strobe_working@15ch\""
+    ],
+    "import_context": "EditSetup/FixtureTypes — navigate there before sending Import commands",
+    "attribute_name_note": "If MA2 returns ATTRIBUTE NOT FOUND on a specific channel, cross-check C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\lib\\fixturetypes\\ for exact attribute spelling. Channel count and XML structure are correct.",
+    "acme_spartan_note": "Acme Spartan Hybrid Extended 24ch — check MA2 library first via list_fixture_types(). If not in library, source from MA2 fixture library browser in EditSetup."
   }
 }
