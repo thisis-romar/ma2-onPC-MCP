@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TOURIST @ The Mod Club · June 26, 2026 · Drawing 4: Group Layout -->
+<!-- 16 groups: Groups 1-8 (type/zone) + Groups 11-18 (per-pole) -->
+<svg viewBox="0 0 1200 860" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New',Courier,monospace">
+
+  <!-- Background -->
+  <rect width="1200" height="860" fill="#070c16"/>
+
+  <!-- Title -->
+  <text x="600" y="26" text-anchor="middle" font-size="15" font-weight="bold" fill="#e2e8f0">Drawing 4 · Group Layout · TOURIST @ Mod Club 2026-06-26</text>
+  <text x="600" y="43" text-anchor="middle" font-size="10" fill="#4a5568">Groups 1–8 (type/zone) + Groups 11–18 (per-pole) · 23 fixtures</text>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- LEGEND — TYPE/ZONE GROUPS -->
+  <!-- ══════════════════════════════════════════════ -->
+  <rect x="50" y="52" width="1100" height="102" rx="4" fill="#0a0f1a" stroke="#1a2a40" stroke-width="1"/>
+  <text x="600" y="69" text-anchor="middle" font-size="9" font-weight="bold" fill="#556070">TYPE / ZONE GROUPS (run macro: -Create TOURIST Groups v1-)</text>
+
+  <!-- Grp 1 All Pars -->
+  <rect x="68" y="76" width="110" height="34" rx="3" fill="#0a1a30" stroke="#1e5a9a" stroke-width="1.5"/>
+  <text x="123" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#60a5fa">Grp 1</text>
+  <text x="123" y="104" text-anchor="middle" font-size="7" fill="#4a7aaa">All Pars ×16</text>
+
+  <!-- Grp 2 US Pars -->
+  <rect x="188" y="76" width="110" height="34" rx="3" fill="#0a1a30" stroke="#1e4a7a" stroke-width="1.5"/>
+  <text x="243" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#93c5fd">Grp 2</text>
+  <text x="243" y="104" text-anchor="middle" font-size="7" fill="#4a7aaa">Pars Upstage ×8</text>
+
+  <!-- Grp 3 DS Pars -->
+  <rect x="308" y="76" width="110" height="34" rx="3" fill="#050d20" stroke="#1a3a60" stroke-width="1.5"/>
+  <text x="363" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#bfdbfe">Grp 3</text>
+  <text x="363" y="104" text-anchor="middle" font-size="7" fill="#4a7aaa">Pars Dnstage ×8</text>
+
+  <!-- Grp 4 All Spartans -->
+  <rect x="428" y="76" width="110" height="34" rx="3" fill="#2a0e00" stroke="#c05000" stroke-width="1.5"/>
+  <text x="483" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#fed7aa">Grp 4</text>
+  <text x="483" y="104" text-anchor="middle" font-size="7" fill="#c07040">All Spartans ×4</text>
+
+  <!-- Grp 5 SPT SL -->
+  <rect x="548" y="76" width="110" height="34" rx="3" fill="#200900" stroke="#903a00" stroke-width="1.5"/>
+  <text x="603" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#fdba74">Grp 5</text>
+  <text x="603" y="104" text-anchor="middle" font-size="7" fill="#c07040">Spartans SL ×2</text>
+
+  <!-- Grp 6 SPT SR -->
+  <rect x="668" y="76" width="110" height="34" rx="3" fill="#200900" stroke="#903a00" stroke-width="1.5"/>
+  <text x="723" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#fdba74">Grp 6</text>
+  <text x="723" y="104" text-anchor="middle" font-size="7" fill="#c07040">Spartans SR ×2</text>
+
+  <!-- Grp 7 All Dragons -->
+  <rect x="788" y="76" width="110" height="34" rx="3" fill="#280000" stroke="#aa0000" stroke-width="1.5"/>
+  <text x="843" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#fecaca">Grp 7</text>
+  <text x="843" y="104" text-anchor="middle" font-size="7" fill="#f87171">All Dragons ×3</text>
+
+  <!-- Grp 8 Full Rig -->
+  <rect x="908" y="76" width="230" height="34" rx="3" fill="#0f0f0f" stroke="#404040" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="1023" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#d1d5db">Grp 8</text>
+  <text x="1023" y="104" text-anchor="middle" font-size="7" fill="#6b7280">Full Rig — All 23 Fixtures</text>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- STAGE PLAN WITH GROUP ANNOTATIONS -->
+  <!-- ══════════════════════════════════════════════ -->
+  <rect x="50" y="162" width="1100" height="530" rx="6" fill="#0a1020" stroke="#1a2a40" stroke-width="1.5"/>
+
+  <text x="64" y="178" font-size="9" fill="#2a4060">SR ▶</text>
+  <line x1="95" y1="174" x2="1148" y2="174" stroke="#1a2a40" stroke-width="1"/>
+  <text x="1148" y="178" font-size="9" fill="#2a4060" text-anchor="end">◀ SL</text>
+
+  <!-- ── UPSTAGE ROW ── -->
+  <rect x="58" y="182" width="1084" height="230" rx="3" fill="#060d1a"/>
+  <text x="600" y="198" text-anchor="middle" font-size="8" font-weight="bold" fill="#1a4a7a">UPSTAGE PARS · Grp 1 + Grp 2 + Grp 11–14</text>
+
+  <!-- Helper: Pole box macro at positions 155, 385, 615, 845 (x center) -->
+  <!-- P01 USR -->
+  <text x="155" y="210" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P01 · USR</text>
+  <!-- Grp 11 badge -->
+  <rect x="68" y="215" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="155" y="230" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 11 · Pole 1</text>
+  <!-- 8011 TOP -->
+  <rect x="68" y="240" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="108" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8011</text>
+  <text x="108" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-01 TOP</text>
+  <text x="108" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 1–8</text>
+  <text x="108" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·11</text>
+  <!-- 8012 MID -->
+  <rect x="160" y="240" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="200" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8012</text>
+  <text x="200" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-02 MID</text>
+  <text x="200" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 9–16</text>
+  <text x="200" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·11</text>
+
+  <!-- P02 USC-R -->
+  <text x="385" y="210" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P02 · USC-R</text>
+  <rect x="298" y="215" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="385" y="230" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 12 · Pole 2</text>
+  <rect x="298" y="240" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="338" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8021</text>
+  <text x="338" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-03 TOP</text>
+  <text x="338" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 17–24</text>
+  <text x="338" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·12</text>
+  <rect x="390" y="240" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="430" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8022</text>
+  <text x="430" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-04 MID</text>
+  <text x="430" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 25–32</text>
+  <text x="430" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·12</text>
+
+  <!-- P03 USC-L -->
+  <text x="615" y="210" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P03 · USC-L</text>
+  <rect x="528" y="215" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="615" y="230" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 13 · Pole 3</text>
+  <rect x="528" y="240" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="568" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8031</text>
+  <text x="568" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-05 TOP</text>
+  <text x="568" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 33–40</text>
+  <text x="568" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·13</text>
+  <rect x="620" y="240" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="660" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8032</text>
+  <text x="660" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-06 MID</text>
+  <text x="660" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 41–48</text>
+  <text x="660" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·13</text>
+
+  <!-- P04 USL -->
+  <text x="845" y="210" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P04 · USL</text>
+  <rect x="758" y="215" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="845" y="230" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 14 · Pole 4</text>
+  <rect x="758" y="240" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="798" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8041</text>
+  <text x="798" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-07 TOP</text>
+  <text x="798" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 49–56</text>
+  <text x="798" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·14</text>
+  <rect x="850" y="240" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="890" y="258" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8042</text>
+  <text x="890" y="271" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-08 MID</text>
+  <text x="890" y="283" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 57–64</text>
+  <text x="890" y="296" text-anchor="middle" font-size="6" fill="#2a5a8a">1·2·14</text>
+
+  <!-- ── DOWNSTAGE ROW ── -->
+  <rect x="58" y="418" width="1084" height="230" rx="3" fill="#060d1a"/>
+  <text x="600" y="434" text-anchor="middle" font-size="8" font-weight="bold" fill="#1a4a7a">DOWNSTAGE PARS · Grp 1 + Grp 3 + Grp 15–18</text>
+
+  <!-- P05 DSR -->
+  <text x="155" y="446" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P05 · DSR</text>
+  <rect x="68" y="451" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="155" y="466" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 15 · Pole 5</text>
+  <rect x="68" y="476" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="108" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8051</text>
+  <text x="108" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-09 TOP</text>
+  <text x="108" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 65–72</text>
+  <text x="108" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·15</text>
+  <rect x="160" y="476" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="200" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8052</text>
+  <text x="200" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-10 MID</text>
+  <text x="200" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 73–80</text>
+  <text x="200" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·15</text>
+
+  <!-- P06 DSC-R -->
+  <text x="385" y="446" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P06 · DSC-R</text>
+  <rect x="298" y="451" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="385" y="466" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 16 · Pole 6</text>
+  <rect x="298" y="476" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="338" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8061</text>
+  <text x="338" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-11 TOP</text>
+  <text x="338" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 81–88</text>
+  <text x="338" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·16</text>
+  <rect x="390" y="476" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="430" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8062</text>
+  <text x="430" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-12 MID</text>
+  <text x="430" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 89–96</text>
+  <text x="430" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·16</text>
+
+  <!-- P07 DSC-L -->
+  <text x="615" y="446" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P07 · DSC-L</text>
+  <rect x="528" y="451" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="615" y="466" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 17 · Pole 7</text>
+  <rect x="528" y="476" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="568" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8071</text>
+  <text x="568" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-13 TOP</text>
+  <text x="568" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 97–104</text>
+  <text x="568" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·17</text>
+  <rect x="620" y="476" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="660" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8072</text>
+  <text x="660" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-14 MID</text>
+  <text x="660" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 105–112</text>
+  <text x="660" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·17</text>
+
+  <!-- P08 DSL -->
+  <text x="845" y="446" text-anchor="middle" font-size="8" font-weight="bold" fill="#4a8abb">P08 · DSL</text>
+  <rect x="758" y="451" width="174" height="22" rx="2" fill="#0d2040" stroke="#1e6bb8" stroke-width="1"/>
+  <text x="845" y="466" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">Grp 18 · Pole 8</text>
+  <rect x="758" y="476" width="80" height="64" rx="3" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="798" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8081</text>
+  <text x="798" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-15 TOP</text>
+  <text x="798" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 113–120</text>
+  <text x="798" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·18</text>
+  <rect x="850" y="476" width="80" height="64" rx="3" fill="#050f1f" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="890" y="494" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8082</text>
+  <text x="890" y="507" text-anchor="middle" font-size="7" fill="#60a5fa">PAR-16 MID</text>
+  <text x="890" y="519" text-anchor="middle" font-size="7" fill="#3a7aaa">ch 121–128</text>
+  <text x="890" y="531" text-anchor="middle" font-size="6" fill="#2a5a8a">1·3·18</text>
+
+  <!-- ── DECK ── Spartans + Dragons ── -->
+  <rect x="58" y="654" width="1084" height="30" rx="3" fill="#160800"/>
+  <text x="295" y="674" text-anchor="middle" font-size="8" font-weight="bold" fill="#c06030">Grp 4 ALL SPARTANS (Grp5=SL pair: 9021+9011 · Grp6=SR pair: 9041+9031)</text>
+  <!-- Spartan boxes -->
+  <rect x="58" y="686" width="230" height="34" rx="3" fill="#2a0e00" stroke="#c05000" stroke-width="1.5"/>
+  <text x="173" y="700" text-anchor="middle" font-size="9" font-weight="bold" fill="#fed7aa">9041 SPT-04 SR-inner</text>
+  <text x="173" y="713" text-anchor="middle" font-size="7" fill="#f97316">ch 129–152 · Grp 4·6·8</text>
+  <rect x="298" y="686" width="230" height="34" rx="3" fill="#2a0e00" stroke="#c05000" stroke-width="1.5"/>
+  <text x="413" y="700" text-anchor="middle" font-size="9" font-weight="bold" fill="#fed7aa">9031 SPT-03 C-SR</text>
+  <text x="413" y="713" text-anchor="middle" font-size="7" fill="#f97316">ch 153–176 · Grp 4·6·8</text>
+  <rect x="538" y="686" width="230" height="34" rx="3" fill="#2a0e00" stroke="#903a00" stroke-width="1.5"/>
+  <text x="653" y="700" text-anchor="middle" font-size="9" font-weight="bold" fill="#fed7aa">9021 SPT-02 C-SL</text>
+  <text x="653" y="713" text-anchor="middle" font-size="7" fill="#f97316">ch 177–200 · Grp 4·5·8</text>
+  <rect x="778" y="686" width="230" height="34" rx="3" fill="#2a0e00" stroke="#903a00" stroke-width="1.5"/>
+  <text x="893" y="700" text-anchor="middle" font-size="9" font-weight="bold" fill="#fed7aa">9011 SPT-01 SL-inner</text>
+  <text x="893" y="713" text-anchor="middle" font-size="7" fill="#f97316">ch 201–224 · Grp 4·5·8</text>
+
+  <!-- Dragons -->
+  <rect x="58" y="727" width="330" height="34" rx="3" fill="#280000" stroke="#aa0000" stroke-width="1.5"/>
+  <text x="223" y="741" text-anchor="middle" font-size="9" font-weight="bold" fill="#fecaca">7031 DRG-03 · SR</text>
+  <text x="223" y="754" text-anchor="middle" font-size="7" fill="#f87171">ch 225–239 · Grp 7·8</text>
+  <rect x="435" y="727" width="330" height="34" rx="3" fill="#280000" stroke="#aa0000" stroke-width="1.5"/>
+  <text x="600" y="741" text-anchor="middle" font-size="9" font-weight="bold" fill="#fecaca">7021 DRG-02 · Centre</text>
+  <text x="600" y="754" text-anchor="middle" font-size="7" fill="#f87171">ch 241–255 · Grp 7·8</text>
+  <rect x="812" y="727" width="330" height="34" rx="3" fill="#280000" stroke="#aa0000" stroke-width="1.5"/>
+  <text x="977" y="741" text-anchor="middle" font-size="9" font-weight="bold" fill="#fecaca">7011 DRG-01 · SL</text>
+  <text x="977" y="754" text-anchor="middle" font-size="7" fill="#f87171">ch 257–271 · Grp 7·8</text>
+
+  <!-- Audience -->
+  <text x="600" y="800" text-anchor="middle" font-size="10" fill="#1a304a">▼  A U D I E N C E  ▼</text>
+
+  <!-- Footer note -->
+  <text x="600" y="820" text-anchor="middle" font-size="8" fill="#2a3a4a">Badge format on each fixture: Group numbers it belongs to  ·  Macro: -Create TOURIST Groups v1-  ·  Cleanup: -Delete TOURIST Groups v1-</text>
+  <text x="600" y="836" text-anchor="middle" font-size="8" fill="#2a3a4a">MAtricks busking: MAtricksInterleave 8 · MAtricksBlocks 2 · use Groups 11–18 (SR→SL pole order) for spatial depth effects</text>
+
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="848" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
+
+</svg>

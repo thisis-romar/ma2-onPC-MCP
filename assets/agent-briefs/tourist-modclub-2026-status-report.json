@@ -1,0 +1,508 @@
+{
+  "meta": {
+    "report_type": "project_status_kv",
+    "report_version": "1.0.0",
+    "generated_at": "2026-06-27T05:36:26Z",
+    "event": "TOURIST (William Phillips) @ The Mod Club",
+    "venue": "The Mod Club, 722 College St, Toronto, ON",
+    "show_date": "2026-06-26",
+    "client": "Backliner Inc.",
+    "client_contact": "Andrew Graham-Hussey",
+    "ld_tech": "Romar Johnson",
+    "company": "Emblem Projects Inc.",
+    "production_design": "SYNRGY",
+    "target_showfile": "TOURIST_ModClub_20260626_FloorPkg",
+    "plan_version": "4.2.0",
+    "branch": "claude/blissful-franklin-p48s7l",
+    "repo": "thisis-romar/ma2-onPC-MCP"
+  },
+  "console": {
+    "software": "grandMA2 onPC",
+    "version": "3.9.60.65",
+    "host": "127.0.0.1",
+    "port": 30000,
+    "telnet": "ENABLED",
+    "current_show": "backliner_lx-tourist-modclub-jul...",
+    "user": "administrator",
+    "network_role": "Master 2",
+    "confirmed_live": true,
+    "mcp_connected_from_cloud": false,
+    "mcp_connected_locally": "PENDING_LOCAL_AGENT"
+  },
+  "phases": [
+    {
+      "id": 0,
+      "label": "Install MA2 brain MCP server",
+      "status": "OPERATOR_ACTION",
+      "risk": "SAFE",
+      "gate": "none",
+      "notes": "Run scripts/setup_ma2_brain.sh on Windows machine, add entry to .mcp.json, restart Claude Code session",
+      "script": "scripts/setup_ma2_brain.sh"
+    },
+    {
+      "id": 1,
+      "label": "Baseline audit — current show health",
+      "status": "BLOCKED",
+      "risk": "SAFE_READ",
+      "gate": "none",
+      "block_reason": "MA2 MCP tools not reachable from cloud session — requires local agent with MCP server running",
+      "tools": [
+        "hydrate_console_state",
+        "get_showfile_info",
+        "list_fixtures",
+        "list_preset_pool",
+        "get_park_ledger"
+      ]
+    },
+    {
+      "id": 2,
+      "label": "Load SYNRGY show file (splittheviews1.8.0)",
+      "status": "PENDING",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "prerequisite": "phase_1_complete",
+      "notes": "save_show() first, then load_show('splittheviews1.8.0'). Skip if SYNRGY file not on machine — patch direct on current show.",
+      "fallback": "skip — patch on backliner_lx show directly"
+    },
+    {
+      "id": "3A",
+      "label": "Import fixture profiles",
+      "status": "UNBLOCKED",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "error_resolved": "Error #23 FILE NOT FOUND — XMLs now committed to assets/fixture-profiles/",
+      "action_required": "Copy XMLs to C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\ then import",
+      "import_commands": [
+        "Import \"nuoma@nuoma_rgbw_par@8_bit\"",
+        "Import \"dragon@dragon_tilt_strobe_working@15ch\""
+      ],
+      "import_context": "EditSetup/FixtureTypes"
+    },
+    {
+      "id": "3B",
+      "label": "Patch 23 fixtures — Universe 1",
+      "status": "PENDING",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "prerequisite": "phase_3A_complete",
+      "fixture_count": 23,
+      "universe": 1,
+      "highest_address": 271,
+      "spare_from": 272
+    },
+    {
+      "id": 4,
+      "label": "Create groups via macro",
+      "status": "PENDING",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "prerequisite": "phase_3B_complete",
+      "macro_ready": true,
+      "macro_file": "assets/macros/tourist-modclub-2026/-Create TOURIST Groups v1-.xml",
+      "groups_to_create": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ]
+    },
+    {
+      "id": 5,
+      "label": "Rebuild presets — Nuoma RGBW + Spartan CMY + Dragon RGB + Dragon Tilt",
+      "status": "PENDING",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "prerequisite": "phase_4_complete",
+      "preset_targets": {
+        "nuoma_color": 8,
+        "spartan_color": 6,
+        "spartan_position": 5,
+        "dragon_color": 5,
+        "dragon_tilt": 5
+      }
+    },
+    {
+      "id": 6,
+      "label": "Rebuild busking executor layout",
+      "status": "PENDING",
+      "risk": "DESTRUCTIVE",
+      "gate": "operator_confirm",
+      "prerequisite": "phase_4_complete",
+      "parallel_with": "phase_5",
+      "executors": [
+        {
+          "slot": 1,
+          "purpose": "Song loader macro"
+        },
+        {
+          "slot": "2-8",
+          "purpose": "Effect executors"
+        },
+        {
+          "slot": 9,
+          "purpose": "Group master — All Pars (Group 1)"
+        },
+        {
+          "slot": 10,
+          "purpose": "Group master — All Spartans (Group 4)"
+        },
+        {
+          "slot": 11,
+          "purpose": "Dragon tilt + strobe + color master (Group 7)"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "label": "Validate + save TOURIST_ModClub_20260626_FloorPkg",
+      "status": "PENDING",
+      "risk": "SAFE_READ_then_DESTRUCTIVE",
+      "gate": "operator_confirm_save_only",
+      "prerequisite": "phases_5_and_6_complete",
+      "health_check_targets": [
+        "GREEN_showfile",
+        "GREEN_patch_23fx",
+        "GREEN_presets",
+        "GREEN_executors",
+        "GREEN_park_ledger"
+      ]
+    }
+  ],
+  "assets": {
+    "branch": "claude/blissful-franklin-p48s7l",
+    "drawings": [
+      {
+        "path": "assets/drawings/01-stage-overview.svg",
+        "purpose": "Full rig plan — all 23 fixtures, zone labels, DMX addresses, circuit runs",
+        "status": "COMMITTED — dimension footer added 2026-06-27",
+        "has_xy_centroids": false,
+        "centroid_note": "Schematic layout only. XY coordinates in metres not computed — awaiting measured stage dims from operator."
+      },
+      {
+        "path": "assets/drawings/02-par-poles-detail.svg",
+        "purpose": "8 poles detail — TOP/MID layout, Ch4=Dim warning, shutter-open sequence",
+        "status": "COMMITTED — dimension footer added 2026-06-27",
+        "has_xy_centroids": false
+      },
+      {
+        "path": "assets/drawings/03-deck-fixtures-detail.svg",
+        "purpose": "Spartans (circuit C/D, reset DMX addresses) + Dragons (circuit E, tilt range, RGB map)",
+        "status": "COMMITTED — dimension footer added 2026-06-27",
+        "has_xy_centroids": false
+      },
+      {
+        "path": "assets/drawings/04-group-layout.svg",
+        "purpose": "Group membership annotated plan — Groups 1-8 (type/zone) + Groups 11-18 (per-pole for MAtricks)",
+        "status": "COMMITTED",
+        "has_xy_centroids": false
+      },
+      {
+        "path": "assets/drawings/05-dmx-channel-map.svg",
+        "purpose": "Full U1 DMX strip — 512ch, 23 fixture bars with addresses, attribute callouts, spare region",
+        "status": "COMMITTED",
+        "has_xy_centroids": false
+      },
+      {
+        "path": "assets/drawings/06-dimensioned-plan.svg",
+        "purpose": "Dimensioned plan — SYNRGY Rev C confirmed dims, red centroid crosshairs, scale bar, notes block",
+        "status": "COMMITTED",
+        "has_xy_centroids": true,
+        "centroid_note": "X CONFIRMED (bay centres 1219/3658/6096/8534mm from SR). Y PARTIAL (FV row gap unknown). Z CONFIRMED (2600mm pole, 1000mm unit top)."
+      }
+    ],
+    "patch_sheets": [
+      {
+        "path": "assets/patch-sheets/tourist-modclub-2026-patch.md",
+        "purpose": "23-fixture patch table sorted by DMX address, B2 deck readdress, channel maps, key warnings",
+        "status": "COMMITTED"
+      },
+      {
+        "path": "assets/patch-sheets/tourist-modclub-2026-cabling.md",
+        "purpose": "Option B2 DMX routing — 3-zone active splitter, 24-cable list, ~83.5m total",
+        "status": "COMMITTED"
+      },
+      {
+        "path": "assets/patch-sheets/tourist-modclub-2026-power.md",
+        "purpose": "6 circuits, 3640W / 19.9A steady-state, Spartan inrush protocol, venue confirmation checklist",
+        "status": "COMMITTED"
+      }
+    ],
+    "fixture_profiles": [
+      {
+        "path": "assets/fixture-profiles/nuoma@nuoma_rgbw_par@8_bit.xml",
+        "purpose": "MA2 FixtureType XML — Nuoma RGBW Par 8ch. Copy to MA2 importexport/ before import.",
+        "status": "COMMITTED",
+        "install_to": "C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\",
+        "import_command": "Import \"nuoma@nuoma_rgbw_par@8_bit\""
+      },
+      {
+        "path": "assets/fixture-profiles/dragon@dragon_tilt_strobe_working@15ch.xml",
+        "purpose": "MA2 FixtureType XML — Dragon Tilt Strobe Working 15ch. Copy to MA2 importexport/ before import.",
+        "status": "COMMITTED",
+        "install_to": "C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\",
+        "import_command": "Import \"dragon@dragon_tilt_strobe_working@15ch\""
+      }
+    ],
+    "macros": [
+      {
+        "path": "assets/macros/tourist-modclub-2026/-Create TOURIST Groups v1-.xml",
+        "purpose": "Creates Groups 1-8 (type/zone) and 11-18 (per-pole) with Appearance color coding",
+        "status": "COMMITTED",
+        "install_to": "C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\macros\\"
+      },
+      {
+        "path": "assets/macros/tourist-modclub-2026/-Delete TOURIST Groups v1-.xml",
+        "purpose": "Idempotent cleanup — deletes Groups 1-8 and 11-18",
+        "status": "COMMITTED",
+        "install_to": "C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\macros\\"
+      }
+    ],
+    "agent_briefs": [
+      {
+        "path": "assets/agent-briefs/tourist-modclub-2026-local-agent.json",
+        "purpose": "Machine-readable local agent brief v2 — phase sequence, fixture inventory, preset targets, fixture profile copy instructions",
+        "status": "COMMITTED",
+        "version": "v2"
+      },
+      {
+        "path": "assets/agent-briefs/tourist-modclub-2026-status-report.json",
+        "purpose": "This file — full project status KV report",
+        "status": "COMMITTED"
+      }
+    ],
+    "scripts": [
+      {
+        "path": "scripts/setup_ma2_brain.sh",
+        "purpose": "Phase 0 operator script — clone vault + brain, npm ci, index, print .mcp.json entry",
+        "status": "COMMITTED"
+      }
+    ]
+  },
+  "fixture_summary": {
+    "total_count": 23,
+    "universe": 1,
+    "channels_used": 269,
+    "highest_address": 271,
+    "spare_channels": 241,
+    "spare_from_address": 272,
+    "address_gaps": [
+      240,
+      256
+    ],
+    "gap_note": "Single-channel Dragon 16ch-spacing artifacts — leave as-is",
+    "by_type": {
+      "nuoma_rgbw_par": {
+        "count": 16,
+        "profile": "Nuoma RGBW Par 8 bit",
+        "channels_each": 8,
+        "total_channels": 128,
+        "address_range": "1-128",
+        "circuit": "A (Poles 1-4) + B (Poles 5-8)",
+        "voltage": "120V/20A"
+      },
+      "acme_spartan_hybrid": {
+        "count": 4,
+        "profile": "Acme Spartan Hybrid Extended 24ch",
+        "channels_each": 24,
+        "total_channels": 96,
+        "address_range": "129-224",
+        "circuit": "C (SL pair 208V/30A) + D (SR pair 208V/30A)",
+        "voltage": "208V/30A",
+        "lamp": "470W MSD 20R",
+        "inrush_warning": "3x-5x rated current — stagger strikes 30s minimum, never simultaneous"
+      },
+      "dragon_tilt_strobe": {
+        "count": 3,
+        "profile": "Dragon Tilt Strobe Working 15ch",
+        "channels_each": 15,
+        "total_channels": 45,
+        "address_range": "225-271",
+        "circuit": "E (120V/20A)",
+        "voltage": "120V/20A",
+        "note": "RGB not CMY — full preset rebuild required. Tilt center = DMX 128."
+      }
+    },
+    "power_summary": {
+      "total_watts": 3640,
+      "steady_state_amps": 19.9,
+      "circuit_count": 6,
+      "avg_utilization_pct": 18,
+      "distro_required": "60A three-phase service"
+    }
+  },
+  "dmx_routing": {
+    "option": "B2 — 3-zone active splitter runs",
+    "splitter": "3-way active isolated DMX splitter",
+    "runs": [
+      {
+        "id": "US",
+        "splitter_output": 1,
+        "chain": "P01T→P01M→P02T→P02M→P03T→P03M→P04T→P04M",
+        "addresses": "1-64",
+        "cable_count": 8,
+        "approx_length_m": 23
+      },
+      {
+        "id": "DS",
+        "splitter_output": 2,
+        "chain": "P05T→P05M→P06T→P06M→P07T→P07M→P08T→P08M",
+        "addresses": "65-128",
+        "cable_count": 8,
+        "approx_length_m": 23
+      },
+      {
+        "id": "DECK",
+        "splitter_output": 3,
+        "chain": "SPT-04→SPT-03→SPT-02→SPT-01→DRG-01→DRG-02→DRG-03",
+        "addresses": "129-271",
+        "direction": "SR→SL",
+        "cable_count": 7,
+        "approx_length_m": 17.5,
+        "readdress_note": "Deck run enters from SR — SPT-04 is first in chain at ch 129"
+      }
+    ],
+    "foh_feed_m": 20,
+    "total_cables": 24,
+    "total_length_m": 83.5
+  },
+  "centroid_status": {
+    "computed": "PARTIAL",
+    "x_confirmed": true,
+    "y_confirmed": false,
+    "z_confirmed": true,
+    "source": "SYNRGY Split The Views 1.8.0 Rev C Centroids production drawings",
+    "confirmed_at": "2026-06-27",
+    "confirmed_dimensions": {
+      "overall_width": "32'-0\" (9,754mm)",
+      "bay_width": "8'-0\" (2,438mm) × 4 bays",
+      "row_depth": "4'-0\" (1,219mm) each row",
+      "pole_height": "2,600mm (base deck to pole top)",
+      "unit_top_height": "1,000mm above base deck",
+      "vertical_riser_width": "4'-0\" (1,219mm) each",
+      "vertical_riser_depth": "8'-0\" (2,438mm) each"
+    },
+    "bay_centres_from_sr": {
+      "bay_1_usr_dsr": "1,219mm",
+      "bay_2_uscr_dscr": "3,658mm",
+      "bay_3_uscl_dscl": "6,096mm",
+      "bay_4_usl_dsl": "8,534mm"
+    },
+    "y_axis": {
+      "ds_pole_row": "Y ≈ 610mm (centre of 4'-0\" DS deck)",
+      "us_pole_row": "Y ≈ 1,829mm + FV_gap (FIELD VERIFY)",
+      "deck_level": "Y = 0 (floor reference)"
+    },
+    "z_axis": {
+      "pole_top": "2,600mm",
+      "unit_top": "1,000mm above base deck"
+    },
+    "field_verify_items": [
+      "Row gap: separation between US and DS horizontal deck rows",
+      "Riser gap: separation between SR and SL vertical riser decks"
+    ],
+    "drawing_06": "assets/drawings/06-dimensioned-plan.svg — dimensioned plan with centroid crosshairs",
+    "cable_length_accuracy": "IMPROVED — X confirmed, Y/riser gap still estimated until load-in"
+  },
+  "open_items": [
+    {
+      "priority": "P0",
+      "item": "Console source",
+      "detail": "SYNRGY bringing own console or using grandMA2 onPC?",
+      "owner": "Ask Andrew Graham-Hussey"
+    },
+    {
+      "priority": "P0",
+      "item": "Spartan power connector",
+      "detail": "powerCON True1 or Edison/NEMA?",
+      "owner": "Ask Andrew"
+    },
+    {
+      "priority": "P0",
+      "item": "Dragon power connector",
+      "detail": "TBC",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P0",
+      "item": "Distro box",
+      "detail": "Backliner supply or venue?",
+      "owner": "Ask Andrew"
+    },
+    {
+      "priority": "P0",
+      "item": "208V at deck level",
+      "detail": "L6-30 drops at stage level, not just dimmer rack",
+      "owner": "Confirm with Mod Club"
+    },
+    {
+      "priority": "P0",
+      "item": "GFCI status",
+      "detail": "Stage circuits must NOT be GFCI — Spartan inrush will nuisance-trip",
+      "owner": "Confirm with Mod Club"
+    },
+    {
+      "priority": "P1",
+      "item": "Spartan LCD mode",
+      "detail": "Confirm Extended 24ch on each unit display",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P1",
+      "item": "Dragon LCD mode",
+      "detail": "Confirm 15ch on each unit display before patching",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P1",
+      "item": "Dragon tilt mechanical range",
+      "detail": "Test DMX 0 / 128 / 255 to confirm physical stops",
+      "owner": "Verify at load-in"
+    },
+    {
+      "priority": "P1",
+      "item": "Ceiling clearance",
+      "detail": "1922 heritage building — 2.44m poles, confirm fit",
+      "owner": "Measure or ask venue LD"
+    },
+    {
+      "priority": "P1",
+      "item": "Stage dimensions",
+      "detail": "X CONFIRMED from SYNRGY Rev C drawings. FV gap still needed at load-in for Y centroid completion.",
+      "owner": "Operator to measure at load-in"
+    },
+    {
+      "priority": "NICE",
+      "item": "Mod Club hazer",
+      "detail": "Venue-owned — reserve U1 ch 480-490 if venue fires during show",
+      "owner": "Confirm with venue"
+    }
+  ],
+  "local_agent": {
+    "session_name": "Kill em and explain",
+    "platform": "Windows (grandMA2 onPC machine)",
+    "last_known_error": "Error #23: FILE NOT FOUND — nuoma@nuoma_rgbw_par@8_bit and dragon@dragon_tilt_strobe_working@15ch not in importexport/",
+    "error_resolved_by": "assets/fixture-profiles/ — two XMLs committed, copy to importexport/ and retry import",
+    "last_known_action": "Searching for RGBW profile reference files via PowerShell",
+    "next_action": "Copy fixture XMLs to importexport/, retry Import commands in EditSetup/FixtureTypes",
+    "brief_file": "assets/agent-briefs/tourist-modclub-2026-local-agent.json",
+    "powershell_copy": "Copy-Item 'assets\\fixture-profiles\\*.xml' 'C:\\ProgramData\\MA Lighting Technologies\\grandma\\gma2_V_3.9.60\\importexport\\'",
+    "phase_readiness": {
+      "phase_3A": "READY — XMLs available",
+      "phase_3B": "READY after 3A",
+      "phase_4": "READY — macro committed",
+      "phase_5_6_7": "PENDING 3B + 4"
+    }
+  }
+}

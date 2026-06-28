@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://schemas.malighting.de/grandma2/xml/MA"
+    xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd"
+    major_vers="3" minor_vers="9" stream_vers="60">
+  <Info datetime="2026-06-27T02:48:33" showfile="TOURIST_ModClub_20260626_FloorPkg" />
+  <FixtureType index="0"
+    name="Nuoma RGBW Par"
+    manufacturer="Nuoma"
+    short_name="Nuoma Par"
+    generic_type="2"
+    mode_name="8 bit"
+    mode_short_name="8bit"
+    dmx_channel_count="8">
+    <FixtureChannel index="0" name="Effect Macros"  attribute="Macros"     default="0" highlight="0"   home_position="0" />
+    <FixtureChannel index="1" name="Effect Index"   attribute="MacroRate"  default="0" highlight="0"   home_position="0" />
+    <FixtureChannel index="2" name="Shutter/Strobe" attribute="Shutter"    default="0" highlight="255" home_position="255" />
+    <FixtureChannel index="3" name="Dim"            attribute="Dim"        default="0" highlight="255" home_position="0" />
+    <FixtureChannel index="4" name="Red"            attribute="ColorRGB_R" default="0" highlight="255" home_position="0" />
+    <FixtureChannel index="5" name="Green"          attribute="ColorRGB_G" default="0" highlight="255" home_position="0" />
+    <FixtureChannel index="6" name="Blue"           attribute="ColorRGB_B" default="0" highlight="255" home_position="0" />
+    <FixtureChannel index="7" name="White"          attribute="ColorAdd_W" default="0" highlight="255" home_position="0" />
+  </FixtureType>
+</MA>
