@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy Executive Strategy
 description: Canonical decision record for the three-repo GrandPA2-Buddy program — public trust layer vs private commercial moat, target topology, build sequence, and revenue plan, reconciled against verified repo state.
-version: 1.0.0
+version: 1.1.0
 created: 2026-07-01T02:35:49Z
-last_updated: 2026-07-01T02:35:49Z
+last_updated: 2026-07-01T02:46:28Z
 ---
 
 # GrandPA2-Buddy Executive Strategy
@@ -29,6 +29,21 @@ review · controlled execution · operator handoff · venue governance.
 
 **Never lead with:** "AI controls your show" · "fully autonomous live-show agent" ·
 "give the showfile to the AI" · "unbounded AI console control".
+
+**Demo rule:** any viral-appeal demo must be offline/prep — AI builds cue
+lists/macros → human reviews → human runs the show. Never live control.
+
+### Orchestrator mandate
+
+The program is coordinated by a single **`grandpa2-orchestrator`** role with
+workspace/push access to the three managed repos. Its job: enforce the
+trust-vs-moat separation, drive the refactor that lands each asset on the correct
+side of the line, and sequence the private execution-safety compiler on top of the
+existing public knowledge layer.
+
+> **Prime directive.** Public = *"how grandMA2 works and how to read it."*
+> Private = *"how to make an AI touch a console without breaking the show."*
+> Every file, module, and license decision must resolve to one side of that line.
 
 ### Corrected current state (do not regress)
 
@@ -139,6 +154,25 @@ rule: trade-secret modules must live in **physically private repos** — marking
 
 ---
 
+## 4a. Reference study targets (patterns only — out of current scope)
+
+Three external repos are worth studying for architectural pattern, **not** code.
+They are **outside this session's managed-repo scope** (GitHub access is restricted
+to the three `thisis-romar` repos), so cloning them is a separate, explicitly
+authorized step. All three are MIT — but treat as *reference, not source*; never
+copy code, extract patterns and structure only.
+
+| Repo | Why study it | Extract | Ignore |
+|---|---|---|---|
+| `affaan-m/ECC` | Closest analog: open-core (MIT core + hosted Pro backend at ~$19/seat), SKILL.md at scale, plugin distribution, funding scaffolding | open-format → closed-backend separation ("repo is the front door"); SKILL.md dir + `npx` install; sponsorship scaffolding | inflated star/usage metrics; sponsor-wall economics; marketplace-as-primary-wedge |
+| `Leonxlnx/taste-skill` | Cleanest minimal open SKILL.md + sponsor-funnel as a pure credibility asset | minimal SKILL.md packaging; `npx skills add` distribution; top-of-README funnel | sponsor-only monetization as our model |
+| `hetpatel-11/Adobe_Premiere_Pro_MCP` | Peer MCP-over-pro-software with a bundled skill — **cautionary** (MIT passion project, ~267★, zero direct revenue) | MCP server + single bundled skill structure; multi-client install ergonomics; MCP-directory discovery | the free/MIT give-away model; star-chasing as revenue proxy; any live-autonomy framing |
+
+**Lesson that maps to our spine:** open the *format*, close the *backend* (the
+validated ECC pattern). Stars and give-aways are not a revenue engine.
+
+---
+
 ## 5. Build sequence (private moat first, layered)
 
 1. **`ma2-safe-ir`** — command parser → typed risk-classified IR. Start with the
@@ -153,8 +187,9 @@ rule: trade-secret modules must live in **physically private repos** — marking
 4. **`prompt-skill-compiler`** — deterministic artifacts (`compiled-skills.lock.json`,
    `skill-manifest.hash.json`, `static-prefix.md`, `dynamic-retrieval-policy.json`);
    stable static prefix first, variable content last, explicit cache breakpoints.
-5. **Deferred tool loading** — `defer_loading:true` on ~190 tools + a Tool Search
-   tool; pin ~10–15 hot SAFE tools always-on. Validate retrieval accuracy before
+5. **Deferred tool loading** — `defer_loading:true` on ~190 of the ~207 tools + a
+   Tool Search tool; pin ~10–15 hot SAFE tools always-on. This preserves the prompt
+   cache and cuts ~85% of tool-definition tokens. Validate retrieval accuracy before
    trusting it for DESTRUCTIVE ops.
 6. **`mcp-policy-gateway`** — tier enforcement at the boundary. *Agents Rule of Two:*
    read-only autonomous is OK; any write/console action requires human approval
@@ -175,6 +210,9 @@ rule: trade-secret modules must live in **physically private repos** — marking
   market, not a gap.
 - 2026 context windows: Sonnet/Opus up to 1M, Haiku 200k — but raw multi-MB
   showfiles still overflow, so pre-parse is required.
+- **Enterprise isolation is a discount, not a bypass.** A local MCP server (no cloud
+  socket to the console) materially shortens the data-handling review but does *not*
+  "neutralize" a 6–18 month infosec review.
 
 ---
 
@@ -193,7 +231,22 @@ rule: trade-secret modules must live in **physically private repos** — marking
 
 **Explicitly not pursued:** two-sided take-rate marketplace as first wedge · sponsor
 walls · pure-subscription entry pricing · GitHub-star virality as strategy · GitHub
-Marketplace paid app near-term (install minimums unreachable).
+Marketplace paid app near-term (install minimums unreachable) · ECC-style inflated
+vanity metrics as benchmarks.
+
+### Bottom line & path to scale
+
+- **Current state:** a documentation-retrieval brain, not yet the execution-safety
+  compiler. Build the compiler privately, L1 → L7.
+- **Solo, strictly in-lane ceiling:** ~$150k–$400k blended. $1M is not realistic
+  solo in-lane.
+- **Path to $1M** requires **lane expansion** (MA3-native → multi-console →
+  broadcast/install) **plus hiring** — not just more of the same.
+- **Primary path:** MA2/Mode2 base camp → public trust layer for adoption → private
+  safety-compiler + validation backend + certification as moat → services +
+  first-party packs for cashflow → enterprise + lane-expansion for scale.
+- **Backup path:** if not expanding the lane or hiring, optimize for a $300k–$500k
+  solo lifestyle business.
 
 ---
 
