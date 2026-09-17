@@ -1437,8 +1437,18 @@ The stop hook is configured in `.claude/settings.json` (project-level) so all co
 
 This project is derived from [gma2-mcp](https://github.com/chienchuanw/gma2-mcp) by **chienchuanw**, whose foundation work (Nov–Dec 2025) provided the initial grandMA2 Telnet integration that this project builds upon.
 
+## Multi-Version Compatibility Testing
+
+The controlled compatibility target covers all 35 grandMA2 onPC builds currently published by MA Lighting. Use one clean logical Windows environment per exact build; do not install the full archive on a developer profile or treat a second Windows user as machine isolation.
+
+See the [multi-version compatibility plan](doc/ma2-onpc-version-compatibility-plan.md) and the [35-build version matrix](tests/compatibility/ma2-versions.csv). Installer binaries, VM disks, credentials, and private test artifacts stay outside GitHub.
+
+Live tests require the explicit `--live` option. Destructive tests also require `--destructive` and must run only against a disposable synthetic show environment.
+
 ## Documentation
 
+- [doc/ma2-onpc-version-compatibility-plan.md](doc/ma2-onpc-version-compatibility-plan.md) — isolated Windows lab design, test lanes, evidence, and release gates
+- [tests/compatibility/ma2-versions.csv](tests/compatibility/ma2-versions.csv) — all 35 currently published onPC builds and family anchors
 - [CHANGELOG.md](CHANGELOG.md) — version history from v2.0.0 to current
 - [CONTRIBUTING.md](CONTRIBUTING.md) — contribution guidelines
 - [SECURITY.md](SECURITY.md) — security policy and vulnerability reporting
