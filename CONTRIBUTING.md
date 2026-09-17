@@ -88,7 +88,17 @@ All PRs must pass the full test suite before review:
 uv run python -m pytest -v
 ```
 
-Current baseline: **2841 tests** (unit + live integration). Live integration tests are skipped by default (`tests/test_live_integration.py` requires `RUN_LIVE_TESTS=1`).
+Unit tests run by default. Live integration tests are skipped unless pytest receives the explicit `--live` option:
+
+```bash
+# Safe live selection
+uv run python -m pytest tests/test_live_integration.py --live -m "live and not destructive" -v -s
+
+# Full live suite — disposable synthetic show environment only
+uv run python -m pytest tests/test_live_integration.py --live --destructive -m live -v -s
+```
+
+Follow the [multi-version compatibility plan](doc/ma2-onpc-version-compatibility-plan.md) for version isolation, result evidence, and release gates.
 
 - Add tests for every new command builder in `tests/test_<feature>.py`.
 - Add tests for every new MCP tool in `tests/test_tools.py` or a feature-specific file.
