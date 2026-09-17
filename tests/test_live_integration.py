@@ -18,13 +18,13 @@ Organized into 8 layers by risk and dependency:
 
 Usage:
     # Safe tests only (Layer 0-3, 6):
-    uv run pytest tests/test_live_integration.py -m "live and not destructive" -v -s
+    uv run pytest tests/test_live_integration.py --live -m "live and not destructive" -v -s
 
     # All layers including destructive:
-    uv run pytest tests/test_live_integration.py -m live -v -s --destructive
+    uv run pytest tests/test_live_integration.py --live --destructive -m live -v -s
 
     # Single layer:
-    uv run pytest tests/test_live_integration.py -k "Layer0" -v -s
+    uv run pytest tests/test_live_integration.py --live -k "Layer0" -v -s
 """
 
 import json
