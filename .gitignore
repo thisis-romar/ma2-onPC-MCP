@@ -74,3 +74,11 @@ agent_traces/
 .graphify_python
 .graphify_uncached.txt
 graphify-out/
+# Controlled grandMA2 compatibility lab — proprietary/local artifacts
+.ma2-lab/
+tests/compatibility/artifacts/
+gMA2onPC_v*.exe
+MA3D_v*.exe
+*.vhd
+*.vhdx
+*.avhdx
