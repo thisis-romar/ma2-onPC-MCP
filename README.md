@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 210 MCP tools via Telnet
-version: 3.39.1
+version: 3.39.2
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-09-18T21:01:59Z
+last_updated: 2026-09-18T21:27:07Z
 ---
 
 <p align="center">
@@ -103,7 +103,7 @@ GrandPA2-Buddy is a **layered hybrid** — the boundary is explicit in the code:
 | Layer | What it is | Key files |
 |-------|-----------|-----------|
 | **Bottom 164 tools** | **Agent Harness** — exposes a tool surface to an external AI; the reasoning loop lives in Claude Desktop, VS Code, etc. | [`src/server.py`](src/server.py) |
-| **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | [`src/private/server_orchestration_tools.py`](src/private/server_orchestration_tools.py), [`src/orchestrator.py`](src/orchestrator.py) |
+| **Top 34 tools** | **Embedded Agent Core** — orchestrator, task decomposer, long-term memory, skill registry | `src/private/server_orchestration_tools.py` ([private submodule](.gitmodules)), [`src/orchestrator.py`](src/orchestrator.py) |
 
 The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool calls run in-process. Wire in a Claude API client and GrandPA2-Buddy becomes a fully autonomous agent that plans, executes, remembers, and improves itself.
 
@@ -119,7 +119,7 @@ The orchestrator accepts a `sub_agent_fn` injection point. Without it, tool call
 | Module | Role |
 |--------|------|
 | [`src/server.py`](src/server.py) | FastMCP server, 164 interactive tools, safety gate, env config |
-| [`src/private/server_orchestration_tools.py`](src/private/server_orchestration_tools.py) | 34 agentic tools (110–144) registered onto FastMCP |
+| `src/private/server_orchestration_tools.py` ([private submodule](.gitmodules)) | 34 agentic tools (110–144) registered onto FastMCP |
 | [`src/orchestrator.py`](src/orchestrator.py) | Multi-agent task runner: hydration, risk-tier isolation, LTM; `_showfile_guard()`, `check_showfile()` for dynamic show change detection |
 | [`src/task_decomposer.py`](src/task_decomposer.py) | Natural-language goal → ordered SubTask plan (14 built-in rules + `register_rule()` extensibility) |
 | [`src/agent_memory.py`](src/agent_memory.py) | WorkingMemory (ephemeral) + LongTermMemory (SQLite session log) + showfile baseline tracking (`baseline_showfile`, `showfile_changed()`) |
@@ -663,7 +663,7 @@ python -m scripts.create_matricks_library --color-only
 <details>
 <summary><strong>🤖 Orchestration & Console State</strong> — 34 tools</summary>
 
-These tools form the **agentic layer** ([`src/private/server_orchestration_tools.py`](src/private/server_orchestration_tools.py)). They enable
+These tools form the **agentic layer** (`src/private/server_orchestration_tools.py`; [private submodule](.gitmodules)). They enable
 multi-step task execution with memory, risk-tier isolation, and zero-telnet state queries
 via a `ConsoleStateSnapshot` cache that closes 19 show-memory gaps.
 
@@ -809,40 +809,42 @@ Instruction modules ([`.claude/skills/`](.claude/skills/)) that are injected as 
 
 | Skill | Description |
 |-------|-------------|
-| [`ma2-command-rules`](.claude/skills/ma2-command-rules/SKILL.md) | MA2 command construction, object resolution, quoting rules, and safety escalation |
-| [`telnet-feedback-triage`](.claude/skills/telnet-feedback-triage/SKILL.md) | Classify and summarise grandMA2 Telnet feedback using the `FeedbackClass` enum |
-| [`feedback-investigator`](.claude/skills/feedback-investigator/SKILL.md) | Worker playbook: classify and investigate Telnet feedback failures |
-| [`cue-list-auditor`](.claude/skills/cue-list-auditor/SKILL.md) | Worker playbook: audit cue list gaps, labels, timing, and health |
-| [`busking-lighting-performance`](.claude/skills/busking-lighting-performance/SKILL.md) | Live busking — fader-per-effect model, executor layout, effect layering, live recovery |
-| [`song-macro-page-design`](.claude/skills/song-macro-page-design/SKILL.md) | Song macro pages — first-button protocol, executor column layout, jump target safety |
-| [`constrained-color-design`](.claude/skills/constrained-color-design/SKILL.md) | Monochromatic HSB palette design — preset numbering, color lock, song-to-palette mapping |
-| [`preset-library-architect`](.claude/skills/preset-library-architect/SKILL.md) | Build full dimmer/position/color/gobo preset pools from raw attribute values |
-| [`patch-and-group-builder`](.claude/skills/patch-and-group-builder/SKILL.md) | Patch fixtures, build groups by type/position, and verify selection counts |
+| [`agent-harness-operations`](.claude/skills/agent-harness-operations/SKILL.md) | Agent harness architecture, component flow, and `PlanStep` interoperability for `src/agent/` development |
+| [`busking`](.claude/skills/busking/SKILL.md) | Live busking and template generation — fader-per-effect performance, executor layout, effect layering, recovery, groups, presets, and speed masters |
 | [`chaser-builder`](.claude/skills/chaser-builder/SKILL.md) | Step-based chasers, running lights via MAtricks, strobes — speed/rate/direction control |
-| [`cue-tracking-and-timing`](.claude/skills/cue-tracking-and-timing/SKILL.md) | Tracking vs non-tracking, Block/Unblock, MIB, timing layers, trigger types, Update vs Store |
-| [`executor-configuration`](.claude/skills/executor-configuration/SKILL.md) | Executor priority, trigger types, fader functions, speed masters, protect options |
-| [`show-management-and-psr`](.claude/skills/show-management-and-psr/SKILL.md) | Save/Load/New show (connectivity preservation), PSR workflow, Export/Import XML |
-| [`macro-advanced`](.claude/skills/macro-advanced/SKILL.md) | SetVar/SetUserVar, conditionals, CmdDelay, jump targets, XML authoring, Store Group timing |
 | [`clone-and-data-transfer`](.claude/skills/clone-and-data-transfer/SKILL.md) | Clone fixture with `/selective`, copy/move pool objects, cue-range copy, cross-show PSR |
-| [`effect-programmer`](.claude/skills/effect-programmer/SKILL.md) | Build effects from scratch, layer rate/speed/phase, assign to executors |
-| [`world-filter-designer`](.claude/skills/world-filter-designer/SKILL.md) | Create worlds, assign fixtures, configure filter objects, control visibility |
-| [`timecode-show-programmer`](.claude/skills/timecode-show-programmer/SKILL.md) | Build timecode shows, assign events to cues, enable/disable tracks |
-| [`color-preset-creator`](.claude/skills/color-preset-creator/SKILL.md) | Store universal color presets from RGB values — builds the preset pool |
 | [`color-palette-sequence-builder`](.claude/skills/color-palette-sequence-builder/SKILL.md) | Build a cue sequence where each cue references a universal color preset |
+| [`color-preset-creator`](.claude/skills/color-preset-creator/SKILL.md) | Store universal color presets from RGB values — builds the preset pool |
+| [`compliance-documentation`](.claude/skills/compliance-documentation/SKILL.md) | Generate SB 132 and safety-audit reports from session telemetry — SAFE_READ only |
+| [`constrained-color-design`](.claude/skills/constrained-color-design/SKILL.md) | Monochromatic HSB palette design — preset numbering, color lock, song-to-palette mapping |
+| [`cross-venue-adaptation`](.claude/skills/cross-venue-adaptation/SKILL.md) | Adapt a show to a new venue — patch comparison, group remapping, and preset-scope verification |
+| [`cue-list-auditor`](.claude/skills/cue-list-auditor/SKILL.md) | Audit cue-list gaps, labels, timing, and health |
+| [`cue-tracking-and-timing`](.claude/skills/cue-tracking-and-timing/SKILL.md) | Tracking and non-tracking modes, Block/Unblock, MIB, timing layers, and trigger types |
+| [`effect-programmer`](.claude/skills/effect-programmer/SKILL.md) | Build effects from scratch, layer rate/speed/phase, and assign them to executors |
+| [`executors`](.claude/skills/executors/SKILL.md) | Assign sequences to executors and configure priority, triggers, start/stop modes, special masters, and fader functions |
+| [`feedback-handling`](.claude/skills/feedback-handling/SKILL.md) | Classify, summarise, and investigate grandMA2 Telnet feedback — triage and root-cause investigation |
 | [`hue-palette-creator`](.claude/skills/hue-palette-creator/SKILL.md) | Store 96 universal hue presets (4.101–4.196) using the HSB color model |
 | [`hue-sequence-builder`](.claude/skills/hue-sequence-builder/SKILL.md) | Build a 16-cue sequence from an adjacent hue pair — 8 saturation variants per hue |
-| [`sequence-executor-assigner`](.claude/skills/sequence-executor-assigner/SKILL.md) | Assign a sequence to a free executor so it appears as a playback fader |
-| [`rdm-workflow`](.claude/skills/rdm-workflow/SKILL.md) | RDM discovery → device info → autopatch workflow via MCP |
+| [`license-tier-management`](.claude/skills/license-tier-management/SKILL.md) | License-tier feature gating, tier classification, environment variables, and adding tool tiers |
 | [`lua-and-plugins`](.claude/skills/lua-and-plugins/SKILL.md) | Lua 5.2 scripting with `gma.*` namespace, plugin invocation, and reload lifecycle |
+| [`ma2-command-rules`](.claude/skills/ma2-command-rules/SKILL.md) | MA2 command construction, object resolution, quoting rules, and safety escalation |
+| [`macro-advanced`](.claude/skills/macro-advanced/SKILL.md) | SetVar/SetUserVar, conditionals, CmdDelay, jump targets, XML authoring, and Store Group timing |
+| [`macro-audit-and-fire`](.claude/skills/macro-audit-and-fire/SKILL.md) | Safe destructive-macro workflow — audit, snapshot, fire, capture, save, and restore |
+| [`mcp-development-guidelines`](.claude/skills/mcp-development-guidelines/SKILL.md) | Contributor workflow for adding MCP tools, resources, prompts, command builders, and tests |
+| [`patch-and-group-builder`](.claude/skills/patch-and-group-builder/SKILL.md) | Patch fixtures, build groups by type or position, and verify selection counts |
+| [`preset-library-architect`](.claude/skills/preset-library-architect/SKILL.md) | Build complete dimmer, position, color, and gobo preset pools from raw attribute values |
 | [`psr-show-migration`](.claude/skills/psr-show-migration/SKILL.md) | PSR with pre-flight slot check, fixture ID verification, and post-import diff |
-| [`compliance-documentation`](.claude/skills/compliance-documentation/SKILL.md) | Generate SB 132 / insurance audit reports from session telemetry — SAFE_READ only |
-| [`volunteer-operations`](.claude/skills/volunteer-operations/SKILL.md) | Three-tier access model, Sunday morning preflight, and incident response for non-programmers |
-| [`view-and-layout-designer`](.claude/skills/view-and-layout-designer/SKILL.md) | Custom console views, executor button placement, image assignment, sheet recall |
+| [`rdm-workflow`](.claude/skills/rdm-workflow/SKILL.md) | RDM discovery → device information → autopatch workflow via MCP |
+| [`remote-monitoring`](.claude/skills/remote-monitoring/SKILL.md) | Continuous SAFE_READ polling — show-change detection, alerts, broadcast, and architectural protocols |
 | [`show-health-check`](.claude/skills/show-health-check/SKILL.md) | Pre-show audit — showfile, presets, executors, cues, parks, DMX. Returns GREEN/AMBER/RED |
-| [`busking-template-generator`](.claude/skills/busking-template-generator/SKILL.md) | Build a complete busking template from any patched rig — groups, presets, effects, executor page |
-| [`cross-venue-adaptation`](.claude/skills/cross-venue-adaptation/SKILL.md) | Adapt show to a new venue rig — patch comparison, group remapping, preset scope verification |
+| [`show-management-and-psr`](.claude/skills/show-management-and-psr/SKILL.md) | Save, load, and create shows; run PSR; and export or import XML |
+| [`song-macro-page-design`](.claude/skills/song-macro-page-design/SKILL.md) | Song macro pages — first-button protocol, executor-column layout, and jump-target safety |
+| [`stream-deck-profile-ops`](.claude/skills/stream-deck-profile-ops/SKILL.md) | Create, modify, extract, and package `.streamDeckProfile` files with Node.js tooling |
+| [`timecode-show-programmer`](.claude/skills/timecode-show-programmer/SKILL.md) | Build timecode shows, assign events to cues, and enable or disable tracks |
 | [`training-mode`](.claude/skills/training-mode/SKILL.md) | Annotated SAFE_READ console tour for students, church volunteers, and IATSE training programs |
-| [`remote-monitoring`](.claude/skills/remote-monitoring/SKILL.md) | Continuous SAFE_READ polling — show change detection, alert conditions, broadcast and architectural protocols |
+| [`view-and-layout-designer`](.claude/skills/view-and-layout-designer/SKILL.md) | Custom console views, executor-button placement, image assignment, and sheet recall |
+| [`volunteer-operations`](.claude/skills/volunteer-operations/SKILL.md) | Three-tier access model, Sunday morning preflight, and incident response for non-programmers |
+| [`world-filter-designer`](.claude/skills/world-filter-designer/SKILL.md) | Create worlds, assign fixtures, configure filters, and control visibility |
 
 Skills are loaded on demand via `ma2://skills/{skill_id}` resource or injected by the orchestrator. Use `list_skills` / `get_skill` tools to browse and inspect them at runtime.
 
