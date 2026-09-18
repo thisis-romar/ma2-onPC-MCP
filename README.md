@@ -1480,4 +1480,3 @@ Live tests require the explicit `--live` option. Destructive tests also require 
 ## License
 
 [Business Source License 1.1](LICENSE)
-

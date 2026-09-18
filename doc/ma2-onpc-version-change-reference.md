@@ -148,4 +148,3 @@ MA uses two similarly named interfaces: the [`Telnet` keyword](https://help.mali
 - [MA 3D installation and cross-version show behavior](https://help2.malighting.com/grandMA2/en/help/ma_3d/key_installation.html)
 - [MA2 `Telnet` keyword](https://help.malighting.com/grandMA2/en/help/key_keyword_telnet.html)
 - [MA2 Telnet Remote](https://help.malighting.com/grandMA2/en/help/key_remote_control_telnet.html)
-

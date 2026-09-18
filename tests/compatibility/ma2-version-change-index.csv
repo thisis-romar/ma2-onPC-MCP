@@ -34,4 +34,3 @@ Version,EvidenceScope,ReleaseNotesUrl,TransportRelevance,DocumentedChangeFocus,R
 3.3.4.1,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_3.html,command-line,"Go Cue X; timecode trigger choice; Fix token; EffectSec and onPC fixes",Go Cue timecode and command-state cases
 3.3.2.2,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_3.html,outbound-telnet-keyword,"empty outbound Telnet-keyword message gets CRLF; ListCANFirmware and broad fixes",baseline inbound capture; do not infer framing from outbound note
 3.2.2.16,family-cumulative,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_2.html,mixed,"Telnet load and close stability; outbound-keyword CRLF; RDM and effect commands; onPC and MA3D fixes",high-volume reconnect close and baseline goldens
-
