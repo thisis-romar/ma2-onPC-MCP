@@ -1,9 +1,9 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 207 MCP tools via Telnet
-version: 3.38.0
+version: 3.39.0
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-04-09T04:33:12Z
+last_updated: 2026-09-18T19:42:40Z
 ---
 
 <p align="center">
@@ -37,7 +37,7 @@ last_updated: 2026-04-09T04:33:12Z
 <tr><td><b>RAG-powered knowledge</b></td><td>Three indexed sources: this repo, ~1,043 grandMA2 help pages, and the MCP SDK. Semantic search via GitHub Models embeddings; falls back to keyword search without an API token.</td></tr>
 </table>
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [207 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline)
+[Quick Start](#quick-start) · [Architecture](#architecture) · [207 MCP Tools](#mcp-tools) · [Resources](#mcp-resources) · [Prompts](#mcp-prompts) · [Skills](#agent-skills) · [Safety System](#safety-system) · [RAG Pipeline](#rag-pipeline) · [Compatibility](#multi-version-compatibility-testing)
 
 *The name is a play on "grandMA2" — [dedicated to someone special](DEDICATION.md).*
 
@@ -1439,16 +1439,37 @@ This project is derived from [gma2-mcp](https://github.com/chienchuanw/gma2-mcp)
 
 ## Multi-Version Compatibility Testing
 
-The controlled compatibility target covers all 35 grandMA2 onPC builds currently published by MA Lighting. Use one clean logical Windows environment per exact build; do not install the full archive on a developer profile or treat a second Windows user as machine isolation.
+The controlled compatibility target covers all 35 grandMA2 onPC builds currently published by MA Lighting, from `3.2.2.16` through `3.9.63.10`, plus each build's matching MA 3D installer.
 
-See the [multi-version compatibility plan](doc/ma2-onpc-version-compatibility-plan.md) and the [35-build version matrix](tests/compatibility/ma2-versions.csv). Installer binaries, VM disks, credentials, and private test artifacts stay outside GitHub.
+| Installation option | Recommendation |
+| --- | --- |
+| Developer's normal Windows profile | Do not use; application data and installer changes are not confined to one profile |
+| Separate Windows user | Do not use as the isolation boundary; `ProgramData`, registry, runtime, firewall, and file-association state remain machine-wide |
+| One cumulative VM containing every version | Manual convenience only; do not use its results as compatibility evidence |
+| 35 complete Windows VMs | Do not use; storage and maintenance cost are unnecessary |
+| Shallow Hyper-V differencing-disk layout | Preferred after written MA Lighting confirmation for virtualized test instances |
+| Dedicated physical Windows test installation restored between builds | Executable fallback and the authority for graphics and hardware tests |
+
+The preferred layout is:
+
+`sealed licensed Windows base -> immutable prepared disk for one exact onPC build -> disposable disk for each test run`
+
+Install the matching MA 3D build only in a prepared layer used for 3D testing. Run GrandPA2-Buddy and pytest inside the guest with Telnet on `127.0.0.1:30000`, export sanitized evidence, and discard the run disk. Keep the chain three layers deep and run versions serially.
+
+The reviewed MA Lighting EULA does not expressly address VM cloning. Obtain written clarification before cloning or automating the VM matrix. Until that gate is resolved, restore a verified clean image to one dedicated physical Windows test installation between builds. Use physical hardware for authoritative MA 3D graphics and performance, USB wings, MA nodes and sessions, unlocked parameters, and real DMX output; report VM and physical evidence separately.
+
+The verified off-repository installer archive contains 70 files (35 onPC and 35 MA 3D) and is 19.803 GiB. Installer binaries, the ZIP, VM disks, credentials, and private test artifacts stay outside Git. Reserve 300-600 GB for Windows bases, prepared deltas, disposable runs, results, and staging. On a 16 GB host, begin with one guest at a time, 2 vCPU, 6-8 GB fixed RAM, and an 80 GB dynamically expanding disk, then calibrate with a three-version pilot.
+
+See the [complete compatibility test plan](doc/ma2-onpc-version-compatibility-plan.md), [documented version changes](doc/ma2-onpc-version-change-reference.md), [public version matrix](tests/compatibility/ma2-versions.csv), and [machine-readable change index](tests/compatibility/ma2-version-change-index.csv).
 
 Live tests require the explicit `--live` option. Destructive tests also require `--destructive` and must run only against a disposable synthetic show environment.
 
 ## Documentation
 
 - [doc/ma2-onpc-version-compatibility-plan.md](doc/ma2-onpc-version-compatibility-plan.md) — isolated Windows lab design, test lanes, evidence, and release gates
+- [doc/ma2-onpc-version-change-reference.md](doc/ma2-onpc-version-change-reference.md) — official release-note audit and version-specific compatibility probes
 - [tests/compatibility/ma2-versions.csv](tests/compatibility/ma2-versions.csv) — all 35 currently published onPC builds and family anchors
+- [tests/compatibility/ma2-version-change-index.csv](tests/compatibility/ma2-version-change-index.csv) — machine-readable release-note evidence and required probes
 - [CHANGELOG.md](CHANGELOG.md) — version history from v2.0.0 to current
 - [CONTRIBUTING.md](CONTRIBUTING.md) — contribution guidelines
 - [SECURITY.md](SECURITY.md) — security policy and vulnerability reporting
@@ -1459,3 +1480,4 @@ Live tests require the explicit `--live` option. Destructive tests also require 
 ## License
 
 [Business Source License 1.1](LICENSE)
+

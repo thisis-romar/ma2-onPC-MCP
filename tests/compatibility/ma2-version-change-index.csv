@@ -1,0 +1,37 @@
+Version,EvidenceScope,ReleaseNotesUrl,TransportRelevance,DocumentedChangeFocus,RequiredProbe
+3.9.63.10,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,"Carallon and grandMA2-to-grandMA3 converter fixes",baseline contract
+3.9.63.6,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,"converter fixes; Windows ARM and Apple-silicon virtualization availability",baseline contract
+3.9.61.5,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,converter output-folder version alignment,baseline contract
+3.9.61.3,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,converter output-folder version alignment,baseline contract
+3.9.61.1,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,converter wheel geometry phaser timecode and highlight fixes,baseline contract
+3.9.60.91,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,Mode2 FTP and audio plus converter timing fix,baseline contract
+3.9.60.89,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,indirect,"Windows 11 mouse re-entry; Setup Search edit and touchscreen crashes",Windows 11 UI smoke then baseline contract
+3.9.60.82,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,converter expansion and network-cable shutdown fix,baseline contract
+3.9.60.74,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,network-cable shutdown and converter fixes,baseline contract
+3.9.60.73,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,command-line,"converter confirmation and /noconfirm; xPort and Mode2 changes",converter command confirmation in disposable show
+3.9.60.68,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,Carallon v19.2,baseline contract
+3.9.60.65,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,Mode2 sound input,baseline contract
+3.9.60.63,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,converter and Parallels behavior,baseline contract
+3.9.60.50,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,indirect,effect-line deletion crash and Filter UI plus converter fixes,effect deletion in disposable show
+3.9.60.45,no-distinct-section,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,unknown,public installer has no distinct current note section,full discovery and golden transcript
+3.9.60.38,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,Mode2 selector pop-up,baseline contract
+3.9.60.37,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,indirect,onPC login fader lock and encoder-spam crash,unauthenticated-state and login smoke
+3.9.60.28,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,none-stated,converter CITP Mode2 and touchscreen fixes,baseline contract
+3.9.60.27,no-distinct-section,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,unknown,public installer has no distinct current note section,full discovery and golden transcript
+3.9.60.4,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,command-line,Setup command crash with overlay and cue-loop freeze,Setup stability and loop guard
+3.9.60.3,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,command-line,"CD Root and CD / leave Patch Only destination",Patch Only navigation state
+3.9.60.2,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,indirect,Art-Net poll and show-download crash fixes,show download and baseline contract
+3.9.51.2,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,command-line,"ToFull and ToZero cue modes; onPC plugin crash; show and clone fixes",cue-mode commands and plugin probe
+3.9.0.3,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,indirect,onPC plugin crash,plugin probe
+3.9.0.1,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_releasenotes.html,indirect,user variables MTC old-show conversion and PSR show-download crash,variables and show-load contract
+3.8.0.0,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_8.html,direct-inbound,"illegal Telnet character freeze; Paste SetIP ListOops Delete SelectDrive feedback; user-rights and plugin fixes",illegal-character recovery and command-output goldens
+3.7.0.5,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_7.html,command-output,SetIP lists existing gateway,SetIP query or help golden
+3.7.0.3,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_7.html,indirect,show-download and show-load crashes,show download and load
+3.7.0.1,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_7.html,command-and-lua,"HOSTHARDWARE and gma.gethardwaretype; Fix Page; page and cue fixes",hardware variable Lua probe and Fix Page
+3.6.1.1,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_6.html,command-line,"macro strings with spaces; Menu Off; sequence export; show-download fixes",conditional macro and show download
+3.5.0.6,exact-plus-cumulative,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_5.html,command-line,"wheel-slot location and Mode2 freeze; earlier 3.5 CLI macro and onPC fixes",CMDHelp macro and executor smoke
+3.4.0.2,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_4.html,command-line,"CMD remote feedback; Assign syntax; plugin editing; Delete token; onPC wing fixes",Assign remote-feedback and Delete-state cases
+3.3.4.1,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_3.html,command-line,"Go Cue X; timecode trigger choice; Fix token; EffectSec and onPC fixes",Go Cue timecode and command-state cases
+3.3.2.2,exact,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_3.html,outbound-telnet-keyword,"empty outbound Telnet-keyword message gets CRLF; ListCANFirmware and broad fixes",baseline inbound capture; do not infer framing from outbound note
+3.2.2.16,family-cumulative,https://help2.malighting.com/grandMA2/en/help/release_notes/key_rn_v3_2.html,mixed,"Telnet load and close stability; outbound-keyword CRLF; RDM and effect commands; onPC and MA3D fixes",high-volume reconnect close and baseline goldens
+

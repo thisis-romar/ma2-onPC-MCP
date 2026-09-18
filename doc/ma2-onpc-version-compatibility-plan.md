@@ -1,9 +1,9 @@
 ---
 title: grandMA2 onPC Multi-Version Compatibility Test Plan
 description: Isolated Windows lab design and release gates for testing GrandPA2-Buddy against every currently published grandMA2 onPC build
-version: 1.0.0
+version: 1.1.0
 created: 2026-09-17T18:18:49Z
-last_updated: 2026-09-17T18:18:49Z
+last_updated: 2026-09-18T19:42:40Z
 ---
 
 # grandMA2 onPC Multi-Version Compatibility Test Plan
@@ -39,7 +39,15 @@ MA's documentation shows that multiple installed versions can appear as separate
 
 The checked-in [version matrix](../tests/compatibility/ma2-versions.csv) covers the 35 grandMA2 onPC builds currently published on MA Lighting's official download page, from `3.2.2.16` through `3.9.63.10`.
 
+The [documented version-change reference](ma2-onpc-version-change-reference.md) and its [machine-readable index](../tests/compatibility/ma2-version-change-index.csv) map MA's official release notes to version-specific probes. They also identify two public installers, `3.9.60.45` and `3.9.60.27`, that have no distinct section on the current 3.9 release-notes page and therefore require full discovery captures.
+
 "All versions" in this plan means all 35 builds in that official public matrix. Older or documented-but-unlisted builds are outside the support claim until MA Lighting supplies them directly and they are added with provenance and hashes.
+
+## Verified Archive Baseline
+
+The private, off-repository installer archive prepared for this matrix was completed on 2026-09-17. It contains 70 official installers: 35 grandMA2 onPC builds and the 35 exact-version MA 3D builds, packaged as `grandMA2-onPC-MA3D-official-versions_20260917.zip` with a total size of 19.803 GiB.
+
+Before packaging, every installer passed the archive pipeline's size, SHA-256, executable-header, Authenticode publisher, signing-timestamp, product/version metadata, and Microsoft Defender checks. The ZIP was then compared against the expected 70-entry manifest and every extracted installer was rehashed. This establishes the local test-input baseline; it does not place or redistribute proprietary installers through this repository.
 
 The MCP product communicates with onPC over Telnet. MA 3D is therefore a separate compatibility dimension:
 
@@ -219,9 +227,10 @@ The public repository can retain sanitized summaries and hashes. Keep installers
 3. Replace assumptions about existing show content with a deterministic seed-show/bootstrap contract.
 4. Stop enabling auth, rights, and license bypass fixtures automatically for live tests; test the declared live policy explicitly.
 5. Add version capability profiles. `server_core.py` currently builds the v3.9 vocabulary for every connection, and `prompt_parser.py` documents v3.9 validation.
-6. Make Telnet login, command delay, and response timeouts configurable and record the effective values. Older builds may respond more slowly.
-7. Add a signed or hashed PowerShell guest runner and a host orchestrator after the VM license gate is resolved.
-8. Add a Windows unit-test job. Keep proprietary live jobs on controlled local or self-hosted infrastructure with an interactively logged-on desktop.
+6. Implement the version-boundary probes in the documented change reference, including Telnet recovery on 3.2/3.8, command-output cases in 3.7/3.8, and navigation/plugin cases in 3.9.
+7. Make Telnet login, command delay, and response timeouts configurable and record the effective values. Older builds may respond more slowly.
+8. Add a signed or hashed PowerShell guest runner and a host orchestrator after the VM license gate is resolved.
+9. Add a Windows unit-test job. Keep proprietary live jobs on controlled local or self-hosted infrastructure with an interactively logged-on desktop.
 
 ## Capacity And Timing
 
@@ -252,3 +261,4 @@ At 142 live tests and a one-second minimum cooldown, all 35 builds have at least
 - [Microsoft Hyper-V checkpoints](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/checkpoints)
 - [Microsoft Hyper-V installation requirements](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/get-started/install-hyper-v)
 - [Microsoft Windows release health](https://learn.microsoft.com/en-us/windows/release-health/release-information)
+
