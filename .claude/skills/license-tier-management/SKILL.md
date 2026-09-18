@@ -1,16 +1,16 @@
 ---
 title: License Tier Management
 description: License tier feature gating implementation — tier classification, environment variables, and adding tool tiers
-version: 1.0.0
+version: 1.0.1
 created: 2026-04-07T15:14:23Z
-last_updated: 2026-04-07T15:14:23Z
+last_updated: 2026-09-18T21:01:59Z
 ---
 
 # License Tier Management
 
 ## Tier Classification
 
-All 198 MCP tools are classified into three license tiers:
+All 210 MCP tools are classified into three license tiers:
 
 | Tier | Cost | Tool count | Examples |
 |------|------|-----------|---------|

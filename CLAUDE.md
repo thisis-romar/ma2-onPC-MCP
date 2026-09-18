@@ -1,9 +1,9 @@
 ---
 title: Project Rules
 description: Thin root conventions for ma2-onPC-MCP — architectural invariants, safety rules, and build commands
-version: 4.22.0
+version: 4.22.1
 created: 2026-03-01T23:37:51Z
-last_updated: 2026-06-13T01:45:00Z
+last_updated: 2026-09-18T21:01:59Z
 ---
 
 # Project Rules
@@ -92,7 +92,7 @@ date -u +%Y-%m-%dT%H:%M:%SZ
 `src/private/` is a **git submodule** ([`ma2-onPC-MCP-private.git`](https://github.com/thisis-romar/ma2-onPC-MCP-private)) holding 178 of the 210 tools (PROFESSIONAL + ENTERPRISE + orchestration). A fresh clone has it **empty**. Until you initialize it:
 
 - `scripts/audit_md_counts.py` crashes with `FileNotFoundError: src/private/tools_professional.py` (so the **pre-push hook fails too**).
-- Only the 20 COMMUNITY + 9 graph tools load; the documented 207 count does not match disk.
+- Only the 20 COMMUNITY + 12 graph tools load; the documented 210 count does not match disk.
 
 ```bash
 git submodule update --init src/private   # REQUIRED before running tests / audit / full server
@@ -200,7 +200,7 @@ These files are NOT loaded at startup. Reference them explicitly when working on
 - Do not auto-promote Skills from `SkillImprover` output — promotion is operator-initiated via Tool 141.
 - Do not make MCP resources perform console side-effects — resources are read-only context.
 - Do not put MA2 operating knowledge into tool docstrings — put it in `.claude/skills/` instead.
-- Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_207_tools_mapped` will fail.
+- Do not add a new `@mcp.tool()` without adding its entry to `_OPERATION_MIN_RIGHT` in `src/rights.py` — `test_all_210_tools_mapped` will fail.
 - Do not set `GMA_AUTH_BYPASS=1`, `GMA_RIGHTS_BYPASS=1`, or `GMA_LICENSE_BYPASS=1` in production — dev/test only.
 - Do not use graph query results for DESTRUCTIVE operations without verifying freshness — stale graph data may reference deleted console objects.
 - Do not mix embedding dimensions in the same RAG store — GitHub Models (1536-dim), OpenRouter (2048-dim), and Gemini (768-dim) are incompatible; use `rag_upgrade_embeddings.py --re-embed-all` to switch.

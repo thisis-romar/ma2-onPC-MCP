@@ -60,7 +60,7 @@ _vocab_spec = build_v39_spec()
 # ---------------------------------------------------------------------------
 mcp = FastMCP(
     name="grandMA2-MCP",
-    instructions="""grandMA2 MCP server — 198 tools, 18 resources, 13 prompts.
+    instructions="""grandMA2 MCP server — 210 tools, 22 resources, 16 prompts.
 
 Use suggest_tool_for_task(task_description) to find the right tool for any task.
 It supports hybrid retrieval (keyword + semantic), metadata filtering by risk_tier

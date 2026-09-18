@@ -190,9 +190,7 @@ def build_checks() -> list[CountCheck]:
     # Skills
     checks.append(CountCheck("skills", skills, [
         (CLAUDE_MD, r"\*\*(\d+) skills\*\*"),
-        (CLAUDE_MD, r"(\d+) agentic tools"),
-        (README_MD, r"(\d+) tools \(110"),
-        (README_MD, r"(\d+) agentic tools"),
+        (README_MD, r"(\d+) agent instruction modules"),
     ]))
 
     # Tests
@@ -213,8 +211,7 @@ def build_checks() -> list[CountCheck]:
         ]))
 
     # Command builder total exports (functions + constants)
-    # CLAUDE.md: "(272 exports incl. 8 constants)"
-    # README.md: "264 exported command-builder functions" (these are totals, not func-only)
+    # These declarations report the complete ``__all__`` size, including constants.
     if total_exports > 0:
         checks.append(CountCheck("command exports", total_exports, [
             (CLAUDE_MD, r"(\d+) exports incl"),

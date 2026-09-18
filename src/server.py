@@ -41,10 +41,10 @@ logging.basicConfig(
 )
 
 import src.tools_community  # noqa: E402, F401 — registers 20 COMMUNITY tools on mcp
-import src.tools_graph  # noqa: E402, F401 — registers 9 ENTERPRISE graph tools on mcp
+import src.tools_graph  # noqa: E402, F401 — registers 12 ENTERPRISE graph tools on mcp
 
 # Paid-tier modules live in src/private/ (git submodule).
-# Graceful degradation: public-only clones serve 20 COMMUNITY tools.
+# Graceful degradation: public-only clones serve 32 public tools.
 _HAS_PRIVATE = False
 try:
     import src.private.tools_enterprise  # noqa: F401 — 20 ENTERPRISE tools
@@ -289,7 +289,7 @@ if _HAS_PRIVATE:
     register_orchestration_tools(mcp, _orchestrator, require_scope, _handle_errors, OAuthScope)
 else:
     _orchestrator = None
-    logger.warning("src.private not found — running with COMMUNITY tools only (20/198)")
+    logger.warning("src.private not found — running with public tools only (32/210)")
 
 # Register MCP completions (argument autocompletion for prompts + resource templates)
 from src.completions import register_completions  # noqa: E402

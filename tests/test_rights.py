@@ -10,7 +10,7 @@ Covers:
   - RightsContext helpers
   - min_right_for_tool() / is_permitted()
   - get_session_ma2_right() derivation from scope tier
-  - _OPERATION_MIN_RIGHT completeness (all 198 tools)
+  - _OPERATION_MIN_RIGHT completeness (all 210 tools)
   - _handle_errors MA2Right gate integration
 """
 
@@ -213,10 +213,10 @@ class TestOperationMinRightCompleteness:
                             break
         return tool_names
 
-    def test_all_207_tools_mapped(self):
+    def test_all_210_tools_mapped(self):
         """Every registered MCP tool must have an entry in _OPERATION_MIN_RIGHT."""
         all_tools = self._get_all_tool_names()
-        assert len(all_tools) == 207, f"Expected 207 tools, found {len(all_tools)}"
+        assert len(all_tools) == 210, f"Expected 210 tools, found {len(all_tools)}"
         unmapped = all_tools - set(_OPERATION_MIN_RIGHT)
         assert unmapped == set(), (
             f"{len(unmapped)} tools missing from _OPERATION_MIN_RIGHT: "
