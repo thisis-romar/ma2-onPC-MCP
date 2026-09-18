@@ -13,7 +13,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Verify private submodule credential
+        shell: bash
+        env:
+          PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          if [[ -z "$PRIVATE_SUBMODULE_PAT" ]]; then
+            echo "::error::Missing PRIVATE_SUBMODULE_PAT repository secret. Configure a read-only token for both repositories."
+            exit 1
+          fi
+
       - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - name: Verify private submodule checkout
+        shell: bash
+        run: |
+          for path in \
+            src/private/tools_professional.py \
+            src/private/tools_enterprise.py \
+            src/private/server_orchestration_tools.py
+          do
+            if [[ ! -f "$path" ]]; then
+              echo "::error file=$path::Private submodule checkout is incomplete; verify PRIVATE_SUBMODULE_PAT access."
+              exit 1
+            fi
+          done
 
       - name: Extract version from tag
         id: version

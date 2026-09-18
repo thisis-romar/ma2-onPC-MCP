@@ -1,3 +1,4 @@
 [submodule "src/private"]
 	path = src/private
 	url = https://github.com/thisis-romar/ma2-onPC-MCP-private.git
+	branch = main
