@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TOURIST @ The Mod Club · June 26, 2026 · Drawing 1: Stage Plan Overview -->
+<!-- All 23 fixtures · Universe 1 · Option B2 addressing · SR left, SL right -->
+<svg viewBox="0 0 1100 780" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New',Courier,monospace">
+
+  <!-- Background -->
+  <rect width="1100" height="780" fill="#070c16"/>
+
+  <!-- Title -->
+  <text x="550" y="26" text-anchor="middle" font-size="15" font-weight="bold" fill="#e2e8f0">TOURIST @ The Mod Club · June 26 2026 · Stage Plan Overview</text>
+  <text x="550" y="43" text-anchor="middle" font-size="10" fill="#4a5568">Universe 1 · 23 Fixtures · Option B2 Addressing · SR → SL</text>
+
+  <!-- Stage floor -->
+  <rect x="50" y="55" width="1000" height="675" rx="6" fill="#0a1020" stroke="#1a2a40" stroke-width="1.5"/>
+
+  <!-- SR/SL bar -->
+  <text x="64" y="71" font-size="9" fill="#2a4060">SR ▶</text>
+  <line x1="95" y1="67" x2="1038" y2="67" stroke="#1a2a40" stroke-width="1"/>
+  <text x="1043" y="71" font-size="9" fill="#2a4060" text-anchor="end">◀ SL</text>
+
+  <!-- ── UPSTAGE ROW ── ch 1–64 · US DMX Run ── -->
+  <rect x="57" y="77" width="986" height="222" rx="3" fill="#060d1a"/>
+  <text x="73" y="93" font-size="8" font-weight="bold" fill="#1a4a7a">US RUN  ch 1–64  (Circuit A: Poles 1–4 · Circuit B: Poles 5–8 split at DS)</text>
+  <text x="62" y="215" font-size="8" fill="#1a304a" transform="rotate(-90,62,215)">UPSTAGE</text>
+
+  <!-- P01 USR · x=165 -->
+  <text x="165" y="97" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P01 · USR</text>
+  <rect x="105" y="103" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="165" y="121" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8011</text>
+  <text x="165" y="135" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-01 · TOP</text>
+  <text x="165" y="148" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 1–8</text>
+  <text x="165" y="162" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="165" y1="173" x2="165" y2="183" stroke="#1a3050" stroke-width="3"/>
+  <rect x="105" y="183" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="165" y="201" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8012</text>
+  <text x="165" y="215" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-02 · MID</text>
+  <text x="165" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 9–16</text>
+  <text x="165" y="242" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- P02 USC-R · x=397 -->
+  <text x="397" y="97" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P02 · USC-R</text>
+  <rect x="337" y="103" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="397" y="121" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8021</text>
+  <text x="397" y="135" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-03 · TOP</text>
+  <text x="397" y="148" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 17–24</text>
+  <text x="397" y="162" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="397" y1="173" x2="397" y2="183" stroke="#1a3050" stroke-width="3"/>
+  <rect x="337" y="183" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="397" y="201" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8022</text>
+  <text x="397" y="215" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-04 · MID</text>
+  <text x="397" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 25–32</text>
+  <text x="397" y="242" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- P03 USC-L · x=630 -->
+  <text x="630" y="97" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P03 · USC-L</text>
+  <rect x="570" y="103" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="630" y="121" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8031</text>
+  <text x="630" y="135" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-05 · TOP</text>
+  <text x="630" y="148" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 33–40</text>
+  <text x="630" y="162" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="630" y1="173" x2="630" y2="183" stroke="#1a3050" stroke-width="3"/>
+  <rect x="570" y="183" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="630" y="201" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8032</text>
+  <text x="630" y="215" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-06 · MID</text>
+  <text x="630" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 41–48</text>
+  <text x="630" y="242" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- P04 USL · x=863 -->
+  <text x="863" y="97" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P04 · USL</text>
+  <rect x="803" y="103" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="863" y="121" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8041</text>
+  <text x="863" y="135" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-07 · TOP</text>
+  <text x="863" y="148" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 49–56</text>
+  <text x="863" y="162" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="863" y1="173" x2="863" y2="183" stroke="#1a3050" stroke-width="3"/>
+  <rect x="803" y="183" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="863" y="201" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8042</text>
+  <text x="863" y="215" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-08 · MID</text>
+  <text x="863" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 57–64</text>
+  <text x="863" y="242" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- ── DOWNSTAGE ROW ── ch 65–128 ── -->
+  <rect x="57" y="304" width="986" height="222" rx="3" fill="#060d1a"/>
+  <text x="73" y="320" font-size="8" font-weight="bold" fill="#1a4a7a">DS RUN  ch 65–128  (Circuit A cont.)</text>
+  <text x="62" y="440" font-size="8" fill="#1a304a" transform="rotate(-90,62,440)">DOWNSTAGE</text>
+
+  <!-- P05 DSR · x=165 -->
+  <text x="165" y="323" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P05 · DSR</text>
+  <rect x="105" y="330" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="165" y="348" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8051</text>
+  <text x="165" y="362" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-09 · TOP</text>
+  <text x="165" y="375" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 65–72</text>
+  <text x="165" y="389" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="165" y1="400" x2="165" y2="410" stroke="#1a3050" stroke-width="3"/>
+  <rect x="105" y="410" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="165" y="428" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8052</text>
+  <text x="165" y="442" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-10 · MID</text>
+  <text x="165" y="455" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 73–80</text>
+  <text x="165" y="469" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- P06 DSC-R · x=397 -->
+  <text x="397" y="323" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P06 · DSC-R</text>
+  <rect x="337" y="330" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="397" y="348" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8061</text>
+  <text x="397" y="362" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-11 · TOP</text>
+  <text x="397" y="375" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 81–88</text>
+  <text x="397" y="389" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="397" y1="400" x2="397" y2="410" stroke="#1a3050" stroke-width="3"/>
+  <rect x="337" y="410" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="397" y="428" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8062</text>
+  <text x="397" y="442" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-12 · MID</text>
+  <text x="397" y="455" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 89–96</text>
+  <text x="397" y="469" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- P07 DSC-L · x=630 -->
+  <text x="630" y="323" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P07 · DSC-L</text>
+  <rect x="570" y="330" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="630" y="348" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8071</text>
+  <text x="630" y="362" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-13 · TOP</text>
+  <text x="630" y="375" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 97–104</text>
+  <text x="630" y="389" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="630" y1="400" x2="630" y2="410" stroke="#1a3050" stroke-width="3"/>
+  <rect x="570" y="410" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="630" y="428" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8072</text>
+  <text x="630" y="442" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-14 · MID</text>
+  <text x="630" y="455" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 105–112</text>
+  <text x="630" y="469" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- P08 DSL · x=863 -->
+  <text x="863" y="323" text-anchor="middle" font-size="9" font-weight="bold" fill="#3a6a9a">P08 · DSL</text>
+  <rect x="803" y="330" width="120" height="70" rx="4" fill="#071830" stroke="#1e6bb8" stroke-width="1.5"/>
+  <text x="863" y="348" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8081</text>
+  <text x="863" y="362" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-15 · TOP</text>
+  <text x="863" y="375" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 113–120</text>
+  <text x="863" y="389" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+  <line x1="863" y1="400" x2="863" y2="410" stroke="#1a3050" stroke-width="3"/>
+  <rect x="803" y="410" width="120" height="70" rx="4" fill="#050f1f" stroke="#155a9e" stroke-width="1.5"/>
+  <text x="863" y="428" text-anchor="middle" font-size="12" font-weight="bold" fill="#93c5fd">8082</text>
+  <text x="863" y="442" text-anchor="middle" font-size="8" fill="#7dafd4">PAR-16 · MID</text>
+  <text x="863" y="455" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">ch 121–128</text>
+  <text x="863" y="469" text-anchor="middle" font-size="7" fill="#3a6a8e">Nuoma RGBW</text>
+
+  <!-- ── DECK · SPARTANS ── ch 129–224 · B2 SR→SL ── -->
+  <rect x="57" y="531" width="986" height="88" rx="3" fill="#160800"/>
+  <text x="73" y="547" font-size="8" font-weight="bold" fill="#7a3000">DECK RUN · SPARTANS · ch 129–224 · B2: SR → SL  (Circuits C + D: 208V/30A)</text>
+
+  <!-- SPT-04 SR-inner · x=165 -->
+  <rect x="90" y="554" width="150" height="58" rx="4" fill="#2a0e00" stroke="#c05000" stroke-width="1.5"/>
+  <text x="165" y="572" text-anchor="middle" font-size="12" font-weight="bold" fill="#fed7aa">9041</text>
+  <text x="165" y="585" text-anchor="middle" font-size="8" fill="#fb923c">SPT-04 · SR-inner</text>
+  <text x="165" y="599" text-anchor="middle" font-size="9" font-weight="bold" fill="#f97316">ch 129–152</text>
+
+  <!-- SPT-03 C-SR · x=397 -->
+  <rect x="322" y="554" width="150" height="58" rx="4" fill="#2a0e00" stroke="#c05000" stroke-width="1.5"/>
+  <text x="397" y="572" text-anchor="middle" font-size="12" font-weight="bold" fill="#fed7aa">9031</text>
+  <text x="397" y="585" text-anchor="middle" font-size="8" fill="#fb923c">SPT-03 · C-SR</text>
+  <text x="397" y="599" text-anchor="middle" font-size="9" font-weight="bold" fill="#f97316">ch 153–176</text>
+
+  <!-- SPT-02 C-SL · x=630 -->
+  <rect x="555" y="554" width="150" height="58" rx="4" fill="#2a0e00" stroke="#c05000" stroke-width="1.5"/>
+  <text x="630" y="572" text-anchor="middle" font-size="12" font-weight="bold" fill="#fed7aa">9021</text>
+  <text x="630" y="585" text-anchor="middle" font-size="8" fill="#fb923c">SPT-02 · C-SL</text>
+  <text x="630" y="599" text-anchor="middle" font-size="9" font-weight="bold" fill="#f97316">ch 177–200</text>
+
+  <!-- SPT-01 SL-inner · x=863 -->
+  <rect x="788" y="554" width="150" height="58" rx="4" fill="#2a0e00" stroke="#c05000" stroke-width="1.5"/>
+  <text x="863" y="572" text-anchor="middle" font-size="12" font-weight="bold" fill="#fed7aa">9011</text>
+  <text x="863" y="585" text-anchor="middle" font-size="8" fill="#fb923c">SPT-01 · SL-inner</text>
+  <text x="863" y="599" text-anchor="middle" font-size="9" font-weight="bold" fill="#f97316">ch 201–224</text>
+
+  <!-- ── DECK · DRAGONS ── ch 225–271 · B2 SR→SL ── -->
+  <rect x="57" y="626" width="986" height="88" rx="3" fill="#160000"/>
+  <text x="73" y="642" font-size="8" font-weight="bold" fill="#7a0000">DECK RUN · DRAGONS · ch 225–271 · B2: SR → SL  (Circuit E: 120V/20A)  gaps at 240, 256</text>
+
+  <!-- DRG-03 SR · x=233 -->
+  <rect x="158" y="649" width="150" height="58" rx="4" fill="#280000" stroke="#aa0000" stroke-width="1.5"/>
+  <text x="233" y="667" text-anchor="middle" font-size="12" font-weight="bold" fill="#fecaca">7031</text>
+  <text x="233" y="680" text-anchor="middle" font-size="8" fill="#f87171">DRG-03 · SR risers</text>
+  <text x="233" y="694" text-anchor="middle" font-size="9" font-weight="bold" fill="#ef4444">ch 225–239</text>
+
+  <!-- DRG-02 Centre · x=513 -->
+  <rect x="438" y="649" width="150" height="58" rx="4" fill="#280000" stroke="#aa0000" stroke-width="1.5"/>
+  <text x="513" y="667" text-anchor="middle" font-size="12" font-weight="bold" fill="#fecaca">7021</text>
+  <text x="513" y="680" text-anchor="middle" font-size="8" fill="#f87171">DRG-02 · Centre</text>
+  <text x="513" y="694" text-anchor="middle" font-size="9" font-weight="bold" fill="#ef4444">ch 241–255</text>
+
+  <!-- DRG-01 SL · x=793 -->
+  <rect x="718" y="649" width="150" height="58" rx="4" fill="#280000" stroke="#aa0000" stroke-width="1.5"/>
+  <text x="793" y="667" text-anchor="middle" font-size="12" font-weight="bold" fill="#fecaca">7011</text>
+  <text x="793" y="680" text-anchor="middle" font-size="8" fill="#f87171">DRG-01 · SL risers</text>
+  <text x="793" y="694" text-anchor="middle" font-size="9" font-weight="bold" fill="#ef4444">ch 257–271</text>
+
+  <!-- Audience -->
+  <text x="550" y="731" text-anchor="middle" font-size="10" fill="#1a304a">▼  A U D I E N C E  ▼</text>
+
+  <!-- Legend -->
+  <rect x="65" y="743" width="10" height="10" fill="#071830" stroke="#1e6bb8" stroke-width="1.5" rx="2"/>
+  <text x="80" y="752" font-size="8" fill="#4a6a8a">Nuoma RGBW Par 8ch</text>
+  <rect x="230" y="743" width="10" height="10" fill="#2a0e00" stroke="#c05000" stroke-width="1.5" rx="2"/>
+  <text x="245" y="752" font-size="8" fill="#4a6a8a">Acme Spartan Hybrid 24ch</text>
+  <rect x="430" y="743" width="10" height="10" fill="#280000" stroke="#aa0000" stroke-width="1.5" rx="2"/>
+  <text x="445" y="752" font-size="8" fill="#4a6a8a">Dragon Tilt Strobe 15ch</text>
+  <text x="710" y="752" font-size="8" fill="#2a3a4a">U1 ch 1–271 used · 241 spare · 53% utilized</text>
+
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="765" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
+
+</svg>

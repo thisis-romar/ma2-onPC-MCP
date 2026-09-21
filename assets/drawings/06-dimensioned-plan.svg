@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TOURIST @ The Mod Club · June 26, 2026 · Drawing 6: Dimensioned Floor Plan -->
+<!-- SYNRGY Split The Views 1.8.0 Rev C centroids · Backliner floor pkg overlay -->
+<!-- Confirmed: 32'-0" width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 920" width="1400" height="920"
+     font-family="'Courier New',Courier,monospace">
+
+  <!-- Background -->
+  <rect width="1400" height="920" fill="#000000"/>
+
+  <!-- ===== TITLE ===== -->
+  <text x="700" y="30" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">TOURIST @ MOD CLUB TORONTO — DIMENSIONED FLOOR PLAN</text>
+  <text x="700" y="47" text-anchor="middle" font-size="10" fill="#666666">SYNRGY Split The Views 1.8.0 Rev C · Backliner floor pkg overlay · 2026-06-27</text>
+
+  <!-- ===== CENTROID STATUS BOX (top right) ===== -->
+  <rect x="1028" y="58" width="350" height="60" fill="none" stroke="#2244cc" stroke-width="1"/>
+  <text x="1038" y="75" font-size="9" fill="#2244cc">X CONFIRMED · Y PARTIAL (FV gap unknown) · Z = 2600mm</text>
+  <text x="1038" y="88" font-size="9" fill="#2244cc">Bay ctrs from SR: 1219 / 3658 / 6096 / 8534mm</text>
+  <text x="1038" y="101" font-size="9" fill="#2244cc">DS Y≈610mm · US Y≈1829mm+FV · Pole top Z=1000mm</text>
+
+  <!-- ===== TOP DIMENSION LEADERS ===== -->
+
+  <!-- Leader drop lines from SR/SL edges to arrow level -->
+  <line x1="175" y1="58" x2="175" y2="128" stroke="#2244cc" stroke-width="0.75" stroke-dasharray="4,2"/>
+  <line x1="1225" y1="58" x2="1225" y2="128" stroke="#2244cc" stroke-width="0.75" stroke-dasharray="4,2"/>
+
+  <!-- Overall 32'-0" arrow at y=128 -->
+  <line x1="175" y1="128" x2="1225" y2="128" stroke="#2244cc" stroke-width="1.5"/>
+  <line x1="175" y1="121" x2="175" y2="135" stroke="#2244cc" stroke-width="1.5"/>
+  <line x1="1225" y1="121" x2="1225" y2="135" stroke="#2244cc" stroke-width="1.5"/>
+  <polygon points="175,128 190,122 190,134" fill="#2244cc"/>
+  <polygon points="1225,128 1210,122 1210,134" fill="#2244cc"/>
+  <!-- Label background + text -->
+  <rect x="556" y="118" width="289" height="15" fill="#000000"/>
+  <text x="700" y="130" text-anchor="middle" font-size="10" font-weight="bold" fill="#2244cc">32'-0" (9,754mm) OVERALL RIG WIDTH</text>
+
+  <!-- Bay sub-span arrows at y=155; bay boundaries: 175, 437, 700, 962, 1225 -->
+  <!-- Bay 1: 175→437 -->
+  <line x1="175" y1="155" x2="437" y2="155" stroke="#2244cc" stroke-width="1"/>
+  <line x1="175" y1="149" x2="175" y2="161" stroke="#2244cc" stroke-width="1"/>
+  <line x1="437" y1="149" x2="437" y2="161" stroke="#2244cc" stroke-width="1"/>
+  <polygon points="175,155 184,151 184,159" fill="#2244cc"/>
+  <polygon points="437,155 428,151 428,159" fill="#2244cc"/>
+  <text x="306" y="151" text-anchor="middle" font-size="8" fill="#2244cc">8'-0"</text>
+  <!-- Bay 2: 437→700 -->
+  <line x1="437" y1="155" x2="700" y2="155" stroke="#2244cc" stroke-width="1"/>
+  <line x1="700" y1="149" x2="700" y2="161" stroke="#2244cc" stroke-width="1"/>
+  <polygon points="437,155 446,151 446,159" fill="#2244cc"/>
+  <polygon points="700,155 691,151 691,159" fill="#2244cc"/>
+  <text x="569" y="151" text-anchor="middle" font-size="8" fill="#2244cc">8'-0"</text>
+  <!-- Bay 3: 700→962 -->
+  <line x1="700" y1="155" x2="962" y2="155" stroke="#2244cc" stroke-width="1"/>
+  <line x1="962" y1="149" x2="962" y2="161" stroke="#2244cc" stroke-width="1"/>
+  <polygon points="700,155 709,151 709,159" fill="#2244cc"/>
+  <polygon points="962,155 953,151 953,159" fill="#2244cc"/>
+  <text x="831" y="151" text-anchor="middle" font-size="8" fill="#2244cc">8'-0"</text>
+  <!-- Bay 4: 962→1225 -->
+  <line x1="962" y1="155" x2="1225" y2="155" stroke="#2244cc" stroke-width="1"/>
+  <line x1="962" y1="149" x2="962" y2="161" stroke="#2244cc" stroke-width="1"/>
+  <polygon points="962,155 971,151 971,159" fill="#2244cc"/>
+  <polygon points="1225,155 1216,151 1216,159" fill="#2244cc"/>
+  <text x="1094" y="151" text-anchor="middle" font-size="8" fill="#2244cc">8'-0"</text>
+
+  <!-- Bay centre guide ticks dropping to stage -->
+  <line x1="306" y1="163" x2="306" y2="197" stroke="#2244cc" stroke-width="0.5" stroke-dasharray="2,2"/>
+  <line x1="569" y1="163" x2="569" y2="197" stroke="#2244cc" stroke-width="0.5" stroke-dasharray="2,2"/>
+  <line x1="831" y1="163" x2="831" y2="197" stroke="#2244cc" stroke-width="0.5" stroke-dasharray="2,2"/>
+  <line x1="1094" y1="163" x2="1094" y2="197" stroke="#2244cc" stroke-width="0.5" stroke-dasharray="2,2"/>
+
+  <!-- SR / SL labels -->
+  <text x="170" y="173" text-anchor="end" font-size="9" fill="#888888">SR ←</text>
+  <text x="1230" y="173" font-size="9" fill="#888888">→ SL</text>
+
+  <!-- US / DS side labels -->
+  <text x="22" y="275" text-anchor="middle" font-size="8" fill="#666666" transform="rotate(-90 22 275)">↑ UPSTAGE</text>
+  <text x="22" y="450" text-anchor="middle" font-size="8" fill="#666666" transform="rotate(-90 22 450)">↓ DOWNSTAGE</text>
+
+  <!-- ===== LEFT DIMENSION LEADERS (row depths) ===== -->
+  <!-- US row: y=200–331, 4'-0" = 131px -->
+  <line x1="155" y1="200" x2="155" y2="331" stroke="#2244cc" stroke-width="1"/>
+  <line x1="148" y1="200" x2="162" y2="200" stroke="#2244cc" stroke-width="1"/>
+  <line x1="148" y1="331" x2="162" y2="331" stroke="#2244cc" stroke-width="1"/>
+  <polygon points="155,200 151,213 159,213" fill="#2244cc"/>
+  <polygon points="155,331 151,318 159,318" fill="#2244cc"/>
+  <text x="138" y="270" text-anchor="middle" font-size="9" fill="#2244cc" transform="rotate(-90 138 270)">4'-0" ROW 1</text>
+
+  <!-- FV gap bracket on left -->
+  <line x1="142" y1="331" x2="142" y2="371" stroke="#2244cc" stroke-width="0.75" stroke-dasharray="2,2"/>
+  <text x="136" y="355" text-anchor="end" font-size="8" font-style="italic" fill="#2244cc">≈FV</text>
+
+  <!-- DS row: y=371–502, 4'-0" = 131px -->
+  <line x1="155" y1="371" x2="155" y2="502" stroke="#2244cc" stroke-width="1"/>
+  <line x1="148" y1="371" x2="162" y2="371" stroke="#2244cc" stroke-width="1"/>
+  <line x1="148" y1="502" x2="162" y2="502" stroke="#2244cc" stroke-width="1"/>
+  <polygon points="155,371 151,384 159,384" fill="#2244cc"/>
+  <polygon points="155,502 151,489 159,489" fill="#2244cc"/>
+  <text x="138" y="441" text-anchor="middle" font-size="9" fill="#2244cc" transform="rotate(-90 138 441)">4'-0" ROW 2</text>
+
+  <!-- Right dimension leader: riser depth 8'-0" = 263px, y=200→463 -->
+  <line x1="1258" y1="200" x2="1258" y2="463" stroke="#2244cc" stroke-width="1"/>
+  <line x1="1251" y1="200" x2="1265" y2="200" stroke="#2244cc" stroke-width="1"/>
+  <line x1="1251" y1="463" x2="1265" y2="463" stroke="#2244cc" stroke-width="1"/>
+  <polygon points="1258,200 1254,213 1262,213" fill="#2244cc"/>
+  <polygon points="1258,463 1254,450 1262,450" fill="#2244cc"/>
+  <text x="1275" y="335" text-anchor="middle" font-size="9" fill="#2244cc" transform="rotate(90 1275 335)">8'-0" RISER DEPTH (2438mm)</text>
+
+  <!-- ===== STAGE GEOMETRY ===== -->
+
+  <!-- US row deck (y=200–331) dashed outline -->
+  <rect x="175" y="200" width="1050" height="131" fill="none" stroke="#2a3a55" stroke-width="1.5" stroke-dasharray="7,3"/>
+  <text x="700" y="196" text-anchor="middle" font-size="8" fill="#445577">ROW 1 · UPSTAGE HORIZONTAL DECKS · 32'-0" × 4'-0" · POLES P01–P04</text>
+
+  <!-- FV gap band (y=331–371) -->
+  <rect x="175" y="331" width="1050" height="40" fill="#050510" stroke="#2244cc" stroke-width="0.5" stroke-dasharray="3,3"/>
+  <text x="700" y="355" text-anchor="middle" font-size="8" font-style="italic" fill="#2244cc">← FV GAP — FIELD VERIFY ROW SEPARATION →</text>
+
+  <!-- DS row deck (y=371–502) dashed outline -->
+  <rect x="175" y="371" width="1050" height="131" fill="none" stroke="#2a3a55" stroke-width="1.5" stroke-dasharray="7,3"/>
+  <text x="700" y="367" text-anchor="middle" font-size="8" fill="#445577">ROW 2 · DOWNSTAGE HORIZONTAL DECKS · 32'-0" × 4'-0" · POLES P05–P08</text>
+
+  <!-- ===== RISER DECKS (centre stage, 4'W × 8'D each) ===== -->
+  <!-- SR riser: x=569→700 (131px=4'), y=200→463 (263px=8') -->
+  <rect x="569" y="200" width="131" height="263" fill="#0a0a22" stroke="#2244cc" stroke-width="1.5"/>
+  <text x="634" y="340" text-anchor="middle" font-size="8" fill="#2244cc">RISER SR</text>
+  <text x="634" y="352" text-anchor="middle" font-size="7" fill="#446699">4'-0" × 8'-0"</text>
+
+  <!-- SL riser: x=700→831 (131px=4'), y=200→463 (263px=8') -->
+  <rect x="700" y="200" width="131" height="263" fill="#0a0a22" stroke="#2244cc" stroke-width="1.5"/>
+  <text x="765" y="340" text-anchor="middle" font-size="8" fill="#2244cc">RISER SL</text>
+  <text x="765" y="352" text-anchor="middle" font-size="7" fill="#446699">4'-0" × 8'-0"</text>
+
+  <!-- FV gap interface line between risers + label -->
+  <line x1="700" y1="200" x2="700" y2="463" stroke="#2244cc" stroke-width="0.75" stroke-dasharray="3,2"/>
+  <!-- Rotated label for riser gap -->
+  <text x="700" y="310" text-anchor="middle" font-size="7" font-style="italic" fill="#2244cc" transform="rotate(90 700 310)">FV GAP</text>
+
+  <!-- Riser width dimension arrows (at y=190, above stage area) -->
+  <!-- SR riser width: 569→700 -->
+  <line x1="569" y1="190" x2="700" y2="190" stroke="#2244cc" stroke-width="0.75"/>
+  <polygon points="569,190 577,187 577,193" fill="#2244cc"/>
+  <polygon points="700,190 692,187 692,193" fill="#2244cc"/>
+  <text x="634" y="186" text-anchor="middle" font-size="7" fill="#2244cc">4'-0"</text>
+  <!-- SL riser width: 700→831 -->
+  <line x1="700" y1="190" x2="831" y2="190" stroke="#2244cc" stroke-width="0.75"/>
+  <polygon points="700,190 708,187 708,193" fill="#2244cc"/>
+  <polygon points="831,190 823,187 823,193" fill="#2244cc"/>
+  <text x="765" y="186" text-anchor="middle" font-size="7" fill="#2244cc">4'-0"</text>
+
+  <!-- Audience arrow at bottom of stage area -->
+  <text x="700" y="618" text-anchor="middle" font-size="10" fill="#1a2a44">▼  A U D I E N C E  ▼</text>
+
+  <!-- ===== NUOMA PAR CENTROIDS — US POLES (y_ctr = 200+65 = 265) ===== -->
+
+  <!-- P01 USR · 8011 top / 8012 mid · x=306, y=265 -->
+  <line x1="294" y1="265" x2="318" y2="265" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="306" y1="253" x2="306" y2="277" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="306" cy="265" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="306" y="249" text-anchor="middle" font-size="7" fill="#888888">P01·USR</text>
+  <text x="321" y="261" font-size="8" fill="#cc2222">8011</text>
+  <text x="321" y="271" font-size="8" fill="#cc2222">8012</text>
+
+  <!-- P02 USC-R · 8021 / 8022 · x=569, y=265 -->
+  <line x1="557" y1="265" x2="581" y2="265" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="569" y1="253" x2="569" y2="277" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="569" cy="265" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="569" y="249" text-anchor="middle" font-size="7" fill="#888888">P02·USC-R</text>
+  <text x="541" y="261" text-anchor="end" font-size="8" fill="#cc2222">8021</text>
+  <text x="541" y="271" text-anchor="end" font-size="8" fill="#cc2222">8022</text>
+
+  <!-- P03 USC-L · 8031 / 8032 · x=831, y=265 -->
+  <line x1="819" y1="265" x2="843" y2="265" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="831" y1="253" x2="831" y2="277" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="831" cy="265" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="831" y="249" text-anchor="middle" font-size="7" fill="#888888">P03·USC-L</text>
+  <text x="847" y="261" font-size="8" fill="#cc2222">8031</text>
+  <text x="847" y="271" font-size="8" fill="#cc2222">8032</text>
+
+  <!-- P04 USL · 8041 / 8042 · x=1094, y=265 -->
+  <line x1="1082" y1="265" x2="1106" y2="265" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="1094" y1="253" x2="1094" y2="277" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="1094" cy="265" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="1094" y="249" text-anchor="middle" font-size="7" fill="#888888">P04·USL</text>
+  <text x="1109" y="261" font-size="8" fill="#cc2222">8041</text>
+  <text x="1109" y="271" font-size="8" fill="#cc2222">8042</text>
+
+  <!-- ===== NUOMA PAR CENTROIDS — DS POLES (y_ctr = 371+65 = 436) ===== -->
+
+  <!-- P05 DSR · 8051 / 8052 · x=306, y=436 -->
+  <line x1="294" y1="436" x2="318" y2="436" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="306" y1="424" x2="306" y2="448" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="306" cy="436" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="306" y="420" text-anchor="middle" font-size="7" fill="#888888">P05·DSR</text>
+  <text x="321" y="432" font-size="8" fill="#cc2222">8051</text>
+  <text x="321" y="442" font-size="8" fill="#cc2222">8052</text>
+
+  <!-- P06 DSC-R · 8061 / 8062 · x=569, y=436 -->
+  <line x1="557" y1="436" x2="581" y2="436" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="569" y1="424" x2="569" y2="448" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="569" cy="436" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="569" y="420" text-anchor="middle" font-size="7" fill="#888888">P06·DSC-R</text>
+  <text x="541" y="432" text-anchor="end" font-size="8" fill="#cc2222">8061</text>
+  <text x="541" y="442" text-anchor="end" font-size="8" fill="#cc2222">8062</text>
+
+  <!-- P07 DSC-L · 8071 / 8072 · x=831, y=436 -->
+  <line x1="819" y1="436" x2="843" y2="436" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="831" y1="424" x2="831" y2="448" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="831" cy="436" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="831" y="420" text-anchor="middle" font-size="7" fill="#888888">P07·DSC-L</text>
+  <text x="847" y="432" font-size="8" fill="#cc2222">8071</text>
+  <text x="847" y="442" font-size="8" fill="#cc2222">8072</text>
+
+  <!-- P08 DSL · 8081 / 8082 · x=1094, y=436 -->
+  <line x1="1082" y1="436" x2="1106" y2="436" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="1094" y1="424" x2="1094" y2="448" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="1094" cy="436" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="1094" y="420" text-anchor="middle" font-size="7" fill="#888888">P08·DSL</text>
+  <text x="1109" y="432" font-size="8" fill="#cc2222">8081</text>
+  <text x="1109" y="442" font-size="8" fill="#cc2222">8082</text>
+
+  <!-- ===== DRAGON TILT STROBE CENTROIDS (below DS row, riser-adjacent) ===== -->
+  <!-- DRG-03 (7031) SR of risers · x=490, y=510 -->
+  <line x1="478" y1="510" x2="502" y2="510" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="490" y1="498" x2="490" y2="522" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="490" cy="510" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="490" y="494" text-anchor="middle" font-size="8" fill="#cc2222">7031</text>
+  <text x="490" y="536" text-anchor="middle" font-size="7" fill="#888888">DRG-03</text>
+  <text x="490" y="546" text-anchor="middle" font-size="6" fill="#666666">SR of risers</text>
+
+  <!-- DRG-02 (7021) Centre between risers · x=700, y=510 -->
+  <line x1="688" y1="510" x2="712" y2="510" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="700" y1="498" x2="700" y2="522" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="700" cy="510" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="700" y="494" text-anchor="middle" font-size="8" fill="#cc2222">7021</text>
+  <text x="700" y="536" text-anchor="middle" font-size="7" fill="#888888">DRG-02</text>
+  <text x="700" y="546" text-anchor="middle" font-size="6" fill="#666666">Centre</text>
+
+  <!-- DRG-01 (7011) SL of risers · x=910, y=510 -->
+  <line x1="898" y1="510" x2="922" y2="510" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="910" y1="498" x2="910" y2="522" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="910" cy="510" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="910" y="494" text-anchor="middle" font-size="8" fill="#cc2222">7011</text>
+  <text x="910" y="536" text-anchor="middle" font-size="7" fill="#888888">DRG-01</text>
+  <text x="910" y="546" text-anchor="middle" font-size="6" fill="#666666">SL of risers</text>
+
+  <!-- ===== SPARTAN HYBRID CENTROIDS (deck level, full-width spread) ===== -->
+  <!-- SPT-04 (9041) SR-inner · x=330, y=568 -->
+  <line x1="318" y1="568" x2="342" y2="568" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="330" y1="556" x2="330" y2="580" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="330" cy="568" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="330" y="552" text-anchor="middle" font-size="8" fill="#cc2222">9041</text>
+  <text x="330" y="594" text-anchor="middle" font-size="7" fill="#888888">SPT-04</text>
+  <text x="330" y="603" text-anchor="middle" font-size="6" fill="#666666">SR-inner</text>
+
+  <!-- SPT-03 (9031) C-SR · x=569, y=568 -->
+  <line x1="557" y1="568" x2="581" y2="568" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="569" y1="556" x2="569" y2="580" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="569" cy="568" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="569" y="552" text-anchor="middle" font-size="8" fill="#cc2222">9031</text>
+  <text x="569" y="594" text-anchor="middle" font-size="7" fill="#888888">SPT-03</text>
+  <text x="569" y="603" text-anchor="middle" font-size="6" fill="#666666">C-SR</text>
+
+  <!-- SPT-02 (9021) C-SL · x=831, y=568 -->
+  <line x1="819" y1="568" x2="843" y2="568" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="831" y1="556" x2="831" y2="580" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="831" cy="568" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="831" y="552" text-anchor="middle" font-size="8" fill="#cc2222">9021</text>
+  <text x="831" y="594" text-anchor="middle" font-size="7" fill="#888888">SPT-02</text>
+  <text x="831" y="603" text-anchor="middle" font-size="6" fill="#666666">C-SL</text>
+
+  <!-- SPT-01 (9011) SL-inner · x=1070, y=568 -->
+  <line x1="1058" y1="568" x2="1082" y2="568" stroke="#cc2222" stroke-width="1.5"/>
+  <line x1="1070" y1="556" x2="1070" y2="580" stroke="#cc2222" stroke-width="1.5"/>
+  <circle cx="1070" cy="568" r="5" fill="none" stroke="#cc2222" stroke-width="1"/>
+  <text x="1070" y="552" text-anchor="middle" font-size="8" fill="#cc2222">9011</text>
+  <text x="1070" y="594" text-anchor="middle" font-size="7" fill="#888888">SPT-01</text>
+  <text x="1070" y="603" text-anchor="middle" font-size="6" fill="#666666">SL-inner</text>
+
+  <!-- ===== SCALE BAR (0–8m, 1m intervals, 1000mm = 107.65px ≈ 108px) ===== -->
+  <text x="175" y="628" font-size="8" fill="#2244cc">SCALE (proportional · 1px ≈ 9.3mm)</text>
+  <!-- Alternating filled / outlined blocks -->
+  <rect x="175" y="632" width="108" height="8" fill="#2244cc"/>
+  <rect x="283" y="632" width="108" height="8" fill="#000000" stroke="#2244cc" stroke-width="1"/>
+  <rect x="391" y="632" width="108" height="8" fill="#2244cc"/>
+  <rect x="499" y="632" width="108" height="8" fill="#000000" stroke="#2244cc" stroke-width="1"/>
+  <rect x="607" y="632" width="108" height="8" fill="#2244cc"/>
+  <rect x="715" y="632" width="108" height="8" fill="#000000" stroke="#2244cc" stroke-width="1"/>
+  <rect x="823" y="632" width="108" height="8" fill="#2244cc"/>
+  <rect x="931" y="632" width="108" height="8" fill="#000000" stroke="#2244cc" stroke-width="1"/>
+  <line x1="1039" y1="628" x2="1039" y2="644" stroke="#2244cc" stroke-width="1"/>
+  <!-- Labels -->
+  <text x="175" y="649" text-anchor="middle" font-size="7" fill="#2244cc">0</text>
+  <text x="283" y="649" text-anchor="middle" font-size="7" fill="#2244cc">1m</text>
+  <text x="391" y="649" text-anchor="middle" font-size="7" fill="#2244cc">2m</text>
+  <text x="499" y="649" text-anchor="middle" font-size="7" fill="#2244cc">3m</text>
+  <text x="607" y="649" text-anchor="middle" font-size="7" fill="#2244cc">4m</text>
+  <text x="715" y="649" text-anchor="middle" font-size="7" fill="#2244cc">5m</text>
+  <text x="823" y="649" text-anchor="middle" font-size="7" fill="#2244cc">6m</text>
+  <text x="931" y="649" text-anchor="middle" font-size="7" fill="#2244cc">7m</text>
+  <text x="1039" y="649" text-anchor="middle" font-size="7" fill="#2244cc">8m</text>
+
+  <!-- ===== NOTES BLOCK ===== -->
+  <rect x="175" y="660" width="1050" height="222" fill="none" stroke="#2244cc" stroke-width="0.75"/>
+  <text x="185" y="677" font-size="9" font-weight="bold" fill="#2244cc">CONFIRMED DIMENSIONS — SYNRGY SPLIT THE VIEWS 1.8.0 REV C</text>
+  <text x="185" y="691" font-size="8.5" fill="#2244cc">• ALL CONFIRMED: 32'-0" OVERALL WIDTH · 4× 8'-0" BAY CENTRES · 4'-0" ROW DEPTH EACH ROW · 2600mm POLE HEIGHT · 1000mm UNIT TOP</text>
+  <text x="185" y="705" font-size="8.5" fill="#2244cc">• BAY CENTRES FROM SR: 1219mm · 3658mm · 6096mm · 8534mm · RISER DECKS: 2× (4'-0" WIDE × 8'-0" DEEP)</text>
+  <text x="185" y="719" font-size="8.5" font-style="italic" fill="#2244cc">• FIELD VERIFY: ROW GAP (separation between US and DS deck rows) · RISER GAP (between SR and SL risers) — shown dashed</text>
+  <line x1="185" y1="727" x2="1215" y2="727" stroke="#2244cc" stroke-width="0.5" stroke-dasharray="4,4"/>
+  <text x="185" y="741" font-size="8.5" fill="#888888">FIXTURE COUNT: 23 TOTAL · 16× NUOMA RGBW PAR (8011–8082) · 4× ACME SPARTAN HYBRID (9011–9041) · 3× DRAGON TILT STROBE (7011–7031)</text>
+  <text x="185" y="755" font-size="8.5" fill="#888888">DMX U1: CH 1–128 PARS (8ch each) · CH 129–224 SPARTANS (24ch each) · CH 225–271 DRAGONS (15ch each) · CH 272+ SPARE</text>
+  <text x="185" y="769" font-size="8.5" fill="#888888">CENTROID STATUS: X CONFIRMED (bay centroids from SR) · Y PARTIAL (FV row gap unknown) · Z CONFIRMED (pole top = 1000mm, top = 2600mm)</text>
+  <line x1="185" y1="777" x2="1215" y2="777" stroke="#2244cc" stroke-width="0.5" stroke-dasharray="4,4"/>
+  <text x="185" y="791" font-size="8" fill="#555555">SPARTAN HYBRID: Extended 24ch · Strike all 4 at load-in · ≥10 min warmup before gobos/focus · Ch24=255 = RESET (hold 3s) ⚠</text>
+  <text x="185" y="804" font-size="8" fill="#555555">DRAGON: 15ch mode · Tilt Ch1 centre = DMX 128 · RGB colour mixing (not CMY) · TILT ONLY no pan · Rebuild all colour + position presets</text>
+  <text x="185" y="817" font-size="8" fill="#555555">NUOMA: 8ch mode · Ch4 = Dimmer (not Ch1) · Ch3 = Shutter · Open white: Ch3=255 Ch4=255 Ch8=255</text>
+  <text x="185" y="830" font-size="8" fill="#555555">FIXTURE SWAP: Rivale→Spartan (6→4 units, CMY) · Color Strike M→Dragon (RGB+TILT) · LED Par→Nuoma RGBW Par (RGBW carry-over likely)</text>
+  <line x1="185" y1="838" x2="1215" y2="838" stroke="#333355" stroke-width="0.5"/>
+  <text x="185" y="851" font-size="7.5" fill="#446688">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-27</text>
+  <text x="185" y="864" font-size="7" fill="#333355">DRAWING 06 · TOURIST @ MOD CLUB 722 COLLEGE ST TORONTO · JUNE 26 2026 · LX TECH: ROMAR JOHNSON (EMBLEM PROJECTS INC.) FOR BACKLINER INC.</text>
+  <text x="185" y="876" font-size="7" fill="#333355">FILE: 06-dimensioned-plan.svg · MA2 show file: TOURIST_ModClub_20260626_FloorPkg · U1 ch 1–271 used · 241 spare</text>
+
+</svg>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://schemas.malighting.de/grandma2/xml/MA"
+    xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd"
+    major_vers="3" minor_vers="9" stream_vers="60">
+  <Info datetime="2026-06-27T02:48:33" showfile="TOURIST_ModClub_20260626_FloorPkg" />
+  <FixtureType index="0"
+    name="Dragon Tilt Strobe Working"
+    manufacturer="Dragon"
+    short_name="Dragon Strobe"
+    generic_type="1"
+    mode_name="15ch"
+    mode_short_name="15ch"
+    dmx_channel_count="15">
+    <!-- Ch1: Tilt — center = DMX 128, range 0=-90deg to 255=+90deg -->
+    <FixtureChannel index="0"  name="Tilt"          attribute="Tilt"       default="128" highlight="128" home_position="128" />
+    <!-- Ch2: Position Mode — tilt speed / tracking mode -->
+    <FixtureChannel index="1"  name="Position Mode" attribute="TiltMode"   default="0"   highlight="0"   home_position="0" />
+    <!-- Ch3: Main dimmer — full LED panel master -->
+    <FixtureChannel index="2"  name="Dim"           attribute="Dim"        default="0"   highlight="255" home_position="0" />
+    <!-- Ch4: Main strobe/shutter -->
+    <FixtureChannel index="3"  name="Strobe"        attribute="Shutter"    default="0"   highlight="255" home_position="255" />
+    <!-- Ch5: Built-in effect macros -->
+    <FixtureChannel index="4"  name="Effect Macros" attribute="Macros"     default="0"   highlight="0"   home_position="0" />
+    <!-- Ch6: Effect rate / speed -->
+    <FixtureChannel index="5"  name="Effect Rate"   attribute="MacroRate"  default="0"   highlight="0"   home_position="0" />
+    <!-- Ch7-9: RGB — all three LED sections ganged -->
+    <FixtureChannel index="6"  name="Red"           attribute="ColorRGB_R" default="0"   highlight="255" home_position="0" />
+    <FixtureChannel index="7"  name="Green"         attribute="ColorRGB_G" default="0"   highlight="255" home_position="0" />
+    <FixtureChannel index="8"  name="Blue"          attribute="ColorRGB_B" default="0"   highlight="255" home_position="0" />
+    <!-- Ch10: 3rd LED section individual intensity -->
+    <FixtureChannel index="9"  name="Dim3"          attribute="Dim3"       default="255" highlight="255" home_position="255" />
+    <!-- Ch11: 2nd section strobe -->
+    <FixtureChannel index="10" name="Strobe2"       attribute="Shutter2"   default="0"   highlight="0"   home_position="255" />
+    <!-- Ch12: 2nd section macros -->
+    <FixtureChannel index="11" name="FxMacros3"     attribute="Macros2"    default="0"   highlight="0"   home_position="0" />
+    <!-- Ch13: 2nd section rate -->
+    <FixtureChannel index="12" name="FxRate3"       attribute="MacroRate2" default="0"   highlight="0"   home_position="0" />
+    <!-- Ch14: 2nd LED section individual intensity -->
+    <FixtureChannel index="13" name="Dim2"          attribute="Dim2"       default="255" highlight="255" home_position="255" />
+    <!-- Ch15: Reserved / dummy — no function -->
+    <FixtureChannel index="14" name="Reserved"      attribute="NoFeature"  default="0"   highlight="0"   home_position="0" />
+  </FixtureType>
+</MA>

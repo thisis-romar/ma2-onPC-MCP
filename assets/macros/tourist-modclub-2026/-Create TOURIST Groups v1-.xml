@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MA xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.malighting.de/grandma2/xml/MA" xsi:schemaLocation="http://schemas.malighting.de/grandma2/xml/MA http://schemas.malighting.de/grandma2/xml/3.9.60/MA.xsd" major_vers="3" minor_vers="9" stream_vers="60">
+	<Info datetime="2026-06-26T18:13:53" showfile="TOURIST_ModClub_20260626_FloorPkg" />
+	<Macro index="0" name="-Create TOURIST Groups v1-">
+		<Appearance Color="00cc88" />
+
+		<!-- HEADER -->
+		<Macroline index="0" delay="0.06">
+			<text>Menu On "CommandlineResponse"</text>
+			<info>HEADER: show feedback during run</info>
+		</Macroline>
+		<Macroline index="1" delay="0.06">
+			<text>ClearAll</text>
+			<info>HEADER: clean slate</info>
+		</Macroline>
+
+		<!-- GROUP 1: All Pars — 16 Nuoma RGBW Par, Poles 1-8 USR→DSL, top+mid -->
+		<Macroline index="2" delay="0.06">
+			<text>ClearAll</text>
+			<info>G1 ALL PARS: clear before selection</info>
+		</Macroline>
+		<Macroline index="3" delay="0.10">
+			<text>Fixture 8011 + 8012 + 8021 + 8022 + 8031 + 8032 + 8041 + 8042 + 8051 + 8052 + 8061 + 8062 + 8071 + 8072 + 8081 + 8082</text>
+			<info>G1 ALL PARS: all 16 Nuoma RGBW Par in stage order (USR→DSL, top→mid per pole)</info>
+		</Macroline>
+		<Macroline index="4" delay="0.06">
+			<text>Store Group 1 /o</text>
+			<info>G1 ALL PARS: store</info>
+		</Macroline>
+
+		<!-- GROUP 2: Pars Upstage — Poles 1-4 (USR, USC-R, USC-L, USL) -->
+		<Macroline index="5" delay="0.06">
+			<text>ClearAll</text>
+			<info>G2 PARS UP: clear</info>
+		</Macroline>
+		<Macroline index="6" delay="0.10">
+			<text>Fixture 8011 + 8012 + 8021 + 8022 + 8031 + 8032 + 8041 + 8042</text>
+			<info>G2 PARS UP: Poles 1-4 upstage (USR→USL)</info>
+		</Macroline>
+		<Macroline index="7" delay="0.06">
+			<text>Store Group 2 /o</text>
+			<info>G2 PARS UP: store</info>
+		</Macroline>
+
+		<!-- GROUP 3: Pars Downstage — Poles 5-8 (DSR, DSC-R, DSC-L, DSL) -->
+		<Macroline index="8" delay="0.06">
+			<text>ClearAll</text>
+			<info>G3 PARS DOWN: clear</info>
+		</Macroline>
+		<Macroline index="9" delay="0.10">
+			<text>Fixture 8051 + 8052 + 8061 + 8062 + 8071 + 8072 + 8081 + 8082</text>
+			<info>G3 PARS DOWN: Poles 5-8 downstage (DSR→DSL)</info>
+		</Macroline>
+		<Macroline index="10" delay="0.06">
+			<text>Store Group 3 /o</text>
+			<info>G3 PARS DOWN: store</info>
+		</Macroline>
+
+		<!-- GROUP 4: All Spartans — 4 Acme Spartan Hybrid, SL-inner→SR-inner -->
+		<Macroline index="11" delay="0.06">
+			<text>ClearAll</text>
+			<info>G4 ALL SPARTANS: clear</info>
+		</Macroline>
+		<Macroline index="12" delay="0.10">
+			<text>Fixture 9011 + 9021 + 9031 + 9041</text>
+			<info>G4 ALL SPARTANS: SL-inner → C-SL → C-SR → SR-inner</info>
+		</Macroline>
+		<Macroline index="13" delay="0.06">
+			<text>Store Group 4 /o</text>
+			<info>G4 ALL SPARTANS: store</info>
+		</Macroline>
+
+		<!-- GROUP 5: Spartans SL — SPT-01 (SL-inner) + SPT-02 (C-SL) -->
+		<Macroline index="14" delay="0.06">
+			<text>ClearAll</text>
+			<info>G5 SPARTANS SL: clear</info>
+		</Macroline>
+		<Macroline index="15" delay="0.10">
+			<text>Fixture 9011 + 9021</text>
+			<info>G5 SPARTANS SL: deck SL-inner + C-SL</info>
+		</Macroline>
+		<Macroline index="16" delay="0.06">
+			<text>Store Group 5 /o</text>
+			<info>G5 SPARTANS SL: store</info>
+		</Macroline>
+
+		<!-- GROUP 6: Spartans SR — SPT-03 (C-SR) + SPT-04 (SR-inner) -->
+		<Macroline index="17" delay="0.06">
+			<text>ClearAll</text>
+			<info>G6 SPARTANS SR: clear</info>
+		</Macroline>
+		<Macroline index="18" delay="0.10">
+			<text>Fixture 9031 + 9041</text>
+			<info>G6 SPARTANS SR: deck C-SR + SR-inner</info>
+		</Macroline>
+		<Macroline index="19" delay="0.06">
+			<text>Store Group 6 /o</text>
+			<info>G6 SPARTANS SR: store</info>
+		</Macroline>
+
+		<!-- GROUP 7: All Dragons — 3 Dragon Tilt Strobe LD-3127B, SL→SR -->
+		<Macroline index="20" delay="0.06">
+			<text>ClearAll</text>
+			<info>G7 ALL DRAGONS: clear</info>
+		</Macroline>
+		<Macroline index="21" delay="0.10">
+			<text>Fixture 7011 + 7021 + 7031</text>
+			<info>G7 ALL DRAGONS: SL of risers → Centre → SR of risers</info>
+		</Macroline>
+		<Macroline index="22" delay="0.06">
+			<text>Store Group 7 /o</text>
+			<info>G7 ALL DRAGONS: store</info>
+		</Macroline>
+
+		<!-- GROUP 8: All Rig — all 23 fixtures (Pars USR→DSL, Spartans SL→SR, Dragons SL→SR) -->
+		<Macroline index="23" delay="0.06">
+			<text>ClearAll</text>
+			<info>G8 ALL RIG: clear</info>
+		</Macroline>
+		<Macroline index="24" delay="0.10">
+			<text>Fixture 8011 + 8012 + 8021 + 8022 + 8031 + 8032 + 8041 + 8042 + 8051 + 8052 + 8061 + 8062 + 8071 + 8072 + 8081 + 8082 + 9011 + 9021 + 9031 + 9041 + 7011 + 7021 + 7031</text>
+			<info>G8 ALL RIG: all 23 fixtures — Pars (USR→DSL) + Spartans (SL→SR) + Dragons (SL→SR)</info>
+		</Macroline>
+		<Macroline index="25" delay="0.06">
+			<text>Store Group 8 /o</text>
+			<info>G8 ALL RIG: store</info>
+		</Macroline>
+
+		<!-- POLE GROUPS 11-18: 2 fixtures per pole (top + mid), USR→DSL -->
+
+		<!-- GROUP 11: Pole 1 (USR) -->
+		<Macroline index="26" delay="0.06">
+			<text>ClearAll</text>
+			<info>G11 POLE1 USR: clear</info>
+		</Macroline>
+		<Macroline index="27" delay="0.10">
+			<text>Fixture 8011 + 8012</text>
+			<info>G11 POLE1 USR: top + mid</info>
+		</Macroline>
+		<Macroline index="28" delay="0.06">
+			<text>Store Group 11 /o</text>
+			<info>G11 POLE1 USR: store</info>
+		</Macroline>
+
+		<!-- GROUP 12: Pole 2 (USC-R) -->
+		<Macroline index="29" delay="0.06">
+			<text>ClearAll</text>
+			<info>G12 POLE2 USC-R: clear</info>
+		</Macroline>
+		<Macroline index="30" delay="0.10">
+			<text>Fixture 8021 + 8022</text>
+			<info>G12 POLE2 USC-R: top + mid</info>
+		</Macroline>
+		<Macroline index="31" delay="0.06">
+			<text>Store Group 12 /o</text>
+			<info>G12 POLE2 USC-R: store</info>
+		</Macroline>
+
+		<!-- GROUP 13: Pole 3 (USC-L) -->
+		<Macroline index="32" delay="0.06">
+			<text>ClearAll</text>
+			<info>G13 POLE3 USC-L: clear</info>
+		</Macroline>
+		<Macroline index="33" delay="0.10">
+			<text>Fixture 8031 + 8032</text>
+			<info>G13 POLE3 USC-L: top + mid</info>
+		</Macroline>
+		<Macroline index="34" delay="0.06">
+			<text>Store Group 13 /o</text>
+			<info>G13 POLE3 USC-L: store</info>
+		</Macroline>
+
+		<!-- GROUP 14: Pole 4 (USL) -->
+		<Macroline index="35" delay="0.06">
+			<text>ClearAll</text>
+			<info>G14 POLE4 USL: clear</info>
+		</Macroline>
+		<Macroline index="36" delay="0.10">
+			<text>Fixture 8041 + 8042</text>
+			<info>G14 POLE4 USL: top + mid</info>
+		</Macroline>
+		<Macroline index="37" delay="0.06">
+			<text>Store Group 14 /o</text>
+			<info>G14 POLE4 USL: store</info>
+		</Macroline>
+
+		<!-- GROUP 15: Pole 5 (DSR) -->
+		<Macroline index="38" delay="0.06">
+			<text>ClearAll</text>
+			<info>G15 POLE5 DSR: clear</info>
+		</Macroline>
+		<Macroline index="39" delay="0.10">
+			<text>Fixture 8051 + 8052</text>
+			<info>G15 POLE5 DSR: top + mid</info>
+		</Macroline>
+		<Macroline index="40" delay="0.06">
+			<text>Store Group 15 /o</text>
+			<info>G15 POLE5 DSR: store</info>
+		</Macroline>
+
+		<!-- GROUP 16: Pole 6 (DSC-R) -->
+		<Macroline index="41" delay="0.06">
+			<text>ClearAll</text>
+			<info>G16 POLE6 DSC-R: clear</info>
+		</Macroline>
+		<Macroline index="42" delay="0.10">
+			<text>Fixture 8061 + 8062</text>
+			<info>G16 POLE6 DSC-R: top + mid</info>
+		</Macroline>
+		<Macroline index="43" delay="0.06">
+			<text>Store Group 16 /o</text>
+			<info>G16 POLE6 DSC-R: store</info>
+		</Macroline>
+
+		<!-- GROUP 17: Pole 7 (DSC-L) -->
+		<Macroline index="44" delay="0.06">
+			<text>ClearAll</text>
+			<info>G17 POLE7 DSC-L: clear</info>
+		</Macroline>
+		<Macroline index="45" delay="0.10">
+			<text>Fixture 8071 + 8072</text>
+			<info>G17 POLE7 DSC-L: top + mid</info>
+		</Macroline>
+		<Macroline index="46" delay="0.06">
+			<text>Store Group 17 /o</text>
+			<info>G17 POLE7 DSC-L: store</info>
+		</Macroline>
+
+		<!-- GROUP 18: Pole 8 (DSL) -->
+		<Macroline index="47" delay="0.06">
+			<text>ClearAll</text>
+			<info>G18 POLE8 DSL: clear</info>
+		</Macroline>
+		<Macroline index="48" delay="0.10">
+			<text>Fixture 8081 + 8082</text>
+			<info>G18 POLE8 DSL: top + mid</info>
+		</Macroline>
+		<Macroline index="49" delay="0.06">
+			<text>Store Group 18 /o</text>
+			<info>G18 POLE8 DSL: store</info>
+		</Macroline>
+
+		<!-- LABELS + APPEARANCE — type/zone groups (hue: Pars=200, Spartans=30, Dragons=0, All=120) -->
+		<Macroline index="50" delay="0.06">
+			<text>Label Group 1 "All Pars" ; Appearance Group 1 /h=200 /s=80 /br=100</text>
+			<info>LABEL G1</info>
+		</Macroline>
+		<Macroline index="51" delay="0.06">
+			<text>Label Group 2 "Pars Upstage" ; Appearance Group 2 /h=200 /s=60 /br=80</text>
+			<info>LABEL G2</info>
+		</Macroline>
+		<Macroline index="52" delay="0.06">
+			<text>Label Group 3 "Pars Downstage" ; Appearance Group 3 /h=200 /s=60 /br=80</text>
+			<info>LABEL G3</info>
+		</Macroline>
+		<Macroline index="53" delay="0.06">
+			<text>Label Group 4 "All Spartans" ; Appearance Group 4 /h=30 /s=80 /br=100</text>
+			<info>LABEL G4</info>
+		</Macroline>
+		<Macroline index="54" delay="0.06">
+			<text>Label Group 5 "Spartans SL" ; Appearance Group 5 /h=30 /s=60 /br=80</text>
+			<info>LABEL G5</info>
+		</Macroline>
+		<Macroline index="55" delay="0.06">
+			<text>Label Group 6 "Spartans SR" ; Appearance Group 6 /h=30 /s=60 /br=80</text>
+			<info>LABEL G6</info>
+		</Macroline>
+		<Macroline index="56" delay="0.06">
+			<text>Label Group 7 "All Dragons" ; Appearance Group 7 /h=0 /s=80 /br=100</text>
+			<info>LABEL G7</info>
+		</Macroline>
+		<Macroline index="57" delay="0.06">
+			<text>Label Group 8 "All Rig" ; Appearance Group 8 /h=120 /s=60 /br=100</text>
+			<info>LABEL G8</info>
+		</Macroline>
+
+		<!-- LABELS + APPEARANCE — per-pole groups (hue 200, lighter saturation for sub-groups) -->
+		<Macroline index="58" delay="0.06">
+			<text>Label Group 11 "Pole 1 USR" ; Appearance Group 11 /h=200 /s=40 /br=70</text>
+			<info>LABEL G11</info>
+		</Macroline>
+		<Macroline index="59" delay="0.06">
+			<text>Label Group 12 "Pole 2 USC-R" ; Appearance Group 12 /h=200 /s=40 /br=70</text>
+			<info>LABEL G12</info>
+		</Macroline>
+		<Macroline index="60" delay="0.06">
+			<text>Label Group 13 "Pole 3 USC-L" ; Appearance Group 13 /h=200 /s=40 /br=70</text>
+			<info>LABEL G13</info>
+		</Macroline>
+		<Macroline index="61" delay="0.06">
+			<text>Label Group 14 "Pole 4 USL" ; Appearance Group 14 /h=200 /s=40 /br=70</text>
+			<info>LABEL G14</info>
+		</Macroline>
+		<Macroline index="62" delay="0.06">
+			<text>Label Group 15 "Pole 5 DSR" ; Appearance Group 15 /h=200 /s=40 /br=70</text>
+			<info>LABEL G15</info>
+		</Macroline>
+		<Macroline index="63" delay="0.06">
+			<text>Label Group 16 "Pole 6 DSC-R" ; Appearance Group 16 /h=200 /s=40 /br=70</text>
+			<info>LABEL G16</info>
+		</Macroline>
+		<Macroline index="64" delay="0.06">
+			<text>Label Group 17 "Pole 7 DSC-L" ; Appearance Group 17 /h=200 /s=40 /br=70</text>
+			<info>LABEL G17</info>
+		</Macroline>
+		<Macroline index="65" delay="0.06">
+			<text>Label Group 18 "Pole 8 DSL" ; Appearance Group 18 /h=200 /s=40 /br=70</text>
+			<info>LABEL G18</info>
+		</Macroline>
+
+		<!-- FOOTER -->
+		<Macroline index="66" delay="0.06">
+			<text>ClearAll</text>
+			<info>FOOTER: clear programmer</info>
+		</Macroline>
+		<Macroline index="67" delay="0.06">
+			<text>Menu Off "CommandlineResponse"</text>
+			<info>FOOTER: hide feedback</info>
+		</Macroline>
+	</Macro>
+</MA>

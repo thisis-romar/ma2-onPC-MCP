@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TOURIST @ The Mod Club · June 26, 2026 · Drawing 3: Deck Fixtures Detail -->
+<!-- 4× Acme Spartan Hybrid · 3× Dragon Tilt Strobe · ch 129–271 · B2 SR→SL -->
+<svg viewBox="0 0 1100 638" xmlns="http://www.w3.org/2000/svg" font-family="'Courier New',Courier,monospace">
+
+  <!-- Background -->
+  <rect width="1100" height="620" fill="#070c16"/>
+
+  <!-- Title -->
+  <text x="550" y="26" text-anchor="middle" font-size="15" font-weight="bold" fill="#e2e8f0">Drawing 3 · Deck Fixtures Detail · Spartans + Dragons</text>
+  <text x="550" y="43" text-anchor="middle" font-size="10" fill="#4a5568">ch 129–271 · Option B2: SR → SL · Deck Level · The Mod Club</text>
+
+  <!-- Stage floor -->
+  <rect x="50" y="55" width="1000" height="530" rx="6" fill="#0a1020" stroke="#1a2a40" stroke-width="1.5"/>
+
+  <!-- SR/SL -->
+  <text x="64" y="71" font-size="9" fill="#2a4060">SR ▶</text>
+  <line x1="95" y1="67" x2="1038" y2="67" stroke="#1a2a40" stroke-width="1"/>
+  <text x="1043" y="71" font-size="9" fill="#2a4060" text-anchor="end">◀ SL</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SPARTANS · ch 129–224 · Circuit C (SL pair) + D (SR pair) -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="57" y="77" width="986" height="248" rx="4" fill="#0e0600"/>
+  <text x="550" y="94" text-anchor="middle" font-size="11" font-weight="bold" fill="#cc6600">── ACME SPARTAN HYBRID ×4 · Extended 24ch · Discharge 470W MSD 20R ──</text>
+  <text x="550" y="108" text-anchor="middle" font-size="9" fill="#805020">B2 order SR→SL · Ccts C+D: 208V/30A · Strike singly 30s apart · 10 min warmup</text>
+
+  <!-- SPT-04 · SR-inner · ch 129-152 · Circuit D -->
+  <rect x="68" y="116" width="228" height="195" rx="6" fill="#200a00" stroke="#d06000" stroke-width="2"/>
+  <!-- Moving head icon (circle + yoke lines) -->
+  <circle cx="130" cy="155" r="22" fill="#3a1500" stroke="#ff9933" stroke-width="2"/>
+  <text x="130" y="161" text-anchor="middle" font-size="16" fill="#ff9933">☆</text>
+  <line x1="108" y1="155" x2="80" y2="155" stroke="#804020" stroke-width="2"/>
+  <line x1="152" y1="155" x2="180" y2="155" stroke="#804020" stroke-width="2"/>
+  <!-- Data -->
+  <text x="182" y="133" font-size="13" font-weight="bold" fill="#fed7aa">9041</text>
+  <text x="182" y="148" font-size="9" fill="#fb923c">SPT-04</text>
+  <text x="182" y="161" font-size="9" fill="#fbbf80">SR-inner</text>
+  <text x="182" y="178" font-size="11" font-weight="bold" fill="#f97316">ch 129–152</text>
+  <text x="182" y="192" font-size="8" fill="#a05020">24 channels</text>
+  <!-- Circuit badge -->
+  <rect x="72" y="282" width="60" height="18" rx="3" fill="#3a1800" stroke="#d06000" stroke-width="1"/>
+  <text x="102" y="295" text-anchor="middle" font-size="8" fill="#ff9933">Cct D 208V</text>
+  <!-- Reset warning -->
+  <rect x="68" y="299" width="228" height="16" rx="2" fill="#400000"/>
+  <text x="182" y="311" text-anchor="middle" font-size="8" fill="#ff4444">⚠ Reset ch = DMX 152  (Ch24=255 hold 3s)</text>
+
+  <!-- SPT-03 · C-SR · ch 153-176 · Circuit D -->
+  <rect x="309" y="116" width="228" height="195" rx="6" fill="#200a00" stroke="#d06000" stroke-width="2"/>
+  <circle cx="371" cy="155" r="22" fill="#3a1500" stroke="#ff9933" stroke-width="2"/>
+  <text x="371" y="161" text-anchor="middle" font-size="16" fill="#ff9933">☆</text>
+  <line x1="349" y1="155" x2="321" y2="155" stroke="#804020" stroke-width="2"/>
+  <line x1="393" y1="155" x2="421" y2="155" stroke="#804020" stroke-width="2"/>
+  <text x="423" y="133" font-size="13" font-weight="bold" fill="#fed7aa">9031</text>
+  <text x="423" y="148" font-size="9" fill="#fb923c">SPT-03</text>
+  <text x="423" y="161" font-size="9" fill="#fbbf80">C-SR</text>
+  <text x="423" y="178" font-size="11" font-weight="bold" fill="#f97316">ch 153–176</text>
+  <text x="423" y="192" font-size="8" fill="#a05020">24 channels</text>
+  <rect x="313" y="282" width="60" height="18" rx="3" fill="#3a1800" stroke="#d06000" stroke-width="1"/>
+  <text x="343" y="295" text-anchor="middle" font-size="8" fill="#ff9933">Cct D 208V</text>
+  <rect x="309" y="299" width="228" height="16" rx="2" fill="#400000"/>
+  <text x="423" y="311" text-anchor="middle" font-size="8" fill="#ff4444">⚠ Reset ch = DMX 176  (Ch24=255 hold 3s)</text>
+
+  <!-- SPT-02 · C-SL · ch 177-200 · Circuit C -->
+  <rect x="550" y="116" width="228" height="195" rx="6" fill="#200a00" stroke="#d06000" stroke-width="2"/>
+  <circle cx="612" cy="155" r="22" fill="#3a1500" stroke="#ff9933" stroke-width="2"/>
+  <text x="612" y="161" text-anchor="middle" font-size="16" fill="#ff9933">☆</text>
+  <line x1="590" y1="155" x2="562" y2="155" stroke="#804020" stroke-width="2"/>
+  <line x1="634" y1="155" x2="662" y2="155" stroke="#804020" stroke-width="2"/>
+  <text x="664" y="133" font-size="13" font-weight="bold" fill="#fed7aa">9021</text>
+  <text x="664" y="148" font-size="9" fill="#fb923c">SPT-02</text>
+  <text x="664" y="161" font-size="9" fill="#fbbf80">C-SL</text>
+  <text x="664" y="178" font-size="11" font-weight="bold" fill="#f97316">ch 177–200</text>
+  <text x="664" y="192" font-size="8" fill="#a05020">24 channels</text>
+  <rect x="554" y="282" width="60" height="18" rx="3" fill="#3a1800" stroke="#d06000" stroke-width="1"/>
+  <text x="584" y="295" text-anchor="middle" font-size="8" fill="#ff9933">Cct C 208V</text>
+  <rect x="550" y="299" width="228" height="16" rx="2" fill="#400000"/>
+  <text x="664" y="311" text-anchor="middle" font-size="8" fill="#ff4444">⚠ Reset ch = DMX 200  (Ch24=255 hold 3s)</text>
+
+  <!-- SPT-01 · SL-inner · ch 201-224 · Circuit C -->
+  <rect x="791" y="116" width="228" height="195" rx="6" fill="#200a00" stroke="#d06000" stroke-width="2"/>
+  <circle cx="853" cy="155" r="22" fill="#3a1500" stroke="#ff9933" stroke-width="2"/>
+  <text x="853" y="161" text-anchor="middle" font-size="16" fill="#ff9933">☆</text>
+  <line x1="831" y1="155" x2="803" y2="155" stroke="#804020" stroke-width="2"/>
+  <line x1="875" y1="155" x2="903" y2="155" stroke="#804020" stroke-width="2"/>
+  <text x="905" y="133" font-size="13" font-weight="bold" fill="#fed7aa">9011</text>
+  <text x="905" y="148" font-size="9" fill="#fb923c">SPT-01</text>
+  <text x="905" y="161" font-size="9" fill="#fbbf80">SL-inner</text>
+  <text x="905" y="178" font-size="11" font-weight="bold" fill="#f97316">ch 201–224</text>
+  <text x="905" y="192" font-size="8" fill="#a05020">24 channels</text>
+  <rect x="795" y="282" width="60" height="18" rx="3" fill="#3a1800" stroke="#d06000" stroke-width="1"/>
+  <text x="825" y="295" text-anchor="middle" font-size="8" fill="#ff9933">Cct C 208V</text>
+  <rect x="791" y="299" width="228" height="16" rx="2" fill="#400000"/>
+  <text x="905" y="311" text-anchor="middle" font-size="8" fill="#ff4444">⚠ Reset ch = DMX 224  (Ch24=255 hold 3s)</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- DRAGONS · ch 225–271 · Circuit E · 120V/20A               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="57" y="332" width="986" height="228" rx="4" fill="#0e0000"/>
+  <text x="550" y="349" text-anchor="middle" font-size="11" font-weight="bold" fill="#cc0000">── DRAGON TILT STROBE LD-3127B ×3 · 15ch · LED RGB · Tilt Only ──</text>
+  <text x="550" y="363" text-anchor="middle" font-size="9" fill="#802020">B2 order SR→SL · Cct E: 120V/20A · Tilt center = DMX 128 · 16ch spacing (gaps at 240, 256)</text>
+
+  <!-- DRG-03 · SR risers · ch 225-239 · [gap 240] -->
+  <rect x="68" y="372" width="300" height="178" rx="6" fill="#1a0000" stroke="#cc0000" stroke-width="2"/>
+  <!-- Tilt arrow icon -->
+  <line x1="150" y1="455" x2="150" y2="410" stroke="#440000" stroke-width="3"/>
+  <polygon points="150,400 140,420 160,420" fill="#cc0000"/>
+  <text x="150" y="470" text-anchor="middle" font-size="7" fill="#661111">TILT</text>
+  <!-- Data -->
+  <text x="240" y="393" text-anchor="middle" font-size="14" font-weight="bold" fill="#fecaca">7031</text>
+  <text x="240" y="410" text-anchor="middle" font-size="9" fill="#f87171">DRG-03</text>
+  <text x="240" y="425" text-anchor="middle" font-size="9" fill="#fc9090">SR risers</text>
+  <text x="240" y="444" text-anchor="middle" font-size="12" font-weight="bold" fill="#ef4444">ch 225–239</text>
+  <text x="240" y="459" text-anchor="middle" font-size="8" fill="#993333">15ch active · gap at 240</text>
+  <text x="240" y="474" text-anchor="middle" font-size="8" fill="#cc5555">RGB: Ch7 R · Ch8 G · Ch9 B</text>
+  <text x="240" y="489" text-anchor="middle" font-size="8" fill="#993333">Tilt Ch1 · Dim Ch3 · Strobe Ch4</text>
+  <!-- Circuit badge -->
+  <rect x="72" y="535" width="60" height="18" rx="3" fill="#300000" stroke="#aa0000" stroke-width="1"/>
+  <text x="102" y="548" text-anchor="middle" font-size="8" fill="#ef4444">Cct E 120V</text>
+
+  <!-- DRG-02 · Centre · ch 241-255 · [gap 256] -->
+  <rect x="400" y="372" width="300" height="178" rx="6" fill="#1a0000" stroke="#cc0000" stroke-width="2"/>
+  <line x1="482" y1="455" x2="482" y2="410" stroke="#440000" stroke-width="3"/>
+  <polygon points="482,400 472,420 492,420" fill="#cc0000"/>
+  <text x="482" y="470" text-anchor="middle" font-size="7" fill="#661111">TILT</text>
+  <text x="572" y="393" text-anchor="middle" font-size="14" font-weight="bold" fill="#fecaca">7021</text>
+  <text x="572" y="410" text-anchor="middle" font-size="9" fill="#f87171">DRG-02</text>
+  <text x="572" y="425" text-anchor="middle" font-size="9" fill="#fc9090">Centre</text>
+  <text x="572" y="444" text-anchor="middle" font-size="12" font-weight="bold" fill="#ef4444">ch 241–255</text>
+  <text x="572" y="459" text-anchor="middle" font-size="8" fill="#993333">15ch active · gap at 256</text>
+  <text x="572" y="474" text-anchor="middle" font-size="8" fill="#cc5555">RGB: Ch7 R · Ch8 G · Ch9 B</text>
+  <text x="572" y="489" text-anchor="middle" font-size="8" fill="#993333">Tilt Ch1 · Dim Ch3 · Strobe Ch4</text>
+  <rect x="404" y="535" width="60" height="18" rx="3" fill="#300000" stroke="#aa0000" stroke-width="1"/>
+  <text x="434" y="548" text-anchor="middle" font-size="8" fill="#ef4444">Cct E 120V</text>
+
+  <!-- DRG-01 · SL risers · ch 257-271 -->
+  <rect x="732" y="372" width="300" height="178" rx="6" fill="#1a0000" stroke="#cc0000" stroke-width="2"/>
+  <line x1="814" y1="455" x2="814" y2="410" stroke="#440000" stroke-width="3"/>
+  <polygon points="814,400 804,420 824,420" fill="#cc0000"/>
+  <text x="814" y="470" text-anchor="middle" font-size="7" fill="#661111">TILT</text>
+  <text x="904" y="393" text-anchor="middle" font-size="14" font-weight="bold" fill="#fecaca">7011</text>
+  <text x="904" y="410" text-anchor="middle" font-size="9" fill="#f87171">DRG-01</text>
+  <text x="904" y="425" text-anchor="middle" font-size="9" fill="#fc9090">SL risers</text>
+  <text x="904" y="444" text-anchor="middle" font-size="12" font-weight="bold" fill="#ef4444">ch 257–271</text>
+  <text x="904" y="459" text-anchor="middle" font-size="8" fill="#993333">15ch active · ch 272+ free</text>
+  <text x="904" y="474" text-anchor="middle" font-size="8" fill="#cc5555">RGB: Ch7 R · Ch8 G · Ch9 B</text>
+  <text x="904" y="489" text-anchor="middle" font-size="8" fill="#993333">Tilt Ch1 · Dim Ch3 · Strobe Ch4</text>
+  <rect x="736" y="535" width="60" height="18" rx="3" fill="#300000" stroke="#aa0000" stroke-width="1"/>
+  <text x="766" y="548" text-anchor="middle" font-size="8" fill="#ef4444">Cct E 120V</text>
+
+  <!-- Footer notes -->
+  <text x="550" y="575" text-anchor="middle" font-size="9" fill="#1a3050">▼  A U D I E N C E  ▼</text>
+  <text x="550" y="591" text-anchor="middle" font-size="8" fill="#2a3a4a">Dragon tilt range: DMX 0 = max tilt one dir · DMX 128 = centre/level · DMX 255 = max tilt other dir</text>
+  <text x="550" y="604" text-anchor="middle" font-size="8" fill="#2a3040">Dragon is RGB (not CMY) · Ch3=Dim · Ch4=Strobe · Rebuild all color presets from scratch</text>
+  <text x="550" y="617" text-anchor="middle" font-size="8" fill="#1a2030">Spartan Ch24: ⚠ 255=RESET (hold 3s) · strike individually · 10 min warmup · no GFCI circuits</text>
+
+  <!-- Confirmed dimension footer (added 2026-06-27) -->
+  <text x="550" y="633" text-anchor="middle" font-size="7" fill="#2a3a4a">32'-0" rig width · 8'-0" bay ctrs · 4'-0" row depth · 2600mm poles — SYNRGY Rev C confirmed 2026-06-26</text>
+
+</svg>

@@ -17,6 +17,11 @@
         "MODE": "local",
         "ANONYMIZED_TELEMETRY": "true"
       }
+    },
+    "ma2-brain": {
+      "command": "npm",
+      "args": ["run", "serve", "../grandma2-manual-vault"],
+      "cwd": "../grandMA2-user.manual-agent.brain"
     }
   }
 }
