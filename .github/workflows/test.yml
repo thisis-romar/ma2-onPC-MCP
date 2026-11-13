@@ -28,27 +28,22 @@ jobs:
       - name: Verify private submodule credential
         shell: bash
         env:
-          PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
         run: |
-          if [[ -z "$PRIVATE_SUBMODULE_PAT" ]]; then
+          if [[ -z "$GH_TOKEN" ]]; then
             echo "::error::Missing PRIVATE_SUBMODULE_PAT repository secret. Configure a read-only token for ma2-onPC-MCP-private."
             exit 1
           fi
-
-      - name: Resolve private submodule revision
-        id: private-revision
-        shell: bash
-        run: echo "sha=$(git rev-parse HEAD:src/private)" >> "$GITHUB_OUTPUT"
+          gh api "repos/thisis-romar/ma2-onPC-MCP-private/git/commits/$(git rev-parse HEAD:src/private)" --silent
 
       - name: Checkout private tools
-        uses: actions/checkout@v6
-        with:
-          repository: thisis-romar/ma2-onPC-MCP-private
-          ref: ${{ steps.private-revision.outputs.sha }}
-          path: src/private
-          submodules: recursive
-          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-          persist-credentials: false
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          git -c credential.helper= \
+            -c 'credential.helper=!gh auth git-credential' \
+            submodule update --init --recursive src/private
 
       - name: Verify private submodule checkout
         shell: bash
