@@ -13,21 +13,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout public repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
       - name: Verify private submodule credential
         shell: bash
         env:
-          PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
         run: |
-          if [[ -z "$PRIVATE_SUBMODULE_PAT" ]]; then
-            echo "::error::Missing PRIVATE_SUBMODULE_PAT repository secret. Configure a read-only token for both repositories."
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo "::error::Missing PRIVATE_SUBMODULE_PAT repository secret. Configure a read-only token for ma2-onPC-MCP-private."
             exit 1
           fi
+          gh api "repos/thisis-romar/ma2-onPC-MCP-private/git/commits/$(git rev-parse HEAD:src/private)" --silent
 
-      - uses: actions/checkout@v6
-        with:
-          submodules: recursive
-          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-          persist-credentials: false
+      - name: Checkout private tools
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+        run: |
+          git -c credential.helper= \
+            -c 'credential.helper=!gh auth git-credential' \
+            submodule update --init --recursive src/private
 
       - name: Verify private submodule checkout
         shell: bash
