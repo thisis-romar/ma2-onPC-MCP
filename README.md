@@ -1,13 +1,15 @@
 ---
 title: GrandPA2-Buddy
 description: AI agent for grandMA2 lighting consoles — 210 MCP tools via Telnet
-version: 3.39.2
+version: 3.39.3
 created: 2025-11-04T17:05:43Z
-last_updated: 2026-09-18T21:27:07Z
+last_updated: 2026-11-13T18:08:33Z
 ---
 
 <p align="center">
-  <img src="assets/header.jpeg" alt="GrandPA2-Buddy — grandMA2 Console Agent" width="100%">
+  <img src="assets/header.gif" alt="Animated GrandPA2-Buddy banner — grandMA2 Console Agent" width="100%">
+  <br>
+  <strong>MA</strong> · <a href="https://github.com/thisis-romar/ma2-onPC-MCP/releases/tag/v3.25.1">GrandPA2-Buddy v3.25.1</a> · Latest published release (prerelease)
 </p>
 
 # GrandPA2-Buddy 👨‍🎨
@@ -18,7 +20,7 @@ last_updated: 2026-09-18T21:27:07Z
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/.python-version"><img src="https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge" alt="Python 3.12+"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/src/server.py"><img src="https://img.shields.io/badge/MCP%20Tools-210-brightgreen?style=for-the-badge" alt="210 MCP Tools"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/tree/main/tests"><img src="https://img.shields.io/badge/Tests-3705-brightgreen?style=for-the-badge" alt="3705 Tests"></a>
-  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/Version-3.35.3-purple?style=for-the-badge" alt="Version 3.35.3"></a>
+  <a href="https://github.com/thisis-romar/ma2-onPC-MCP/releases/tag/v3.25.1"><img src="https://img.shields.io/badge/Release-v3.25.1%20prerelease-purple?style=for-the-badge" alt="Latest published release: v3.25.1 (prerelease)"></a>
   <br>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/stargazers"><img src="https://img.shields.io/github/stars/thisis-romar/ma2-onPC-MCP?style=for-the-badge" alt="GitHub Stars"></a>
   <a href="https://github.com/thisis-romar/ma2-onPC-MCP/blob/main/uv.lock"><img src="https://img.shields.io/badge/MCP%20SDK-%E2%89%A5%201.21-blue?style=for-the-badge" alt="MCP SDK >= 1.21"></a>
